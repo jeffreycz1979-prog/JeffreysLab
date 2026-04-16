@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <meta charset="utf-8">
+    <title>Wordsearch 產生器 | NewCore Lab</title>
+    <style>
+      /* 全域與網頁顯示樣式 */
+      body { 
+        font-family: "Microsoft JhengHei", sans-serif; 
+        background-color: #f4f7f6;
+        margin: 0;
+        padding: 40px;
+        color: #333;
+      }
+      .container {
+        max-width: 800px;
+        margin: auto;
+        background: #fff;
+        padding: 30px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        border-radius: 8px;
+      }
+      
+      /* 導覽列樣式 */
+      .nav-bar { 
+        display: flex; 
+        gap: 10px; 
+        margin-bottom: 20px; 
+        border-bottom: 2px solid #bdc3c7; 
+        padding-bottom: 15px; 
+      }
+      .nav-btn { 
+        text-decoration: none; 
+        padding: 10px 20px; 
+        background: #ecf0f1; 
+        color: #333; 
+        border-radius: 6px; 
+        font-weight: bold; 
+        transition: 0.3s; 
+        font-size: 16px;
+      }
+      .nav-btn:hover { background: #bdc3c7; }
+      .active-nav { background: #2c3e50; color: white; pointer-events: none;}
+
+      /* 控制面板 (列印時隱藏) */
+      .no-print {
+        background: #eef2f3;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 30px;
+      }
+      .input-group { margin-bottom: 15px; }
+      input[type="text"] { 
+        width: 100%; 
+        padding: 10px; 
+        font-size: 16px; 
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+      }
+      select {
+        padding: 10px;
+        font-size: 16px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+      }
+      label { cursor: pointer; }
+      button { 
+        padding: 10px 25px; 
+        font-size: 16px; 
+        cursor: pointer; 
+        border: none;
+        border-radius: 4px;
+        transition: 0.3s;
+      }
+      .btn-generate { background: #3498db; color: white; }
+      .btn-print { background: #2ecc71; color: white; margin-left: 10px; }
+      button:hover { opacity: 0.8; }
+
+      /* --- 學習單基礎排版 --- */
+      .worksheet {
+        padding: 10px 20px;
+        background: #fff;
+        box-sizing: border-box;
+      }
+      .page-break {
+        page-break-after: always; 
+        padding: 5mm; 
+        box-sizing: border-box;
+      }
+      
+      /* 表頭防跑版設計 */
+      .header-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        border-bottom: 3px solid #2c3e50;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+      }
+      .title-box h1 { 
+        font-size: 20pt; 
+        margin: 0; 
+        color: #2c3e50;
+        white-space: nowrap; 
+      }
+      .student-info {
+        display: flex;
+        gap: 15px;
+        font-size: 14pt;
+        font-weight: bold;
+        white-space: nowrap; 
+      }
+      .input-box {
+        display: inline-block;
+        border: 2px solid #7f8c8d;
+        border-radius: 4px;
+        background: #fff;
+        height: 28px;
+        vertical-align: middle;
+      }
+      .box-name { width: 130px; }
+      .box-score { width: 60px; }
+
+      /* Wordsearch 網格 */
+      .grid-container {
+        display: flex;
+        justify-content: center;
+        margin: 30px 0;
+      }
+      .grid { 
+        display: inline-block; 
+        border: 3px solid #2c3e50; 
+        padding: 10px;
+        background: #fff;
+      }
+      .row { display: flex; }
+      .cell { 
+        width: 45px; 
+        height: 45px; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        font-size: 20pt; 
+        font-weight: bold;
+        border: 1px solid #eee;
+        color: #2c3e50;
+      }
+
+      /* 單字表 */
+      .word-list-section {
+        padding: 20px;
+        border: 2px dashed #bdc3c7;
+        border-radius: 8px;
+      }
+      .word-list-title {
+        font-size: 14pt;
+        font-weight: bold;
+        margin-bottom: 10px;
+      }
+      .word-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        font-size: 14pt;
+        color: #333;
+      }
+
+      /* 裁切線設計 (僅預覽時顯示，列印時依賴排版) */
+      .cut-line {
+        display: none;
+        border-top: 2px dashed #95a5a6;
+        margin: 40px 0;
+        position: relative;
+        text-align: center;
+      }
+      .cut-line::after {
+        content: "✂️ 沿虛線剪開";
+        position: absolute;
+        top: -12px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #fff;
+        padding: 0 15px;
+        color: #7f8c8d;
+        font-size: 12pt;
+      }
+      body.layout-2up .cut-line.preview-cut { display: block; }
+
+      /* --- 列印與排版模式切換 --- */
+      @media print {
+        @page { size: A4 portrait; margin: 10mm; }
+        body { background: white; padding: 0; }
+        .container { box-shadow: none; width: 100%; max-width: 100%; padding: 0; }
+        .no-print { display: none; }
+        .cell { border: 1px solid #ccc; }
+        .grid { border: 2px solid #000; }
+        .header-section { border-bottom: 2px solid #000; }
+        .cut-line { display: none !important; } /* 列印時讓印表機接管換頁 */
+        
+        /* 一頁兩份的壓縮排版 (套用在 body 上) */
+        body.layout-2up .worksheet { height: 48vh; padding: 5px; }
+        body.layout-2up h1 { font-size: 18pt; }
+        body.layout-2up .cell { width: 32px; height: 32px; font-size: 14pt; }
+        body.layout-2up .word-list-title { font-size: 12pt; margin-bottom: 5px; }
+        body.layout-2up .word-grid { font-size: 11pt; gap: 5px; }
+        body.layout-2up .grid-container { margin: 15px 0; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      
+      <div class="no-print">
+        
+        <div class="nav-bar">
+          <a href="<?= scriptUrl ?>?p=wordsearch" class="nav-btn active-nav">🔍 Wordsearch</a>
+          <a href="<?= scriptUrl ?>?p=cloze" class="nav-btn">✍️ AI 克漏字</a>
+        </div>
+
+        <h2 style="margin-top:0;">🛠️ Lab 實驗室：找字遊戲</h2>
+        
+        <div class="input-group">
+          <label><strong>1. 排版模式：</strong></label><br>
+          <select id="printMode" style="margin-top: 5px;">
+            <option value="1up">單頁大字版 (A4 滿版)</option>
+            <option value="2up" selected>一頁兩份 (列印時請選：每張紙 2 頁)</option>
+          </select>
+        </div>
+
+        <div class="input-group">
+          <label><strong>2. 測驗單字（半形逗號分隔）：</strong></label><br>
+          <input type="text" id="words" value="APPLE,BANANA,CHICKEN,DOG,ELEPHANT,FRUIT,GEPT" style="margin-top: 5px;">
+        </div>
+
+        <div class="input-group">
+          <label><strong>3. 難度設定：</strong></label><br>
+          <input type="checkbox" id="allowDiagonal"> 
+          <label for="allowDiagonal">高年級模式 (允許斜向排列)</label>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn-generate" onclick="generate()">✨ 產生網格</button>
+          <button class="btn-print" onclick="window.print()">🖨️ 列印考卷</button>
+        </div>
+        <hr>
+      </div>
+
+      <div id="outputArea">
+        <p style="text-align:center; color:#7f8c8d;">請點擊「產生網格」來建立考卷</p>
+      </div>
+      
+    </div>
+
+    <script>
+    // 在 GitHub 的 index.html 中，將原本呼叫 GAS 的部分改成這樣：
+const GAS_API_URL = "你的_GAS_Web_App_網址";
+
+function generate() {
+  const payload = {
+    type: 'cloze', // 或 'wordsearch'
+    words: document.getElementById('words').value,
+    topic: document.getElementById('topic').value
+  };
+
+  // 顯示載入中動畫...
+  
+  fetch(GAS_API_URL, {
+    method: "POST",
+    body: JSON.stringify(payload)
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.error) {
+      alert("錯誤：" + data.error);
+    } else {
+      renderWorksheets(data); // 呼叫原本畫網格的函式
+    }
+  })
+  .catch(err => console.error("連線失敗：", err));
+}
+
+      function renderWorksheets(data) {
+        const mode = document.getElementById('printMode').value;
+        const htmlContent = buildWorksheetHTML(data);
+
+        if (mode === '2up') {
+          document.body.classList.add('layout-2up');
+          // 渲染兩份，中間加換頁與預覽用的裁切線
+          document.getElementById('outputArea').innerHTML = 
+            '<div class="page-break workshet-wrapper">' + htmlContent + '</div>' + 
+            '<div class="cut-line preview-cut"></div>' + 
+            '<div class="page-break workshet-wrapper">' + htmlContent + '</div>';
+        } else {
+          document.body.classList.remove('layout-2up');
+          // 渲染一份
+          document.getElementById('outputArea').innerHTML = 
+            '<div class="workshet-wrapper">' + htmlContent + '</div>';
+        }
+      }
+
+      function buildWorksheetHTML(data) {
+        let gridHtml = '<div class="grid">';
+        data.grid.forEach(row => {
+          gridHtml += '<div class="row">';
+          row.forEach(cell => { gridHtml += `<div class="cell">${cell}</div>`; });
+          gridHtml += '</div>';
+        });
+        gridHtml += '</div>';
+
+        let wordListHtml = '';
+        data.words.forEach(word => {
+          wordListHtml += `<div>□ ${word}</div>`;
+        });
+
+        // 組合單份學習單的完整 HTML 結構
+        return `
+          <div class="worksheet">
+            <div class="header-section">
+              <div class="title-box">
+                <h1>NewCore Jeffrey's Lab</h1>
+              </div>
+              <div class="student-info">
+                <span>Name: <div class="input-box box-name"></div></span>
+                <span>Score: <div class="input-box box-score"></div></span>
+              </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 10px;">
+              <span style="font-size: 12pt; background: #2c3e50; color: white; padding: 4px 12px; border-radius: 15px;">
+                Vocabulary Search Challenge 🔍
+              </span>
+            </div>
+
+            <div class="grid-container">
+              ${gridHtml}
+            </div>
+
+            <div class="word-list-section">
+              <div class="word-list-title">📋 Target Words To Find:</div>
+              <div class="word-grid">${wordListHtml}</div>
+            </div>
+            
+            <div style="margin-top: 20px; text-align: right; color: #95a5a6; font-size: 9pt;" class="print-only">
+              © NewCore Lab
+            </div>
+          </div>
+        `;
+      }
+    </script>
+  </body>
+</html>
