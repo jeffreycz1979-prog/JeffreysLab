@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-TW">
   <head>
     <base target="_top">
     <meta charset="utf-8">
-    <title>Wordsearch 產生器 | NewCore Lab</title>
+    <title>NewCore Jeffrey's Lab</title>
     <style>
       /* 全域與網頁顯示樣式 */
       body { 
@@ -39,9 +39,11 @@
         font-weight: bold; 
         transition: 0.3s; 
         font-size: 16px;
+        cursor: pointer;
+        border: none;
       }
       .nav-btn:hover { background: #bdc3c7; }
-      .active-nav { background: #2c3e50; color: white; pointer-events: none;}
+      .active-nav { background: #2c3e50; color: white; }
 
       /* 控制面板 (列印時隱藏) */
       .no-print {
@@ -90,7 +92,6 @@
         box-sizing: border-box;
       }
       
-      /* 表頭防跑版設計 */
       .header-section {
         display: flex;
         justify-content: space-between;
@@ -123,7 +124,6 @@
       .box-name { width: 130px; }
       .box-score { width: 60px; }
 
-      /* Wordsearch 網格 */
       .grid-container {
         display: flex;
         justify-content: center;
@@ -148,7 +148,6 @@
         color: #2c3e50;
       }
 
-      /* 單字表 */
       .word-list-section {
         padding: 20px;
         border: 2px dashed #bdc3c7;
@@ -167,7 +166,10 @@
         color: #333;
       }
 
-      /* 裁切線設計 (僅預覽時顯示，列印時依賴排版) */
+      /* 克漏字專用樣式 */
+      .cloze-text { font-size: 16pt; line-height: 2.2; font-family: 'Times New Roman', serif; text-align: justify; margin: 20px 0; }
+      .word-bank { background: #f9f9f9; border: 2px solid #ddd; padding: 15px; text-align: center; font-size: 14pt; margin-bottom: 20px; border-radius: 8px; font-weight: bold; }
+
       .cut-line {
         display: none;
         border-top: 2px dashed #95a5a6;
@@ -188,7 +190,6 @@
       }
       body.layout-2up .cut-line.preview-cut { display: block; }
 
-      /* --- 列印與排版模式切換 --- */
       @media print {
         @page { size: A4 portrait; margin: 10mm; }
         body { background: white; padding: 0; }
@@ -197,29 +198,22 @@
         .cell { border: 1px solid #ccc; }
         .grid { border: 2px solid #000; }
         .header-section { border-bottom: 2px solid #000; }
-        .cut-line { display: none !important; } /* 列印時讓印表機接管換頁 */
-        
-        /* 一頁兩份的壓縮排版 (套用在 body 上) */
+        .cut-line { display: none !important; }
         body.layout-2up .worksheet { height: 48vh; padding: 5px; }
         body.layout-2up h1 { font-size: 18pt; }
         body.layout-2up .cell { width: 32px; height: 32px; font-size: 14pt; }
-        body.layout-2up .word-list-title { font-size: 12pt; margin-bottom: 5px; }
-        body.layout-2up .word-grid { font-size: 11pt; gap: 5px; }
-        body.layout-2up .grid-container { margin: 15px 0; }
       }
     </style>
   </head>
   <body>
     <div class="container">
-      
       <div class="no-print">
-        
         <div class="nav-bar">
-          <a href="<?= scriptUrl ?>?p=wordsearch" class="nav-btn active-nav">🔍 Wordsearch</a>
-          <a href="<?= scriptUrl ?>?p=cloze" class="nav-btn">✍️ AI 克漏字</a>
+          <button id="btn-ws" class="nav-btn active-nav" onclick="switchPage('wordsearch')">🔍 Wordsearch</button>
+          <button id="btn-cloze" class="nav-btn" onclick="switchPage('cloze')">✍️ AI 克漏字</button>
         </div>
 
-        <h2 style="margin-top:0;">🛠️ Lab 實驗室：找字遊戲</h2>
+        <h2 id="lab-title">🛠️ Lab 實驗室：找字遊戲</h2>
         
         <div class="input-group">
           <label><strong>1. 排版模式：</strong></label><br>
@@ -231,122 +225,121 @@
 
         <div class="input-group">
           <label><strong>2. 測驗單字（半形逗號分隔）：</strong></label><br>
-          <input type="text" id="words" value="APPLE,BANANA,CHICKEN,DOG,ELEPHANT,FRUIT,GEPT" style="margin-top: 5px;">
+          <input type="text" id="words" value="APPLE,BANANA,CHICKEN,DOG,ELEPHANT,FRUIT,GEPT">
         </div>
 
-        <div class="input-group">
+        <div id="topic-group" class="input-group" style="display:none;">
+          <label><strong>3. 故事主題：</strong></label><br>
+          <input type="text" id="topic" value="A school trip to the zoo">
+        </div>
+
+        <div id="diff-group" class="input-group">
           <label><strong>3. 難度設定：</strong></label><br>
           <input type="checkbox" id="allowDiagonal"> 
           <label for="allowDiagonal">高年級模式 (允許斜向排列)</label>
         </div>
 
         <div class="btn-group">
-          <button class="btn-generate" onclick="generate()">✨ 產生網格</button>
+          <button class="btn-generate" onclick="generate()">✨ 產生內容</button>
           <button class="btn-print" onclick="window.print()">🖨️ 列印考卷</button>
         </div>
-        <hr>
+        <div id="loading" style="display:none; color:#3498db; margin-top:10px;">處理中，請稍候...</div>
       </div>
 
       <div id="outputArea">
-        <p style="text-align:center; color:#7f8c8d;">請點擊「產生網格」來建立考卷</p>
+        <p style="text-align:center; color:#7f8c8d;">請點擊「產生內容」來建立考卷</p>
       </div>
-      
     </div>
 
     <script>
-    // 在 GitHub 的 index.html 中，將原本呼叫 GAS 的部分改成這樣：
-const GAS_API_URL = "你的_GAS_Web_App_網址";
+      // ⚠️ 請務必將此網址替換成你的 GAS Web App 網址
+      const GAS_API_URL = "https://script.google.com/macros/s/AKfycby63WiGPMwr6FmUeZiGtHwwzuY30q7PovCBN7Por7kj164AcuX69QMztOJn1jIHH1lzAg/exec"; 
+      let currentPage = 'wordsearch';
 
-function generate() {
-  const payload = {
-    type: 'cloze', // 或 'wordsearch'
-    words: document.getElementById('words').value,
-    topic: document.getElementById('topic').value
-  };
+      function switchPage(page) {
+        currentPage = page;
+        document.getElementById('btn-ws').classList.toggle('active-nav', page === 'wordsearch');
+        document.getElementById('btn-cloze').classList.toggle('active-nav', page === 'cloze');
+        document.getElementById('lab-title').innerText = page === 'wordsearch' ? '🛠️ Lab 實驗室：找字遊戲' : '🤖 Lab 實驗室：AI 克漏字';
+        document.getElementById('topic-group').style.display = page === 'cloze' ? 'block' : 'none';
+        document.getElementById('diff-group').style.display = page === 'wordsearch' ? 'block' : 'none';
+      }
 
-  // 顯示載入中動畫...
-  
-  fetch(GAS_API_URL, {
-    method: "POST",
-    body: JSON.stringify(payload)
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.error) {
-      alert("錯誤：" + data.error);
-    } else {
-      renderWorksheets(data); // 呼叫原本畫網格的函式
-    }
-  })
-  .catch(err => console.error("連線失敗：", err));
-}
+      function generate() {
+        const words = document.getElementById('words').value;
+        const topic = document.getElementById('topic').value;
+        const isHard = document.getElementById('allowDiagonal').checked;
+        const loading = document.getElementById('loading');
+
+        if(!words) return alert("請輸入單字");
+        loading.style.display = 'block';
+
+        const payload = {
+          type: currentPage,
+          words: words,
+          topic: topic,
+          isHard: isHard
+        };
+
+        fetch(GAS_API_URL, {
+          method: "POST",
+          body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+          loading.style.display = 'none';
+          if (data.error) {
+            alert("錯誤：" + data.error);
+          } else {
+            renderWorksheets(data);
+          }
+        })
+        .catch(err => {
+          loading.style.display = 'none';
+          alert("連線失敗，請檢查 GAS 部署是否正確設定為「任何人」可以存取。");
+        });
+      }
 
       function renderWorksheets(data) {
         const mode = document.getElementById('printMode').value;
         const htmlContent = buildWorksheetHTML(data);
+        const output = document.getElementById('outputArea');
 
         if (mode === '2up') {
           document.body.classList.add('layout-2up');
-          // 渲染兩份，中間加換頁與預覽用的裁切線
-          document.getElementById('outputArea').innerHTML = 
-            '<div class="page-break workshet-wrapper">' + htmlContent + '</div>' + 
-            '<div class="cut-line preview-cut"></div>' + 
-            '<div class="page-break workshet-wrapper">' + htmlContent + '</div>';
+          output.innerHTML = `<div class="page-break">${htmlContent}</div><div class="cut-line preview-cut"></div><div class="page-break">${htmlContent}</div>`;
         } else {
           document.body.classList.remove('layout-2up');
-          // 渲染一份
-          document.getElementById('outputArea').innerHTML = 
-            '<div class="workshet-wrapper">' + htmlContent + '</div>';
+          output.innerHTML = `<div class="worksheet">${htmlContent}</div>`;
         }
       }
 
       function buildWorksheetHTML(data) {
-        let gridHtml = '<div class="grid">';
-        data.grid.forEach(row => {
-          gridHtml += '<div class="row">';
-          row.forEach(cell => { gridHtml += `<div class="cell">${cell}</div>`; });
-          gridHtml += '</div>';
-        });
-        gridHtml += '</div>';
-
-        let wordListHtml = '';
-        data.words.forEach(word => {
-          wordListHtml += `<div>□ ${word}</div>`;
-        });
-
-        // 組合單份學習單的完整 HTML 結構
-        return `
-          <div class="worksheet">
-            <div class="header-section">
-              <div class="title-box">
-                <h1>NewCore Jeffrey's Lab</h1>
-              </div>
-              <div class="student-info">
-                <span>Name: <div class="input-box box-name"></div></span>
-                <span>Score: <div class="input-box box-score"></div></span>
-              </div>
+        const header = `
+          <div class="header-section">
+            <div class="title-box"><h1>NewCore Jeffrey's Lab</h1></div>
+            <div class="student-info">
+              <span>Name: <div class="input-box box-name"></div></span>
+              <span>Score: <div class="input-box box-score"></div></span>
             </div>
+          </div>`;
 
-            <div style="text-align: center; margin-top: 10px;">
-              <span style="font-size: 12pt; background: #2c3e50; color: white; padding: 4px 12px; border-radius: 15px;">
-                Vocabulary Search Challenge 🔍
-              </span>
-            </div>
+        if (currentPage === 'wordsearch') {
+          let gridHtml = '<div class="grid">' + data.grid.map(row => 
+            `<div class="row">${row.map(cell => `<div class="cell">${cell}</div>`).join('')}</div>`
+          ).join('') + '</div>';
 
-            <div class="grid-container">
-              ${gridHtml}
-            </div>
-
-            <div class="word-list-section">
-              <div class="word-list-title">📋 Target Words To Find:</div>
-              <div class="word-grid">${wordListHtml}</div>
-            </div>
-            
-            <div style="margin-top: 20px; text-align: right; color: #95a5a6; font-size: 9pt;" class="print-only">
-              © NewCore Lab
-            </div>
-          </div>
-        `;
+          return `${header}
+            <div style="text-align: center; margin-top: 10px;"><span style="font-size: 12pt; background: #2c3e50; color: white; padding: 4px 12px; border-radius: 15px;">Vocabulary Search Challenge 🔍</span></div>
+            <div class="grid-container">${gridHtml}</div>
+            <div class="word-list-section"><div class="word-list-title">📋 Target Words:</div><div class="word-grid">${data.words.map(w => `<div>□ ${w}</div>`).join('')}</div></div>`;
+        } else {
+          return `${header}
+            <div style="text-align: center; margin-top: 10px;"><span style="font-size: 12pt; background: #9b59b6; color: white; padding: 4px 12px; border-radius: 15px;">AI Cloze Test Challenge ✍️</span></div>
+            <h2 style="text-align:center;">${data.title}</h2>
+            <div class="word-bank">Word Bank: ${data.wordBank.join(' / ')}</div>
+            <div class="cloze-text">${data.clozeText}</div>`;
+        }
       }
     </script>
   </body>
