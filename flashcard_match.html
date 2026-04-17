@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="zh"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>閃示卡 & 配對練習</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:sans-serif;background:#f5f4f0;color:#222;min-height:100vh;}
+
+/* NAV */
+.nav{display:flex;align-items:center;gap:6px;padding:8px 14px;background:#fff;border-bottom:1.5px solid #e0ddd5;position:sticky;top:0;z-index:100;flex-wrap:wrap;}
+.nav-title{font-size:14px;font-weight:700;color:#222;margin-right:4px;}
+.nav-tab{padding:6px 16px;border-radius:20px;border:1.5px solid #ddd;background:#fff;color:#888;cursor:pointer;font-size:12px;font-weight:500;transition:all .15s;}
+.nav-tab:hover{border-color:#999;color:#444;}
+.nav-tab.active{background:#222;color:#fff;border-color:#222;}
+.nav-spacer{flex:1;}
+.lang-btn{padding:5px 12px;border-radius:20px;border:1.5px solid #ddd;background:#fff;color:#888;cursor:pointer;font-size:12px;}
+
+/* PANES */
+.pane{display:none;padding:12px 14px;}
+.pane.active{display:block;}
+
+/* BLOCKS */
+.block{border-radius:14px;padding:10px 13px;margin-bottom:8px;}
+.block:last-child{margin-bottom:0;}
+.b-purple{background:#EEEDFE;border:1.5px solid #AFA9EC;}
+.b-teal{background:#E1F5EE;border:1.5px solid #9FE1CB;}
+.b-amber{background:#FAEEDA;border:1.5px solid #FAC775;}
+.b-blue{background:#E6F1FB;border:1.5px solid #B5D4F4;}
+.b-green{background:#EAF3DE;border:1.5px solid #C0DD97;}
+.b-coral{background:#FAECE7;border:1.5px solid #F0997B;}
+.b-title{font-size:10px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;margin-bottom:7px;}
+.bt-purple{color:#534AB7;}.bt-teal{color:#0F6E56;}.bt-amber{color:#854F0B;}.bt-blue{color:#185FA5;}.bt-green{color:#3B6D11;}.bt-coral{color:#993C1D;}
+
+/* BUTTONS */
+.btn{padding:7px 14px;border:none;border-radius:10px;font-size:12px;font-weight:500;cursor:pointer;font-family:sans-serif;transition:all .15s;display:inline-block;}
+.btn-purple{background:#534AB7;color:#fff;}.btn-purple:hover{background:#3C3489;}
+.btn-teal{background:#0F6E56;color:#fff;}.btn-teal:hover{background:#085041;}
+.btn-outline{background:#fff;border:1.5px solid #ddd;color:#444;}.btn-outline:hover{background:#f0eeea;}
+.btn-full{width:100%;display:block;margin-bottom:5px;text-align:center;}
+.btn-full:last-child{margin-bottom:0;}
+.btn:disabled{opacity:.35;cursor:not-allowed;}
+
+/* SEG */
+.seg{display:flex;border:1.5px solid #ddd;border-radius:20px;overflow:hidden;}
+.seg button{padding:5px 13px;border:none;background:transparent;color:#888;cursor:pointer;font-size:12px;font-family:sans-serif;transition:all .15s;}
+.seg button.active{background:#222;color:#fff;font-weight:500;}
+.tog{padding:5px 12px;border:1.5px solid #ddd;border-radius:20px;background:#fff;color:#888;cursor:pointer;font-size:12px;}
+.tog.on{background:#222;color:#fff;}
+
+/* TWO COL */
+.two-col{display:grid;grid-template-columns:220px 1fr;gap:10px;align-items:start;}
+.sidebar{display:flex;flex-direction:column;gap:8px;}
+
+/* VOCAB INPUT */
+.word-rows{display:flex;flex-direction:column;gap:4px;max-height:260px;overflow-y:auto;}
+.word-row{display:grid;grid-template-columns:1fr 1fr 70px 24px;gap:4px;align-items:center;}
+.wr-in{padding:5px 7px;border:1.5px solid #AFA9EC;border-radius:8px;font-size:12px;background:#fff;color:#26215C;width:100%;}
+.wr-in:focus{outline:none;border-color:#534AB7;}
+.del-btn{width:24px;height:24px;border:none;background:none;color:#AFA9EC;cursor:pointer;font-size:16px;}
+.del-btn:hover{color:#A32D2D;}
+
+/* IMAGE AREA */
+.img-zone{border:2px dashed #9FE1CB;border-radius:10px;min-height:110px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;background:#fff;overflow:hidden;}
+.img-zone:hover{border-color:#1D9E75;}
+.img-zone img{width:100%;max-height:130px;object-fit:contain;}
+.iz-ph{font-size:12px;color:#1D9E75;text-align:center;padding:14px;}
+.cur-badge{display:inline-block;background:#1D9E75;color:#fff;font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px;margin-bottom:5px;}
+.gen-btn{width:100%;margin-top:5px;padding:6px;border:1.5px solid #9FE1CB;border-radius:10px;background:#E1F5EE;color:#0F6E56;cursor:pointer;font-size:12px;font-weight:500;}
+.gen-btn:hover{background:#9FE1CB;}
+.gen-btn:disabled{opacity:.4;cursor:not-allowed;}
+.gen-note{font-size:10px;color:#1D9E75;margin-top:3px;opacity:.8;}
+.api-key-wrap{display:flex;gap:4px;margin-bottom:5px;}
+.api-in{flex:1;padding:4px 7px;border:1.5px solid #9FE1CB;border-radius:8px;font-size:11px;background:#fff;color:#085041;}
+.api-in:focus{outline:none;}
+
+/* PREVIEW GRID */
+.preview-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:5px;max-height:200px;overflow-y:auto;}
+.prev-card{border-radius:10px;overflow:hidden;border:1.5px solid #FAC775;cursor:pointer;transition:all .15s;background:#fff;}
+.prev-card:hover,.prev-card.sel{border-color:#854F0B;transform:translateY(-1px);}
+.prev-img{width:100%;height:55px;background:#FAEEDA;display:flex;align-items:center;justify-content:center;font-size:20px;}
+.prev-img img{width:100%;height:100%;object-fit:contain;}
+.prev-label{font-size:10px;font-weight:500;color:#633806;text-align:center;padding:3px 4px 4px;}
+
+/* FLASHCARD */
+.fc-toolbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px;}
+/* Full-viewport card with side nav zones */
+.fc-single-wrap{position:relative;}
+.fc-stage{perspective:1200px;width:100%;margin:0 auto 10px;}
+.fc-card{width:100%;height:calc(100vh - 120px);min-height:320px;max-height:700px;position:relative;transform-style:preserve-3d;transition:transform .55s ease;cursor:pointer;}
+.fc-card.flipped{transform:rotateY(180deg);}
+.fc-face{position:absolute;inset:0;border-radius:20px;backface-visibility:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:28px 80px;}
+.fc-front{background:#E6F1FB;border:2px solid #B5D4F4;}
+.fc-back{background:#EAF3DE;border:2px solid #C0DD97;transform:rotateY(180deg);}
+.fc-img-wrap{width:100%;flex:1;max-height:80%;display:flex;align-items:center;justify-content:center;}
+.fc-img{width:auto;max-width:100%;max-height:100%;object-fit:contain;border-radius:16px;}
+.fc-img-ph{width:100%;height:100%;background:#fff;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:56px;border:1.5px dashed #B5D4F4;}
+.fc-word{font-size:72px;font-weight:500;color:#0C447C;letter-spacing:3px;}
+.fc-word.blur{filter:blur(50px);user-select:none;}
+.fc-tap{font-size:12px;color:#378ADD;opacity:.7;}
+.fc-back-word{font-size:120px;font-weight:500;color:#3B6D11;letter-spacing:1px;}
+.fc-pos{font-size:32px;padding:3px 12px;border-radius:20px;background:#C0DD97;color:#27500A;font-style:italic;}
+.fc-def{font-size:72px;color:#27500A;text-align:center;line-height:1.7;}
+.fc-def.blur{filter:blur(50px);user-select:none;}
+/* Large invisible side-tap zones for navigation */
+.fc-nav-zone{position:absolute;top:0;bottom:0;width:72px;z-index:10;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:20px;transition:background .15s;}
+.fc-nav-zone:hover{background:rgba(0,0,0,.06);}
+.fc-nav-zone.left{left:0;}
+.fc-nav-zone.right{right:0;}
+.fc-nav-arrow{font-size:32px;color:rgba(0,0,0,.25);pointer-events:none;font-weight:300;}
+.fc-nav-zone:hover .fc-nav-arrow{color:rgba(0,0,0,.5);}
+.fc-nav{display:flex;align-items:center;justify-content:center;gap:12px;}
+.nav-btn{width:36px;height:36px;border:1.5px solid #ddd;border-radius:50%;background:#fff;color:#333;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;}
+.nav-btn:hover{background:#eee;}
+.fc-counter{font-size:13px;color:#888;min-width:60px;text-align:center;}
+
+/* GRID VIEW */
+.fc-grid-wrap{width:100%;}
+.fc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;}
+.fcg-card{border-radius:12px;overflow:hidden;border:2px solid #ddd;cursor:pointer;transition:all .15s;background:#fff;}
+.fcg-card:hover{transform:translateY(-2px);border-color:#999;}
+.fcg-card.sel{border-color:#534AB7;border-width:2px;}
+.fcg-img{width:100%;height:90px;background:#E6F1FB;display:flex;align-items:center;justify-content:center;font-size:28px;}
+.fcg-img img{width:100%;height:100%;object-fit:contain;}
+.fcg-body{padding:6px 8px;}
+.fcg-word{font-size:12px;font-weight:500;}
+.fcg-word.blur{filter:blur(5px);}
+.fcg-def{font-size:12px;color:#666;margin-top:2px;}
+.fcg-def.blur{filter:blur(4px);}
+
+/* MEMORY MATCH */
+.match-toolbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
+.match-stats{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.stat-badge{padding:4px 10px;border-radius:20px;font-size:12px;font-weight:500;}
+.sb-blue{background:#E6F1FB;color:#0C447C;}
+.sb-green{background:#EAF3DE;color:#3B6D11;}
+.sb-amber{background:#FAEEDA;color:#854F0B;}
+
+/* SPLIT layout */
+.match-split{display:grid;grid-template-columns:1fr 1fr;gap:8px;height:calc(100vh - 120px);min-height:300px;}
+.split-half{border-radius:18px;padding:10px;display:flex;flex-direction:column;}
+.split-half-img{background:#E6F1FB;border:2.5px solid #378ADD;}
+.split-half-txt{background:#EAF3DE;border:2.5px solid #3B6D11;}
+.match-half-title{font-size:12px;font-weight:700;text-align:center;margin-bottom:8px;text-transform:uppercase;letter-spacing:.8px;padding:4px 0;}
+.mht-img{color:#0C447C;}.mht-txt{color:#27500A;}
+.split-grid{display:grid;gap:6px;flex:1;align-content:start;}
+
+/* MIXED layout — fills viewport */
+.match-board{display:grid;gap:6px;height:calc(100vh - 120px);min-height:280px;align-content:stretch;}
+/* card base */
+.mcard{border-radius:12px;cursor:pointer;transition:all .2s;position:relative;user-select:none;transform-style:preserve-3d;}
+.mcard.flipped .mc-front,.mcard.matched .mc-front{transform:rotateY(180deg);}
+.mcard.flipped .mc-back,.mcard.matched .mc-back{transform:rotateY(0deg);}
+.mc-front,.mc-back{position:absolute;inset:0;border-radius:12px;backface-visibility:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px;transition:transform .4s ease;}
+.mc-front{background:#534AB7;border:2px solid #3C3489;transform:rotateY(0deg);}
+.mc-back{transform:rotateY(-180deg);}
+.mcard.matched .mc-back{background:#EAF3DE!important;border-color:#97C459!important;}
+.mcard.wrong-flash{animation:wrongflash .4s ease;}
+@keyframes wrongflash{0%,100%{transform:scale(1)}25%{transform:scale(1.05) translateX(-3px)}75%{transform:scale(1.05) translateX(3px)}}
+.mc-cover-icon{font-size:clamp(18px,3vw,32px);color:rgba(255,255,255,.5);}
+.mc-img{width:100%;height:60%;object-fit:contain;border-radius:6px;}
+.mc-img-ph{font-size:clamp(28px,3vw,60px);}
+.mc-label{font-size:clamp(28px,1.4vw,48px);font-weight:500;text-align:center;line-height:1.3;word-break:break-all;}
+.mc-sublabel{font-size:clamp(18px,1vw,28px);text-align:center;opacity:.7;}
+/* split cards fill their grid cell */
+.split-half .mcard{width:100%;height:100%;}
+
+.empty-state{text-align:center;padding:40px;color:#aaa;font-size:13px;}
+.match-complete{text-align:center;padding:20px;background:#EAF3DE;border-radius:16px;border:2px solid #97C459;}
+.match-complete h2{font-size:20px;color:#3B6D11;margin-bottom:6px;}
+.match-complete p{font-size:13px;color:#3B6D11;}
+</style>
+</head><body>
+
+<div class="nav">
+  <span class="nav-title">🃏 閃示卡工具</span>
+  <button class="nav-tab active" onclick="showPane('setup')" id="nav-setup">⚙️ <span id="t-nav-setup">設定</span></button>
+  <button class="nav-tab" onclick="showPane('flash')" id="nav-flash">🃏 <span id="t-nav-flash">閃示卡</span></button>
+  <button class="nav-tab" onclick="showPane('match')" id="nav-match">🧩 <span id="t-nav-match">配對練習</span></button>
+  <div class="nav-spacer"></div>
+  <button class="lang-btn" id="lang-btn" onclick="toggleLang()">EN</button>
+</div>
+
+<!-- ══════════════ SETUP ══════════════ -->
+<div class="pane active" id="pane-setup">
+  <div class="two-col">
+    <div>
+      <div class="block b-purple">
+        <div class="b-title bt-purple" id="t-vocab-title">字彙庫</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 70px 24px;gap:4px;margin-bottom:4px;">
+          <span style="font-size:10px;color:#534AB7;font-weight:600" id="t-col-word">英文單字</span>
+          <span style="font-size:10px;color:#534AB7;font-weight:600" id="t-col-def">定義／中文</span>
+          <span style="font-size:10px;color:#534AB7;font-weight:600" id="t-col-pos">詞性</span>
+          <span></span>
+        </div>
+        <div class="word-rows" id="word-rows"></div>
+        <button class="btn btn-outline btn-full" style="margin-top:6px;border-style:dashed;color:#534AB7;border-color:#AFA9EC;" onclick="addRow()" id="t-add-row">＋ 新增單字</button>
+        <button class="btn btn-purple btn-full" onclick="applyVocab()" id="t-apply">✓ 套用字彙庫</button>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <div class="block b-teal">
+        <div class="b-title bt-teal" id="t-img-title">圖片設定</div>
+        <div style="font-size:10px;color:#0F6E56;margin-bottom:5px" id="t-img-hint">點選左側單字列再上傳或生成</div>
+        <div class="cur-badge" id="cur-word-badge">—</div>
+        <div class="img-zone" onclick="document.getElementById('file-in').click()" id="img-zone">
+          <div class="iz-ph" id="t-upload-hint">📁 點擊上傳圖片</div>
+        </div>
+        <input type="file" id="file-in" accept="image/*" style="display:none" onchange="handleUpload(event)">
+        <div class="b-title bt-teal" style="margin-top:8px">Gemini API Key</div>
+        <div class="api-key-wrap">
+          <input type="password" class="api-in" id="api-key" placeholder="貼上 API Key...">
+        </div>
+        <button class="gen-btn" onclick="generateImage()" id="gen-btn">✨ Gemini 生成圖片</button>
+        <div class="gen-note" id="t-gen-note">支援多模型備援，失敗自動切換</div>
+      </div>
+      <div class="block b-amber">
+        <div class="b-title bt-amber" id="t-preview-title">字彙預覽</div>
+        <div class="preview-grid" id="preview-grid">
+          <div class="empty-state" style="padding:14px;font-size:12px" id="t-empty-prev">套用後顯示</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ FLASHCARD ══════════════ -->
+<div class="pane" id="pane-flash">
+  <div class="fc-toolbar">
+    <button class="tog on" id="tog-word" onclick="fcToggleWord()">👁 <span id="t-tog-word">顯示英文</span></button>
+    <button class="tog on" id="tog-def" onclick="fcToggleDef()">👁 <span id="t-tog-def">顯示定義</span></button>
+    <div style="flex:1"></div>
+    <button class="tog" id="tog-grid" onclick="fcToggleGrid()">⊞ <span id="t-tog-grid">總覽模式</span></button>
+    <button class="tog" onclick="fcShuffle()">🔀 <span id="t-shuffle">隨機</span></button>
+  </div>
+
+  <div id="fc-single-wrap" class="fc-single-wrap">
+    <div class="fc-stage" style="position:relative;">
+      <div class="fc-nav-zone left" onclick="fcNav(-1)" title="上一張">
+        <div class="fc-nav-arrow">‹</div>
+      </div>
+      <div class="fc-nav-zone right" onclick="fcNav(1)" title="下一張">
+        <div class="fc-nav-arrow">›</div>
+      </div>
+      <div class="fc-card" id="fc-card" onclick="fcFlip()">
+        <div class="fc-face fc-front">
+          <div class="fc-img-wrap" id="fc-img-wrap"><div class="fc-img-ph">🖼️</div></div>
+          <div class="fc-word" id="fc-word">—</div>
+          <div class="fc-tap" id="t-fc-tap">點擊翻面</div>
+        </div>
+        <div class="fc-face fc-back">
+          <div class="fc-back-word" id="fc-back-word">—</div>
+          <div class="fc-pos" id="fc-pos" style="display:none"></div>
+          <div class="fc-def" id="fc-def">—</div>
+        </div>
+      </div>
+    </div>
+    <div class="fc-nav" style="margin-top:6px;">
+      <button class="nav-btn" onclick="fcNav(-1)">‹</button>
+      <span class="fc-counter" id="fc-counter">1 / 1</span>
+      <button class="nav-btn" onclick="fcNav(1)">›</button>
+    </div>
+  </div>
+
+  <div class="fc-grid-wrap" id="fc-grid-wrap" style="display:none">
+    <div class="fc-grid" id="fc-grid"></div>
+  </div>
+
+  <div class="empty-state" id="fc-empty" style="display:none">請先在設定頁輸入字彙</div>
+</div>
+
+<!-- ══════════════ MEMORY MATCH ══════════════ -->
+<div class="pane" id="pane-match" style="padding:8px 10px;">
+  <div class="match-toolbar">
+    <div class="seg" id="match-type-seg">
+      <button class="active" onclick="matchSetType('img-word')" id="mt-img-word">🖼️↔️A</button>
+      <button onclick="matchSetType('img-img')" id="mt-img-img">🖼️↔️🖼️</button>
+      <button onclick="matchSetType('img-def')" id="mt-img-def">🖼️↔️📖</button>
+    </div>
+    <div class="seg" id="match-layout-seg">
+      <button class="active" onclick="matchSetLayout('mixed')" id="ml-mixed">⊞ <span id="t-ml-mixed">混合</span></button>
+      <button onclick="matchSetLayout('split')" id="ml-split">⬜⬜ <span id="t-ml-split">分區</span></button>
+    </div>
+    <button class="btn btn-teal" onclick="matchStart()" id="t-match-start">▶ 開始</button>
+    <div class="match-stats">
+      <span class="stat-badge sb-blue" id="match-tries">嘗試：0</span>
+      <span class="stat-badge sb-green" id="match-pairs">配對：0 / 0</span>
+      <span class="stat-badge sb-amber" id="match-time">00:00</span>
+    </div>
+  </div>
+  <div id="match-area"><div class="empty-state">請先在設定頁套用字彙庫，再按「開始」</div></div>
+</div>
+
+<script>
+// ══════════════════════════════
+// STATE
+// ══════════════════════════════
+let lang='zh';
+let vocab=[]; // {word,def,pos,imgSrc}
+let fcList=[], fcIdx=0, fcFlipped=false, fcGridMode=false, fcShowWord=true, fcShowDef=true;
+let matchType='img-word', matchLayout='mixed';
+let matchCards=[], matchFlipped=[], matchMatched=0, matchTries=0, matchTimer=null, matchSeconds=0, matchLocked=false;
+let editRowIdx=null, generating=false;
+
+const GEMINI_MODELS=['gemini-2.5-flash','gemini-2.5-flash-lite'];
+const GEMINI_BASE='https://generativelanguage.googleapis.com/v1beta/models/';
+
+async function callGemini(parts, apiKey, maxRetries=2){
+  for(let mi=0;mi<GEMINI_MODELS.length;mi++){
+    const model=GEMINI_MODELS[mi];
+    const url=GEMINI_BASE+model+':generateContent?key='+apiKey;
+    for(let attempt=0;attempt<=maxRetries;attempt++){
+      try{
+        const res=await fetch(url,{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({contents:[{parts}],generationConfig:{temperature:0.2,maxOutputTokens:200}})
+        });
+        if(res.status===429||res.status>=500){
+          if(attempt<maxRetries){await new Promise(r=>setTimeout(r,800*Math.pow(2,attempt)));continue;}
+          else break;
+        }
+        if(!res.ok) break;
+        const data=await res.json();
+        const text=data.candidates?.[0]?.content?.parts?.[0]?.text||'';
+        if(text){console.log('[Gemini] success:',model);return {text,model};}
+      }catch(e){
+        if(attempt<maxRetries) await new Promise(r=>setTimeout(r,600*Math.pow(2,attempt)));
+      }
+    }
+    console.warn('[Gemini]',model,'failed, trying fallback...');
+  }
+  throw new Error('All Gemini models failed');
+}
+
+const L={
+  zh:{navSetup:'設定',navFlash:'閃示卡',navMatch:'配對練習',vocabTitle:'字彙庫',colWord:'英文單字',colDef:'定義／中文',colPos:'詞性',addRow:'＋ 新增單字',apply:'✓ 套用字彙庫',imgTitle:'圖片設定',imgHint:'點選左側單字列再上傳或生成',uploadHint:'📁 點擊上傳圖片',genNote:'支援多模型備援，失敗自動切換',previewTitle:'字彙預覽',emptyPrev:'套用後顯示',togWord:'顯示英文',hideWord:'隱藏英文',togDef:'顯示定義',hideDef:'隱藏定義',togGrid:'總覽模式',singleView:'單張模式',shuffle:'隨機',fcTap:'點擊翻面',matchStart:'▶ 開始',mlMixed:'混合',mlSplit:'分區',tries:'嘗試：',pairs:'配對：',complete:'完成！',completeMsg:'次嘗試，用時'},
+  en:{navSetup:'Settings',navFlash:'Flashcards',navMatch:'Memory Match',vocabTitle:'Vocabulary',colWord:'Word',colDef:'Definition',colPos:'POS',addRow:'＋ Add word',apply:'✓ Apply Vocab',imgTitle:'Image settings',imgHint:'Select a word row, then upload or generate',uploadHint:'📁 Click to upload',genNote:'Multi-model fallback — auto-retry on failure',previewTitle:'Preview',emptyPrev:'Apply vocab to preview',togWord:'Show word',hideWord:'Hide word',togDef:'Show definition',hideDef:'Hide definition',togGrid:'Grid view',singleView:'Single view',shuffle:'Shuffle',fcTap:'Tap to flip',matchStart:'▶ Start',mlMixed:'Mixed',mlSplit:'Split',tries:'Tries: ',pairs:'Pairs: ',complete:'Complete!',completeMsg:'tries,'}
+};
+const T=k=>L[lang][k]||'';
+
+function setEl(id,k){const el=document.getElementById(id);if(el)el.textContent=T(k);}
+function applyLangUI(){
+  document.getElementById('lang-btn').textContent=lang==='zh'?'EN':'中文';
+  setEl('t-nav-setup','navSetup');setEl('t-nav-flash','navFlash');setEl('t-nav-match','navMatch');
+  setEl('t-vocab-title','vocabTitle');setEl('t-col-word','colWord');setEl('t-col-def','colDef');setEl('t-col-pos','colPos');
+  setEl('t-add-row','addRow');setEl('t-apply','apply');
+  setEl('t-img-title','imgTitle');setEl('t-img-hint','imgHint');setEl('t-upload-hint','uploadHint');
+  setEl('t-gen-note','genNote');setEl('t-preview-title','previewTitle');setEl('t-empty-prev','emptyPrev');
+  setEl('t-tog-word',fcShowWord?'togWord':'hideWord');setEl('t-tog-def',fcShowDef?'togDef':'hideDef');
+  setEl('t-tog-grid',fcGridMode?'singleView':'togGrid');setEl('t-shuffle','shuffle');
+  setEl('t-fc-tap','fcTap');setEl('t-match-start','matchStart');
+  setEl('t-ml-mixed','mlMixed');setEl('t-ml-split','mlSplit');
+  renderWordRows();
+}
+function toggleLang(){lang=lang==='zh'?'en':'zh';applyLangUI();}
+function showPane(id){
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('pane-'+id).classList.add('active');
+  document.getElementById('nav-'+id).classList.add('active');
+}
+
+// ══════════════════════════════
+// SETUP — VOCAB
+// ══════════════════════════════
+function addRow(w='',d='',p=''){
+  vocab.push({word:w,def:d,pos:p,imgSrc:''});
+  renderWordRows();
+  if(!w)setTimeout(()=>{const rs=document.querySelectorAll('.wr-word');if(rs.length)rs[rs.length-1].focus();},20);
+}
+function removeRow(i){vocab.splice(i,1);if(editRowIdx===i)editRowIdx=null;renderWordRows();}
+function renderWordRows(){
+  const c=document.getElementById('word-rows');c.innerHTML='';
+  vocab.forEach((v,i)=>{
+    const r=document.createElement('div');r.className='word-row';
+    r.innerHTML=`<input class="wr-in wr-word" placeholder="${T('colWord')}" value="${v.word}" oninput="vocab[${i}].word=this.value" onclick="selectRow(${i})"><input class="wr-in" placeholder="${T('colDef')}" value="${v.def}" oninput="vocab[${i}].def=this.value"><input class="wr-in" placeholder="${T('colPos')}" value="${v.pos}" oninput="vocab[${i}].pos=this.value" style="font-style:italic"><button class="del-btn" onclick="removeRow(${i})">×</button>`;
+    c.appendChild(r);
+  });
+}
+function selectRow(i){
+  editRowIdx=i;const v=vocab[i];
+  document.getElementById('cur-word-badge').textContent=v.word||'—';
+  const zone=document.getElementById('img-zone');
+  zone.innerHTML=v.imgSrc?`<img src="${v.imgSrc}">`:`<div class="iz-ph">${T('uploadHint')}</div>`;
+  renderPreview();
+}
+function handleUpload(e){
+  const file=e.target.files[0];if(!file||editRowIdx===null)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{vocab[editRowIdx].imgSrc=ev.target.result;selectRow(editRowIdx);renderPreview();};
+  reader.readAsDataURL(file);
+  e.target.value='';
+}
+
+// ══════════════════════════════
+// GEMINI MULTI-MODEL IMAGE GEN
+// ══════════════════════════════
+async function generateImage(){
+  if(editRowIdx===null||generating)return;
+  const word=vocab[editRowIdx].word;
+  if(!word){alert(lang==='zh'?'請先輸入英文單字':'Please enter a word first');return;}
+  const apiKey=document.getElementById('api-key').value.trim();
+  if(!apiKey){alert(lang==='zh'?'請輸入 Gemini API Key':'Please enter your Gemini API key');return;}
+  generating=true;
+  const btn=document.getElementById('gen-btn');
+  const note=document.getElementById('t-gen-note');
+  btn.disabled=true;
+
+  const setStatus=(b,n)=>{btn.textContent=b;note.textContent=n;};
+  let imgSrc=null;
+
+  // ── Step 1: Ask text model for emoji + pastel color ──
+  setStatus('⏳ 生成中...', lang==='zh'?'呼叫 gemini-2.5-flash...':'Calling gemini-2.5-flash...');
+  try{
+    const prompt=`For the English word "${word}", reply ONLY with a JSON object (no markdown): {"emoji":"<one relevant emoji>","color":"<soft pastel hex like #FAEEDA>"}`;
+    const result=await callGemini([{text:prompt}], apiKey);
+    const raw=result.text;
+    // robust JSON extract
+    const match=raw.match(/\{[^}]+\}/);
+    if(match){
+      const parsed=JSON.parse(match[0]);
+      if(parsed.emoji) imgSrc=makeSVG(parsed.emoji, parsed.color||'#E6F1FB');
+      setStatus('✨ Gemini 生成圖片', lang==='zh'?`已用 ${result.model} 生成！`:`Generated via ${result.model}!`);
+    }
+  }catch(e){
+    console.error('[generateImage] callGemini error:', e);
+    setStatus('✨ Gemini 生成圖片', lang==='zh'?'API 呼叫失敗，使用預設圖示':'API failed, using default icon');
+  }
+
+  if(!imgSrc) imgSrc=makeSVG('🖼️','#E6F1FB');
+
+  vocab[editRowIdx].imgSrc=imgSrc;
+  selectRow(editRowIdx);renderPreview();
+  generating=false;
+  btn.disabled=false;
+  setTimeout(()=>{
+    note.textContent=lang==='zh'?'主力 gemini-2.5-flash，備援 gemini-2.5-flash-lite':'Primary: gemini-2.5-flash, fallback: gemini-2.5-flash-lite';
+  },3000);
+}
+
+function makeSVG(emoji,color){
+  return `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><rect width='200' height='200' rx='24' fill='${encodeURIComponent(color)}'/><text x='100' y='120' font-size='90' text-anchor='middle' dominant-baseline='middle'>${emoji}</text></svg>`;
+}
+
+function applyVocab(){
+  fcList=vocab.filter(v=>v.word).map(v=>({...v}));
+  fcIdx=0;fcFlipped=false;
+  renderPreview();renderFCCard();
+  showPane('flash');
+}
+function renderPreview(){
+  const g=document.getElementById('preview-grid');const valid=vocab.filter(v=>v.word);
+  if(!valid.length){g.innerHTML=`<div class="empty-state" style="padding:14px;font-size:12px">${T('emptyPrev')}</div>`;return;}
+  g.innerHTML='';
+  valid.forEach(v=>{
+    const i=vocab.indexOf(v);const d=document.createElement('div');
+    d.className='prev-card'+(editRowIdx===i?' sel':'');d.onclick=()=>selectRow(i);
+    d.innerHTML=`<div class="prev-img">${v.imgSrc?`<img src="${v.imgSrc}">`:'🖼️'}</div><div class="prev-label">${v.word}</div>`;
+    g.appendChild(d);
+  });
+}
+
+// ══════════════════════════════
+// FLASHCARD
+// ══════════════════════════════
+function renderFCCard(){
+  if(!fcList.length){document.getElementById('fc-empty').style.display='';document.getElementById('fc-single-wrap').style.display='none';return;}
+  document.getElementById('fc-empty').style.display='none';document.getElementById('fc-single-wrap').style.display='';
+  const v=fcList[fcIdx];
+  document.getElementById('fc-counter').textContent=`${fcIdx+1} / ${fcList.length}`;
+  document.getElementById('fc-card').classList.remove('flipped');fcFlipped=false;
+  const wrap=document.getElementById('fc-img-wrap');
+  wrap.innerHTML=v.imgSrc?`<img class="fc-img" src="${v.imgSrc}">`:`<div class="fc-img-ph">🖼️</div>`;
+  const wEl=document.getElementById('fc-word');wEl.textContent=v.word;wEl.className='fc-word'+(fcShowWord?'':' blur');
+  document.getElementById('fc-back-word').textContent=v.word;
+  const posEl=document.getElementById('fc-pos');if(v.pos){posEl.style.display='';posEl.textContent=v.pos;}else posEl.style.display='none';
+  const defEl=document.getElementById('fc-def');defEl.textContent=v.def||'—';defEl.className='fc-def'+(fcShowDef?'':' blur');
+}
+function fcFlip(){const c=document.getElementById('fc-card');fcFlipped=!fcFlipped;c.classList.toggle('flipped',fcFlipped);}
+function fcNav(dir){fcIdx=(fcIdx+dir+fcList.length)%fcList.length;renderFCCard();if(fcGridMode)renderFCGrid();}
+function fcToggleWord(){
+  fcShowWord=!fcShowWord;
+  document.getElementById('tog-word').className='tog'+(fcShowWord?' on':'');
+  setEl('t-tog-word',fcShowWord?'togWord':'hideWord');
+  // Only update blur class — do NOT re-render (avoids card flip reset)
+  const wEl=document.getElementById('fc-word');
+  if(wEl) wEl.className='fc-word'+(fcShowWord?'':' blur');
+  if(fcGridMode) renderFCGrid();
+}
+function fcToggleDef(){
+  fcShowDef=!fcShowDef;
+  document.getElementById('tog-def').className='tog'+(fcShowDef?' on':'');
+  setEl('t-tog-def',fcShowDef?'togDef':'hideDef');
+  // Only update blur class — do NOT re-render
+  const defEl=document.getElementById('fc-def');
+  if(defEl) defEl.className='fc-def'+(fcShowDef?'':' blur');
+  if(fcGridMode) renderFCGrid();
+}
+function fcToggleGrid(){
+  fcGridMode=!fcGridMode;
+  document.getElementById('fc-single-wrap').style.display=fcGridMode?'none':'';
+  document.getElementById('fc-grid-wrap').style.display=fcGridMode?'':'none';
+  document.getElementById('tog-grid').className='tog'+(fcGridMode?' on':'');
+  setEl('t-tog-grid',fcGridMode?'singleView':'togGrid');
+  if(fcGridMode)renderFCGrid();
+}
+function renderFCGrid(){
+  const g=document.getElementById('fc-grid');g.innerHTML='';
+  fcList.forEach((v,i)=>{
+    const d=document.createElement('div');d.className='fcg-card'+(i===fcIdx?' sel':'');
+    d.onclick=()=>{fcIdx=i;fcGridMode=false;document.getElementById('fc-single-wrap').style.display='';document.getElementById('fc-grid-wrap').style.display='none';document.getElementById('tog-grid').className='tog';setEl('t-tog-grid','togGrid');renderFCCard();};
+    const imgH=v.imgSrc?`<div class="fcg-img"><img src="${v.imgSrc}"></div>`:`<div class="fcg-img">🖼️</div>`;
+    d.innerHTML=imgH+`<div class="fcg-body"><div class="fcg-word${fcShowWord?'':' blur'}">${v.word}</div><div class="fcg-def${fcShowDef?'':' blur'}">${v.def||''}</div></div>`;
+    g.appendChild(d);
+  });
+}
+function fcShuffle(){for(let i=fcList.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[fcList[i],fcList[j]]=[fcList[j],fcList[i]];}fcIdx=0;if(fcGridMode)renderFCGrid();else renderFCCard();}
+
+// ══════════════════════════════
+// MEMORY MATCH
+// ══════════════════════════════
+function matchSetType(t){
+  matchType=t;
+  ['img-word','img-img','img-def'].forEach(id=>{document.getElementById('mt-'+id).className=id===t?'active':'';});
+}
+function matchSetLayout(l){
+  matchLayout=l;
+  ['mixed','split'].forEach(id=>{document.getElementById('ml-'+id).className=id===l?'active':'';});
+}
+
+function matchStart(){
+  if(!fcList.length){alert(lang==='zh'?'請先套用字彙庫':'Please apply vocab first');return;}
+  clearInterval(matchTimer);matchSeconds=0;matchTries=0;matchMatched=0;matchFlipped=[];matchLocked=false;
+  updateMatchStats(0,fcList.length);
+  // Build card pairs
+  matchCards=buildMatchCards();
+  shuffle(matchCards);
+  renderMatchBoard();
+  matchTimer=setInterval(()=>{matchSeconds++;updateTimer();},1000);
+}
+
+function buildMatchCards(){
+  const cards=[];
+  fcList.forEach((v,i)=>{
+    if(matchType==='img-word'){
+      cards.push({id:i,pair:i,side:'img',v});
+      cards.push({id:i+fcList.length,pair:i,side:'word',v});
+    } else if(matchType==='img-img'){
+      cards.push({id:i,pair:i,side:'img',v});
+      cards.push({id:i+fcList.length,pair:i,side:'img2',v});
+    } else {
+      cards.push({id:i,pair:i,side:'img',v});
+      cards.push({id:i+fcList.length,pair:i,side:'def',v});
+    }
+  });
+  return cards;
+}
+
+function renderMatchBoard(){
+  const area=document.getElementById('match-area');area.innerHTML='';
+  const n=matchCards.length; // total cards = vocab * 2
+
+  if(matchLayout==='mixed'){
+    // Calculate grid cols to fill viewport squarely
+    const cols=Math.ceil(Math.sqrt(n*1.3));
+    const rows=Math.ceil(n/cols);
+    const board=document.createElement('div');
+    board.className='match-board';
+    board.style.gridTemplateColumns=`repeat(${cols},1fr)`;
+    board.style.gridTemplateRows=`repeat(${rows},1fr)`;
+    area.appendChild(board);
+    matchCards.forEach((card,idx)=>{
+      const el=makeCard(card,idx);
+      // No fixed aspect-ratio in mixed — let grid rows determine height
+      el.style.aspectRatio='unset';
+      board.appendChild(el);
+    });
+  } else {
+    // SPLIT: left = image cards, right = text/word/def cards
+    const imgCards=matchCards.filter(cd=>cd.side==='img');
+    const txtCards=matchCards.filter(cd=>cd.side!=='img');
+    shuffle(imgCards);shuffle(txtCards);
+    const half=Math.max(imgCards.length,txtCards.length);
+    const cols=Math.ceil(Math.sqrt(half));
+
+    const container=document.createElement('div');container.className='match-split';area.appendChild(container);
+
+    // Left half
+    const leftHalf=document.createElement('div');
+    leftHalf.className='split-half split-half-img';
+    leftHalf.innerHTML=`<div class="match-half-title mht-img">🖼️ ${lang==='zh'?'圖片':'Images'}</div>`;
+    const leftGrid=document.createElement('div');
+    leftGrid.className='split-grid';
+    leftGrid.style.gridTemplateColumns=`repeat(${cols},1fr)`;
+    leftGrid.style.gridTemplateRows=`repeat(${Math.ceil(imgCards.length/cols)},1fr)`;
+    leftHalf.appendChild(leftGrid);
+    container.appendChild(leftHalf);
+
+    // Right half
+    const rightHalf=document.createElement('div');
+    rightHalf.className='split-half split-half-txt';
+    const rightTitle=lang==='zh'?(matchType==='img-def'?'📖 定義':'🔤 文字'):(matchType==='img-def'?'📖 Definitions':'🔤 Words');
+    rightHalf.innerHTML=`<div class="match-half-title mht-txt">${rightTitle}</div>`;
+    const rightGrid=document.createElement('div');
+    rightGrid.className='split-grid';
+    rightGrid.style.gridTemplateColumns=`repeat(${cols},1fr)`;
+    rightGrid.style.gridTemplateRows=`repeat(${Math.ceil(txtCards.length/cols)},1fr)`;
+    rightHalf.appendChild(rightGrid);
+    container.appendChild(rightHalf);
+
+    imgCards.forEach(card=>{
+      const origIdx=matchCards.indexOf(card);
+      const el=makeCard(card,origIdx);
+      el.style.aspectRatio='unset';el.style.minHeight='70px';
+      leftGrid.appendChild(el);
+    });
+    txtCards.forEach(card=>{
+      const origIdx=matchCards.indexOf(card);
+      const el=makeCard(card,origIdx);
+      el.style.aspectRatio='unset';el.style.minHeight='70px';
+      rightGrid.appendChild(el);
+    });
+  }
+}
+
+function makeCard(card,idx){
+  const el=document.createElement('div');
+  el.className='mcard';el.id='mc'+idx;el.dataset.idx=idx;
+  el.onclick=()=>matchFlipCard(idx);
+
+  const front=document.createElement('div');front.className='mc-front';
+  front.innerHTML=`<div class="mc-cover-icon">?</div>`;
+
+  const back=document.createElement('div');back.className='mc-back';
+  const CC_BACKS=['#EAF3DE','#EEEDFE','#FAEEDA','#FBEAF0','#E6F1FB','#E1F5EE'];
+  const TC_TEXT=['#3B6D11','#3C3489','#633806','#72243E','#0C447C','#085041'];
+  const ci=card.pair%CC_BACKS.length;
+  back.style.background=CC_BACKS[ci];back.style.border=`2px solid ${TC_TEXT[ci]}33`;
+
+  if(card.side==='img'||card.side==='img2'){
+    back.innerHTML=card.v.imgSrc?`<img class="mc-img" src="${card.v.imgSrc}">`:`<div class="mc-img-ph">🖼️</div>`;
+    if(card.side==='img2') back.innerHTML+=`<div class="mc-label" style="color:${TC_TEXT[ci]}">${card.v.word}</div>`;
+  } else if(card.side==='word'){
+    back.innerHTML=`<div class="mc-label" style="color:${TC_TEXT[ci]};font-size:15px;font-weight:600">${card.v.word}</div>`;
+  } else {
+    back.innerHTML=`<div class="mc-label" style="color:${TC_TEXT[ci]}">${card.v.def||card.v.word}</div>${card.v.pos?`<div class="mc-sublabel" style="color:${TC_TEXT[ci]}">${card.v.pos}</div>`:''}`;
+  }
+
+  el.appendChild(front);el.appendChild(back);
+  return el;
+}
+
+function matchFlipCard(idx){
+  if(matchLocked)return;
+  const card=matchCards[idx];const el=document.getElementById('mc'+idx);
+  if(!el||el.classList.contains('flipped')||el.classList.contains('matched'))return;
+  if(matchFlipped.length>=2)return;
+  el.classList.add('flipped');
+  matchFlipped.push(idx);
+  if(matchFlipped.length===2){
+    matchTries++;
+    const a=matchCards[matchFlipped[0]],b=matchCards[matchFlipped[1]];
+    if(a.pair===b.pair&&a.side!==b.side||(a.side===b.side&&a.id!==b.id&&matchType==='img-img')){
+      // correct match
+      setTimeout(()=>{
+        matchFlipped.forEach(i=>{const e=document.getElementById('mc'+i);if(e){e.classList.remove('flipped');e.classList.add('matched');}});
+        matchFlipped=[];matchMatched++;
+        updateMatchStats(matchMatched,fcList.length);
+        if(matchMatched===fcList.length){clearInterval(matchTimer);showMatchComplete();}
+      },400);
+    } else {
+      matchLocked=true;
+      document.querySelectorAll('.mcard.flipped:not(.matched)').forEach(e=>e.classList.add('wrong-flash'));
+      setTimeout(()=>{
+        matchFlipped.forEach(i=>{const e=document.getElementById('mc'+i);if(e){e.classList.remove('flipped');e.classList.remove('wrong-flash');}});
+        matchFlipped=[];matchLocked=false;
+      },900);
+    }
+    updateMatchStats(matchMatched,fcList.length);
+  }
+}
+
+function updateMatchStats(matched,total){
+  document.getElementById('match-tries').textContent=T('tries')+matchTries;
+  document.getElementById('match-pairs').textContent=T('pairs')+matched+' / '+total;
+}
+function updateTimer(){
+  const m=Math.floor(matchSeconds/60).toString().padStart(2,'0');const s=(matchSeconds%60).toString().padStart(2,'0');
+  document.getElementById('match-time').textContent=m+':'+s;
+}
+function showMatchComplete(){
+  const area=document.getElementById('match-area');
+  const t=Math.floor(matchSeconds/60).toString().padStart(2,'0')+':'+(matchSeconds%60).toString().padStart(2,'0');
+  area.innerHTML=`<div class="match-complete"><h2>🎉 ${T('complete')}</h2><p>${matchTries} ${T('completeMsg')} ${t}</p><br><button class="btn btn-teal" onclick="matchStart()" style="margin-top:8px">🔄 再玩一次</button></div>`;
+}
+
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}}
+
+// ══════════════════════════════
+// INIT
+// ══════════════════════════════
+// Sample vocab
+[{word:'cat',def:'貓',pos:'n.'},{word:'dog',def:'狗',pos:'n.'},{word:'fish',def:'魚',pos:'n.'},{word:'bird',def:'鳥',pos:'n.'}].forEach(v=>vocab.push({...v,imgSrc:''}));
+renderWordRows();applyLangUI();
+</script>
+</body></html>
