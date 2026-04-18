@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>Class Timer | Jeffrey's Lab</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; background: #f0ede6; font-family: 'Microsoft JhengHei', 'Segoe UI', sans-serif; color: #1a1a1a; overflow: hidden; }
+
+.app { display: flex; height: 100vh; }
+
+/* ── LEFT PANEL ── */
+.panel { width: 300px; background: #1a3a1a; display: flex; flex-direction: column; overflow: hidden; flex-shrink: 0; transition: width 0.3s; }
+.panel.collapsed { width: 52px; }
+
+.panel-header { padding: 14px 12px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; min-height: 52px; }
+.panel-title { font-size: 16px; font-weight: 800; color: #ccff00; white-space: nowrap; overflow: hidden; transition: opacity 0.2s; }
+.panel.collapsed .panel-title { opacity: 0; }
+.btn-collapse { background: rgba(255,255,255,0.1); border: none; color: rgba(255,255,255,0.7); width: 28px; height: 28px; border-radius: 6px; cursor: pointer; font-size: 12px; flex-shrink: 0; }
+
+.panel-body { flex: 1; overflow-y: auto; padding: 14px; }
+.panel-body::-webkit-scrollbar { width: 3px; }
+.panel-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); }
+
+.sec { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-top: 16px; margin-bottom: 8px; }
+
+label { font-size: 12px; color: rgba(255,255,255,0.5); display: block; margin-bottom: 4px; }
+input[type=text], input[type=number], textarea, select {
+  width: 100%; padding: 7px 10px; background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15); border-radius: 8px;
+  color: white; font-size: 13px; font-family: inherit; outline: none; margin-bottom: 8px;
+}
+input:focus, textarea:focus, select:focus { border-color: #ccff00; }
+select option { background: #1a3a1a; }
+textarea { resize: vertical; line-height: 1.5; }
+
+.time-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+.mode-row { display: flex; gap: 6px; margin-bottom: 8px; }
+.mode-btn { flex: 1; padding: 6px; border: none; border-radius: 7px; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.45); font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; }
+.mode-btn.active { background: #ccff00; color: #1a3a1a; }
+
+.preset-row { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
+.preset-btn { padding: 4px 10px; border: none; border-radius: 6px; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); font-size: 12px; cursor: pointer; font-family: inherit; }
+.preset-btn:hover { background: rgba(255,255,255,0.18); color: white; }
+
+.btn-green { width: 100%; padding: 9px; border: none; border-radius: 8px; background: #ccff00; color: #1a3a1a; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; margin-bottom: 6px; }
+.btn-green:hover { background: #d9ff1a; }
+.btn-purple { width: 100%; padding: 9px; border: none; border-radius: 8px; background: rgba(124,111,247,0.2); color: #a09aff; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; margin-bottom: 6px; }
+.btn-purple:hover { background: rgba(124,111,247,0.35); }
+
+.timer-item { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 10px; margin-bottom: 8px; }
+.ti-top { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+.ti-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.ti-name { font-size: 12px; font-weight: 600; color: white; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ti-mode { font-size: 10px; color: rgba(255,255,255,0.3); }
+.ti-time { font-family: monospace; font-size: 20px; font-weight: 700; color: white; margin-bottom: 7px; }
+.ti-btns { display: flex; gap: 4px; }
+.ti-btn { flex: 1; padding: 5px; border: none; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; font-family: inherit; }
+.ti-start { background: rgba(78,205,196,0.2); color: #4ecdc4; }
+.ti-pause { background: rgba(255,140,66,0.2); color: #ff8c42; }
+.ti-reset { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.4); width: 30px; flex: none; }
+.ti-eye { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.4); width: 30px; flex: none; }
+.ti-del { background: rgba(255,71,87,0.15); color: #ff4757; width: 30px; flex: none; }
+
+/* ── PANEL FOOTER ── */
+.panel-footer { padding: 10px 16px; border-top: 1px solid rgba(255,255,255,0.08); }
+.btn-all { width: 100%; padding: 7px; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; margin-bottom: 5px; }
+.btn-all-start { background: rgba(204,255,0,0.15); color: #ccff00; }
+.btn-all-reset { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.4); }
+.opt-row { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+.opt-label { font-size: 11px; color: rgba(255,255,255,0.4); }
+.sound-sel { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: white; font-size: 11px; padding: 2px 6px; font-family: inherit; outline: none; }
+.sound-sel option { background: #1a3a1a; }
+.tog { width: 34px; height: 18px; border-radius: 9px; background: rgba(255,255,255,0.15); border: none; cursor: pointer; position: relative; transition: background 0.2s; flex-shrink: 0; }
+.tog.on { background: #ccff00; }
+.tog::after { content: ''; position: absolute; width: 12px; height: 12px; border-radius: 50%; background: white; top: 3px; left: 3px; transition: transform 0.2s; }
+.tog.on::after { transform: translateX(16px); }
+.btn-pip { width: 100%; padding: 6px; border: 1px solid rgba(78,205,196,0.3); border-radius: 100px; background: rgba(78,205,196,0.1); color: #4ecdc4; font-size: 11px; font-weight: 700; cursor: pointer; font-family: inherit; margin-top: 8px; }
+.btn-pip.on { background: rgba(204,255,0,0.15); color: #ccff00; border-color: rgba(204,255,0,0.3); }
+
+/* ── RIGHT DISPLAY ── */
+.display { flex: 1; padding: 24px; overflow-y: auto; }
+.display-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+.display-title { font-size: 22px; font-weight: 800; color: #1a3a1a; }
+.btn-fs { background: #1a3a1a; color: #ccff00; border: none; padding: 8px 18px; border-radius: 100px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+
+.card { background: white; border-radius: 18px; padding: 22px 20px; border: 2px solid #e5e0d8; cursor: pointer; position: relative; overflow: hidden; user-select: none; transition: transform 0.2s, box-shadow 0.2s, border-color 0.3s; }
+.card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+.card.running { border-color: var(--cc); }
+.card.warn { border-color: #ff8c42; animation: warnP 1s ease-in-out infinite; }
+.card.dang { border-color: #ff4757; animation: dangP 0.5s ease-in-out infinite; }
+.card.done { background: #1a3a1a; border-color: #1a3a1a; }
+.card.hidden { display: none; }
+.card-bar { position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--cc, #4ecdc4); border-radius: 18px 18px 0 0; }
+.card-name { font-size: 11px; font-weight: 700; color: #aaa; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+.card-badge { font-size: 10px; background: #f0ede6; color: #aaa; padding: 1px 7px; border-radius: 100px; font-weight: 600; }
+.card-time { font-family: monospace; font-size: 68px; font-weight: 700; line-height: 1; color: #1a1a1a; margin-bottom: 8px; transition: color 0.3s; }
+.card.running .card-time { color: var(--cc); }
+.card.warn .card-time { color: #ff8c42 !important; }
+.card.dang .card-time { color: #ff4757 !important; }
+.card.done .card-time { color: #ccff00; }
+.card.done .card-name { color: rgba(255,255,255,0.4); }
+.card-prog { height: 3px; background: #f0ede6; border-radius: 2px; margin-bottom: 10px; overflow: hidden; }
+.card-prog-fill { height: 100%; border-radius: 2px; background: var(--cc, #4ecdc4); transition: width 0.9s linear; }
+.card.warn .card-prog-fill { background: #ff8c42; }
+.card.dang .card-prog-fill { background: #ff4757; }
+.card-status { font-size: 12px; color: #aaa; display: flex; align-items: center; gap: 5px; }
+.card.done .card-status { color: #ccff00; }
+.dot { width: 5px; height: 5px; border-radius: 50%; background: #ccc; }
+.dot.run { background: #4ecdc4; animation: blink 1.5s infinite; }
+.dot.done { background: #ccff00; }
+
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+@keyframes warnP { 0%,100%{box-shadow:none} 50%{box-shadow:0 0 0 6px rgba(255,140,66,0.15)} }
+@keyframes dangP { 0%,100%{background:white;box-shadow:none} 50%{background:#fff5f5;box-shadow:0 0 0 8px rgba(255,71,87,0.1)} }
+
+.empty { text-align: center; padding: 80px 20px; color: #bbb; }
+.empty-icon { font-size: 60px; opacity: 0.3; margin-bottom: 16px; }
+
+/* ── FULLSCREEN ── */
+.fs { position: fixed; inset: 0; z-index: 9000; background: #0d1f0d; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 40px; }
+.fs.on { display: flex; }
+.fs-grid { display: flex; flex-wrap: wrap; gap: 24px; justify-content: center; }
+.fs-card { background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 30px 40px; text-align: center; min-width: 200px; transition: border-color 0.3s; }
+.fs-card.running { border-color: var(--cc); }
+.fs-card.warn { border-color: #ff8c42; }
+.fs-card.dang { border-color: #ff4757; }
+.fs-card.done { border-color: #ccff00; }
+.fs-card.hidden { display: none; }
+.fs-name { font-size: 12px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; }
+.fs-time { font-family: monospace; font-size: clamp(56px, 10vw, 100px); font-weight: 700; color: white; line-height: 1; }
+.fs-card.running .fs-time { color: var(--cc); }
+.fs-card.warn .fs-time { color: #ff8c42 !important; }
+.fs-card.dang .fs-time { color: #ff4757 !important; }
+.fs-card.done .fs-time { color: #ccff00; }
+.fs-exit { position: fixed; top: 20px; right: 20px; background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.6); border: none; border-radius: 100px; padding: 6px 18px; font-size: 13px; cursor: pointer; font-family: inherit; }
+
+/* ── FLOAT ── */
+.float { position: fixed; bottom: 20px; right: 20px; background: #1a3a1a; border-radius: 14px; padding: 14px 16px; min-width: 190px; max-width: 260px; z-index: 8000; display: none; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 8px 32px rgba(0,0,0,0.4); cursor: move; user-select: none; }
+.float.on { display: block; }
+.float-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.float-title { font-size: 11px; font-weight: 800; color: #ccff00; }
+.float-close { background: none; border: none; color: rgba(255,255,255,0.3); cursor: pointer; font-size: 14px; line-height: 1; }
+.float-row { display: flex; align-items: center; gap: 7px; margin-bottom: 5px; }
+.float-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.float-name { font-size: 11px; color: rgba(255,255,255,0.55); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.float-time { font-family: monospace; font-size: 15px; font-weight: 700; color: white; }
+.float-time.warn { color: #ff8c42; }
+.float-time.dang { color: #ff4757; animation: flash 0.5s infinite; }
+.float-time.done { color: #ccff00; }
+@keyframes flash { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* ── PICKER ── */
+.picker { position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; }
+.picker.on { display: flex; }
+.picker-box { background: #1a3a1a; border: 2px solid #ccff00; border-radius: 20px; padding: 40px; text-align: center; max-width: 360px; width: 90%; }
+.picker-lbl { font-size: 11px; color: rgba(255,255,255,0.4); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 16px; }
+.picker-name { font-size: 52px; font-weight: 800; color: #ccff00; margin-bottom: 24px; line-height: 1.1; animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+@keyframes popIn { from{transform:scale(0.5);opacity:0} to{transform:scale(1);opacity:1} }
+.picker-ok { background: #ccff00; color: #1a3a1a; border: none; border-radius: 100px; padding: 10px 32px; font-weight: 700; font-size: 14px; cursor: pointer; font-family: inherit; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- PANEL -->
+  <div class="panel" id="panel">
+    <div class="panel-header">
+      <span class="panel-title">⏱ Class Timer</span>
+      <button class="btn-collapse" id="colBtn" onclick="togglePanel()">◀</button>
+    </div>
+
+    <div class="panel-body" id="panelBody">
+      <div class="sec">新增計時器</div>
+
+      <label>標題名稱</label>
+      <input type="text" id="newTitle" placeholder="小考時間、討論時間…" maxlength="20">
+
+      <label>計時模式</label>
+      <div class="mode-row">
+        <button class="mode-btn active" id="modeDown" onclick="setMode('countdown')">⬇ 倒數</button>
+        <button class="mode-btn" id="modeUp" onclick="setMode('countup')">⬆ 正數</button>
+      </div>
+
+      <div id="timeBox">
+        <label>設定時間</label>
+        <div class="time-row">
+          <input type="number" id="newMin" min="0" max="99" value="5" placeholder="分鐘">
+          <input type="number" id="newSec" min="0" max="59" value="0" placeholder="秒">
+        </div>
+      </div>
+
+      <label>快速預設</label>
+      <div class="preset-row">
+        <button class="preset-btn" onclick="setPre(0,30)">30秒</button>
+        <button class="preset-btn" onclick="setPre(1,0)">1分</button>
+        <button class="preset-btn" onclick="setPre(2,0)">2分</button>
+        <button class="preset-btn" onclick="setPre(3,0)">3分</button>
+        <button class="preset-btn" onclick="setPre(5,0)">5分</button>
+        <button class="preset-btn" onclick="setPre(10,0)">10分</button>
+        <button class="preset-btn" onclick="setPre(15,0)">15分</button>
+        <button class="preset-btn" onclick="setPre(20,0)">20分</button>
+      </div>
+
+      <button class="btn-green" onclick="addTimer()">＋ 新增計時器</button>
+
+      <div class="sec">🎲 隨機點名</div>
+      <label>學生名單（每行一位）</label>
+      <textarea id="students" rows="5" placeholder="Amy&#10;Brian&#10;Cindy&#10;David"></textarea>
+      <button class="btn-purple" onclick="pickRandom()">🎲 隨機抽人</button>
+
+      <div class="sec">計時器列表</div>
+      <div id="timerList">
+        <div style="color:rgba(255,255,255,0.25);font-size:12px;text-align:center;padding:16px 0">尚未新增計時器</div>
+      </div>
+    </div>
+
+    <div class="panel-footer" id="panelFooter" style="display:none">
+      <button class="btn-all btn-all-start" onclick="startAll()">▶ 全部開始</button>
+      <button class="btn-all btn-all-reset" onclick="resetAll()">↺ 全部重置</button>
+      <div class="opt-row">
+        <span class="opt-label">🔊 音效</span>
+        <select class="sound-sel" id="soundSel">
+          <option value="bell">🔔 鈴聲</option>
+          <option value="chime">🎵 叮咚</option>
+          <option value="beep">📢 提示音</option>
+          <option value="none">🔇 靜音</option>
+        </select>
+      </div>
+      <div class="opt-row" style="margin-top:8px">
+        <span class="opt-label">📌 浮動小視窗</span>
+        <button class="tog" id="floatTog" onclick="toggleFloat()"></button>
+      </div>
+      <button class="btn-pip" id="pipBtn" onclick="togglePiP()">📌 畫中畫（置頂顯示）</button>
+    </div>
+  </div>
+
+  <!-- DISPLAY -->
+  <div class="display">
+    <div class="display-header">
+      <div class="display-title">⏱ Class Timer</div>
+      <button class="btn-fs" onclick="enterFS()">⛶ 全螢幕投影</button>
+    </div>
+    <div class="cards" id="cardsGrid">
+      <div class="empty">
+        <div class="empty-icon">⏱</div>
+        <p style="font-size:15px;margin-bottom:6px">還沒有計時器</p>
+        <small style="font-size:13px">從左側面板新增第一個計時器</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FULLSCREEN -->
+<div class="fs" id="fsOverlay">
+  <div class="fs-grid" id="fsGrid"></div>
+  <button class="fs-exit" onclick="exitFS()">✕ 離開全螢幕</button>
+</div>
+
+<!-- FLOAT WIDGET -->
+<div class="float" id="floatWidget">
+  <div class="float-top">
+    <span class="float-title">⏱ Class Timer</span>
+    <button class="float-close" onclick="toggleFloat()">✕</button>
+  </div>
+  <div id="floatList"></div>
+</div>
+
+<!-- PICKER -->
+<div class="picker" id="pickerOverlay" onclick="closePicker()">
+  <div class="picker-box" onclick="event.stopPropagation()">
+    <div class="picker-lbl">🎲 隨機點名</div>
+    <div class="picker-name" id="pickerName">—</div>
+    <button class="picker-ok" onclick="closePicker()">確定 OK</button>
+  </div>
+</div>
+
+<script>
+var COLORS = ['#4ECDC4','#7C6FF7','#FF8C42','#FF6B9D','#4A90D9','#2EC4B6','#CCFF00','#FF4757','#26de81','#fd9644'];
+var timers = [];
+var currentMode = 'countdown';
+var rafId = null;
+var lastTime = null;
+var floatOn = false;
+var pipOn = false;
+var panelCollapsed = false;
+
+function fmt(s) {
+  var a = Math.abs(Math.round(s));
+  var m = Math.floor(a / 60);
+  var r = a % 60;
+  return (s < 0 ? '-' : '') + String(m).padStart(2, '0') + ':' + String(r).padStart(2, '0');
+}
+
+function getState(t) {
+  if (t.finished) return 'done';
+  if (!t.running) return '';
+  if (t.mode === 'countdown' && t.cur <= 10) return 'dang';
+  if (t.mode === 'countdown' && t.cur <= 30) return 'warn';
+  return 'running';
+}
+
+function getStatusText(t) {
+  if (t.finished) return '⏰ 時間到！點擊重置';
+  if (t.running) return '計時中… 點擊暫停';
+  return t.mode === 'countdown' ? '等待開始，點擊開始' : '正數計時，點擊開始';
+}
+
+// ── CONTROLS ──
+function setMode(m) {
+  currentMode = m;
+  document.getElementById('modeDown').classList.toggle('active', m === 'countdown');
+  document.getElementById('modeUp').classList.toggle('active', m === 'countup');
+  document.getElementById('timeBox').style.display = m === 'countdown' ? '' : 'none';
+}
+
+function setPre(m, s) {
+  document.getElementById('newMin').value = m;
+  document.getElementById('newSec').value = s;
+}
+
+function addTimer() {
+  if (timers.length >= 10) { alert('最多10個計時器'); return; }
+  var title = document.getElementById('newTitle').value.trim() || ('計時器' + (timers.length + 1));
+  var m = parseInt(document.getElementById('newMin').value) || 0;
+  var s = parseInt(document.getElementById('newSec').value) || 0;
+  var total = m * 60 + s;
+  if (currentMode === 'countdown' && total === 0) { alert('請設定倒數時間'); return; }
+  var id = Date.now();
+  var color = COLORS[timers.length % COLORS.length];
+  timers.push({ id: id, title: title, mode: currentMode, total: total, cur: currentMode === 'countdown' ? total : 0, running: false, finished: false, visible: true, color: color });
+  document.getElementById('newTitle').value = '';
+  renderAll();
+}
+
+function toggleTimer(id) {
+  var t = getTimer(id);
+  if (!t) return;
+  if (t.finished) { resetTimer(id); return; }
+  t.running = !t.running;
+  renderAll();
+  if (t.running) startLoop();
+}
+
+function resetTimer(id) {
+  var t = getTimer(id);
+  if (!t) return;
+  t.running = false; t.finished = false;
+  t.cur = t.mode === 'countdown' ? t.total : 0;
+  renderAll();
+}
+
+function deleteTimer(id) {
+  timers = timers.filter(function(x) { return x.id !== id; });
+  renderAll();
+}
+
+function toggleVis(id) {
+  var t = getTimer(id);
+  if (t) { t.visible = !t.visible; renderAll(); }
+}
+
+function startAll() {
+  timers.forEach(function(t) { if (!t.finished) t.running = true; });
+  renderAll(); startLoop();
+}
+
+function resetAll() {
+  timers.forEach(function(t) { t.running = false; t.finished = false; t.cur = t.mode === 'countdown' ? t.total : 0; });
+  renderAll();
+}
+
+function getTimer(id) {
+  return timers.find(function(x) { return x.id === id; });
+}
+
+// ── LOOP ──
+function startLoop() {
+  if (rafId) return;
+  lastTime = performance.now();
+  function loop(now) {
+    var d = (now - lastTime) / 1000;
+    lastTime = now;
+    var any = false;
+    timers.forEach(function(t) {
+      if (!t.running || t.finished) return;
+      any = true;
+      if (t.mode === 'countdown') {
+        t.cur -= d;
+        if (t.cur <= 0) { t.cur = 0; t.running = false; t.finished = true; playSound(); renderAll(); return; }
+      } else {
+        t.cur += d;
+      }
+    });
+    fastUpdate();
+    if (any) rafId = requestAnimationFrame(loop);
+    else rafId = null;
+  }
+  rafId = requestAnimationFrame(loop);
+}
+
+function fastUpdate() {
+  timers.forEach(function(t) {
+    var ts = fmt(t.cur);
+    var st = getState(t);
+    var el;
+
+    el = document.getElementById('si_' + t.id);
+    if (el) el.textContent = ts;
+
+    var card = document.getElementById('card_' + t.id);
+    if (card) {
+      card.className = 'card ' + st + (t.visible ? '' : ' hidden');
+      el = document.getElementById('ct_' + t.id); if (el) el.textContent = ts;
+      el = document.getElementById('pf_' + t.id);
+      if (el && t.mode === 'countdown' && t.total > 0) el.style.width = Math.max(0, t.cur / t.total * 100) + '%';
+      el = document.getElementById('cs_' + t.id); if (el) el.textContent = getStatusText(t);
+    }
+
+    var fc = document.getElementById('fc_' + t.id);
+    if (fc) { fc.className = 'fs-card ' + st + (t.visible ? '' : ' hidden'); el = document.getElementById('ft_' + t.id); if (el) el.textContent = ts; }
+
+    var fw = document.getElementById('fw_' + t.id);
+    if (fw) {
+      var wc = t.finished ? 'done' : (t.mode === 'countdown' && t.cur <= 10 && t.running) ? 'dang' : (t.mode === 'countdown' && t.cur <= 30 && t.running) ? 'warn' : '';
+      fw.className = 'float-time ' + wc;
+      fw.textContent = ts;
+    }
+  });
+}
+
+// ── RENDER ──
+function renderAll() {
+  renderSidebar();
+  renderCards();
+  renderFS();
+  renderFloat();
+  document.getElementById('panelFooter').style.display = timers.length ? 'block' : 'none';
+}
+
+function renderSidebar() {
+  var el = document.getElementById('timerList');
+  if (!timers.length) {
+    el.innerHTML = '<div style="color:rgba(255,255,255,0.25);font-size:12px;text-align:center;padding:16px 0">尚未新增計時器</div>';
+    return;
+  }
+  el.innerHTML = timers.map(function(t) {
+    var actionBtn = t.finished
+      ? '<button class="ti-btn ti-start" style="background:rgba(204,255,0,0.15);color:#ccff00" onclick="resetTimer(' + t.id + ')">↺ 重置</button>'
+      : t.running
+        ? '<button class="ti-btn ti-pause" onclick="toggleTimer(' + t.id + ')">⏸ 暫停</button>'
+        : '<button class="ti-btn ti-start" onclick="toggleTimer(' + t.id + ')">▶ 開始</button>';
+    return '<div class="timer-item">' +
+      '<div class="ti-top"><div class="ti-dot" style="background:' + t.color + '"></div><div class="ti-name">' + t.title + '</div><div class="ti-mode">' + (t.mode === 'countdown' ? '⬇' : '⬆') + '</div></div>' +
+      '<div class="ti-time" id="si_' + t.id + '">' + fmt(t.cur) + '</div>' +
+      '<div class="ti-btns">' + actionBtn +
+      '<button class="ti-btn ti-reset" onclick="resetTimer(' + t.id + ')">↺</button>' +
+      '<button class="ti-btn ti-eye" onclick="toggleVis(' + t.id + ')">' + (t.visible ? '👁' : '🙈') + '</button>' +
+      '<button class="ti-btn ti-del" onclick="deleteTimer(' + t.id + ')">✕</button>' +
+      '</div></div>';
+  }).join('');
+}
+
+function renderCards() {
+  var el = document.getElementById('cardsGrid');
+  if (!timers.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">⏱</div><p style="font-size:15px;margin-bottom:6px">還沒有計時器</p><small style="font-size:13px">從左側面板新增第一個計時器</small></div>';
+    return;
+  }
+  el.innerHTML = timers.map(function(t) {
+    var st = getState(t);
+    var pct = (t.mode === 'countdown' && t.total > 0) ? Math.max(0, t.cur / t.total * 100) : 100;
+    var dotClass = t.finished ? 'dot done' : t.running ? 'dot run' : 'dot';
+    return '<div class="card ' + st + (t.visible ? '' : ' hidden') + '" id="card_' + t.id + '" style="--cc:' + t.color + '" onclick="toggleTimer(' + t.id + ')">' +
+      '<div class="card-bar"></div>' +
+      '<div class="card-name">' + t.title + '<span class="card-badge">' + (t.mode === 'countdown' ? '⬇ 倒數' : '⬆ 正數') + '</span></div>' +
+      '<div class="card-time" id="ct_' + t.id + '">' + fmt(t.cur) + '</div>' +
+      '<div class="card-prog"><div class="card-prog-fill" id="pf_' + t.id + '" style="width:' + pct + '%"></div></div>' +
+      '<div class="card-status"><div class="' + dotClass + '"></div><span id="cs_' + t.id + '">' + getStatusText(t) + '</span></div>' +
+      '</div>';
+  }).join('');
+}
+
+function renderFS() {
+  document.getElementById('fsGrid').innerHTML = timers.map(function(t) {
+    return '<div class="fs-card ' + getState(t) + (t.visible ? '' : ' hidden') + '" id="fc_' + t.id + '" style="--cc:' + t.color + '">' +
+      '<div class="fs-name">' + t.title + '</div>' +
+      '<div class="fs-time" id="ft_' + t.id + '">' + fmt(t.cur) + '</div>' +
+      '</div>';
+  }).join('');
+}
+
+function renderFloat() {
+  var vis = timers.filter(function(t) { return t.visible; });
+  var el = document.getElementById('floatList');
+  if (!vis.length) { el.innerHTML = '<div style="font-size:11px;color:rgba(255,255,255,0.25);text-align:center">無計時器</div>'; return; }
+  el.innerHTML = vis.map(function(t) {
+    var wc = t.finished ? 'done' : (t.mode === 'countdown' && t.cur <= 10 && t.running) ? 'dang' : (t.mode === 'countdown' && t.cur <= 30 && t.running) ? 'warn' : '';
+    return '<div class="float-row"><div class="float-dot" style="background:' + t.color + '"></div><div class="float-name">' + t.title + '</div><div class="float-time ' + wc + '" id="fw_' + t.id + '">' + fmt(t.cur) + '</div></div>';
+  }).join('');
+}
+
+// ── PANEL ──
+function togglePanel() {
+  panelCollapsed = !panelCollapsed;
+  var p = document.getElementById('panel');
+  p.classList.toggle('collapsed', panelCollapsed);
+  var b = document.getElementById('panelBody');
+  var f = document.getElementById('panelFooter');
+  b.style.opacity = panelCollapsed ? '0' : '1';
+  b.style.pointerEvents = panelCollapsed ? 'none' : '';
+  if (f.style.display !== 'none') {
+    f.style.opacity = panelCollapsed ? '0' : '1';
+    f.style.pointerEvents = panelCollapsed ? 'none' : '';
+  }
+  document.getElementById('colBtn').textContent = panelCollapsed ? '▶' : '◀';
+}
+
+// ── FULLSCREEN ──
+function enterFS() {
+  renderFS();
+  document.getElementById('fsOverlay').classList.add('on');
+  var el = document.getElementById('fsOverlay');
+  if (el.requestFullscreen) el.requestFullscreen().catch(function() {});
+}
+function exitFS() {
+  document.getElementById('fsOverlay').classList.remove('on');
+  if (document.fullscreenElement) document.exitFullscreen().catch(function() {});
+}
+// 監聽瀏覽器全螢幕狀態變化（例如按 Esc 退出）
+document.addEventListener('fullscreenchange', function() {
+  if (!document.fullscreenElement) {
+    document.getElementById('fsOverlay').classList.remove('on');
+  }
+});
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') exitFS(); });
+
+// ── FLOAT ──
+function toggleFloat() {
+  floatOn = !floatOn;
+  document.getElementById('floatTog').classList.toggle('on', floatOn);
+  document.getElementById('floatWidget').classList.toggle('on', floatOn);
+  if (floatOn) renderFloat();
+}
+
+(function() {
+  var el = document.getElementById('floatWidget');
+  var drag = false, ox = 0, oy = 0;
+  el.addEventListener('mousedown', function(e) {
+    if (e.target.classList.contains('float-close')) return;
+    drag = true; ox = e.clientX - el.offsetLeft; oy = e.clientY - el.offsetTop;
+  });
+  document.addEventListener('mousemove', function(e) {
+    if (!drag) return;
+    el.style.left = (e.clientX - ox) + 'px'; el.style.top = (e.clientY - oy) + 'px';
+    el.style.right = 'auto'; el.style.bottom = 'auto';
+  });
+  document.addEventListener('mouseup', function() { drag = false; });
+})();
+
+// ── PiP ──
+function togglePiP() {
+  if (pipOn) {
+    if (document.pictureInPictureElement) document.exitPictureInPicture().catch(function() {});
+    exitPiP(); return;
+  }
+  if (!document.pictureInPictureEnabled) {
+    alert('您的瀏覽器不支援畫中畫模式。\n請改用全螢幕投影，或手動把視窗縮小置頂。');
+    return;
+  }
+  var canvas = document.createElement('canvas');
+  canvas.width = 380;
+  canvas.height = Math.max(120, timers.filter(function(t) { return t.visible; }).length * 80 + 40);
+  var ctx = canvas.getContext('2d');
+  drawPiPFrame(ctx, canvas.width);
+
+  var stream;
+  try { stream = canvas.captureStream(10); }
+  catch(e) { alert('畫中畫功能需要在網路伺服器上使用（例如上傳至 GitHub Pages）。\n本地端開啟的檔案無法使用此功能。'); return; }
+
+  var video = document.createElement('video');
+  video.srcObject = stream; video.muted = true; video.style.display = 'none';
+  document.body.appendChild(video);
+  video.play().then(function() {
+    return video.requestPictureInPicture();
+  }).then(function() {
+    pipOn = true;
+    window._pipVideo = video; window._pipCanvas = canvas; window._pipCtx = ctx;
+    document.getElementById('pipBtn').classList.add('on');
+    document.getElementById('pipBtn').textContent = '📌 畫中畫已啟用（點擊關閉）';
+    video.addEventListener('leavepictureinpicture', exitPiP);
+    pipLoop();
+  }).catch(function(e) {
+    video.remove();
+    alert('畫中畫啟動失敗：' + e.message + '\n\n請先新增計時器後再試。');
+  });
+}
+
+function pipLoop() {
+  if (!pipOn) return;
+  drawPiPFrame(window._pipCtx, window._pipCanvas.width);
+  requestAnimationFrame(pipLoop);
+}
+
+function drawPiPFrame(ctx, w) {
+  var vis = timers.filter(function(t) { return t.visible; });
+  var h = Math.max(120, vis.length * 80 + 40);
+  if (window._pipCanvas) window._pipCanvas.height = h;
+  ctx.fillStyle = '#1a3a1a'; ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = '#ccff00'; ctx.font = 'bold 14px monospace'; ctx.fillText('⏱ Class Timer', 14, 26);
+  vis.forEach(function(t, i) {
+    var y = 40 + i * 80;
+    var isDang = t.mode === 'countdown' && t.cur <= 10 && !t.finished;
+    var isWarn = t.mode === 'countdown' && t.cur <= 30 && !t.finished;
+    ctx.fillStyle = 'rgba(255,255,255,0.06)'; ctx.fillRect(10, y, w - 20, 68);
+    ctx.fillStyle = t.color; ctx.fillRect(10, y, w - 20, 4);
+    ctx.fillStyle = 'rgba(255,255,255,0.45)'; ctx.font = '11px sans-serif'; ctx.fillText(t.title, 16, y + 20);
+    ctx.fillStyle = t.finished ? '#ccff00' : isDang ? '#ff4757' : isWarn ? '#ff8c42' : 'white';
+    ctx.font = 'bold 32px monospace'; ctx.fillText(fmt(t.cur), 16, y + 56);
+    ctx.fillStyle = t.finished ? '#ccff00' : t.running ? '#4ecdc4' : '#888';
+    ctx.beginPath(); ctx.arc(w - 22, y + 18, 5, 0, Math.PI * 2); ctx.fill();
+  });
+}
+
+function exitPiP() {
+  pipOn = false;
+  if (window._pipVideo) { window._pipVideo.remove(); window._pipVideo = null; }
+  window._pipCanvas = null; window._pipCtx = null;
+  var btn = document.getElementById('pipBtn');
+  btn.classList.remove('on');
+  btn.textContent = '📌 畫中畫（置頂顯示）';
+}
+
+// ── SOUND ──
+function playSound() {
+  var ch = document.getElementById('soundSel').value;
+  if (ch === 'none') return;
+  try {
+    var actx = new (window.AudioContext || window.webkitAudioContext)();
+    var seqs = { bell: [[523,.15],[659,.15],[784,.4]], chime: [[880,.1],[1047,.1],[1319,.1],[1047,.15],[880,.35]], beep: [[440,.1],[440,.1],[440,.5]] };
+    var t = actx.currentTime;
+    (seqs[ch] || seqs.bell).forEach(function(item) {
+      var o = actx.createOscillator(), g = actx.createGain();
+      o.connect(g); g.connect(actx.destination);
+      o.frequency.value = item[0]; o.type = 'sine';
+      g.gain.setValueAtTime(0.3, t); g.gain.exponentialRampToValueAtTime(0.001, t + item[1]);
+      o.start(t); o.stop(t + item[1]); t += item[1] + 0.05;
+    });
+  } catch(e) {}
+}
+
+// ── PICKER ──
+function pickRandom() {
+  var lines = document.getElementById('students').value.trim().split('\n').filter(function(l) { return l.trim(); });
+  if (!lines.length) { alert('請先輸入學生名單'); return; }
+  var name = lines[Math.floor(Math.random() * lines.length)].trim();
+  var el = document.getElementById('pickerName');
+  el.textContent = name;
+  el.style.animation = 'none'; void el.offsetHeight; el.style.animation = '';
+  document.getElementById('pickerOverlay').classList.add('on');
+}
+function closePicker() { document.getElementById('pickerOverlay').classList.remove('on'); }
+</script>
+</body>
+</html>
