@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NewCore｜智慧補習班管理系統</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green-dark: #1a3a1a;
+    --green-mid: #2d5a2d;
+    --green-light: #3d7a3d;
+    --green-accent: #4CAF50;
+    --yellow: #CCFF00;
+    --mint: #4ECDC4;
+    --purple: #6C63FF;
+    --orange: #FF8C42;
+    --white: #F8FAF8;
+    --text-dark: #0f1f0f;
+    --text-muted: #5a7a5a;
+    --card-bg: rgba(255,255,255,0.04);
+    --border: rgba(76,175,80,0.2);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Noto Sans TC', sans-serif;
+    background: var(--green-dark);
+    color: var(--white);
+    overflow-x: hidden;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.2rem 4rem;
+    background: rgba(26,58,26,0.85);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.5rem; font-weight: 800;
+    color: var(--yellow);
+    letter-spacing: -0.02em;
+  }
+  .nav-logo span { color: var(--white); font-weight: 400; }
+
+  .nav-links {
+    display: flex; gap: 2.5rem; list-style: none;
+    font-size: 0.9rem; font-weight: 500;
+  }
+  .nav-links a {
+    color: rgba(248,250,248,0.7);
+    text-decoration: none;
+    transition: color 0.2s;
+    letter-spacing: 0.02em;
+  }
+  .nav-links a:hover { color: var(--yellow); }
+
+  .nav-cta {
+    background: var(--yellow);
+    color: var(--green-dark);
+    padding: 0.6rem 1.5rem;
+    border-radius: 100px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: all 0.2s;
+    letter-spacing: 0.02em;
+  }
+  .nav-cta:hover { background: #e0ff33; transform: translateY(-1px); }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: flex-start;
+    padding: 8rem 4rem 4rem;
+    position: relative; overflow: hidden;
+  }
+
+  .hero-bg {
+    position: absolute; inset: 0; z-index: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 70% 40%, rgba(45,90,45,0.6) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 50% at 20% 80%, rgba(78,205,196,0.1) 0%, transparent 60%),
+      linear-gradient(160deg, #0f2010 0%, #1a3a1a 50%, #0d1f0d 100%);
+  }
+
+  .hero-grid {
+    position: absolute; inset: 0; z-index: 0; opacity: 0.06;
+    background-image:
+      linear-gradient(rgba(204,255,0,0.5) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(204,255,0,0.5) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  /* floating orbs */
+  .orb {
+    position: absolute; border-radius: 50%;
+    filter: blur(60px); animation: float 8s ease-in-out infinite;
+  }
+  .orb-1 { width: 400px; height: 400px; top: 10%; right: 5%;
+    background: radial-gradient(circle, rgba(76,175,80,0.3), transparent);
+    animation-delay: 0s; }
+  .orb-2 { width: 300px; height: 300px; bottom: 20%; right: 20%;
+    background: radial-gradient(circle, rgba(78,205,196,0.2), transparent);
+    animation-delay: 3s; }
+  .orb-3 { width: 200px; height: 200px; top: 60%; left: 60%;
+    background: radial-gradient(circle, rgba(204,255,0,0.15), transparent);
+    animation-delay: 5s; }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-30px) scale(1.05); }
+  }
+
+  .hero-content { position: relative; z-index: 1; max-width: 700px; }
+
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: rgba(204,255,0,0.1);
+    border: 1px solid rgba(204,255,0,0.3);
+    padding: 0.4rem 1rem;
+    border-radius: 100px;
+    font-size: 0.8rem; font-weight: 500;
+    color: var(--yellow);
+    margin-bottom: 2rem;
+    letter-spacing: 0.05em;
+    animation: fadeUp 0.8s ease both;
+  }
+  .hero-badge::before {
+    content: '●'; font-size: 0.5rem;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  .hero-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(3rem, 6vw, 5.5rem);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    margin-bottom: 1.5rem;
+    animation: fadeUp 0.8s ease 0.1s both;
+  }
+  .hero-title .accent { color: var(--yellow); }
+  .hero-title .accent-mint { color: var(--mint); }
+
+  .hero-sub {
+    font-size: 1.15rem;
+    color: rgba(248,250,248,0.65);
+    line-height: 1.7;
+    margin-bottom: 2.5rem;
+    font-weight: 300;
+    max-width: 560px;
+    animation: fadeUp 0.8s ease 0.2s both;
+  }
+
+  .hero-actions {
+    display: flex; gap: 1rem; flex-wrap: wrap;
+    animation: fadeUp 0.8s ease 0.3s both;
+  }
+
+  .btn-primary {
+    background: var(--yellow);
+    color: var(--green-dark);
+    padding: 0.85rem 2rem;
+    border-radius: 100px;
+    font-weight: 700; font-size: 1rem;
+    text-decoration: none;
+    transition: all 0.25s;
+    letter-spacing: 0.01em;
+  }
+  .btn-primary:hover { background: #d9ff1a; transform: translateY(-2px); box-shadow: 0 8px 30px rgba(204,255,0,0.3); }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--white);
+    padding: 0.85rem 2rem;
+    border-radius: 100px;
+    border: 1px solid rgba(248,250,248,0.25);
+    font-weight: 500; font-size: 1rem;
+    text-decoration: none;
+    transition: all 0.25s;
+  }
+  .btn-secondary:hover { border-color: rgba(248,250,248,0.6); background: rgba(248,250,248,0.05); }
+
+  .hero-stats {
+    position: relative; z-index: 1;
+    display: flex; gap: 3rem; margin-top: 4rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+    animation: fadeUp 0.8s ease 0.4s both;
+  }
+  .stat-item {}
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 2rem; font-weight: 800;
+    color: var(--yellow);
+  }
+  .stat-label { font-size: 0.8rem; color: rgba(248,250,248,0.5); margin-top: 0.2rem; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── SECTION BASE ── */
+  section { padding: 6rem 4rem; }
+  .section-label {
+    font-size: 0.75rem; font-weight: 700;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--yellow); margin-bottom: 1rem;
+  }
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 800; line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.5rem;
+  }
+  .section-sub {
+    font-size: 1rem; color: rgba(248,250,248,0.6);
+    line-height: 1.7; max-width: 560px;
+    font-weight: 300;
+  }
+
+  /* ── PAIN POINTS ── */
+  .pain-section {
+    background: linear-gradient(180deg, var(--green-dark) 0%, #0d1f0d 100%);
+  }
+  .pain-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem; margin-top: 3rem;
+  }
+  .pain-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px; padding: 2rem;
+    position: relative; overflow: hidden;
+    transition: all 0.3s;
+  }
+  .pain-card::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--green-accent), transparent);
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .pain-card:hover { border-color: rgba(76,175,80,0.3); transform: translateY(-4px); }
+  .pain-card:hover::before { opacity: 1; }
+  .pain-emoji { font-size: 2rem; margin-bottom: 1rem; }
+  .pain-q {
+    font-size: 1rem; font-weight: 700;
+    margin-bottom: 0.75rem; color: rgba(248,250,248,0.9);
+    line-height: 1.4;
+  }
+  .pain-a {
+    font-size: 0.875rem; color: rgba(248,250,248,0.45);
+    line-height: 1.6; font-weight: 300;
+  }
+  .pain-a span { color: var(--mint); font-weight: 500; }
+
+  /* ── FEATURES ── */
+  .features-section {
+    background: #0d1f0d;
+    position: relative;
+  }
+  .features-section::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse 60% 40% at 50% 50%, rgba(45,90,45,0.3), transparent);
+    pointer-events: none;
+  }
+
+  .features-header {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 4rem; align-items: end; margin-bottom: 4rem;
+  }
+
+  .features-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+
+  .feature-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 20px; padding: 2rem;
+    transition: all 0.3s; position: relative;
+    overflow: hidden;
+  }
+  .feature-card.highlight {
+    background: linear-gradient(135deg, rgba(45,90,45,0.4), rgba(78,205,196,0.08));
+    border-color: rgba(78,205,196,0.25);
+    grid-column: span 2;
+  }
+  .feature-card:hover { transform: translateY(-4px); border-color: rgba(76,175,80,0.35); }
+
+  .feature-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; margin-bottom: 1.25rem;
+  }
+  .icon-green { background: rgba(76,175,80,0.15); }
+  .icon-mint  { background: rgba(78,205,196,0.15); }
+  .icon-yellow{ background: rgba(204,255,0,0.12); }
+  .icon-purple{ background: rgba(108,99,255,0.15); }
+  .icon-orange{ background: rgba(255,140,66,0.15); }
+
+  .feature-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.1rem; font-weight: 700;
+    margin-bottom: 0.75rem;
+  }
+  .feature-desc {
+    font-size: 0.875rem; color: rgba(248,250,248,0.5);
+    line-height: 1.7; font-weight: 300;
+  }
+
+  .feature-tag {
+    display: inline-block;
+    background: rgba(204,255,0,0.1);
+    border: 1px solid rgba(204,255,0,0.25);
+    color: var(--yellow);
+    font-size: 0.7rem; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 0.2rem 0.6rem; border-radius: 100px;
+    margin-bottom: 0.75rem;
+  }
+
+  /* ── TOOLS ── */
+  .tools-section { background: var(--green-dark); }
+  .tools-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem; margin-top: 3rem;
+  }
+  .tool-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 20px; padding: 2rem;
+    text-decoration: none; color: inherit;
+    transition: all 0.3s; display: block;
+    position: relative; overflow: hidden;
+  }
+  .tool-card::after {
+    content: '→';
+    position: absolute; bottom: 1.5rem; right: 1.5rem;
+    font-size: 1.2rem; color: var(--yellow);
+    opacity: 0; transform: translateX(-8px);
+    transition: all 0.3s;
+  }
+  .tool-card:hover { transform: translateY(-6px); border-color: rgba(204,255,0,0.25); background: rgba(204,255,0,0.04); }
+  .tool-card:hover::after { opacity: 1; transform: translateX(0); }
+
+  .tool-chip {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 100px;
+    font-size: 0.7rem; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+  .chip-green  { background: rgba(76,175,80,0.15);  color: #6fcf6f; }
+  .chip-mint   { background: rgba(78,205,196,0.15); color: var(--mint); }
+  .chip-purple { background: rgba(108,99,255,0.15); color: #9d97ff; }
+  .chip-orange { background: rgba(255,140,66,0.15); color: var(--orange); }
+
+  .tool-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.2rem; font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+  .tool-desc { font-size: 0.85rem; color: rgba(248,250,248,0.45); line-height: 1.6; }
+
+  /* ── DEMO CTA ── */
+  .demo-section {
+    background: linear-gradient(135deg, #0d1f0d, #1a3a1a);
+    text-align: center;
+    position: relative; overflow: hidden;
+  }
+  .demo-section::before {
+    content: 'NewCore';
+    position: absolute;
+    font-family: 'Syne', sans-serif;
+    font-size: 20vw; font-weight: 800;
+    color: rgba(255,255,255,0.02);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    white-space: nowrap; pointer-events: none;
+    letter-spacing: -0.05em;
+  }
+  .demo-content { position: relative; z-index: 1; max-width: 600px; margin: 0 auto; }
+  .demo-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-weight: 800; line-height: 1.1;
+    letter-spacing: -0.03em; margin-bottom: 1.5rem;
+  }
+  .demo-sub { color: rgba(248,250,248,0.55); font-size: 1.1rem; margin-bottom: 2.5rem; font-weight: 300; }
+
+  .demo-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+  .btn-line {
+    display: flex; align-items: center; gap: 0.5rem;
+    background: #06C755;
+    color: white;
+    padding: 0.85rem 2rem;
+    border-radius: 100px;
+    font-weight: 700; font-size: 1rem;
+    text-decoration: none;
+    transition: all 0.25s;
+  }
+  .btn-line:hover { background: #05b34b; transform: translateY(-2px); }
+
+  /* ── PRICING ── */
+  .pricing-section { background: #0a180a; }
+  .pricing-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem; margin-top: 3rem;
+  }
+  .price-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 24px; padding: 2.5rem 2rem;
+    transition: all 0.3s;
+  }
+  .price-card.popular {
+    background: linear-gradient(135deg, rgba(45,90,45,0.5), rgba(26,58,26,0.8));
+    border-color: rgba(204,255,0,0.4);
+    position: relative;
+  }
+  .price-card.popular::before {
+    content: '最受歡迎 Popular';
+    position: absolute; top: -1px; left: 50%; transform: translateX(-50%);
+    background: var(--yellow); color: var(--green-dark);
+    font-size: 0.7rem; font-weight: 700;
+    padding: 0.3rem 1rem; border-radius: 0 0 12px 12px;
+    letter-spacing: 0.05em;
+  }
+  .price-card:hover { transform: translateY(-4px); }
+
+  .price-name {
+    font-size: 0.8rem; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: rgba(248,250,248,0.5); margin-bottom: 1rem;
+  }
+  .price-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 3rem; font-weight: 800;
+    color: var(--yellow); line-height: 1;
+  }
+  .price-num span { font-size: 1rem; color: rgba(248,250,248,0.4); font-weight: 400; }
+  .price-period { font-size: 0.8rem; color: rgba(248,250,248,0.4); margin: 0.5rem 0 1.5rem; }
+
+  .price-features {
+    list-style: none; margin-bottom: 2rem;
+    display: flex; flex-direction: column; gap: 0.75rem;
+  }
+  .price-features li {
+    font-size: 0.875rem; color: rgba(248,250,248,0.65);
+    display: flex; gap: 0.5rem; align-items: flex-start;
+  }
+  .price-features li::before { content: '✓'; color: var(--green-accent); flex-shrink: 0; font-weight: 700; }
+
+  .btn-plan {
+    width: 100%; padding: 0.85rem;
+    border-radius: 100px; border: none;
+    font-weight: 700; font-size: 0.95rem;
+    cursor: pointer; transition: all 0.25s;
+    text-decoration: none; display: block; text-align: center;
+  }
+  .btn-plan-primary { background: var(--yellow); color: var(--green-dark); }
+  .btn-plan-primary:hover { background: #d9ff1a; }
+  .btn-plan-ghost { background: rgba(255,255,255,0.07); color: var(--white); }
+  .btn-plan-ghost:hover { background: rgba(255,255,255,0.12); }
+
+  /* ── FOOTER ── */
+  footer {
+    background: #060f06;
+    padding: 3rem 4rem;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 1rem;
+  }
+  .footer-logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.2rem; font-weight: 800;
+    color: var(--yellow);
+  }
+  .footer-logo span { color: rgba(248,250,248,0.4); font-weight: 400; }
+  .footer-text { font-size: 0.8rem; color: rgba(248,250,248,0.3); }
+  .footer-links { display: flex; gap: 1.5rem; }
+  .footer-links a {
+    font-size: 0.8rem; color: rgba(248,250,248,0.4);
+    text-decoration: none; transition: color 0.2s;
+  }
+  .footer-links a:hover { color: var(--yellow); }
+
+  /* ── APPLY TRIAL ── */
+  .apply-section {
+    background: linear-gradient(180deg, #0a180a 0%, #0d1f0d 100%);
+    position: relative;
+  }
+  .apply-inner {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 5rem; align-items: center; max-width: 1100px; margin: 0 auto;
+  }
+  .apply-perks {
+    list-style: none; display: flex; flex-direction: column; gap: 0.75rem;
+  }
+  .apply-perks li {
+    font-size: 0.9rem; color: rgba(248,250,248,0.65);
+    display: flex; gap: 0.5rem;
+  }
+  .apply-perks li::first-letter { color: var(--green-accent); font-weight: 700; }
+
+  .apply-form-box {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(76,175,80,0.2);
+    border-radius: 24px; padding: 2.5rem;
+  }
+  .form-step-label {
+    font-size: 0.7rem; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: rgba(248,250,248,0.4); margin-bottom: 1.5rem;
+  }
+  .apply-steps {
+    display: flex; align-items: center; gap: 0.75rem;
+    margin-bottom: 2rem;
+  }
+  .apply-step {
+    flex: 1; text-align: center;
+  }
+  .step-num {
+    width: 36px; height: 36px;
+    background: var(--yellow); color: var(--green-dark);
+    border-radius: 50%; font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 1rem;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 0.5rem;
+  }
+  .step-text {
+    font-size: 0.8rem; color: rgba(248,250,248,0.7); line-height: 1.4;
+  }
+  .step-text span { font-size: 0.7rem; color: rgba(248,250,248,0.35); }
+  .step-arrow { color: rgba(248,250,248,0.25); font-size: 1.2rem; flex-shrink: 0; }
+
+  .btn-apply {
+    display: block; width: 100%;
+    background: var(--yellow); color: var(--green-dark);
+    padding: 1rem; border-radius: 100px;
+    font-weight: 700; font-size: 1rem;
+    text-decoration: none; text-align: center;
+    transition: all 0.25s; margin-bottom: 1rem;
+    letter-spacing: 0.01em;
+  }
+  .btn-apply:hover { background: #d9ff1a; transform: translateY(-2px); box-shadow: 0 8px 30px rgba(204,255,0,0.25); }
+
+  .apply-note {
+    font-size: 0.8rem; color: rgba(248,250,248,0.35);
+    text-align: center;
+  }
+
+  @media (max-width: 900px) {
+    .apply-inner { grid-template-columns: 1fr; gap: 2rem; }
+  }
+
+  /* ── SCROLL REVEAL ── */
+  .reveal {
+    opacity: 0; transform: translateY(32px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    nav { padding: 1rem 1.5rem; }
+    .nav-links { display: none; }
+    section { padding: 4rem 1.5rem; }
+    .hero { padding: 7rem 1.5rem 3rem; }
+    .pain-grid, .tools-grid, .pricing-grid { grid-template-columns: 1fr; }
+    .features-header { grid-template-columns: 1fr; gap: 1.5rem; }
+    .features-grid { grid-template-columns: 1fr; }
+    .feature-card.highlight { grid-column: span 1; }
+    .hero-stats { gap: 2rem; flex-wrap: wrap; }
+    footer { flex-direction: column; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">New<span>Core</span></div>
+  <ul class="nav-links">
+    <li><a href="#features">功能 Features</a></li>
+    <li><a href="#tools">工具 Tools</a></li>
+    <li><a href="#pricing">方案 Pricing</a></li>
+    <li><a href="#contact">聯絡 Contact</a></li>
+  </ul>
+  <a href="#contact" class="nav-cta">免費試用 Try Free</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+
+  <div class="hero-content">
+    <div class="hero-badge">專為英語補習班設計 · Made for Cram Schools</div>
+    <h1 class="hero-title">
+      讓教學更<span class="accent">聰明</span><br>
+      讓管理更<span class="accent-mint">簡單</span>
+    </h1>
+    <p class="hero-sub">
+      NewCore 整合語音點名、成績管理、教學工具，<br>
+      讓老師從繁瑣行政中解脫，專注在真正重要的事。<br>
+      <em style="color:rgba(248,250,248,0.4);font-style:normal;">AI-powered attendance · grade management · teaching tools for modern cram schools.</em>
+    </p>
+    <div class="hero-actions">
+      <a href="#contact" class="btn-primary">立即免費試用 →</a>
+      <a href="#features" class="btn-secondary">了解更多功能</a>
+    </div>
+
+    <div class="hero-stats">
+      <div class="stat-item">
+        <div class="stat-num">5分</div>
+        <div class="stat-label">語音點名完成時間</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">AI</div>
+        <div class="stat-label">Gemini 語音辨識驅動</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">零</div>
+        <div class="stat-label">安裝需求，開啟即用</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PAIN POINTS -->
+<section class="pain-section reveal" id="pain">
+  <div class="section-label">痛點 Pain Points</div>
+  <h2 class="section-title">你還在這樣做嗎？</h2>
+  <p class="section-sub">補習班老師每週花在行政作業的時間，遠多於你以為的。</p>
+
+  <div class="pain-grid">
+    <div class="pain-card">
+      <div class="pain-emoji">📋</div>
+      <div class="pain-q">還在用紙本點名表？</div>
+      <div class="pain-a">點完名還要手動謄寫，一堂課 15 分鐘就這樣不見。<br><span>NewCore 語音點名，說完即錄。</span></div>
+    </div>
+    <div class="pain-card">
+      <div class="pain-emoji">📊</div>
+      <div class="pain-q">每次出成績單要花半天？</div>
+      <div class="pain-a">手動計算出席率、作業均分、考試成績，錯了還要重來。<br><span>NewCore 自動統計，一鍵生成 PDF。</span></div>
+    </div>
+    <div class="pain-card">
+      <div class="pain-emoji">📧</div>
+      <div class="pain-q">家長問成績還要自己查？</div>
+      <div class="pain-a">翻 Line、翻紙本、翻記憶……效率極低。<br><span>NewCore 直接 Email 發送成績單給家長。</span></div>
+    </div>
+    <div class="pain-card">
+      <div class="pain-emoji">🎮</div>
+      <div class="pain-q">課堂互動只靠嘴巴說？</div>
+      <div class="pain-a">學生注意力分散，獎勵機制缺乏工具支援。<br><span>NewCore 教學工具包讓課堂動起來。</span></div>
+    </div>
+    <div class="pain-card">
+      <div class="pain-emoji">🗓️</div>
+      <div class="pain-q">建班排課還在手動算？</div>
+      <div class="pain-a">哪幾天上課、哪幾堂、哪個老師，全都要自己一一設定。<br><span>NewCore 建班系統自動生成課程表。</span></div>
+    </div>
+    <div class="pain-card">
+      <div class="pain-emoji">🔁</div>
+      <div class="pain-q">補課管理一片混亂？</div>
+      <div class="pain-a">誰缺席、誰補課、補了幾次，根本搞不清楚。<br><span>NewCore 總表一眼掌握所有狀況。</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features-section reveal" id="features">
+  <div class="features-header">
+    <div>
+      <div class="section-label">核心功能 Core Features</div>
+      <h2 class="section-title">一套系統<br>解決所有教務需求</h2>
+    </div>
+    <p class="section-sub" style="align-self:start;margin-top:3.5rem;">
+      從點名到成績單、從建班到考試，NewCore 覆蓋補習班完整教務流程。不需要安裝任何軟體，開啟瀏覽器即可使用。
+    </p>
+  </div>
+
+  <div class="features-grid">
+    <div class="feature-card highlight">
+      <div class="feature-tag">AI 驅動 · Gemini</div>
+      <div class="feature-icon icon-mint">🎙️</div>
+      <div class="feature-title">語音點名系統 Voice Attendance</div>
+      <div class="feature-desc">
+        說出學生名字，Gemini AI 自動辨識並記錄出缺席。支援全班點名、例外情況、單人指定，以及手動分數轉盤輸入。點名結果即時寫入雲端，不怕資料遺失。
+      </div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon icon-green">📊</div>
+      <div class="feature-title">出缺席總表 Attendance Overview</div>
+      <div class="feature-desc">全期出缺席一目瞭然，直接點格修改，快速篩選未補課、缺作業學生。</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon icon-yellow">📄</div>
+      <div class="feature-title">智慧成績單 Smart Report Card</div>
+      <div class="feature-desc">雷達圖視覺化、Gemini 自動生成個人化評語、PDF 下載、Email 一鍵寄送家長。</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon icon-purple">✏️</div>
+      <div class="feature-title">考試成績輸入 Exam Scores</div>
+      <div class="feature-desc">按班級選考試類型（小考/大考），逐人輸入成績，Tab 鍵快速跳格，批次儲存。</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon icon-orange">🏗️</div>
+      <div class="feature-title">建班管理系統 Class Builder</div>
+      <div class="feature-desc">設定班級名稱、課程規格、上課日、授課老師，自動計算總堂次與預計結束日期。</div>
+    </div>
+  </div>
+</section>
+
+<!-- TOOLS -->
+<section class="tools-section reveal" id="tools">
+  <div class="section-label">教學工具 Teaching Tools</div>
+  <h2 class="section-title">讓課堂活起來</h2>
+  <p class="section-sub">Jeffrey's Lab 教學工具包，讓老師輕鬆製作互動教材，讓學生愛上學習。</p>
+
+  <div class="tools-grid">
+    <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/tool_package.html" target="_blank" class="tool-card">
+      <div class="tool-chip chip-green">課堂互動</div>
+      <div class="tool-name">🎰 教學工具包</div>
+      <div class="tool-desc">分數紀錄器、獎勵樂透大富翁、重組單字遊戲，讓課堂充滿活力與競爭感。</div>
+    </a>
+    <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/flashcard_match.html" target="_blank" class="tool-card">
+      <div class="tool-chip chip-mint">字彙練習</div>
+      <div class="tool-name">🃏 閃示卡工具</div>
+      <div class="tool-desc">自訂字彙庫、AI 生成圖片、配對練習。支援多模式練習，讓單字記憶更有效率。</div>
+    </a>
+    <a href="#" class="tool-card">
+      <div class="tool-chip chip-purple">AI 出題</div>
+      <div class="tool-name">🔍 找字遊戲 / 克漏字</div>
+      <div class="tool-desc">輸入單字即自動生成找字方格或 AI 克漏字考卷，一鍵列印，省去備課時間。</div>
+    </a>
+  </div>
+</section>
+
+<!-- APPLY TRIAL -->
+<section class="apply-section reveal" id="apply">
+  <div class="apply-inner">
+    <div>
+      <div class="section-label">免費試用申請 Free Trial</div>
+      <h2 class="section-title">30 天完整體驗<br><span style="color:var(--mint)">零風險試用</span></h2>
+      <p class="section-sub" style="margin-bottom:2rem;">
+        填寫以下資料，我們將在 1 個工作天內審核並寄送授權碼到您的 Email。<br>
+        <em style="color:rgba(248,250,248,0.35);font-style:normal;font-size:0.85rem;">Fill out the form below. We'll send your trial license within 1 business day.</em>
+      </p>
+      <ul class="apply-perks">
+        <li>✓ 試用期間功能完整，無任何限制</li>
+        <li>✓ 不需信用卡，不自動扣款</li>
+        <li>✓ 試用結束後自動停用，資料保留</li>
+        <li>✓ 有問題直接 LINE 聯繫 Jeffrey</li>
+      </ul>
+    </div>
+
+    <div class="apply-form-box">
+      <div class="form-step-label">申請步驟 How it works</div>
+      <div class="apply-steps">
+        <div class="apply-step">
+          <div class="step-num">1</div>
+          <div class="step-text">填寫申請表單<br><span>約 2 分鐘</span></div>
+        </div>
+        <div class="step-arrow">→</div>
+        <div class="apply-step">
+          <div class="step-num">2</div>
+          <div class="step-text">等待審核通知<br><span>1 個工作天</span></div>
+        </div>
+        <div class="step-arrow">→</div>
+        <div class="apply-step">
+          <div class="step-num">3</div>
+          <div class="step-text">收到 Email 開始使用<br><span>30 天試用</span></div>
+        </div>
+      </div>
+
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLSehipP-EsjiB4jTM2YuwQ6ir7vjsYYLzo_YczmFnZQsulU99A/viewform" target="_blank" class="btn-apply" id="applyBtn">
+        📋 立即填寫申請表單
+      </a>
+      <p class="apply-note">或直接透過 LINE 聯繫：<a href="https://line.me/ti/p/~@593fbons" style="color:var(--mint);">@593fbons</a></p>
+    </div>
+  </div>
+</section>
+
+<!-- CTA DEMO -->
+<section class="demo-section reveal" id="contact">
+  <div class="demo-content">
+    <div class="section-label">聯絡我們 Contact</div>
+    <h2 class="demo-title">還有問題？<br><span style="color:var(--yellow)">隨時找我們</span></h2>
+    <p class="demo-sub">預約 Demo 或直接用 LINE 聯繫，通常 24 小時內回覆。<br>
+    <em style="color:rgba(248,250,248,0.35);font-style:normal;">Book a demo or reach out via LINE — we reply within 24 hours.</em></p>
+    <div class="demo-actions">
+      <a href="https://line.me/ti/p/~@593fbons" target="_blank" class="btn-line">
+        <span style="font-size:1.2rem;">💬</span> LINE @593fbons
+      </a>
+      <a href="#apply" class="btn-primary">📋 申請試用</a>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing-section reveal" id="pricing">
+  <div class="section-label">方案 Pricing</div>
+  <h2 class="section-title">透明定價<br>沒有隱藏費用</h2>
+
+  <div class="pricing-grid">
+    <div class="price-card">
+      <div class="price-name">免費試用 Free Trial</div>
+      <div class="price-num">$0 <span>/ 月</span></div>
+      <div class="price-period">30 天完整功能體驗</div>
+      <ul class="price-features">
+        <li>1 個班級</li>
+        <li>語音點名功能</li>
+        <li>基本成績管理</li>
+        <li>教學工具包</li>
+        <li>Email 技術支援</li>
+      </ul>
+      <a href="#contact" class="btn-plan btn-plan-ghost">立即開始 Start Free</a>
+    </div>
+
+    <div class="price-card popular">
+      <div class="price-name">標準方案 Standard</div>
+      <div class="price-num">$999 <span>/ 月</span></div>
+      <div class="price-period">最多 10 個班級</div>
+      <ul class="price-features">
+        <li>無限語音點名</li>
+        <li>完整成績單系統</li>
+        <li>家長 Email 自動發送</li>
+        <li>考試成績管理</li>
+        <li>建班管理系統</li>
+        <li>LINE 優先支援</li>
+      </ul>
+      <a href="#contact" class="btn-plan btn-plan-primary">選擇此方案</a>
+    </div>
+
+    <div class="price-card">
+      <div class="price-name">進階方案 Pro</div>
+      <div class="price-num">聯絡<span> 洽談</span></div>
+      <div class="price-period">無限班級 · 客製化需求</div>
+      <ul class="price-features">
+        <li>無限班級數量</li>
+        <li>多老師帳號管理</li>
+        <li>客製化功能開發</li>
+        <li>專屬客服支援</li>
+        <li>系統教育訓練</li>
+        <li>資料匯出報表</li>
+      </ul>
+      <a href="#contact" class="btn-plan btn-plan-ghost">聯絡洽談 Contact</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">New<span>Core</span> · Jeffrey's Lab</div>
+  <div class="footer-text">© 2025 NewCore. All rights reserved. 專為補習班老師設計。</div>
+  <div class="footer-links">
+    <a href="https://jeffreycz1979-prog.github.io/newcore-pro/" target="_blank">教務系統</a>
+    <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/" target="_blank">教學工具</a>
+    <a href="#contact">聯絡我們</a>
+  </div>
+</footer>
+
+<script>
+  // Scroll reveal
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        // stagger children
+        e.target.querySelectorAll('.pain-card, .feature-card, .tool-card, .price-card').forEach((el, i) => {
+          el.style.transitionDelay = `${i * 0.08}s`;
+          el.style.opacity = '0';
+          el.style.transform = 'translateY(20px)';
+          setTimeout(() => {
+            el.style.transition = 'opacity 0.5s ease, transform 0.5s ease, border-color 0.3s, background 0.3s';
+            el.style.opacity = '1';
+            el.style.transform = 'translateY(0)';
+          }, i * 80 + 100);
+        });
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
