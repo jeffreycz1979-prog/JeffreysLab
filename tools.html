@@ -613,7 +613,7 @@
   <h2>想用完整教務系統？<br><span>申請 30 天免費試用</span></h2>
   <p>NewCore 教務系統包含語音點名、成績管理、家長通知，需要授權使用。</p>
   <div class="cta-buttons">
-    <a href="index.html#apply" class="btn-yellow">📋 申請免費試用</a>
+    <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/index.html#apply" class="btn-yellow">📋 申請免費試用</a>
     <a href="https://line.me/ti/p/~@593fbons" target="_blank" class="btn-ghost">💬 LINE 聯絡 Jeffrey</a>
   </div>
 </div>
@@ -631,7 +631,7 @@
 
 <script>
 // ── AUTH GATE ──
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbzL4d3rUQyqXyqIVNBvK-Jx1Bxtg3Va7yDSECUCu_UEaKNKvDn_fIooIPH_QTJo71Ev/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbyF9mEn3_pijcuQaZgGI1gug1Pxrrh3c7WhBHMHLvMdLk00dkpPfKc0bvsLUlDfRhF8/exec';
 const STORAGE_KEY = 'newcore_tools_token';
 const STORAGE_INFO = 'newcore_tools_info';
 
@@ -673,7 +673,7 @@ function checkToken(token, saveToStorage) {
       localStorage.removeItem(STORAGE_KEY);
       localStorage.removeItem(STORAGE_INFO);
       showGate('error', '❌ ' + (data.message || '授權無效'), `
-        <a href="index.html#apply" class="gate-btn gate-btn-primary">📋 申請試用</a>
+        <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/index.html#apply" class="gate-btn gate-btn-primary">📋 申請試用</a>
         <a href="https://line.me/ti/p/~@593fbons" target="_blank" class="gate-btn gate-btn-line">💬 LINE 聯繫</a>
       `);
     }
@@ -714,7 +714,7 @@ function checkToken(token, saveToStorage) {
 
   // 3. 完全沒有 token → 顯示申請頁面
   showGate('', '您尚未取得試用授權。\n請申請試用後，透過 Email 中的連結進入。', `
-    <a href="index.html#apply" class="gate-btn gate-btn-primary">📋 申請免費試用</a>
+    <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/index.html#apply" class="gate-btn gate-btn-primary">📋 申請免費試用</a>
     <a href="https://line.me/ti/p/~@593fbons" target="_blank" class="gate-btn gate-btn-line">💬 LINE @593fbons</a>
   `);
 })();
