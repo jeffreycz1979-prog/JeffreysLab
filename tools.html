@@ -23,6 +23,42 @@
     --border: #E5E0D8;
   }
 
+  /* ── AUTH GATE ── */
+  #authGate {
+    position: fixed; inset: 0; z-index: 9999;
+    background: #1a3a1a;
+    display: flex; align-items: center; justify-content: center;
+    padding: 2rem;
+  }
+  #authGate.hidden { display: none; }
+  .gate-box {
+    background: white; border-radius: 20px;
+    padding: 3rem 2.5rem; max-width: 480px; width: 100%;
+    text-align: center; box-shadow: 0 24px 60px rgba(0,0,0,0.3);
+  }
+  .gate-logo { font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800; color: #1a3a1a; margin-bottom: 0.5rem; }
+  .gate-sub { font-size: 0.85rem; color: #888; margin-bottom: 2rem; }
+  .gate-spinner { width: 40px; height: 40px; border: 3px solid #e0e0e0; border-top-color: #1a3a1a; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 1rem auto; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .gate-msg { font-size: 0.95rem; color: #555; line-height: 1.6; margin-bottom: 1.5rem; }
+  .gate-msg.error { color: #cc3333; }
+  .gate-msg.success { color: #1a3a1a; }
+  .gate-btn {
+    display: inline-block; padding: 0.85rem 2rem; border-radius: 100px;
+    font-weight: 700; font-size: 0.95rem; text-decoration: none;
+    transition: all 0.2s; margin: 0.4rem;
+  }
+  .gate-btn-primary { background: #CCFF00; color: #1a3a1a; }
+  .gate-btn-primary:hover { background: #d9ff1a; }
+  .gate-btn-line { background: #06C755; color: white; }
+  .gate-btn-line:hover { background: #05b34b; }
+  .gate-name-badge {
+    display: inline-block; background: #e8f5e9; color: #1a3a1a;
+    padding: 0.3rem 1rem; border-radius: 100px;
+    font-size: 0.85rem; font-weight: 600; margin-bottom: 1rem;
+  }
+  .gate-expiry { font-size: 0.78rem; color: #aaa; margin-top: 0.5rem; }
+
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html { scroll-behavior: smooth; }
 
@@ -339,6 +375,18 @@
 </head>
 <body>
 
+<!-- AUTH GATE -->
+<div id="authGate">
+  <div class="gate-box">
+    <div class="gate-logo">🧪 Jeffrey's Lab</div>
+    <div class="gate-sub">教學工具包 · 授權驗證</div>
+    <div class="gate-spinner" id="gateSpinner"></div>
+    <div class="gate-msg" id="gateMsg">驗證授權中，請稍候…</div>
+    <div id="gateActions"></div>
+    <div class="gate-expiry" id="gateExpiry"></div>
+  </div>
+</div>
+
 <!-- NAV -->
 <nav>
   <a href="index.html" class="nav-logo">New<span class="dot">Core</span> · Jeffrey's Lab</a>
@@ -582,6 +630,94 @@
 </footer>
 
 <script>
+// ── AUTH GATE ──
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbzL4d3rUQyqXyqIVNBvK-Jx1Bxtg3Va7yDSECUCu_UEaKNKvDn_fIooIPH_QTJo71Ev/exec';
+const STORAGE_KEY = 'newcore_tools_token';
+const STORAGE_INFO = 'newcore_tools_info';
+
+function showGate(type, msg, extra) {
+  document.getElementById('gateSpinner').style.display = 'none';
+  const msgEl = document.getElementById('gateMsg');
+  const actEl = document.getElementById('gateActions');
+  const expEl = document.getElementById('gateExpiry');
+  msgEl.className = 'gate-msg ' + (type || '');
+  msgEl.textContent = msg;
+  actEl.innerHTML = extra || '';
+  expEl.textContent = '';
+}
+
+function showSuccess(name, plan, expiry) {
+  document.getElementById('gateSpinner').style.display = 'none';
+  document.getElementById('gateMsg').className = 'gate-msg success';
+  document.getElementById('gateMsg').textContent = '✅ 驗證成功，正在載入工具…';
+  document.getElementById('gateActions').innerHTML = '<div class="gate-name-badge">👋 歡迎回來，' + name + '</div>';
+  document.getElementById('gateExpiry').textContent = '方案：' + plan + ' · 試用到期：' + expiry;
+  setTimeout(() => {
+    document.getElementById('authGate').classList.add('hidden');
+  }, 1200);
+}
+
+function checkToken(token, saveToStorage) {
+  const script = document.createElement('script');
+  const cbName = 'authCb_' + Date.now();
+  window[cbName] = function(data) {
+    script.remove();
+    delete window[cbName];
+    if (data.valid) {
+      if (saveToStorage) {
+        localStorage.setItem(STORAGE_KEY, token);
+        localStorage.setItem(STORAGE_INFO, JSON.stringify({ name: data.name, plan: data.plan, expiry: data.expiry }));
+      }
+      showSuccess(data.name, data.plan || 'Free', data.expiry);
+    } else {
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(STORAGE_INFO);
+      showGate('error', '❌ ' + (data.message || '授權無效'), `
+        <a href="index.html#apply" class="gate-btn gate-btn-primary">📋 申請試用</a>
+        <a href="https://line.me/ti/p/~@593fbons" target="_blank" class="gate-btn gate-btn-line">💬 LINE 聯繫</a>
+      `);
+    }
+  };
+  script.src = GAS_URL + '?action=checkToolsToken&token=' + encodeURIComponent(token) + '&callback=' + cbName;
+  document.head.appendChild(script);
+}
+
+// 主流程
+(function() {
+  // 1. 先看 URL 有沒有 token
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlToken = urlParams.get('token');
+
+  if (urlToken) {
+    // URL 有 token → 驗證並存入
+    checkToken(urlToken, true);
+    // 移除 URL 上的 token（安全性）
+    history.replaceState({}, '', window.location.pathname);
+    return;
+  }
+
+  // 2. 沒有 URL token → 看 localStorage
+  const savedToken = localStorage.getItem(STORAGE_KEY);
+  const savedInfo  = localStorage.getItem(STORAGE_INFO);
+
+  if (savedToken) {
+    // 有儲存的 token → 重新驗證（確保沒過期）
+    if (savedInfo) {
+      try {
+        const info = JSON.parse(savedInfo);
+        document.getElementById('gateMsg').textContent = '歡迎回來，' + info.name + '！驗證授權中…';
+      } catch(e) {}
+    }
+    checkToken(savedToken, true);
+    return;
+  }
+
+  // 3. 完全沒有 token → 顯示申請頁面
+  showGate('', '您尚未取得試用授權。\n請申請試用後，透過 Email 中的連結進入。', `
+    <a href="index.html#apply" class="gate-btn gate-btn-primary">📋 申請免費試用</a>
+    <a href="https://line.me/ti/p/~@593fbons" target="_blank" class="gate-btn gate-btn-line">💬 LINE @593fbons</a>
+  `);
+})();
   // Scroll reveal
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(e => {
