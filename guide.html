@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NewCore｜功能介紹與使用指南</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Noto+Sans+TC:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --green-dark: #1a3a1a;
+  --green-mid: #2d5a2d;
+  --green-light: #4CAF50;
+  --yellow: #CCFF00;
+  --mint: #4ECDC4;
+  --white: #F8FAF8;
+  --gray: #f0ede6;
+  --text: #1a1a1a;
+  --muted: #888;
+  --border: #e0dbd3;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body { font-family:'Noto Sans TC',sans-serif; background:var(--white); color:var(--text); overflow-x:hidden; }
+
+/* ── NAV ── */
+nav {
+  position:fixed; top:0; left:0; right:0; z-index:100;
+  background:rgba(26,58,26,0.95); backdrop-filter:blur(12px);
+  padding:1rem 3rem; display:flex; align-items:center; justify-content:space-between;
+  border-bottom:1px solid rgba(204,255,0,0.15);
+}
+.nav-logo { font-family:'Syne',sans-serif; font-size:1.3rem; font-weight:800; color:var(--yellow); text-decoration:none; }
+.nav-links { display:flex; gap:2rem; list-style:none; }
+.nav-links a { color:rgba(255,255,255,0.6); text-decoration:none; font-size:0.85rem; font-weight:500; transition:color 0.2s; }
+.nav-links a:hover { color:var(--yellow); }
+.nav-cta { background:var(--yellow); color:var(--green-dark); padding:0.55rem 1.4rem; border-radius:100px; font-weight:700; font-size:0.85rem; text-decoration:none; }
+
+/* ── HERO ── */
+.hero {
+  background:linear-gradient(135deg, #0d1f0d 0%, #1a3a1a 60%, #0a180a 100%);
+  padding:9rem 3rem 6rem; text-align:center; position:relative; overflow:hidden;
+}
+.hero::before {
+  content:''; position:absolute; inset:0;
+  background-image: linear-gradient(rgba(204,255,0,0.04) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(204,255,0,0.04) 1px,transparent 1px);
+  background-size:60px 60px;
+}
+.hero-tag {
+  display:inline-block; background:rgba(204,255,0,0.12); border:1px solid rgba(204,255,0,0.3);
+  color:var(--yellow); font-size:0.75rem; font-weight:700; letter-spacing:0.12em;
+  text-transform:uppercase; padding:0.35rem 1rem; border-radius:100px; margin-bottom:1.5rem;
+}
+.hero h1 {
+  font-family:'Syne',sans-serif; font-size:clamp(2.5rem,5vw,4.5rem); font-weight:800;
+  color:white; line-height:1.05; letter-spacing:-0.03em; margin-bottom:1.25rem;
+}
+.hero h1 span { color:var(--yellow); }
+.hero p { color:rgba(255,255,255,0.55); font-size:1.1rem; max-width:600px; margin:0 auto 2.5rem; line-height:1.7; font-weight:300; }
+.hero-actions { display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; }
+.btn-primary { background:var(--yellow); color:var(--green-dark); padding:0.85rem 2rem; border-radius:100px; font-weight:700; text-decoration:none; font-size:0.95rem; transition:all 0.2s; }
+.btn-primary:hover { background:#d9ff1a; transform:translateY(-2px); }
+.btn-ghost { background:rgba(255,255,255,0.08); color:white; padding:0.85rem 2rem; border-radius:100px; border:1px solid rgba(255,255,255,0.2); text-decoration:none; font-size:0.95rem; transition:all 0.2s; }
+.btn-ghost:hover { background:rgba(255,255,255,0.14); }
+
+/* ── SECTION BASE ── */
+.section { padding:6rem 3rem; max-width:1200px; margin:0 auto; }
+.section-tag { font-family:'Space Mono',monospace; font-size:0.7rem; font-weight:700; letter-spacing:0.15em; text-transform:uppercase; color:var(--green-light); margin-bottom:0.75rem; }
+.section-title { font-family:'Syne',sans-serif; font-size:clamp(1.8rem,3.5vw,2.8rem); font-weight:800; letter-spacing:-0.02em; margin-bottom:1rem; line-height:1.1; }
+.section-sub { color:var(--muted); font-size:1rem; line-height:1.7; max-width:560px; font-weight:300; }
+
+/* ── FEATURE BLOCKS ── */
+.feature-block {
+  display:grid; grid-template-columns:1fr 1fr; gap:5rem; align-items:center;
+  padding:5rem 3rem; max-width:1200px; margin:0 auto;
+}
+.feature-block.reverse { direction:rtl; }
+.feature-block.reverse > * { direction:ltr; }
+.feature-block-alt { background:var(--gray); }
+.feature-block-dark { background:var(--green-dark); }
+.feature-block-dark .section-tag { color:var(--mint); }
+.feature-block-dark .section-title { color:white; }
+.feature-block-dark .section-sub { color:rgba(255,255,255,0.5); }
+.feature-block-dark .feature-point { color:rgba(255,255,255,0.7); }
+.feature-block-dark .feature-point::before { color:var(--yellow); }
+
+.feature-points { margin-top:1.75rem; display:flex; flex-direction:column; gap:0.85rem; }
+.feature-point {
+  font-size:0.9rem; color:#444; line-height:1.6;
+  display:flex; gap:0.6rem; align-items:flex-start;
+}
+.feature-point::before { content:'✓'; color:var(--green-light); font-weight:700; flex-shrink:0; margin-top:0.1rem; }
+
+/* ── SCREENSHOT ── */
+.screenshot-wrap {
+  position:relative; border-radius:16px; overflow:hidden;
+  box-shadow:0 24px 60px rgba(0,0,0,0.18);
+  border:1px solid rgba(0,0,0,0.08);
+}
+.screenshot-wrap::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:32px;
+  background:#e8e8e8; z-index:1;
+  display:flex; align-items:center;
+}
+.screenshot-wrap::after {
+  content:'● ● ●'; position:absolute; top:0; left:12px;
+  height:32px; display:flex; align-items:center;
+  font-size:10px; color:#bbb; letter-spacing:3px; z-index:2;
+}
+.screenshot-wrap img {
+  width:100%; display:block; margin-top:32px;
+  transition:transform 0.4s ease;
+}
+.screenshot-wrap:hover img { transform:scale(1.02); }
+
+.screenshot-dark { border:1px solid rgba(204,255,0,0.15); }
+.screenshot-dark::before { background:#111; }
+.screenshot-dark::after { color:#444; }
+
+/* double screenshot */
+.screenshot-duo { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+.screenshot-duo .screenshot-wrap { border-radius:12px; }
+
+/* ── STEP INDICATOR ── */
+.step-num {
+  display:inline-flex; width:36px; height:36px; border-radius:50%;
+  background:var(--yellow); color:var(--green-dark);
+  font-family:'Syne',sans-serif; font-weight:800; font-size:1rem;
+  align-items:center; justify-content:center; margin-bottom:1rem; flex-shrink:0;
+}
+
+/* ── ADMIN SECTION ── */
+.admin-grid { display:grid; grid-template-columns:1fr 1fr; gap:2rem; margin-top:3rem; }
+.admin-card {
+  background:rgba(255,255,255,0.05); border:1px solid rgba(204,255,0,0.15);
+  border-radius:16px; overflow:hidden;
+}
+.admin-card-header { padding:1.25rem 1.5rem; background:rgba(204,255,0,0.08); border-bottom:1px solid rgba(204,255,0,0.1); }
+.admin-card-title { font-family:'Syne',sans-serif; font-size:1rem; font-weight:700; color:var(--yellow); }
+.admin-card-sub { font-size:0.8rem; color:rgba(255,255,255,0.4); margin-top:0.25rem; }
+.admin-card img { width:100%; display:block; }
+
+/* ── TOOLS STRIP ── */
+.tools-bg { background:var(--gray); padding:5rem 0; }
+.tools-inner { max-width:1200px; margin:0 auto; padding:0 3rem; }
+.tools-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem; margin-top:3rem; }
+.tool-card {
+  background:white; border-radius:16px; padding:2rem; border:1.5px solid var(--border);
+  transition:all 0.3s; text-decoration:none; color:inherit; display:block;
+}
+.tool-card:hover { border-color:var(--green-light); transform:translateY(-4px); box-shadow:0 12px 32px rgba(0,0,0,0.08); }
+.tool-icon { font-size:2.5rem; margin-bottom:1rem; display:block; }
+.tool-name { font-family:'Syne',sans-serif; font-size:1.1rem; font-weight:700; margin-bottom:0.5rem; }
+.tool-desc { font-size:0.85rem; color:var(--muted); line-height:1.65; }
+.tool-tag { display:inline-block; margin-top:1rem; padding:0.2rem 0.7rem; border-radius:100px; font-size:0.7rem; font-weight:700; letter-spacing:0.06em; }
+.tag-free { background:#e6f4ea; color:var(--green-mid); }
+.tag-auth { background:#fff0e0; color:#c06000; }
+
+/* ── CTA FINAL ── */
+.cta-section {
+  background:linear-gradient(135deg, #0d1f0d, #1a3a1a);
+  padding:6rem 3rem; text-align:center; position:relative; overflow:hidden;
+}
+.cta-section::before {
+  content:'NewCore'; position:absolute;
+  font-family:'Syne',sans-serif; font-size:18vw; font-weight:800;
+  color:rgba(255,255,255,0.02); top:50%; left:50%;
+  transform:translate(-50%,-50%); white-space:nowrap; pointer-events:none;
+  letter-spacing:-0.05em;
+}
+.cta-inner { position:relative; z-index:1; }
+.cta-section h2 { font-family:'Syne',sans-serif; font-size:clamp(2rem,4vw,3.5rem); font-weight:800; color:white; letter-spacing:-0.02em; margin-bottom:1rem; }
+.cta-section h2 span { color:var(--yellow); }
+.cta-section p { color:rgba(255,255,255,0.45); font-size:1rem; margin-bottom:2.5rem; font-weight:300; }
+.cta-btns { display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; }
+.btn-line { display:flex; align-items:center; gap:0.5rem; background:#06C755; color:white; padding:0.85rem 2rem; border-radius:100px; font-weight:700; text-decoration:none; transition:all 0.2s; }
+.btn-line:hover { background:#05b34b; transform:translateY(-2px); }
+
+/* ── DIVIDER ── */
+.divider { height:1px; background:var(--border); max-width:1200px; margin:0 auto; }
+
+/* ── REVEAL ── */
+.reveal { opacity:0; transform:translateY(28px); transition:opacity 0.7s ease, transform 0.7s ease; }
+.reveal.visible { opacity:1; transform:none; }
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px) {
+  nav { padding:1rem 1.5rem; }
+  .nav-links { display:none; }
+  .feature-block { grid-template-columns:1fr; gap:2.5rem; padding:3rem 1.5rem; direction:ltr !important; }
+  .section { padding:4rem 1.5rem; }
+  .tools-inner { padding:0 1.5rem; }
+  .tools-grid { grid-template-columns:1fr; }
+  .admin-grid { grid-template-columns:1fr; }
+  .screenshot-duo { grid-template-columns:1fr; }
+  .cta-section { padding:4rem 1.5rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-logo">NewCore</a>
+  <ul class="nav-links">
+    <li><a href="#attendance">點名系統</a></li>
+    <li><a href="#overview">成績總表</a></li>
+    <li><a href="#report">成績單</a></li>
+    <li><a href="#admin">建班管理</a></li>
+    <li><a href="#tools">教學工具</a></li>
+  </ul>
+  <a href="index.html#apply" class="nav-cta">申請試用</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-tag">功能介紹 · 使用指南</div>
+  <h1>一套系統<br><span>解決所有教務需求</span></h1>
+  <p>從語音點名到 AI 成績單、從出缺席追蹤到建班排課，NewCore 覆蓋補習班完整教務流程，開啟瀏覽器即用，無需安裝。</p>
+  <div class="hero-actions">
+    <a href="index.html#apply" class="btn-primary">立即申請試用 →</a>
+    <a href="index.html#pricing" class="btn-ghost">查看方案價格</a>
+  </div>
+</section>
+
+<!-- 1. 登入系統 -->
+<div style="background:var(--gray); padding:5rem 0;" id="login">
+  <div class="feature-block reveal">
+    <div>
+      <div class="section-tag">Step 01 · 登入</div>
+      <h2 class="section-title">安全授權登入<br>保護您的教務資料</h2>
+      <p class="section-sub">每間補習班擁有專屬的授權碼，確保資料完全隔離。老師只需輸入授權碼即可登入，首次使用填入 GAS API 網址後自動記憶，之後一鍵登入。</p>
+      <div class="feature-points">
+        <div class="feature-point">每間補習班獨立授權，資料完全隔離</div>
+        <div class="feature-point">瀏覽器自動記住設定，下次直接登入</div>
+        <div class="feature-point">管理員帳號可查看全校班級狀況</div>
+        <div class="feature-point">授權到期前自動提醒，不怕忘記續約</div>
+      </div>
+    </div>
+    <div class="screenshot-wrap">
+      <img src="https://raw.githubusercontent.com/jeffreycz1979-prog/JeffreysLab/main/image/sc_login.png" alt="NewCore 登入畫面" loading="lazy">
+    </div>
+  </div>
+</div>
+
+<!-- 2. 語音點名 -->
+<div style="background:white; padding:5rem 0;" id="attendance">
+  <div class="feature-block reverse reveal">
+    <div>
+      <div class="section-tag">Step 02 · 點名</div>
+      <h2 class="section-title">AI 語音點名<br>說完即記，省時省力</h2>
+      <p class="section-sub">按下按鈕開始錄音，用自然語言說出點名結果，Gemini AI 自動辨識並寫入出席紀錄。支援全班到、例外情況、單人指定等多種說法。</p>
+      <div class="feature-points">
+        <div class="feature-point">全班點名只需說一句話，5 秒完成</div>
+        <div class="feature-point">支援：全班到、全班缺席、全班請假</div>
+        <div class="feature-point">例外說法：「全班到，只有 Amy 缺席」</div>
+        <div class="feature-point">單人說法：「Amy 到了，Brian 請假」</div>
+        <div class="feature-point">分數說法：「Amy 90分」自動轉盤輸入</div>
+      </div>
+    </div>
+    <div>
+      <div class="screenshot-wrap" style="margin-bottom:1rem;">
+        <img src="https://raw.githubusercontent.com/jeffreycz1979-prog/JeffreysLab/main/image/sc_numpad.png" alt="分數九宮格輸入" loading="lazy">
+      </div>
+      <div class="screenshot-duo">
+        <div class="screenshot-wrap">
+          <img src="https://raw.githubusercontent.com/jeffreycz1979-prog/JeffreysLab/main/image/sc_wheel.png" alt="分數滑輪輸入" loading="lazy">
+        </div>
+        <div style="background:var(--green-dark);border-radius:12px;padding:1.5rem;display:flex;flex-direction:column;justify-content:center;">
+          <div style="font-family:'Space Mono',monospace;font-size:0.65rem;color:rgba(204,255,0,0.5);letter-spacing:0.1em;margin-bottom:0.75rem;">分數輸入模式</div>
+          <div style="color:var(--yellow);font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;margin-bottom:0.5rem;">🔢 九宮格鍵盤</div>
+          <div style="font-size:0.8rem;color:rgba(255,255,255,0.4);margin-bottom:1rem;">精準輸入任意分數</div>
+          <div style="color:var(--mint);font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;margin-bottom:0.5rem;">🎰 滑輪快選</div>
+          <div style="font-size:0.8rem;color:rgba(255,255,255,0.4);">60/70/75/80/85/90/95/100 一鍵選</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 3. 出缺席總表 -->
+<div style="background:var(--gray); padding:5rem 0;" id="overview">
+  <div class="feature-block reveal">
+    <div>
+      <div class="section-tag">Step 03 · 總表</div>
+      <h2 class="section-title">全期出缺席總覽<br>一眼掌握所有狀況</h2>
+      <p class="section-sub">所有學生的出席記錄和作業分數一目瞭然。直接點擊格子修改出席狀態，快速篩選未補課或缺作業的學生，讓追蹤作業變得輕鬆。</p>
+      <div class="feature-points">
+        <div class="feature-point">完整顯示每位學生每堂課的出席與分數</div>
+        <div class="feature-point">直接點擊格子修改出席符號，即時存檔</div>
+        <div class="feature-point">一鍵篩選「未補課」名單</div>
+        <div class="feature-point">一鍵篩選「缺作業/分數」名單</div>
+        <div class="feature-point">語音輸入直接修改指定堂次記錄</div>
+      </div>
+    </div>
+    <div class="screenshot-wrap">
+      <img src="https://raw.githubusercontent.com/jeffreycz1979-prog/JeffreysLab/main/image/sc_overview.png" alt="出缺席總表" loading="lazy">
+    </div>
+  </div>
+</div>
+
+<!-- 4. 成績單 -->
+<div style="background:white; padding:5rem 0;" id="report">
+  <div class="feature-block reverse reveal">
+    <div>
+      <div class="section-tag">Step 04 · 成績單</div>
+      <h2 class="section-title">智慧成績單<br>AI 評語一鍵寄送家長</h2>
+      <p class="section-sub">選擇班級和學生，載入完整學期成績單。雷達圖視覺化呈現五維表現，Gemini AI 自動生成個性化評語，一鍵下載 PDF 或直接 Email 寄送給家長。</p>
+      <div class="feature-points">
+        <div class="feature-point">雷達圖呈現：出席、作業、小考、大考、口語表現</div>
+        <div class="feature-point">班級名次自動計算（🏆 Top 1、🥈 Top 2...）</div>
+        <div class="feature-point">Gemini AI 自動生成個性化老師評語</div>
+        <div class="feature-point">一鍵下載 PDF，格式精美可直接列印</div>
+        <div class="feature-point">輸入家長 Email 直接寄送，省去人工作業</div>
+      </div>
+    </div>
+    <div class="screenshot-wrap">
+      <img src="https://raw.githubusercontent.com/jeffreycz1979-prog/JeffreysLab/main/image/sc_report.png" alt="智慧成績單" loading="lazy">
+    </div>
+  </div>
+</div>
+
+<!-- 5. 考試成績 -->
+<div style="background:var(--gray); padding:5rem 0;" id="exam">
+  <div class="feature-block reveal">
+    <div>
+      <div class="section-tag">Step 05 · 考試成績</div>
+      <h2 class="section-title">大小考成績輸入<br>語音批次，快速完成</h2>
+      <p class="section-sub">按班級選擇考試（小考 Quiz 或大考 Test），逐人輸入成績。支援 Tab 鍵快速跳格，或語音批次輸入，全班成績 2 分鐘完成。自動顯示班平均。</p>
+      <div class="feature-points">
+        <div class="feature-point">支援小考（U1~U9）和大考（R1~R3）分類</div>
+        <div class="feature-point">Tab 鍵快速跳格，手動輸入超流暢</div>
+        <div class="feature-point">語音輸入：「Amy 97，Brian 82...」批次寫入</div>
+        <div class="feature-point">即時顯示已填人數和班平均分數</div>
+        <div class="feature-point">單人成績可點擊滑輪圖示快速調整</div>
+      </div>
+    </div>
+    <div class="screenshot-wrap">
+      <img src="https://raw.githubusercontent.com/jeffreycz1979-prog/JeffreysLab/main/image/sc_exam.png" alt="考試成績輸入" loading="lazy">
+    </div>
+  </div>
+</div>
+
+<!-- 6. 管理員總覽 -->
+<div style="background:var(--green-dark); padding:5rem 0;" id="admin-dash">
+  <div class="feature-block reveal feature-block-dark">
+    <div>
+      <div class="section-tag">Step 06 · 管理員總覽</div>
+      <h2 class="section-title">全校缺漏一目瞭然<br>主動預警，不漏接</h2>
+      <p class="section-sub" style="color:rgba(255,255,255,0.5)">管理員專屬功能。選擇老師查看旗下所有班級的異常狀況，包括未補課人次和低於門檻分數的學生，讓你在第一時間掌握需要關注的學生。</p>
+      <div class="feature-points">
+        <div class="feature-point">選擇老師查看旗下全部班級狀況</div>
+        <div class="feature-point">⚠️ 自動列出未補課、缺作業學生清單</div>
+        <div class="feature-point">📊 自訂成績警示門檻（預設 80 分）</div>
+        <div class="feature-point">低分項目一覽：小考/大考逐筆標示</div>
+        <div class="feature-point">「需注意」標籤快速識別問題班級</div>
+      </div>
+    </div>
+    <div class="screenshot-wrap screenshot-dark">
+      <img src="https://raw.githubusercontent.com/jeffreycz1979-prog/JeffreysLab/main/image/sc_admin_dash.png" alt="管理員總覽" loading="lazy">
+    </div>
+  </div>
+</div>
+
+<!-- 7. Admin 建班系統 -->
+<div style="background:#0a180a; padding:5rem 3rem;" id="admin">
+  <div style="max-width:1200px;margin:0 auto;" class="reveal">
+    <div class="section-tag" style="color:var(--yellow);">Step 07 · 建班管理</div>
+    <h2 class="section-title" style="color:white;margin-bottom:0.75rem;">NewCore Admin<br>智慧建班，自動排課</h2>
+    <p style="color:rgba(255,255,255,0.45);font-size:1rem;line-height:1.7;max-width:600px;margin-bottom:3rem;font-weight:300;">
+      輸入班級名稱、課程規格、開課日期、上課星期和授課老師，系統自動生成完整課程表，計算總堂次和預計結束日期。支援語音辨識和 Gemini 智慧建立學生名單。
+    </p>
+    <div class="admin-grid">
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <div class="admin-card-title">🏗️ 建班系統 Class Builder</div>
+          <div class="admin-card-sub">自動生成課程表 · 計算堂次 · 排定老師</div>
+        </div>
+        <img src="https://raw.githubusercontent.com/jeffreycz1979-prog/JeffreysLab/main/image/sc_admin_build.png" alt="建班系統" loading="lazy">
+      </div>
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <div class="admin-card-title">👥 學生名單設定 Student Roster</div>
+          <div class="admin-card-sub">手動輸入 · 從名單選取 · Gemini 辨識</div>
+        </div>
+        <img src="https://raw.githubusercontent.com/jeffreycz1979-prog/JeffreysLab/main/image/sc_admin_roster.png" alt="學生名單設定" loading="lazy">
+      </div>
+    </div>
+    <div style="margin-top:2rem;display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;">
+      <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(204,255,0,0.12);border-radius:12px;padding:1.5rem;">
+        <div style="color:var(--yellow);font-size:1.5rem;margin-bottom:0.5rem;">📅</div>
+        <div style="color:white;font-weight:700;margin-bottom:0.4rem;font-size:0.9rem;">自動計算課程表</div>
+        <div style="color:rgba(255,255,255,0.4);font-size:0.8rem;line-height:1.5;">輸入開課日和上課星期，自動跳過假日，生成每堂課的日期</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(204,255,0,0.12);border-radius:12px;padding:1.5rem;">
+        <div style="color:var(--yellow);font-size:1.5rem;margin-bottom:0.5rem;">👨‍🏫</div>
+        <div style="color:white;font-weight:700;margin-bottom:0.4rem;font-size:0.9rem;">多老師排班</div>
+        <div style="color:rgba(255,255,255,0.4);font-size:0.8rem;line-height:1.5;">每個上課日可指定不同老師，自動填入各堂次授課老師欄位</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(204,255,0,0.12);border-radius:12px;padding:1.5rem;">
+        <div style="color:var(--yellow);font-size:1.5rem;margin-bottom:0.5rem;">🎤</div>
+        <div style="color:white;font-weight:700;margin-bottom:0.4rem;font-size:0.9rem;">Gemini 建立名單</div>
+        <div style="color:rgba(255,255,255,0.4);font-size:0.8rem;line-height:1.5;">語音說出學生姓名，Gemini 自動辨識並建立完整學生名單</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 8. 教學工具 -->
+<div class="tools-bg" id="tools">
+  <div class="tools-inner reveal">
+    <div class="section-tag">教學工具 · Jeffrey's Lab</div>
+    <h2 class="section-title">讓每堂課都不一樣</h2>
+    <p class="section-sub">免費的教學工具包，讓老師輕鬆製作互動教材，讓學生愛上學習。試用期間完全免費，無需授權。</p>
+
+    <div class="tools-grid">
+      <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/tool_package.html" target="_blank" class="tool-card">
+        <span class="tool-icon">🎰</span>
+        <div class="tool-name">獎勵樂透大富翁</div>
+        <div class="tool-desc">大富翁格式抽籤，加分、扣分、神秘獎勵，讓課堂充滿驚喜與競爭感。</div>
+        <span class="tool-tag tag-free">免費使用</span>
+      </a>
+      <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/tool_package.html" target="_blank" class="tool-card">
+        <span class="tool-icon">🎯</span>
+        <div class="tool-name">分數紀錄器</div>
+        <div class="tool-desc">個人或分組計分，動物頭像、即時排行榜，點擊學生名字即可加減分。</div>
+        <span class="tool-tag tag-free">免費使用</span>
+      </a>
+      <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/tool_package.html" target="_blank" class="tool-card">
+        <span class="tool-icon">🔤</span>
+        <div class="tool-name">重組單字遊戲</div>
+        <div class="tool-desc">打亂字母讓學生重組，支援點擊、拖拉互動，可連結分數紀錄器。</div>
+        <span class="tool-tag tag-free">免費使用</span>
+      </a>
+      <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/flashcard_match.html" target="_blank" class="tool-card">
+        <span class="tool-icon">🃏</span>
+        <div class="tool-name">閃示卡 + 配對遊戲</div>
+        <div class="tool-desc">自訂字彙庫，AI 生成配圖，支援閃示卡練習、測驗和配對記憶遊戲。</div>
+        <span class="tool-tag tag-auth">付費解鎖 AI 生圖</span>
+      </a>
+      <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/wordsearch.html" target="_blank" class="tool-card">
+        <span class="tool-icon">🔍</span>
+        <div class="tool-name">找字遊戲產生器</div>
+        <div class="tool-desc">輸入單字自動生成找字方格考卷，一頁兩份排版，一鍵列印。</div>
+        <span class="tool-tag tag-free">免費使用</span>
+      </a>
+      <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/wordsearch.html" target="_blank" class="tool-card">
+        <span class="tool-icon">✏️</span>
+        <div class="tool-name">AI 克漏字產生器</div>
+        <div class="tool-desc">輸入單字與故事主題，Gemini AI 自動生成情境故事克漏字考卷。</div>
+        <span class="tool-tag tag-free">免費使用</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="cta-inner">
+    <div style="display:inline-block;background:rgba(204,255,0,0.12);border:1px solid rgba(204,255,0,0.3);color:var(--yellow);font-size:0.75rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;padding:0.35rem 1rem;border-radius:100px;margin-bottom:1.5rem;">優惠期間限定</div>
+    <h2>準備好開始了嗎？<br><span>立即申請免費試用</span></h2>
+    <p>優惠期間免費試用教學工具 + 30 天成績管理系統試用<br>不需信用卡，不自動扣款，由 Jeffrey 親自協助建班</p>
+    <div class="cta-btns">
+      <a href="index.html#apply" class="btn-primary" style="font-size:1rem;padding:1rem 2.5rem;">📋 申請免費試用</a>
+      <a href="https://line.me/ti/p/~@593fbons" target="_blank" class="btn-line">
+        <span style="font-size:1.1rem;">💬</span> LINE @593fbons
+      </a>
+      <a href="index.html#pricing" class="btn-ghost">查看方案比較</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer style="background:#060f06;padding:2rem 3rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;border-top:1px solid rgba(255,255,255,0.05);">
+  <div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;color:var(--yellow);">NewCore · Jeffrey's Lab</div>
+  <div style="font-size:0.75rem;color:rgba(255,255,255,0.25);">© 2025 NewCore. 專為補習班老師設計。</div>
+  <div style="display:flex;gap:1.5rem;">
+    <a href="index.html" style="font-size:0.75rem;color:rgba(255,255,255,0.3);text-decoration:none;">官網首頁</a>
+    <a href="tools.html" style="font-size:0.75rem;color:rgba(255,255,255,0.3);text-decoration:none;">工具總覽</a>
+    <a href="https://line.me/ti/p/~@593fbons" target="_blank" style="font-size:0.75rem;color:rgba(255,255,255,0.3);text-decoration:none;">聯絡我們</a>
+  </div>
+</footer>
+
+<script>
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.08 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
