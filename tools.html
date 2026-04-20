@@ -527,9 +527,9 @@
        class="tool-card" data-cat="vocab">
       <div class="tool-icon-wrap icon-bg-purple">🃏</div>
       <div class="tool-tag">字彙練習 · AI 圖片</div>
-      <div class="tool-name">閃示卡工具</div>
+      <div class="tool-name">閃示卡 ＋ 配對記憶遊戲</div>
       <div class="tool-desc">
-        自訂字彙庫，Gemini AI 自動生成配圖閃示卡。支援練習、測驗、點擊、拖拉等多模式，讓單字記憶更有效率。
+        自訂字彙庫，Gemini AI 自動生成配圖閃示卡。支援閃示卡練習、測驗模式，以及翻牌配對遊戲——找出英文單字與中文定義的對應，支援計時與分數。
       </div>
       <div class="tool-footer">
         <span class="tool-badge ai">● AI 驅動</span>
@@ -550,11 +550,11 @@
     </a>
 
     <a href="#" class="tool-card coming-soon" data-cat="vocab">
-      <div class="tool-icon-wrap icon-bg-mint">🎵</div>
+      <div class="tool-icon-wrap icon-bg-mint">🔀</div>
       <div class="tool-tag">字彙練習 · 開發中</div>
-      <div class="tool-name">配對記憶遊戲</div>
+      <div class="tool-name">重組句子遊戲</div>
       <div class="tool-desc">
-        翻牌配對，找出英文單字與中文定義的對應。支援計時與分數，適合複習課使用。
+        將句子打散成單字卡，學生拖拉重組成正確語序。支援文法提示、計時挑戰與難度分級，適合句型練習與文法課使用。
       </div>
       <div class="tool-footer">
         <span class="tool-badge">● 開發中，敬請期待</span>
@@ -652,6 +652,17 @@ function showSuccess(name, plan, expiry) {
   document.getElementById('gateMsg').textContent = '✅ 驗證成功，正在載入工具…';
   document.getElementById('gateActions').innerHTML = '<div class="gate-name-badge">👋 歡迎回來，' + name + '</div>';
   document.getElementById('gateExpiry').textContent = '方案：' + plan + ' · 試用到期：' + expiry;
+  // 書籤提示（第一次登入才顯示）
+  if (!localStorage.getItem('newcore_bookmark_hint')) {
+    localStorage.setItem('newcore_bookmark_hint', '1');
+    setTimeout(() => {
+      const hint = document.createElement('div');
+      hint.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a3a1a;color:#CCFF00;padding:12px 20px;border-radius:12px;font-size:0.82rem;z-index:9999;text-align:center;max-width:320px;box-shadow:0 8px 32px rgba(0,0,0,0.3);';
+      hint.innerHTML = '📌 小提示：請將此頁面加入書籤，日後在任何裝置都能直接開啟！';
+      document.body.appendChild(hint);
+      setTimeout(() => hint.remove(), 6000);
+    }, 1500);
+  }
   setTimeout(() => {
     document.getElementById('authGate').classList.add('hidden');
   }, 1200);
@@ -713,9 +724,10 @@ function checkToken(token, saveToStorage) {
   }
 
   // 3. 完全沒有 token → 顯示申請頁面
-  showGate('', '您尚未取得試用授權。\n請申請試用後，透過 Email 中的連結進入。', `
+  showGate('', '您尚未取得試用授權，或連結已過期。', `
     <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/index.html#apply" class="gate-btn gate-btn-primary">📋 申請免費試用</a>
     <a href="https://line.me/ti/p/~@593fbons" target="_blank" class="gate-btn gate-btn-line">💬 LINE @593fbons</a>
+    <div style="margin-top:1rem;font-size:0.78rem;color:#888;">已有帳號？請點 Email 中的連結，或聯繫 Jeffrey 重新寄送。</div>
   `);
 })();
   // Scroll reveal
