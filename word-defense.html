@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NewCore Turbo: 單字防禦戰</title>
+    <style>
+        :root {
+            --primary-neon: #00f3ff;
+            --secondary-neon: #bc13fe;
+            --danger-neon: #ff0055;
+            --bonus-gold: #ffcc00;
+            --bg-dark: #0a0b1e;
+        }
+
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background-color: var(--bg-dark);
+            color: white; font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+            overflow: hidden; touch-action: manipulation;
+        }
+
+        /* --- 老師控制面板 --- */
+        #setup-screen {
+            position: absolute; z-index: 100;
+            width: 100%; height: 100%;
+            background: rgba(10, 11, 30, 0.95);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+
+        .config-panel {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 30px; border-radius: 15px;
+            border: 1px solid var(--primary-neon);
+            width: 90%; max-width: 500px;
+            box-shadow: 0 0 20px var(--primary-neon);
+        }
+
+        textarea {
+            width: 100%; height: 100px; background: #000; color: var(--primary-neon);
+            border: 1px solid #444; padding: 10px; box-sizing: border-box; border-radius: 5px;
+            font-size: 16px; margin: 10px 0;
+        }
+
+        .btn-start {
+            width: 100%; padding: 15px; font-size: 20px; font-weight: bold;
+            background: var(--primary-neon); border: none; border-radius: 5px;
+            cursor: pointer; color: #000; transition: 0.3s;
+        }
+        .btn-start:hover { transform: scale(1.02); box-shadow: 0 0 15px var(--primary-neon); }
+
+        /* --- 遊戲儀表板 --- */
+        #hud {
+            position: absolute; top: 0; left: 0; width: 100%; padding: 15px;
+            display: flex; justify-content: space-between; box-sizing: border-box;
+            pointer-events: none; z-index: 50;
+        }
+        .stat-box { font-size: 20px; font-weight: bold; text-shadow: 0 0 10px #000; }
+        #combo-display { color: var(--secondary-neon); font-size: 30px; text-align: center; width: 100%; position: absolute; top: 60px; opacity: 0; transition: 0.2s; }
+
+        /* --- 遊戲舞台 --- */
+        #game-stage {
+            position: relative; width: 100%; height: 100%;
+            background: radial-gradient(circle at center, #1b2735 0%, #090a0f 100%);
+        }
+
+        .bubble {
+            position: absolute; width: 80px; height: 80px;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-weight: bold; cursor: pointer; user-select: none;
+            box-shadow: inset 0 0 15px rgba(255,255,255,0.5);
+            animation: float 0.5s infinite alternate;
+            transition: transform 0.1s;
+            text-align: center; word-break: break-all; padding: 5px; box-sizing: border-box;
+        }
+        
+        /* 不同類型的泡泡顏色 */
+        .correct { border: 3px solid var(--primary-neon); background: rgba(0, 243, 255, 0.2); color: #fff; }
+        .wrong { border: 3px solid var(--danger-neon); background: rgba(255, 0, 85, 0.2); color: #ffcccc; }
+        .bonus { border: 3px solid var(--bonus-gold); background: rgba(255, 204, 0, 0.4); color: #fff; box-shadow: 0 0 20px var(--bonus-gold); }
+
+        @keyframes float {
+            from { transform: translateY(0) scale(1); }
+            to { transform: translateY(-5px) scale(1.05); }
+        }
+
+        /* --- 底部底線 --- */
+        #deadline {
+            position: absolute; bottom: 0; width: 100%; height: 5px;
+            background: linear-gradient(90deg, transparent, var(--danger-neon), transparent);
+            box-shadow: 0 0 10px var(--danger-neon);
+        }
+
+        /* --- Bonus Time 特效 --- */
+        .bonus-active {
+            animation: screenShake 0.2s infinite;
+            border: 5px solid var(--bonus-gold) !important;
+        }
+
+        @keyframes screenShake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            20% { transform: translate(-1px, -2px) rotate(-1deg); }
+            100% { transform: translate(1px, 1px) rotate(0deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="setup-screen">
+        <div class="config-panel">
+            <h2 style="margin-top:0; color: var(--primary-neon);">NewCore Turbo 設定</h2>
+            <label>請輸入必考單字 (半形逗號分隔)：</label>
+            <textarea id="word-input" placeholder="例如: elephant, giraffe, banana..."></textarea>
+            
+            <div style="margin: 15px 0;">
+                <label>難度選擇：</label>
+                <select id="difficulty" style="padding: 5px; background: #000; color: white;">
+                    <option value="1">Level 1 (入門)</option>
+                    <option value="3" selected>Level 3 (標準)</option>
+                    <option value="5">Level 5 (挑戰)</option>
+                    <option value="8">Level 8 (地獄)</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <input type="checkbox" id="trap-mode" checked>
+                <label for="trap-mode">啟動 AI 拼字陷阱 (自動產生誤導單字)</label>
+            </div>
+
+            <button class="btn-start" onclick="startGame()">進入防禦戰 🚀</button>
+        </div>
+    </div>
+
+    <div id="hud">
+        <div class="stat-box" id="score-box">SCORE: 0</div>
+        <div class="stat-box" id="hp-box">HP: ❤️❤️❤️</div>
+    </div>
+    <div id="combo-display">COMBO 0</div>
+
+    <div id="game-stage">
+        <div id="deadline"></div>
+    </div>
+
+    <script>
+       // ==========================================
+// NewCore Turbo 遊戲引擎核心
+// ==========================================
+
+let score = 0;
+let hp = 3;
+let combo = 0;
+let isBonusTime = false;
+let gameActive = false;
+let words = [];
+let activeBubbles = [];
+let gameSpeed = 2; // 基礎下墜速度
+
+// 1. AI 拼字陷阱演算法：把正確單字變成「看起來很像」的錯誤字
+function generateTrap(word) {
+    const methods = [
+        w => w.replace(/[aeiou]/g, (m) => "aeiou".replace(m, "")[Math.floor(Math.random() * 4)]), // 換掉母音
+        w => w.length > 2 ? w.slice(0, 1) + w.slice(2, 3) + w.slice(1, 2) + w.slice(3) : w + "s", // 調換中間字母
+        w => w + w.slice(-1), // 重複結尾字母
+        w => w.length > 3 ? w.slice(0, -1) : w + "e" // 刪除結尾或加個 e
+    ];
+    let trap = methods[Math.floor(Math.random() * methods.length)](word);
+    return trap === word ? word + "x" : trap; // 確保一定不一樣
+}
+
+// 2. 開始遊戲初始化
+function startGame() {
+    const input = document.getElementById('word-input').value;
+    if (!input.trim()) { alert("老師，請先輸入必考單字喔！"); return; }
+    
+    words = input.split(',').map(w => w.trim().toUpperCase()).filter(w => w.length > 0);
+    gameSpeed = parseInt(document.getElementById('difficulty').value);
+    
+    document.getElementById('setup-screen').style.display = 'none';
+    gameActive = true;
+    score = 0;
+    hp = 3;
+    updateHUD();
+    
+    // 啟動主循環
+    requestAnimationFrame(gameLoop);
+    
+    // 泡泡產生計時器
+    spawnInterval = setInterval(() => {
+        if (!gameActive) return;
+        createBubble();
+    }, 1500 / (gameSpeed * 0.5));
+}
+
+// 3. 建立泡泡物件
+function createBubble(isBonus = false) {
+    const stage = document.getElementById('game-stage');
+    const bubble = document.createElement('div');
+    const targetWord = words[Math.floor(Math.random() * words.length)];
+    
+    // 決定這是正確字還是陷阱字
+    const useTrap = !isBonus && document.getElementById('trap-mode').checked && Math.random() > 0.4;
+    const displayText = useTrap ? generateTrap(targetWord) : targetWord;
+    
+    bubble.className = `bubble ${useTrap ? 'wrong' : (isBonus ? 'bonus' : 'correct')}`;
+    bubble.innerText = displayText;
+    bubble.style.left = Math.random() * (window.innerWidth - 80) + 'px';
+    bubble.style.top = '-100px';
+    
+    // 自訂屬性紀錄狀態
+    const bubbleObj = {
+        element: bubble,
+        y: -100,
+        speed: (Math.random() * 1 + gameSpeed) * (isBonus ? 1.5 : 1),
+        isCorrect: !useTrap,
+        isBonus: isBonus
+    };
+    
+    bubble.onclick = () => handleTap(bubbleObj);
+    stage.appendChild(bubble);
+    activeBubbles.push(bubbleObj);
+}
+
+// 4. 點擊判定邏輯
+function handleTap(obj) {
+    if (!gameActive) return;
+
+    if (obj.isCorrect || obj.isBonus) {
+        score += 10 + (combo * 2);
+        combo++;
+        showCombo();
+        
+        // 觸發大噴發機制 (每 10 連擊觸發)
+        if (combo > 0 && combo % 10 === 0) triggerBonusTime();
+    } else {
+        // 點到陷阱字
+        hp--;
+        combo = 0;
+        triggerVibration();
+    }
+    
+    removeBubble(obj);
+    updateHUD();
+}
+
+// 5. Bonus 大噴發模式
+function triggerBonusTime() {
+    isBonusTime = true;
+    document.body.classList.add('bonus-active');
+    
+    // 瘋狂噴發泡泡
+    let bonusCount = 0;
+    const interval = setInterval(() => {
+        createBubble(true);
+        bonusCount++;
+        if (bonusCount > 15) {
+            clearInterval(interval);
+            setTimeout(() => {
+                isBonusTime = false;
+                document.body.classList.remove('bonus-active');
+            }, 3000);
+        }
+    }, 150);
+}
+
+// 6. 遊戲主迴圈 (處理掉落)
+function gameLoop() {
+    if (!gameActive) return;
+
+    for (let i = activeBubbles.length - 1; i >= 0; i--) {
+        let obj = activeBubbles[i];
+        obj.y += obj.speed;
+        obj.element.style.top = obj.y + 'px';
+
+        // 檢查是否撞到底線
+        if (obj.y > window.innerHeight - 80) {
+            if (obj.isCorrect && !obj.isBonus) {
+                hp--; // 正確字沒點到，扣血
+                combo = 0;
+                triggerVibration();
+                updateHUD();
+            }
+            removeBubble(obj);
+        }
+    }
+
+    if (hp <= 0) gameOver();
+    else requestAnimationFrame(gameLoop);
+}
+
+function removeBubble(obj) {
+    obj.element.remove();
+    activeBubbles = activeBubbles.filter(b => b !== obj);
+}
+
+function updateHUD() {
+    document.getElementById('score-box').innerText = `SCORE: ${score}`;
+    document.getElementById('hp-box').innerText = `HP: ${'❤️'.repeat(Math.max(0, hp))}`;
+}
+
+function showCombo() {
+    const el = document.getElementById('combo-display');
+    el.innerText = `COMBO ${combo}`;
+    el.style.opacity = 1;
+    setTimeout(() => { if (combo > 0) el.style.opacity = 0; }, 800);
+}
+
+function triggerVibration() {
+    document.body.style.backgroundColor = "#550000";
+    setTimeout(() => { document.body.style.backgroundColor = "#0a0b1e"; }, 100);
+    if (navigator.vibrate) navigator.vibrate(200); // 手機震動
+}
+
+function gameOver() {
+    gameActive = false;
+    alert(`Game Over! 您的得分是：${score}\n加油！下次會更棒！`);
+    location.reload(); // 重新開始
+}
+    </script>
+</body>
+</html>
