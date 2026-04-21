@@ -187,6 +187,32 @@ body{font-family:sans-serif;background:#f5f4f0;color:#222;}
 .tog{padding:4px 11px;border:1.5px solid #ddd;border-radius:20px;background:#fff;color:#888;cursor:pointer;font-size:11px;}
 .tog.on{background:#222;color:#fff;}
 .empty-state{text-align:center;padding:30px;color:#aaa;font-size:13px;}
+
+/* ── SENTENCE SCRAMBLE ── */
+.ss-sent-card{width:100%;border-radius:16px;padding:14px 18px;background:#E6F1FB;border:2px solid #B5D4F4;margin-bottom:10px;}
+.ss-sent-num{font-size:10px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:#378ADD;margin-bottom:5px;}
+.ss-sent-hint{font-size:13px;color:#0C447C;line-height:1.7;min-height:22px;}
+.ss-sent-hint.blur{filter:blur(5px);user-select:none;}
+.ss-prog{font-size:11px;color:#378ADD;margin-top:4px;}
+.ss-slots-area{width:100%;min-height:56px;padding:10px 12px;border-radius:14px;background:#EAF3DE;border:2px dashed #97C459;display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-bottom:8px;}
+.ss-slot-ph{font-size:12px;color:#97C459;}
+.ss-word-chip{padding:7px 13px;border-radius:20px;border:2px solid;background:#fff;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;user-select:none;white-space:nowrap;}
+.ss-word-chip:hover{transform:translateY(-2px);box-shadow:0 3px 10px rgba(0,0,0,.1);}
+.ss-word-chip.placed{border-color:#97C459;background:#EAF3DE;color:#3B6D11;}
+.ss-word-chip.placed:hover{background:#C0DD97;}
+.ss-word-chip.correct-flash{border-color:#3B6D11;background:#C0DD97;color:#1a4d07;animation:spop .3s ease;}
+.ss-word-chip.wrong-flash{border-color:#F09595;background:#FCEBEB;color:#A32D2D;animation:sshake .35s ease;}
+.ss-tiles-area{width:100%;min-height:56px;padding:10px 12px;border-radius:14px;background:#FAEEDA;border:2px solid #FAC775;display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-bottom:8px;}
+.ss-result{font-size:16px;font-weight:500;text-align:center;min-height:22px;margin-bottom:6px;}
+.ss-result.ok{color:#3B6D11;}.ss-result.no{color:#A32D2D;}
+.ss-nav-row{display:flex;align-items:center;gap:7px;justify-content:center;}
+.ss-stats-display{font-size:22px;font-weight:500;color:#0F6E56;text-align:center;}
+.ss-stats-pct{font-size:11px;color:#1D9E75;text-align:center;}
+.ss-score-info{font-size:11px;color:#378ADD;margin-bottom:4px;}
+.ss-stu-sel{width:100%;padding:5px 7px;border:1.5px solid #B5D4F4;border-radius:8px;font-size:12px;background:#fff;color:#0C447C;margin-bottom:4px;}
+.ss-send-btn{width:100%;padding:6px;border:none;border-radius:8px;background:#185FA5;color:#fff;font-size:12px;font-weight:500;cursor:pointer;}
+.ss-send-btn:hover{background:#0C447C;}
+.ss-sent-msg{font-size:11px;color:#3B6D11;text-align:center;min-height:14px;margin-top:2px;}
 </style>
 </head><body>
 
@@ -195,6 +221,7 @@ body{font-family:sans-serif;background:#f5f4f0;color:#222;}
   <button class="nav-tab active" onclick="showPane('score')" id="nav-score">🎯 分數紀錄器</button>
   <button class="nav-tab" onclick="showPane('lottery')" id="nav-lottery">🎲 獎勵樂透</button>
   <button class="nav-tab" onclick="showPane('anagram')" id="nav-anagram">🔤 重組單字</button>
+  <button class="nav-tab" onclick="showPane('sentence')" id="nav-sentence">📝 句子重組</button>
   <div class="nav-spacer"></div>
   <button class="lang-btn" id="lang-btn" onclick="toggleLang()">EN</button>
 </div>
@@ -391,6 +418,61 @@ body{font-family:sans-serif;background:#f5f4f0;color:#222;}
   </div>
 </div>
 
+<!-- PANE: SENTENCE SCRAMBLE -->
+<div class="pane" id="pane-sentence">
+  <div class="two-col">
+    <div>
+      <div style="display:flex;gap:6px;align-items:center;margin-bottom:10px;flex-wrap:wrap;">
+        <div class="seg-sm">
+          <button class="active" onclick="ssSetJudge('practice')" id="ss-btn-practice">🟢 練習</button>
+          <button onclick="ssSetJudge('test')" id="ss-btn-test">📝 測驗</button>
+        </div>
+        <button class="tog on" id="ss-tog-hint" onclick="ssToggleHint()">👁 提示</button>
+      </div>
+      <div class="block b-purple" style="margin-bottom:10px">
+        <div class="b-title bt-purple" id="t-ss-input">句子庫（每行：完整句子 | 提示翻譯）</div>
+        <textarea id="ss-sent-ta" rows="5" style="width:100%;resize:none;border:1.5px solid #AFA9EC;border-radius:8px;padding:5px 7px;font-size:12px;background:#fff;color:#26215C;line-height:1.6;" placeholder="She goes to school every day. | 她每天去上學。&#10;I like to eat apples and bananas. | 我喜歡吃蘋果和香蕉。&#10;The cat is sitting on the mat. | 貓坐在墊子上。"></textarea>
+        <button class="btn btn-purple" style="margin-top:5px" onclick="ssApplySents()" id="t-ss-apply">▶ 開始練習</button>
+      </div>
+      <div id="ss-main" style="display:none">
+        <div class="ss-sent-card">
+          <div class="ss-sent-num" id="ss-sent-num">句子 1 / 1</div>
+          <div class="ss-sent-hint" id="ss-sent-hint"></div>
+          <div class="ss-prog" id="ss-prog"></div>
+        </div>
+        <div class="ss-slots-area" id="ss-slots"><span class="ss-slot-ph">點擊下方字詞來排列句子</span></div>
+        <div class="ss-tiles-area" id="ss-tiles"></div>
+        <div class="ss-result" id="ss-result"></div>
+        <div class="ss-nav-row">
+          <button class="nav-btn" onclick="ssNav(-1)">‹</button>
+          <button class="btn btn-outline" style="margin:0;width:auto;padding:7px 14px" onclick="ssReset()">重設</button>
+          <button class="btn btn-purple" id="ss-submit-btn" style="display:none;margin:0;width:auto;padding:7px 14px" onclick="ssSubmit()">送出</button>
+          <button class="nav-btn" onclick="ssNav(1)">›</button>
+        </div>
+      </div>
+    </div>
+    <div class="sidebar">
+      <div class="block b-blue">
+        <div class="b-title bt-blue" id="t-ss-send-title">傳送得分給學生</div>
+        <div style="font-size:10px;color:#185FA5;margin-bottom:5px" id="t-ss-send-hint">答對後可傳送分數</div>
+        <select class="ss-stu-sel" id="ss-stu-sel"><option value="">— 選擇學生 —</option></select>
+        <div style="font-size:10px;color:#185FA5;margin-bottom:3px" id="ss-score-info">得分：+0</div>
+        <button class="ss-send-btn" onclick="ssSendScore()" id="t-ss-send">✓ 傳送</button>
+        <div class="ss-sent-msg" id="ss-sent-msg"></div>
+      </div>
+      <div class="block b-teal">
+        <div class="b-title bt-teal" id="t-ss-stats">本輪統計</div>
+        <div class="ss-stats-display" id="ss-stats-display">0 / 0</div>
+        <div class="ss-stats-pct" id="ss-stats-pct"></div>
+      </div>
+      <div class="block b-coral">
+        <div class="b-title bt-coral" id="t-ss-log">答題記錄</div>
+        <div class="log-list" id="ss-log"><div class="log-item ln">尚無記錄</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="drag-ghost" style="position:fixed;width:48px;height:48px;border-radius:10px;background:#EF9F27;border:2px solid #854F0B;display:none;align-items:center;justify-content:center;font-size:20px;font-weight:500;color:#fff;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);"></div>
 
 <script>
@@ -420,9 +502,11 @@ function showPane(id){
 const L={
   zh:{stuTitle:'共用學生名單',stuApply:'✓ 套用名單',stuChips:'已載入',scInd:'個人',scTeam:'分組',scRank:'排行',spHint:'點選後 →',scAdd:'加',scSub:'扣',scLog:'記錄',scReset:'🔄 重置分數',scClear:'🗑 清除名單',selNone:'未選取',selStu:'已選：',selTeam:'已選組：',emptyInd:'請先輸入名單',emptyTeam:'請先輸入名單並用 --- 分隔各組',emptyRank:'請先輸入名單',indRank:'個人排行',teamRank:'分組排行',logApplied:'套用',logStu:'位學生',logReset:'🔄 重置',allName:'全班',teamName:'第',teamSuf:'組',
    agVocab:'字彙庫（每行：單字,定義,詞性）',agApply:'▶ 開始練習',agSendTitle:'傳送得分給學生',agSendHint:'答對後可傳送分數',agSend:'✓ 傳送',agStats:'本輪統計',agLog:'答題記錄',correct:'✓ 正確！',wrong:'✗ 再試試',
+   ssInput:'句子庫（每行：完整句子 | 提示翻譯）',ssApply:'▶ 開始練習',ssSendTitle:'傳送得分給學生',ssSendHint:'答對後可傳送分數',ssSend:'✓ 傳送',ssStats:'本輪統計',ssLog:'答題記錄',ssCorrect:'✓ 正確！',ssWrong:'✗ 順序有誤，再試試',
    lotSendHint:'傳送分數給學生：',lotSend:'✓ 傳送分數',steps:'步'},
   en:{stuTitle:'Shared student list',stuApply:'✓ Apply',stuChips:'Loaded',scInd:'Individual',scTeam:'Teams',scRank:'Ranking',spHint:'Select then →',scAdd:'Add',scSub:'Sub',scLog:'Log',scReset:'🔄 Reset scores',scClear:'🗑 Clear list',selNone:'None selected',selStu:'Selected: ',selTeam:'Team: ',emptyInd:'Enter names first',emptyTeam:'Enter names, use --- to separate groups',emptyRank:'Enter names first',indRank:'Individual',teamRank:'Teams',logApplied:'Applied',logStu:'students',logReset:'🔄 Reset',allName:'All',teamName:'Team ',teamSuf:'',
    agVocab:'Vocab (one per line: word,definition,pos)',agApply:'▶ Start',agSendTitle:'Send score to student',agSendHint:'Send score after correct answer',agSend:'✓ Send',agStats:'Round stats',agLog:'Answer log',correct:'✓ Correct!',wrong:'✗ Try again',
+   ssInput:'Sentences (one per line: full sentence | hint)',ssApply:'▶ Start',ssSendTitle:'Send score to student',ssSendHint:'Send score after correct answer',ssSend:'✓ Send',ssStats:'Round stats',ssLog:'Answer log',ssCorrect:'✓ Correct!',ssWrong:'✗ Wrong order, try again',
    lotSendHint:'Send score to student:',lotSend:'✓ Send score',steps:'steps'}
 };
 const T=k=>L[lang][k]||'';
@@ -437,6 +521,9 @@ function applyLang(){
   setEl('t-ag-vocab','agVocab');setEl('t-ag-apply','agApply');
   setEl('t-ag-send-title','agSendTitle');setEl('t-ag-send-hint','agSendHint');setEl('t-ag-send','agSend');
   setEl('t-ag-stats','agStats');setEl('t-ag-log','agLog');
+  setEl('t-ss-input','ssInput');setEl('t-ss-apply','ssApply');
+  setEl('t-ss-send-title','ssSendTitle');setEl('t-ss-send-hint','ssSendHint');setEl('t-ss-send','ssSend');
+  setEl('t-ss-stats','ssStats');setEl('t-ss-log','ssLog');
   setEl('t-lot-send-hint','lotSendHint');setEl('t-lot-send','lotSend');
   scUpdateSelLabel();scRenderAll();
   updateAllStudentSelects();
@@ -472,7 +559,7 @@ function pushTeam(group,idx){
   teams.push({name,members:[...group],score:0,ci:idx%CC.length,icon:TICONS[idx%TICONS.length],isAll:false});
 }
 function updateAllStudentSelects(){
-  ['lot-stu-sel','ag-stu-sel'].forEach(id=>{
+  ['lot-stu-sel','ag-stu-sel','ss-stu-sel'].forEach(id=>{
     const sel=document.getElementById(id);if(!sel)return;
     const prev=sel.value;
     sel.innerHTML=`<option value="">— ${lang==='zh'?'選擇學生':'Select student'} —</option>`;
@@ -776,6 +863,136 @@ function agOnTouchMove(e){e.preventDefault();const t=e.touches[0];const g=docume
 function agOnTouchEnd(e){document.getElementById('drag-ghost').style.display='none';if(agTouchTi!==null){document.getElementById('agtile'+agTouchTi).style.opacity='';}const t=e.changedTouches[0];const el=document.elementFromPoint(t.clientX,t.clientY);if(el&&el.id&&el.id.startsWith('agslot')&&agTouchTi!==null){const si=+el.id.replace('agslot','');agDropOnSlot(si,agTouchTi);}agTouchTi=null;}
 
 document.addEventListener('dragover',e=>{const g=document.getElementById('drag-ghost');if(g.style.display==='flex'){g.style.left=e.clientX+'px';g.style.top=e.clientY+'px';}});
+
+// ════════════════════════════════════════
+// SENTENCE SCRAMBLE
+// ════════════════════════════════════════
+let ssSents=[],ssIdx=0,ssJudge='practice',ssShowHint=true;
+let ssPlaced=[],ssWords=[],ssAnswered=false,ssLastCorrect=false;
+let ssScore={correct:0,total:0},ssLogs=[];
+
+function ssSetJudge(m){ssJudge=m;document.getElementById('ss-btn-practice').className=m==='practice'?'active':'';document.getElementById('ss-btn-test').className=m==='test'?'active':'';document.getElementById('ss-submit-btn').style.display=m==='test'?'':'none';ssReset();}
+function ssToggleHint(){ssShowHint=!ssShowHint;document.getElementById('ss-tog-hint').className='tog'+(ssShowHint?' on':'');const el=document.getElementById('ss-sent-hint');if(el)el.className='ss-sent-hint'+(ssShowHint?'':' blur');}
+
+function ssApplySents(){
+  const raw=document.getElementById('ss-sent-ta').value;
+  ssSents=raw.split('\n').map(line=>{const parts=line.split('|');return{sent:(parts[0]||'').trim(),hint:(parts[1]||'').trim()};}).filter(s=>s.sent.length>1);
+  if(!ssSents.length)return;
+  ssIdx=0;ssScore={correct:0,total:0};ssLogs=[];ssAnswered=false;
+  document.getElementById('ss-main').style.display='';
+  ssRenderCard();ssUpdateStats();
+  document.getElementById('ss-log').innerHTML='<div class="log-item ln">尚無記錄</div>';
+}
+
+function ssShuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function ssTokenize(sent){
+  // Split sentence into words, preserving punctuation attached to words
+  return sent.match(/\S+/g)||[];
+}
+
+function ssRenderCard(){
+  if(!ssSents.length)return;
+  const s=ssSents[ssIdx];ssAnswered=false;ssLastCorrect=false;
+  document.getElementById('ss-result').textContent='';document.getElementById('ss-result').className='ss-result';
+  document.getElementById('ss-sent-num').textContent=(lang==='zh'?'句子 ':'Sentence ')+(ssIdx+1)+' / '+ssSents.length;
+  const hint=document.getElementById('ss-sent-hint');hint.textContent=s.hint||'';hint.className='ss-sent-hint'+(ssShowHint?'':' blur');
+  ssWords=ssShuffle(ssTokenize(s.sent));
+  ssPlaced=[];
+  ssRenderSlots();ssRenderWordTiles();
+  document.getElementById('ss-submit-btn').disabled=true;
+  document.getElementById('ss-score-info').textContent=(lang==='zh'?'得分：+0':'Score: +0');
+}
+
+function ssRenderSlots(){
+  const c=document.getElementById('ss-slots');c.innerHTML='';
+  if(!ssPlaced.length){c.innerHTML='<span class="ss-slot-ph">'+(lang==='zh'?'點擊下方字詞來排列句子':'Click words below to build the sentence')+'</span>';return;}
+  ssPlaced.forEach((w,i)=>{
+    const el=document.createElement('div');
+    el.className='ss-word-chip placed';
+    el.style.cssText='border-color:#97C459;color:#3B6D11;';
+    el.textContent=w;
+    el.onclick=()=>ssRemoveFromSlot(i);
+    c.appendChild(el);
+  });
+  document.getElementById('ss-prog').textContent=ssPlaced.length+' / '+ssTokenize(ssSents[ssIdx].sent).length+(lang==='zh'?' 個字詞已放置':' words placed');
+}
+
+function ssRenderWordTiles(){
+  const c=document.getElementById('ss-tiles');c.innerHTML='';
+  ssWords.forEach((w,i)=>{
+    const used=ssPlaced.includes(w)&&ssPlaced.filter(x=>x===w).length>=ssWords.filter(x=>x===w).length;
+    const el=document.createElement('div');
+    el.className='ss-word-chip';
+    el.style.cssText=`border-color:#FAC775;color:#633806;${used?'opacity:0;pointer-events:none;':''}`;
+    el.id='sstile'+i;el.textContent=w;
+    if(!used)el.onclick=()=>ssClickWord(i);
+    c.appendChild(el);
+  });
+}
+
+function ssClickWord(i){
+  if(ssAnswered)return;
+  const w=ssWords[i];
+  // Count how many times this word appears in ssWords vs already placed
+  const inWords=ssWords.filter(x=>x===w).length;
+  const inPlaced=ssPlaced.filter(x=>x===w).length;
+  if(inPlaced>=inWords)return;
+  ssPlaced.push(w);
+  ssRenderSlots();ssRenderWordTiles();
+  if(ssJudge==='practice')ssCheckLive();
+  const target=ssTokenize(ssSents[ssIdx].sent);
+  if(ssPlaced.length===target.length){
+    if(ssJudge==='test')document.getElementById('ss-submit-btn').disabled=false;
+    else ssSubmit();
+  }
+}
+
+function ssRemoveFromSlot(i){
+  if(ssAnswered)return;
+  ssPlaced.splice(i,1);
+  document.getElementById('ss-result').textContent='';
+  document.getElementById('ss-submit-btn').disabled=true;
+  ssRenderSlots();ssRenderWordTiles();
+}
+
+function ssCheckLive(){
+  const target=ssTokenize(ssSents[ssIdx].sent);
+  const ok=ssPlaced.every((w,i)=>w===target[i]);
+  if(!ok&&ssPlaced.length<target.length)return; // not full yet, no flash
+}
+
+function ssSubmit(){
+  const target=ssTokenize(ssSents[ssIdx].sent);
+  const ok=ssPlaced.join(' ')===target.join(' ');
+  ssAnswered=true;ssLastCorrect=ok;
+  // flash placed chips
+  const chips=document.getElementById('ss-slots').children;
+  Array.from(chips).forEach(el=>{el.className='ss-word-chip '+(ok?'correct-flash':'wrong-flash');});
+  const res=document.getElementById('ss-result');
+  res.textContent=ok?T('ssCorrect'):T('ssWrong');res.className='ss-result '+(ok?'ok':'no');
+  if(ok)ssScore.correct++;ssScore.total++;
+  const pts=ok?Math.max(1,target.length):0;
+  document.getElementById('ss-score-info').textContent=(lang==='zh'?'得分：':'Score: ')+(ok?'+'+pts:'0');
+  window._ssLastPts=pts;
+  ssUpdateStats();
+  ssLogs.unshift((ok?'✓':'✗')+' '+ssSents[ssIdx].sent.slice(0,30)+(ssSents[ssIdx].sent.length>30?'…':'')+(ok?' +'+pts:''));
+  document.getElementById('ss-log').innerHTML=ssLogs.slice(0,20).map(l=>`<div class="log-item ${l[0]==='✓'?'lp':'lm'}">${l}</div>`).join('');
+  if(ok)setTimeout(()=>{if(ssIdx<ssSents.length-1)ssNav(1);},1000);
+}
+
+function ssNav(dir){ssIdx=(ssIdx+dir+ssSents.length)%ssSents.length;ssReset();}
+function ssReset(){if(!ssSents.length)return;ssAnswered=false;ssPlaced=[];ssWords=ssShuffle(ssTokenize(ssSents[ssIdx].sent));document.getElementById('ss-result').textContent='';document.getElementById('ss-submit-btn').disabled=true;ssRenderCard();}
+function ssUpdateStats(){document.getElementById('ss-stats-display').textContent=ssScore.correct+' / '+ssScore.total;document.getElementById('ss-stats-pct').textContent=ssScore.total?Math.round(ssScore.correct/ssScore.total*100)+'%':'';}
+function ssSendScore(){
+  const idx=parseInt(document.getElementById('ss-stu-sel').value);
+  if(isNaN(idx)||idx<0||idx>=students.length)return;
+  const pts=ssLastCorrect?(window._ssLastPts||1):0;
+  if(pts<=0){document.getElementById('ss-sent-msg').textContent=(lang==='zh'?'需先答對才能傳送':'Answer correctly first');return;}
+  injectScore(idx,pts,'句子重組');
+  document.getElementById('ss-sent-msg').textContent='✓ '+students[idx].name+' +'+pts;
+  setTimeout(()=>{document.getElementById('ss-sent-msg').textContent='';},2500);
+}
 
 // ════════════════════════════════════════
 // INIT
