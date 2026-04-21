@@ -3,65 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NewCore Turbo B: Rhythm Master</title>
+    <title>NewCore Turbo B: Rhythm Master 終極版</title>
     <style>
         :root { --neon-blue: #00f3ff; --neon-purple: #bc13fe; --neon-red: #ff0055; --bg: #050510; }
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--bg); color: white; font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif; overflow: hidden; }
         
-        #game-screen { position: relative; width: 100%; max-width: 500px; height: 100%; margin: 0 auto; background: rgba(255,255,255,0.02); border-left: 2px solid #222; border-right: 2px solid #222; }
+        #game-screen { position: relative; width: 100%; max-width: 500px; height: 100%; margin: 0 auto; background: rgba(255,255,255,0.02); border-left: 2px solid #333; border-right: 2px solid #333; }
         .track { position: absolute; top: 0; width: 25%; height: 100%; border-right: 1px solid rgba(255,255,255,0.05); box-sizing: border-box; }
         
-        /* 判定線優化 */
+        /* 判定區域 - 視覺強化 */
         #judgment-line { 
-            position: absolute; bottom: 100px; width: 100%; height: 80px; 
+            position: absolute; bottom: 120px; width: 100%; height: 90px; 
             background: rgba(0, 243, 255, 0.05); border-top: 3px solid var(--neon-blue); border-bottom: 3px solid var(--neon-blue); 
             display: flex; align-items: center; justify-content: center;
-            font-size: 14px; color: rgba(0, 243, 255, 0.5); letter-spacing: 2px;
+            font-size: 16px; color: rgba(0, 243, 255, 0.6); font-weight: bold;
             pointer-events: none; z-index: 10; 
         }
         #judgment-line.hit { background: rgba(0, 255, 0, 0.4); border-color: #00ff00; }
         #judgment-line.miss { background: rgba(255, 0, 0, 0.4); border-color: #ff0000; }
 
+        /* 字母泡泡 - 大尺寸設計 */
         .note { 
             position: absolute; width: 85%; left: 7.5%; height: 85px; 
             display: flex; align-items: center; justify-content: center; 
-            font-size: 32px; font-weight: bold; border-radius: 12px; 
+            font-size: 36px; font-weight: bold; border-radius: 50%; 
             cursor: pointer; user-select: none; z-index: 20;
             background: rgba(255, 255, 255, 0.1);
+            transition: transform 0.05s;
         }
 
-        #target-display { position: absolute; bottom: 20px; width: 100%; text-align: center; font-size: 28px; color: var(--neon-blue); text-shadow: 0 0 10px var(--neon-blue); font-weight: bold; }
-        #score-info { position: absolute; top: 20px; width: 100%; display: flex; justify-content: space-around; font-size: 22px; font-weight: bold; z-index: 50; pointer-events: none; }
+        /* 提示區域 */
+        #target-display { 
+            position: absolute; bottom: 0; width: 100%; height: 110px;
+            background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            font-size: 24px; color: var(--neon-blue); font-weight: bold; border-top: 1px solid #333;
+        }
+        #chn-hint { font-size: 20px; color: #aaa; margin-bottom: 5px; }
+
+        /* 儀表板 */
+        #score-info { position: absolute; top: 10px; width: 100%; display: flex; justify-content: space-around; font-size: 20px; font-weight: bold; z-index: 50; pointer-events: none; }
         
-        #setup { position: absolute; inset: 0; background: var(--bg); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        textarea { width: 80%; height: 100px; background: #000; color: var(--neon-blue); border: 1px solid #444; padding: 10px; margin: 15px 0; font-size: 18px; }
-        button { padding: 15px 40px; background: var(--neon-blue); border: none; font-weight: bold; font-size: 20px; border-radius: 5px; cursor: pointer; }
-        select { padding: 10px; background: #000; color: white; border: 1px solid var(--neon-blue); font-size: 18px; }
+        /* 設定畫面 */
+        #setup { position: absolute; inset: 0; background: var(--bg); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
+        textarea { width: 90%; max-width: 450px; height: 120px; background: #000; color: var(--neon-blue); border: 1px solid #444; padding: 15px; margin: 15px 0; font-size: 16px; border-radius: 8px; }
+        .config-row { display: flex; gap: 15px; margin-bottom: 25px; }
+        select { padding: 10px; background: #000; color: white; border: 1px solid var(--neon-blue); font-size: 16px; border-radius: 5px; }
+        button { padding: 18px 50px; background: var(--neon-blue); border: none; font-weight: bold; font-size: 22px; border-radius: 10px; cursor: pointer; color: #000; box-shadow: 0 0 20px var(--neon-blue); }
     </style>
 </head>
 <body>
 
     <div id="setup">
-        <h1 style="color:var(--neon-blue)">NewCore Rhythm Master</h1>
-        <p>請輸入測驗單字 (逗號分隔):</p>
-        <textarea id="word-input">APPLE, BANANA, ZOO, DOG</textarea>
+        <h1 style="color:var(--neon-blue); margin-bottom: 0;">NewCore Turbo B</h1>
+        <p style="color:#888;">Rhythm Master 終極版</p>
         
-        <div style="margin-bottom: 20px;">
-            <label>難度：</label>
-            <select id="difficulty">
-                <option value="1.5">Easy (慢速入門)</option>
-                <option value="2.5" selected>Normal (標準節奏)</option>
-                <option value="4">Hard (高手挑戰)</option>
-            </select>
+        <p style="margin-top: 20px;">請輸入「單字:中文」，用逗號分隔：</p>
+        <textarea id="word-input">APPLE:蘋果, BANANA:香蕉, CAT:小貓, DOG:小狗, ELEPHANT:大象</textarea>
+        
+        <div class="config-row">
+            <div>
+                <label>難度：</label>
+                <select id="difficulty">
+                    <option value="1.2">Easy (入門)</option>
+                    <option value="2.0" selected>Normal (標準)</option>
+                    <option value="3.5">Hard (挑戰)</option>
+                </select>
+            </div>
+            <div>
+                <label>時間：</label>
+                <select id="game-timer">
+                    <option value="30">30 秒</option>
+                    <option value="60" selected>60 秒</option>
+                    <option value="120">120 秒</option>
+                </select>
+            </div>
         </div>
         
-        <button onclick="startGame()">START GAME 🚀</button>
+        <button onclick="startGame()">開 始 挑戰 🚀</button>
     </div>
 
     <div id="game-screen">
         <div id="score-info">
-            <div id="score">SCORE: 0</div>
-            <div id="life">LIFE: ❤️❤️❤️</div>
+            <div id="score-text">SCORE: 0</div>
+            <div id="time-text">TIME: 60s</div>
+            <div id="life-text">❤️ ❤️ ❤️</div>
         </div>
 
         <div class="track" style="left:0%"></div>
@@ -69,56 +94,88 @@
         <div class="track" style="left:50%"></div>
         <div class="track" style="left:75%"></div>
 
-        <div id="judgment-line">在此區域內點擊字母</div>
-        <div id="target-display">READY?</div>
+        <div id="judgment-line">判定區：請在此點擊字母</div>
+        
+        <div id="target-display">
+            <div id="chn-hint">載入中...</div>
+            <div id="eng-slots">_ _ _ _ _</div>
+        </div>
     </div>
 
     <script>
         let score = 0;
         let life = 3;
-        let words = [];
-        let currentWord = "";
-        let currentLetterIdx = 0;
+        let timeLeft = 60;
         let gameActive = false;
+        let words = [];
+        let currentWordData = null;
+        let currentIdx = 0;
         let notes = [];
-        let baseSpeed = 2; 
+        let baseSpeed = 2;
+        let spawnTimer, gameTimer, loopId;
+
         const colors = ['#00f3ff', '#bc13fe', '#ff00ff', '#4dff00', '#ff8800'];
 
         function startGame() {
             const input = document.getElementById('word-input').value;
-            words = input.split(',').map(s => s.trim().toUpperCase()).filter(s => s.length > 0);
-            if (words.length === 0) return;
+            words = input.split(',').map(item => {
+                let parts = item.split(':');
+                return { 
+                    eng: parts[0].trim().toUpperCase(), 
+                    chn: parts[1] ? parts[1].trim() : "???" 
+                };
+            }).filter(obj => obj.eng.length > 0);
 
+            if (words.length === 0) { alert("請輸入單字清單！"); return; }
+
+            // 初始化設定
             baseSpeed = parseFloat(document.getElementById('difficulty').value);
-            document.getElementById('setup').style.display = 'none';
+            timeLeft = parseInt(document.getElementById('game-timer').value);
+            score = 0;
+            life = 3;
+            notes = [];
             gameActive = true;
-            nextWord();
-            gameLoop();
+
+            document.getElementById('setup').style.display = 'none';
             
-            // 每 1.2 秒產生一顆泡泡，隨難度略微縮短間隔
-            let interval = 1200 / (baseSpeed * 0.5);
-            setInterval(() => { if(gameActive) spawnNote(); }, interval);
+            nextWord();
+            updateHUD();
+            
+            // 啟動迴圈與計時器
+            loopId = requestAnimationFrame(gameLoop);
+            
+            gameTimer = setInterval(() => {
+                timeLeft--;
+                updateHUD();
+                if (timeLeft <= 0) gameOver("時間到！");
+            }, 1000);
+
+            let spawnFreq = 1400 / (baseSpeed * 0.6);
+            spawnTimer = setInterval(() => {
+                if (gameActive) spawnNote();
+            }, spawnFreq);
         }
 
         function nextWord() {
-            currentWord = words[Math.floor(Math.random() * words.length)];
-            currentLetterIdx = 0;
-            updateTargetDisplay();
+            currentWordData = words[Math.floor(Math.random() * words.length)];
+            currentIdx = 0;
+            document.getElementById('chn-hint').innerText = `[ ${currentWordData.chn} ]`;
+            updateSlots();
         }
 
-        function updateTargetDisplay() {
+        function updateSlots() {
             let display = "";
-            for(let i=0; i<currentWord.length; i++) {
-                display += (i < currentLetterIdx) ? currentWord[i] : "_ ";
+            for (let i = 0; i < currentWordData.eng.length; i++) {
+                display += (i < currentIdx) ? currentWordData.eng[i] : "_ ";
             }
-            document.getElementById('target-display').innerText = `NEXT: ${display}`;
+            document.getElementById('eng-slots').innerText = display;
         }
 
         function spawnNote() {
-            // 提高正確字母出現機率，避免等太久
-            const isCorrectLetter = Math.random() > 0.3;
+            // 提高當前需要字母的出現率 (60%)
+            const isCorrect = Math.random() > 0.4;
             const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-            const letter = isCorrectLetter ? currentWord[currentLetterIdx] : alphabet[Math.floor(Math.random() * 26)];
+            const letter = isCorrect ? currentWordData.eng[currentIdx] : alphabet[Math.floor(Math.random() * 26)];
             
             const trackIdx = Math.floor(Math.random() * 4);
             const noteEl = document.createElement('div');
@@ -128,93 +185,92 @@
             noteEl.innerText = letter;
             noteEl.style.border = `5px solid ${color}`;
             noteEl.style.boxShadow = `0 0 15px ${color}`;
-            noteEl.style.top = "-110px";
+            noteEl.style.top = "-100px";
             
-            const noteObj = {
-                el: noteEl,
-                y: -110,
-                letter: letter
-            };
+            const noteObj = { el: noteEl, y: -100, letter: letter };
 
-            // 重要：點擊字母本身
-            noteEl.onclick = (e) => {
-                e.stopPropagation(); 
-                judge(noteObj);
-            };
+            // 觸發判定
+            noteEl.onmousedown = (e) => { e.preventDefault(); judge(noteObj); };
+            noteEl.ontouchstart = (e) => { e.preventDefault(); judge(noteObj); };
             
             document.querySelectorAll('.track')[trackIdx].appendChild(noteEl);
             notes.push(noteObj);
         }
 
         function judge(obj) {
-            const lineTop = window.innerHeight - 180; // 判定線頂部
-            const lineBottom = window.innerHeight - 100; // 判定線底部
+            if (!gameActive) return;
 
-            // 判斷方塊中央是否進入判定線
-            const centerY = obj.y + 42; 
+            const lineTop = window.innerHeight - 210; // 判定線頂
+            const lineBottom = window.innerHeight - 120; // 判定線底
+            const centerY = obj.y + 42;
+
             const inZone = (centerY >= lineTop && centerY <= lineBottom);
 
-            if (inZone && obj.letter === currentWord[currentLetterIdx]) {
+            if (inZone && obj.letter === currentWordData.eng[currentIdx]) {
                 score += 20;
-                currentLetterIdx++;
+                currentIdx++;
                 flashLine('hit');
-                if (currentLetterIdx >= currentWord.length) {
-                    score += 100;
-                    setTimeout(nextWord, 500);
+                if (currentIdx >= currentWordData.eng.length) {
+                    score += 50;
+                    setTimeout(nextWord, 300);
                 }
+                updateSlots();
             } else {
                 life--;
                 flashLine('miss');
             }
-            
             updateHUD();
             removeNote(obj);
         }
 
         function flashLine(type) {
             const line = document.getElementById('judgment-line');
-            line.classList.add(type);
-            setTimeout(() => line.classList.remove(type), 200);
+            line.className = type;
+            setTimeout(() => { line.className = ''; }, 200);
         }
 
         function gameLoop() {
             if (!gameActive) return;
             
-            // 隨分數提高速度 (每 100 分增加 0.1 速度)
-            let currentSpeed = baseSpeed + (score / 1000);
+            let currentSpeed = baseSpeed + (score / 1500); // 隨分數微幅加速
 
             for (let i = notes.length - 1; i >= 0; i--) {
                 let n = notes[i];
                 n.y += currentSpeed;
                 n.el.style.top = n.y + 'px';
 
-                // 沒點到且掉出判定區下方
-                if (n.y > window.innerHeight - 100) {
-                    if (n.letter === currentWord[currentLetterIdx]) {
-                        life--; 
+                // 沒接住正確字母的處罰
+                if (n.y > window.innerHeight - 120) {
+                    if (n.letter === currentWordData.eng[currentIdx]) {
+                        life--;
                         flashLine('miss');
                         updateHUD();
                     }
                     removeNote(n);
                 }
             }
-            if (life <= 0) gameOver();
-            else requestAnimationFrame(gameLoop);
+            
+            if (life <= 0) gameOver("生命值耗盡！");
+            else loopId = requestAnimationFrame(gameLoop);
         }
 
         function updateHUD() {
-            document.getElementById('score').innerText = `SCORE: ${score}`;
-            document.getElementById('life').innerText = `LIFE: ${'❤️'.repeat(Math.max(0, life))}`;
+            document.getElementById('score-text').innerText = `SCORE: ${score}`;
+            document.getElementById('time-text').innerText = `TIME: ${timeLeft}s`;
+            document.getElementById('life-text').innerText = '❤️'.repeat(Math.max(0, life));
         }
 
         function removeNote(obj) {
-            obj.el.remove();
+            if (obj.el.parentNode) obj.el.remove();
             notes = notes.filter(n => n !== obj);
         }
 
-        function gameOver() {
+        function gameOver(msg) {
             gameActive = false;
-            alert("表演結束！\n最終得分: " + score);
+            clearInterval(spawnTimer);
+            clearInterval(gameTimer);
+            cancelAnimationFrame(loopId);
+            alert(`${msg}\n最終得分: ${score}`);
             location.reload();
         }
     </script>
