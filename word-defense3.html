@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NewCore Turbo B: Rhythm Master</title>
+    <style>
+        :root { --neon-blue: #00f3ff; --neon-purple: #bc13fe; --neon-red: #ff0055; --bg: #050510; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
+        
+        /* 遊戲背景與軌道 */
+        #game-screen { position: relative; width: 100%; max-width: 500px; height: 100%; margin: 0 auto; background: rgba(255,255,255,0.02); border-left: 2px solid #222; border-right: 2px solid #222; }
+        .track { position: absolute; top: 0; width: 25%; height: 100%; border-right: 1px solid rgba(255,255,255,0.05); box-sizing: border-box; }
+        
+        /* 判定線 */
+        #judgment-line { position: absolute; bottom: 80px; width: 100%; height: 60px; background: rgba(0, 243, 255, 0.1); border-top: 2px solid var(--neon-blue); border-bottom: 2px solid var(--neon-blue); box-shadow: 0 0 15px var(--neon-blue); pointer-events: none; z-index: 10; }
+        #judgment-line.hit { background: rgba(0, 255, 0, 0.3); }
+        #judgment-line.miss { background: rgba(255, 0, 0, 0.3); }
+
+        /* 節奏方塊 */
+        .note { 
+            position: absolute; width: 90%; left: 5%; height: 70px; 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 28px; font-weight: bold; border-radius: 8px; 
+            cursor: pointer; user-select: none; transition: transform 0.1s;
+        }
+
+        /* 下方作答目標 */
+        #target-display { position: absolute; bottom: 10px; width: 100%; text-align: center; font-size: 24px; color: var(--neon-blue); text-shadow: 0 0 10px var(--neon-blue); font-weight: bold; }
+
+        /* HUD */
+        #score-info { position: absolute; top: 20px; width: 100%; display: flex; justify-content: space-around; font-size: 20px; font-weight: bold; z-index: 20; pointer-events: none; }
+        
+        /* 設定畫面 */
+        #setup { position: absolute; inset: 0; background: var(--bg); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        textarea { width: 80%; height: 100px; background: #000; color: var(--neon-blue); border: 1px solid #444; padding: 10px; margin: 15px 0; }
+        button { padding: 15px 40px; background: var(--neon-blue); border: none; font-weight: bold; font-size: 18px; border-radius: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div id="setup">
+        <h1 style="color:var(--neon-blue)">NewCore Rhythm Master</h1>
+        <p>請輸入單字清單 (逗號分隔):</p>
+        <textarea id="word-input">APPLE, BANANA, ELEPHANT, GIRAFFE</textarea>
+        <button onclick="startGame()">START CONCERT 🚀</button>
+    </div>
+
+    <div id="game-screen">
+        <div id="score-info">
+            <div id="score">SCORE: 0</div>
+            <div id="life">LIFE: ❤️❤️❤️</div>
+        </div>
+
+        <div class="track" style="left:0%"></div>
+        <div class="track" style="left:25%"></div>
+        <div class="track" style="left:50%"></div>
+        <div class="track" style="left:75%"></div>
+
+        <div id="judgment-line"></div>
+        <div id="target-display">READY?</div>
+    </div>
+
+    <script>
+        let score = 0;
+        let life = 3;
+        let words = [];
+        let currentWord = "";
+        let currentLetterIdx = 0;
+        let gameActive = false;
+        let notes = [];
+        let speed = 4;
+        const colors = ['#00f3ff', '#bc13fe', '#ff00ff', '#4dff00', '#ff8800'];
+
+        function startGame() {
+            const input = document.getElementById('word-input').value;
+            words = input.split(',').map(s => s.trim().toUpperCase()).filter(s => s.length > 0);
+            if (words.length === 0) return;
+
+            document.getElementById('setup').style.display = 'none';
+            gameActive = true;
+            nextWord();
+            gameLoop();
+            setInterval(() => { if(gameActive) spawnNote(); }, 1000);
+        }
+
+        function nextWord() {
+            currentWord = words[Math.floor(Math.random() * words.length)];
+            currentLetterIdx = 0;
+            updateTargetDisplay();
+        }
+
+        function updateTargetDisplay() {
+            let display = "";
+            for(let i=0; i<currentWord.length; i++) {
+                display += (i < currentLetterIdx) ? currentWord[i] : "_";
+            }
+            document.getElementById('target-display').innerText = `NEXT: ${display}`;
+        }
+
+        function spawnNote() {
+            const isCorrectLetter = Math.random() > 0.4;
+            const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            const letter = isCorrectLetter ? currentWord[currentLetterIdx] : alphabet[Math.floor(Math.random() * 26)];
+            
+            const trackIdx = Math.floor(Math.random() * 4);
+            const noteEl = document.createElement('div');
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            
+            noteEl.className = 'note';
+            noteEl.innerText = letter;
+            noteEl.style.border = `4px solid ${color}`;
+            noteEl.style.boxShadow = `0 0 15px ${color}`;
+            noteEl.style.top = "-100px";
+            
+            const noteObj = {
+                el: noteEl,
+                y: -100,
+                track: trackIdx,
+                letter: letter,
+                isTarget: (letter === currentWord[currentLetterIdx])
+            };
+
+            noteEl.onclick = () => judge(noteObj);
+            document.querySelectorAll('.track')[trackIdx].appendChild(noteEl);
+            notes.push(noteObj);
+        }
+
+        function judge(obj) {
+            const lineTop = window.innerHeight - 140;
+            const lineBottom = window.innerHeight - 80;
+            const line = document.getElementById('judgment-line');
+
+            // 判斷是否在判定線內
+            const inZone = (obj.y + 70 >= lineTop && obj.y <= lineBottom);
+
+            if (inZone && obj.letter === currentWord[currentLetterIdx]) {
+                // Perfect Hit!
+                score += 20;
+                currentLetterIdx++;
+                flashLine('hit');
+                if (currentLetterIdx >= currentWord.length) {
+                    score += 100;
+                    setTimeout(nextWord, 500);
+                }
+            } else {
+                // Miss or Wrong Letter
+                life--;
+                flashLine('miss');
+            }
+            
+            updateHUD();
+            removeNote(obj);
+        }
+
+        function flashLine(type) {
+            const line = document.getElementById('judgment-line');
+            line.classList.add(type);
+            setTimeout(() => line.classList.remove(type), 200);
+        }
+
+        function gameLoop() {
+            if (!gameActive) return;
+            for (let i = notes.length - 1; i >= 0; i--) {
+                let n = notes[i];
+                n.y += speed;
+                n.el.style.top = n.y + 'px';
+
+                // 超出判定線沒點到
+                if (n.y > window.innerHeight - 80) {
+                    if (n.letter === currentWord[currentLetterIdx]) {
+                        life--; // 漏掉正確字母
+                        flashLine('miss');
+                        updateHUD();
+                    }
+                    removeNote(n);
+                }
+            }
+            if (life <= 0) gameOver();
+            else requestAnimationFrame(gameLoop);
+        }
+
+        function updateHUD() {
+            document.getElementById('score').innerText = `SCORE: ${score}`;
+            document.getElementById('life').innerText = `LIFE: ${'❤️'.repeat(Math.max(0, life))}`;
+        }
+
+        function removeNote(obj) {
+            obj.el.remove();
+            notes = notes.filter(n => n !== obj);
+        }
+
+        function gameOver() {
+            gameActive = false;
+            alert("表演結束！最終得分: " + score);
+            location.reload();
+        }
+    </script>
+</body>
+</html>
