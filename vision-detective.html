@@ -3,62 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NewCore Vision Detective: Final Fix</title>
+    <title>NewCore Vision Detective: 完美修復版</title>
     <style>
         :root { --neon-blue: #00f3ff; --neon-purple: #bc13fe; --bg: #050510; }
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; display: flex; flex-direction: column; align-items: center; }
         
-        /* 設定面板 - 加大尺寸 */
-        #setup-screen { position: absolute; inset: 0; background: var(--bg); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
-        textarea#target-word { width: 80%; max-width: 400px; height: 50px; background: #000; color: #fff; border: 1px solid #444; border-radius: 5px; padding: 10px; font-size: 16px; }
-        select { padding: 10px; background: #000; color: white; border: 1px solid #444; font-size: 16px; margin: 5px; }
-        .api-key-input { border-color: var(--neon-purple) !important; width: 300px; padding: 10px; background: #000; color: #fff; }
+        /* 設定面板 */
+        #setup-screen { position: absolute; inset: 0; background: var(--bg); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; overflow-y: auto; }
+        .input-group { margin: 10px 0; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center; width: 100%; max-width: 600px;}
+        input[type="text"], input[type="password"], select { padding: 12px; background: #000; color: #fff; border: 1px solid #444; border-radius: 5px; font-size: 16px; flex: 1; min-width: 150px; }
+        .api-key-input { border-color: var(--neon-purple) !important; flex: 2 !important; }
 
-        /* 隱藏區塊 */
         .hidden { display: none !important; }
 
-        /* 遊戲區域 - 畫面中心 */
+        /* 遊戲區域 */
         #game-stage { display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; }
-        #canvas-container { position: relative; width: 450px; height: 450px; border: 6px solid var(--neon-blue); background: #111; overflow: hidden; margin-bottom: 25px; user-select: none; }
+        #canvas-container { position: relative; width: 450px; height: 450px; border: 6px solid var(--neon-blue); background: #111; overflow: hidden; margin-bottom: 25px; user-select: none; box-shadow: 0 0 20px rgba(0, 243, 255, 0.2); }
         
-        /* 1. 拼圖邏輯修正：使用交換式陣列 */
+        /* 拼圖 */
         #puzzle-board { display: grid; width: 100%; height: 100%; grid-template-columns: repeat(var(--size), 1fr); gap: 2px; }
         .piece { cursor: pointer; border: 1px solid rgba(255,255,255,0.1); background-size: 450px 450px; box-sizing: border-box; transition: transform 0.1s; }
         .piece.selected { outline: 6px solid white; outline-offset: -6px; transform: scale(0.95); z-index: 10; }
 
-        /* 2. 偵探模式修正：馬賽克特效與手動上傳區分 */
-        #detective-img { width: 100%; height: 100%; object-fit: cover; }
+        /* 馬賽克圖 */
+        #detective-img { width: 100%; height: 100%; object-fit: cover; transition: filter 0.5s linear; }
 
-        #options-area { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; width: 90%; max-width: 600px; }
-        .opt-btn { padding: 15px 35px; background: #111; border: 3px solid var(--neon-blue); color: var(--neon-blue); font-size: 20px; font-weight: bold; cursor: pointer; border-radius: 12px; transition: 0.2s; }
+        /* 選項區 */
+        #options-area { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; width: 90%; max-width: 700px; }
+        .opt-btn { padding: 15px 30px; background: #111; border: 3px solid var(--neon-blue); color: var(--neon-blue); font-size: 22px; font-weight: bold; cursor: pointer; border-radius: 12px; transition: 0.2s; flex: 1; min-width: 150px; }
         .opt-btn:hover { background: var(--neon-blue); color: #000; box-shadow: 0 0 15px var(--neon-blue); }
 
-        .btn-main { padding: 15px 40px; background: var(--neon-purple); border: none; color: white; font-weight: bold; font-size: 18px; border-radius: 8px; cursor: pointer; margin-top: 15px; }
+        .btn-main { padding: 15px 30px; background: #333; border: 1px solid #555; color: white; font-weight: bold; font-size: 18px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+        .btn-main:hover { background: #555; }
+        .btn-start { background: var(--neon-purple); border-color: var(--neon-purple); box-shadow: 0 0 15px rgba(188, 19, 254, 0.4); margin-top: 10px; width: 100%; max-width: 600px; }
+        .btn-start:hover { background: #d030ff; }
     </style>
 </head>
 <body>
 
     <div id="setup-screen">
-        <h1 style="color:var(--neon-blue); margin-bottom:0;">NewCore Vision Detective</h1>
-        <p style="color:#aaa; margin-top:5px;">🧩 拼圖 與 🔍 影像偵探 整合版</p>
+        <h1 style="color:var(--neon-blue); margin-bottom: 5px;">NewCore Vision Detective</h1>
+        <p style="color:#aaa; margin-top:0; margin-bottom: 20px;">🧩 拼圖 與 🔍 影像偵探 雙模具</p>
         
-        <div style="margin: 15px 0; display:flex; gap:10px; align-items:center;">
-            <span style="color:var(--neon-purple)">🔑 API Key:</span>
-            <input type="password" id="api-key" class="api-key-input" placeholder="Gemini/Nano API KEY">
+        <div class="input-group">
+            <span style="color:var(--neon-purple); font-weight:bold;">🔑 API:</span>
+            <input type="password" id="api-key" class="api-key-input" placeholder="留空則不使用 AI 功能">
         </div>
-        <textarea id="target-word" placeholder="輸入正確單字: 例如 Giraffe"></textarea>
         
-        <div style="margin: 15px 0;">
-            難度：<select id="grid-size"><option value="3">3x3 (入門)</option><option value="4" selected>4x4 (標準)</option><option value="5">5x5 (挑戰)</option></select>
-            模式：<select id="game-mode"><option value="puzzle">🧩 拼圖模式</option><option value="detective">🔍 馬賽克偵探</option></select>
+        <div class="input-group">
+            <input type="text" id="target-word" placeholder="*必填：輸入正確單字 (例: Banana)">
         </div>
 
-        <div style="margin: 20px 0; display:flex; gap:15px; flex-wrap:wrap; justify-content:center;">
-            <input type="file" id="file-upload" accept="image/*" style="display:none" onchange="handleFileUpload(this)">
-            <button class="btn-main" style="background:#444;" onclick="document.getElementById('file-upload').click()">📁 1. 上傳本地圖 (優先)</button>
-            <button class="btn-main" onclick="prepareAIData()">🤖 2. 或是 AI 生成挑战 (干擾字+畫圖)</button>
+        <div class="input-group">
+            <input type="text" id="wrong-1" placeholder="干擾字 A (留空則交給 AI)">
+            <input type="text" id="wrong-2" placeholder="干擾字 B (留空則交給 AI)">
         </div>
-        <div id="status-msg" style="margin-top: 15px; color: var(--neon-blue);"></div>
+        
+        <div class="input-group">
+            <select id="grid-size"><option value="3">3x3 (入門拼圖)</option><option value="4" selected>4x4 (標準拼圖)</option><option value="5">5x5 (挑戰拼圖)</option></select>
+            <select id="game-mode"><option value="puzzle">🧩 拼圖模式</option><option value="detective">🔍 馬賽克搶答模式</option></select>
+        </div>
+
+        <div class="input-group" style="margin-top: 15px;">
+            <input type="file" id="file-upload" accept="image/*" style="display:none" onchange="handleFileUpload(this)">
+            <button class="btn-main" style="flex:1;" onclick="document.getElementById('file-upload').click()">📁 1. 上傳圖片 (最穩定)</button>
+        </div>
+
+        <div id="status-msg" style="color: var(--neon-blue); font-weight: bold; margin: 10px 0; min-height: 20px;">等待設定...</div>
+        
+        <button class="btn-main btn-start" onclick="prepareAndStart()">🚀 2. 啟動挑戰 (準備好即開始)</button>
     </div>
 
     <div id="game-stage">
@@ -67,7 +80,8 @@
             <img id="detective-img" class="hidden" alt="Task">
         </div>
         <div id="options-area"></div>
-        <div style="margin-top:20px; color:#aaa;" id="game-info"></div>
+        <div style="margin-top:20px; font-size: 24px; color:var(--neon-blue); font-weight:bold;" id="score-display"></div>
+        <button onclick="location.reload()" style="margin-top: 30px; padding: 10px 20px; background: #222; color: #fff; border:none; border-radius: 5px; cursor: pointer;">返回設定</button>
     </div>
 
 <script>
@@ -78,121 +92,108 @@
     let firstSelected = null;
     let gameActive = false;
     let gameMode = 'puzzle';
+    let isLocalImage = false; // 核心修正：標記是否為本地上傳
 
-    // 載入 Key
+    // 載入儲存的 Key
     window.onload = () => {
         document.getElementById('api-key').value = localStorage.getItem('nc_vision_key') || '';
     };
 
-    // --- 核心修正 2: 手動上傳與 AI 生成區分 ---
+    // 處理本地圖片上傳
     function handleFileUpload(input) {
         if (input.files && input.files[0]) {
             const reader = new FileReader();
             reader.onload = (e) => {
-                targetImgUrl = e.target.result; // 保存 Base64
-                // 3. 核心修正: 手動上傳時干擾字為空 (之後手動輸入或自動補位)
-                document.getElementById('status-msg').innerText = "✅ 圖片已就緒。可以手動輸入干擾項或直接點 AI 生成來獲取選項。";
+                targetImgUrl = e.target.result;
+                isLocalImage = true; // 修正 2：標記為本地圖片，阻止 AI 覆蓋
+                document.getElementById('status-msg').innerText = "✅ 本地圖片載入成功！可以直接啟動！";
             };
             reader.readAsDataURL(input.files[0]);
         }
     }
 
-    async function prepareAIData() {
+    async function prepareAndStart() {
         targetWord = document.getElementById('target-word').value.trim();
         const apiKey = document.getElementById('api-key').value.trim();
-        if (!targetWord || !apiKey) { alert("請輸入正確單字與 API KEY！"); return; }
-        localStorage.setItem('nc_vision_key', apiKey); // 記住 Key
+        const w1 = document.getElementById('wrong-1').value.trim();
+        const w2 = document.getElementById('wrong-2').value.trim();
 
-        document.getElementById('status-msg').innerText = "⏳ AI 正在思考干擾項與繪圖中 (約 10-20 秒)...";
+        if (!targetWord) { alert("請務必輸入正確單字！"); return; }
+        if (apiKey) localStorage.setItem('nc_vision_key', apiKey);
 
-        // --- 核心修正 1: API 流量限制備援機制 ---
-        // 1. 嘗試產生干擾項
-        distractors = await fetchDistractors(apiKey, targetWord);
-        // 如果失敗，distractors 會是 ["Unknown A", "Unknown B"]
-
-        // 2. 核心修正: AI 生成馬賽克圖片 (Nano Banana 2)
-        if (!targetImgUrl || targetImgUrl.startsWith('data:')) {
-            // 如果沒上傳本地圖，或是之前是 AI 生成，就重新生成
-            await fetchAIImage(apiKey, targetWord);
+        // 1. 處理干擾字：老師手動輸入優先
+        if (w1 && w2) {
+            distractors = [w1, w2];
+        } else if (apiKey) {
+            document.getElementById('status-msg').innerText = "⏳ 請求 AI 產生干擾字中...";
+            distractors = await fetchDistractors(apiKey, targetWord);
+            // 如果 AI 失敗，拿手動輸入補位，或用預設詞
+            if(distractors[0] === "Error A") {
+                distractors = [w1 || "Option A", w2 || "Option B"];
+            }
+        } else {
+            distractors = [w1 || "Option A", w2 || "Option B"];
         }
 
+        // 2. 處理圖片：本地上傳絕對優先
+        if (!isLocalImage) {
+            if (apiKey) {
+                document.getElementById('status-msg').innerText = "⏳ 請求 AI 繪圖中...";
+                await fetchAIImage(apiKey, targetWord);
+            } else {
+                // 沒有上傳也沒有 API Key，給一張預設隨機圖
+                targetImgUrl = `https://loremflickr.com/500/500/${targetWord}?lock=${Math.floor(Math.random()*100)}`;
+            }
+        }
+
+        if (!targetImgUrl) { alert("無法取得圖片，請手動上傳！"); return; }
+        
         startGame();
     }
 
-    // AI 備援機制：雙模型輪詢獲取干擾項
     async function fetchDistractors(key, word) {
-        const models = ["gemini-1.5-flash", "gemini-1.5-pro"];
-        const prompt = `You are a strict test generator. Provide ONLY JSON for 2 single-word wrong distractors (similar type, plausibility) for a quiz where the answer is "${word}". Return ONLY JSON: {"d": ["w1", "w2"]}`;
-        
-        for (let model of models) {
-            try {
-                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-                });
-                const data = await res.json();
-                if(!data.candidates) continue;
-                const text = data.candidates[0].content.parts[0].text;
-                return JSON.parse(text.replace(/```json|```/g, '').trim()).d;
-            } catch (e) {
-                console.warn(`GEMINI 失敗: ${model} - 嘗試下一種模型`);
-            }
+        const prompt = `Give exactly two incorrect but related English words for a vocabulary test where the correct answer is "${word}". Return ONLY JSON array. Example: ["Apple", "Orange"].`;
+        try {
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+            });
+            const data = await res.json();
+            const text = data.candidates[0].content.parts[0].text;
+            let arr = JSON.parse(text.replace(/```json|```/g, '').trim());
+            return Array.isArray(arr) ? arr.slice(0,2) : ["Error A", "Error B"];
+        } catch (e) {
+            console.warn("AI 產生干擾字失敗");
+            return ["Error A", "Error B"];
         }
-        return ["Unknown A", "Unknown B"]; // 流量限制失敗備援
     }
 
-    // 真正的 Nano API 圖片生成
     async function fetchAIImage(key, word) {
         try {
-            // 此處為您產生圖片的 API URL
-            const nanoApiUrl = `https://nano-banana-2.oldtor.workers.dev/api/sd?prompt=A stunning photorealistic 3D rendering of a ${word} isolated on black background, detailed, educational style.`;
-            const response = await fetch(nanoApiUrl, {
-                headers: { 'Authorization': `Bearer ${key}` }
-            });
+            const nanoApiUrl = `https://nano-banana-2.oldtor.workers.dev/api/sd?prompt=A photorealistic 3D rendering of ${word}, isolated on black background, clear educational style`;
+            const response = await fetch(nanoApiUrl, { headers: { 'Authorization': `Bearer ${key}` } });
             if(response.ok) {
-                targetImgUrl = nanoApiUrl; // 如果 API 回傳圖片，直接用 URL
-                // 核心修正: 確保圖片載入
-                await validateImageUrl(targetImgUrl);
+                targetImgUrl = nanoApiUrl;
             } else { throw new Error("Nano Image 失敗"); }
         } catch (e) {
-            // 圖片生成備援：圖庫
+            console.warn("AI 產圖失敗，使用圖庫備援");
             targetImgUrl = `https://loremflickr.com/500/500/${word}?lock=${Math.floor(Math.random()*100)}`;
-            await validateImageUrl(targetImgUrl);
         }
     }
 
-    // 驗證圖片是否真的載入
-    function validateImageUrl(url) {
-        return new Promise((resolve, reject) => {
-            const img = new Image();
-            img.onload = () => resolve();
-            img.onerror = () => reject("圖片無法載入");
-            img.src = url;
-        });
-    }
-
-    // --- 遊戲執行邏輯 ---
     function startGame() {
-        if (!targetWord || !targetImgUrl) { alert("單字或圖片未就緒！"); return; }
         gameActive = true;
         gameMode = document.getElementById('game-mode').value;
         const size = parseInt(document.getElementById('grid-size').value);
 
-        // 隱藏設定區
         document.getElementById('setup-screen').style.display = 'none';
         document.getElementById('game-stage').style.display = 'flex';
 
-        // 渲染選項 (手動整合干擾項，以免 Unknown A/B 出現)
-        const d1 = distractors[0] || "Unknown A";
-        const d2 = distractors[1] || "Unknown B";
-        renderOptions(targetWord, [d1, d2]);
+        renderOptions(targetWord, distractors);
 
-        if (gameMode === 'puzzle') {
-            initPuzzleMode(size);
-        } else {
-            initDetectiveMode();
-        }
+        if (gameMode === 'puzzle') initPuzzleMode(size);
+        else initDetectiveMode();
     }
 
     function renderOptions(correct, wrgs) {
@@ -204,29 +205,31 @@
             btn.className = 'opt-btn';
             btn.innerText = text;
             btn.onclick = () => {
-                if(text === correct) alert("🎉 對了！你真厲害！");
-                else alert("❌ 再看清楚一點圖片喔！");
+                if(!gameActive) return;
+                if(text === correct) {
+                    alert("🎉 答對了！非常厲害！");
+                    gameActive = false;
+                    document.getElementById('detective-img').style.filter = 'blur(0px)';
+                } else {
+                    alert("❌ 哎呀，猜錯囉！");
+                }
             };
             area.appendChild(btn);
         });
     }
 
-    // --- 核心修正 3: 拼圖交換式邏輯 (不亂跑) ---
+    // --- 拼圖模式 ---
     function initPuzzleMode(size) {
         const board = document.getElementById('puzzle-board');
-        const imgEl = document.getElementById('detective-img');
+        document.getElementById('detective-img').classList.add('hidden');
         board.classList.remove('hidden');
-        imgEl.classList.add('hidden');
+        document.getElementById('score-display').innerText = "";
         
         board.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
-        board.style.setProperty('--size', size); // 給 CSS 用
+        board.style.setProperty('--size', size);
         board.innerHTML = '';
 
-        // 建立正確位置順序 (0, 1, 2, 3...)
-        piecesArray = Array.from({length: size * size}, (_, i) => i);
-        // 打亂順序 (但不重複)
-        piecesArray.sort(() => Math.random() - 0.5);
-
+        piecesArray = Array.from({length: size * size}, (_, i) => i).sort(() => Math.random() - 0.5);
         firstSelected = null;
         renderPieces(size);
     }
@@ -239,72 +242,64 @@
         piecesArray.forEach((posInOriginal, currentIndex) => {
             const piece = document.createElement('div');
             piece.className = 'piece';
-            piece.style.width = pSize + 'px';
-            piece.style.height = pSize + 'px';
             piece.style.backgroundImage = `url(${targetImgUrl})`;
             
-            // 計算這片拼圖應該顯示原圖的哪裡
             const originalRow = Math.floor(posInOriginal / size);
             const originalCol = posInOriginal % size;
             piece.style.backgroundPosition = `-${originalCol * pSize}px -${originalRow * pSize}px`;
 
-            // 選取邏輯
             if (currentIndex === firstSelected) piece.classList.add('selected');
 
             piece.onclick = () => {
                 if (!gameActive) return;
                 if (firstSelected === null) {
                     firstSelected = currentIndex;
-                    renderPieces(size); // 重新渲染來顯示 selected 框
+                    renderPieces(size);
                 } else {
-                    // 交換邏輯：在陣列中交換兩個位置
-                    let temp = piecesArray[firstSelected];
-                    piecesArray[firstSelected] = piecesArray[currentIndex];
-                    piecesArray[currentIndex] = temp;
-
+                    [piecesArray[firstSelected], piecesArray[currentIndex]] = [piecesArray[currentIndex], piecesArray[firstSelected]];
                     firstSelected = null;
-                    renderPieces(size); // 重新渲染拼圖位置
-                    checkWin(size); // 檢查是否拼對
+                    renderPieces(size);
+                    
+                    if (piecesArray.every((val, i) => val === i)) {
+                        alert("🎯 恭喜完成拼圖！現在請選出正確答案！");
+                    }
                 }
             };
             board.appendChild(piece);
         });
     }
 
-    // 核心修正 3: 偵探馬賽克模式大修 ---
-    // 因 Nano API 回傳已馬賽克圖，我們不再用 CSS Blur。直接用 Canvas 的「像素化」效果慢慢清晰。
+    // --- 修正 3：馬賽克漸漸清晰模式 ---
+    let blurTimer;
     function initDetectiveMode() {
-        const board = document.getElementById('puzzle-board');
+        document.getElementById('puzzle-board').classList.add('hidden');
         const imgEl = document.getElementById('detective-img');
-        board.classList.add('hidden');
         imgEl.classList.remove('hidden');
-
-        // 載入馬賽克圖
         imgEl.src = targetImgUrl;
         
-        // 此處原本是用計時器慢慢清晰。但若 Nano API 直接回傳成品图，我們就只能依賴「選項辨識」。
-        // 為了增加趣味，我們在畫面上放一個假的「解碼計時器」來給學生壓力
-        let decoTime = 30;
+        let blurVal = 45; // 初始模糊度 45px
         let score = 1000;
-        document.getElementById('score-display').innerText = `目前解碼獎勵: ${score}`;
-        clearInterval(gameTimer);
-        gameTimer = setInterval(() => {
-            decoTime--;
-            score -= 20;
-            document.getElementById('score-display').innerText = `目前解碼獎勵: ${Math.max(0, score)}`;
-            if(decoTime <= 0) clearInterval(gameTimer);
+        
+        // 設定初始狀態
+        imgEl.style.filter = `blur(${blurVal}px) contrast(1.2)`;
+        document.getElementById('score-display').innerText = `搶答獎勵: ${score}`;
+        
+        clearInterval(blurTimer);
+        blurTimer = setInterval(() => {
+            if(!gameActive) { clearInterval(blurTimer); return; }
+            
+            blurVal -= 1.5; // 每秒降低 1.5px 模糊度
+            score -= 30;    // 扣分
+            
+            if (blurVal <= 0) {
+                blurVal = 0;
+                score = 0;
+                clearInterval(blurTimer);
+            }
+            
+            imgEl.style.filter = `blur(${blurVal}px) contrast(1.2)`;
+            document.getElementById('score-display').innerText = `搶答獎勵: ${Math.max(0, score)}`;
         }, 1000);
-    }
-
-    function checkWin(size) {
-        let win = true;
-        for (let i = 0; i < piecesArray.length; i++) {
-            if (piecesArray[i] !== i) { win = false; break; }
-        }
-        if (win) {
-            alert("🎯 恭喜！完美修復圖片！");
-            document.getElementById('options-area').scrollIntoView();
-        }
     }
 </script>
 </body>
