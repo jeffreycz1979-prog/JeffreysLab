@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NewCore Turbo C: AI 影像偵探</title>
+    <style>
+        :root { --neon-blue: #00f3ff; --neon-purple: #bc13fe; --bg: #050510; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; overflow-x: hidden; }
+        
+        /* 隱私與設定面板 */
+        #setup-panel { width: 90%; max-width: 800px; background: rgba(255,255,255,0.05); padding: 25px; border-radius: 15px; margin: 20px 0; border: 1px solid #333; }
+        .input-group { margin: 10px 0; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+        input, select { padding: 10px; background: #000; color: #fff; border: 1px solid #444; border-radius: 5px; }
+        input:focus { border-color: var(--neon-blue); outline: none; }
+        .api-key-input { border-color: var(--neon-purple) !important; width: 300px; }
+
+        /* 模式切換 */
+        .tab-container { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab { padding: 10px 20px; cursor: pointer; border: 1px solid #444; border-radius: 5px; background: #111; }
+        .tab.active { background: var(--neon-blue); color: #000; font-weight: bold; border-color: var(--neon-blue); }
+
+        /* 遊戲舞台 */
+        #game-stage { display: none; flex-direction: column; align-items: center; width: 100%; }
+        #canvas-container { position: relative; width: 400px; height: 400px; border: 5px solid var(--neon-blue); background: #111; overflow: hidden; margin-bottom: 20px; }
+        
+        /* 拼圖樣式 */
+        #puzzle-board { display: grid; width: 100%; height: 100%; }
+        .piece { cursor: pointer; border: 1px solid rgba(255,255,255,0.1); background-size: 400px 400px; transition: transform 0.1s; }
+        .piece.selected { outline: 4px solid #fff; outline-offset: -4px; transform: scale(0.95); z-index: 10; }
+
+        /* 馬賽克/模糊樣式 */
+        #detective-img { width: 100%; height: 100%; object-fit: cover; transition: filter 0.5s linear; }
+
+        /* 選項區 */
+        #options-area { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
+        .opt-btn { padding: 15px 30px; background: #111; border: 2px solid var(--neon-blue); color: var(--neon-blue); font-size: 20px; font-weight: bold; cursor: pointer; border-radius: 10px; transition: 0.3s; }
+        .opt-btn:hover { background: var(--neon-blue); color: #000; box-shadow: 0 0 15px var(--neon-blue); }
+
+        .btn-main { padding: 12px 25px; background: var(--neon-purple); border: none; color: white; font-weight: bold; border-radius: 5px; cursor: pointer; }
+        #status-msg { margin-top: 10px; color: var(--neon-blue); font-size: 14px; }
+    </style>
+</head>
+<body>
+
+    <h1>NewCore AI 影像偵探 🧩🔍</h1>
+
+    <div id="setup-panel">
+        <div class="input-group">
+            <span style="color:var(--neon-purple)">🔑 API KEY:</span>
+            <input type="password" id="api-key" class="api-key-input" placeholder="貼上您的 Gemini API Key (不儲存於伺服器)">
+            <label><input type="checkbox" id="save-key"> 記住 Key (存於本機瀏覽器)</label>
+        </div>
+        <hr style="border: 0.5px solid #333; width: 100%;">
+        <div class="input-group">
+            正確單字：<input type="text" id="target-word" placeholder="例如: Giraffe">
+            難度：<select id="grid-size"><option value="3">3x3 (簡單)</option><option value="4" selected>4x4 (標準)</option><option value="5">5x5 (挑戰)</option></select>
+        </div>
+        <div class="tab-container">
+            <div class="tab active" onclick="switchMode('puzzle', this)">🧩 拼圖交換模式</div>
+            <div class="tab" onclick="switchMode('detective', this)">🔍 影像偵探模式</div>
+        </div>
+        <div class="input-group">
+            <button class="btn-main" onclick="fetchAIData()">🤖 AI 自動生成挑戰</button>
+            <span style="color: #888;">或</span>
+            <input type="file" id="file-upload" accept="image/*" style="display:none" onchange="handleFileUpload(this)">
+            <button class="tab" onclick="document.getElementById('file-upload').click()">📁 手動上傳圖片</button>
+        </div>
+        <div id="status-msg"></div>
+    </div>
+
+    <div id="game-stage">
+        <div id="canvas-container">
+            <div id="puzzle-board" style="display:none;"></div>
+            <img id="detective-img" style="display:none;">
+        </div>
+        <div id="score-display" style="font-size: 24px; color: var(--neon-blue); margin-bottom: 15px;"></div>
+        <div id="options-area"></div>
+    </div>
+
+<script>
+    let mode = 'puzzle';
+    let targetImgUrl = "";
+    let pieces = [];
+    let firstSelected = null;
+    let blurVal = 40;
+    let gameTimer = null;
+    let score = 1000;
+
+    // 頁面載入時讀取已儲存的 Key
+    window.onload = () => {
+        const savedKey = localStorage.getItem('nc_api_key');
+        if (savedKey) {
+            document.getElementById('api-key').value = savedKey;
+            document.getElementById('save-key').checked = true;
+        }
+    };
+
+    function switchMode(newMode, el) {
+        mode = newMode;
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        el.classList.add('active');
+        resetGame();
+    }
+
+    function resetGame() {
+        clearInterval(gameTimer);
+        document.getElementById('game-stage').style.display = 'none';
+        document.getElementById('puzzle-board').innerHTML = '';
+        document.getElementById('detective-img').style.filter = 'blur(40px)';
+    }
+
+    // 隱私保護：動態獲取 API Key
+    function getApiKey() {
+        const key = document.getElementById('api-key').value;
+        if (document.getElementById('save-key').checked) {
+            localStorage.setItem('nc_api_key', key);
+        } else {
+            localStorage.removeItem('nc_api_key');
+        }
+        return key;
+    }
+
+    // --- AI 核心：獲取干擾項與圖片描述 ---
+    async function fetchAIData() {
+        const word = document.getElementById('target-word').value;
+        const apiKey = getApiKey();
+        if (!word || !apiKey) { alert("請輸入單字與 API Key！"); return; }
+
+        document.getElementById('status-msg').innerText = "⏳ AI 正在思考干擾項並繪圖中...";
+
+        try {
+            // 1. 透過 Gemini 獲取干擾項
+            const prompt = `You are an English teacher. For the word "${word}", provide 2 wrong but plausible distractors for a multiple choice quiz. Return JSON: {"distractors": ["word1", "word2"]}`;
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+            });
+            const data = await response.json();
+            const aiJson = JSON.parse(data.candidates[0].content.parts[0].text.replace(/```json|```/g, ''));
+            
+            // 2. 模擬圖片生成 (此處可替換為 Nano Banana 2 API 或使用 Unsplash Source)
+            // 暫時使用高畫質隨機圖庫模擬 AI 產圖
+            targetImgUrl = `https://loremflickr.com/600/600/${word}?lock=${Math.floor(Math.random()*1000)}`;
+            
+            initGame(word, aiJson.distractors);
+            document.getElementById('status-msg').innerText = "✅ 挑戰已就緒！";
+        } catch (e) {
+            document.getElementById('status-msg').innerText = "❌ 發生錯誤：" + e.message;
+        }
+    }
+
+    function handleFileUpload(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                targetImgUrl = e.target.result;
+                initGame(document.getElementById('target-word').value || "Mystery", ["???", "???"]);
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function initGame(correct, distractors) {
+        const stage = document.getElementById('game-stage');
+        stage.style.display = 'flex';
+        
+        // 渲染選項
+        const optArea = document.getElementById('options-area');
+        optArea.innerHTML = '';
+        let options = [correct, ...distractors].sort(() => Math.random() - 0.5);
+        options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'opt-btn';
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(opt === correct);
+            optArea.appendChild(btn);
+        });
+
+        if (mode === 'puzzle') {
+            startPuzzle();
+        } else {
+            startDetective();
+        }
+    }
+
+    // --- 拼圖邏輯 ---
+    function startPuzzle() {
+        document.getElementById('puzzle-board').style.display = 'grid';
+        document.getElementById('detective-img').style.display = 'none';
+        const size = parseInt(document.getElementById('grid-size').value);
+        const board = document.getElementById('puzzle-board');
+        board.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+        
+        pieces = Array.from({length: size * size}, (_, i) => i).sort(() => Math.random() - 0.5);
+        renderPuzzle();
+    }
+
+    function renderPuzzle() {
+        const board = document.getElementById('puzzle-board');
+        const size = parseInt(document.getElementById('grid-size').value);
+        board.innerHTML = '';
+        const pSize = 400 / size;
+
+        pieces.forEach((pos, idx) => {
+            const div = document.createElement('div');
+            div.className = 'piece';
+            div.style.backgroundImage = `url(${targetImgUrl})`;
+            div.style.backgroundSize = `400px 400px`;
+            const r = Math.floor(pos / size), c = pos % size;
+            div.style.backgroundPosition = `-${c * pSize}px -${r * pSize}px`;
+            div.onclick = () => {
+                if (firstSelected === null) {
+                    firstSelected = idx;
+                    div.classList.add('selected');
+                } else {
+                    [pieces[firstSelected], pieces[idx]] = [pieces[idx], pieces[firstSelected]];
+                    firstSelected = null;
+                    renderPuzzle();
+                }
+            };
+            board.appendChild(div);
+        });
+    }
+
+    // --- 偵探邏輯 ---
+    function startDetective() {
+        document.getElementById('puzzle-board').style.display = 'none';
+        const img = document.getElementById('detective-img');
+        img.style.display = 'block';
+        img.src = targetImgUrl;
+        blurVal = 45;
+        score = 1000;
+        
+        gameTimer = setInterval(() => {
+            blurVal -= 1.5;
+            score -= 15;
+            img.style.filter = `blur(${blurVal}px) contrast(1.1)`;
+            document.getElementById('score-display').innerText = `目前解碼獎勵: ${Math.max(0, Math.floor(score))}`;
+            if (blurVal <= 0) clearInterval(gameTimer);
+        }, 500);
+    }
+
+    function checkAnswer(isCorrect) {
+        clearInterval(gameTimer);
+        document.getElementById('detective-img').style.filter = 'none';
+        if (isCorrect) {
+            alert("🎯 答對了！恭喜偵破案件！");
+        } else {
+            alert("❌ 猜錯了，請再試一次！");
+        }
+    }
+</script>
+</body>
+</html>
