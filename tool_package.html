@@ -157,14 +157,14 @@ body{font-family:sans-serif;background:#f5f4f0;color:#222;}
 .ag-def.blur{filter:blur(5px);user-select:none;}
 .ag-prog{font-size:11px;color:#378ADD;margin-top:4px;}
 .slots-area{width:100%;min-height:60px;padding:10px;border-radius:14px;background:#EAF3DE;border:2px dashed #97C459;display:flex;flex-wrap:wrap;gap:7px;align-items:center;justify-content:center;margin-bottom:8px;}
-.ag-slot{width:46px;height:46px;border-radius:10px;border:2px solid #97C459;background:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:500;color:#3B6D11;cursor:pointer;transition:all .15s;}
+.ag-slot{width:54px;height:54px;border-radius:10px;border:2px solid #97C459;background:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:500;color:#3B6D11;cursor:pointer;transition:all .15s;}
 .ag-slot.filled{background:#EAF3DE;}
 .ag-slot.correct{background:#C0DD97;border-color:#3B6D11;animation:spop .3s ease;}
 .ag-slot.wrong{background:#FCEBEB;border-color:#F09595;color:#A32D2D;animation:sshake .35s ease;}
 @keyframes spop{0%{transform:scale(1)}50%{transform:scale(1.18)}100%{transform:scale(1)}}
 @keyframes sshake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
-.tiles-area{width:100%;min-height:60px;padding:10px;border-radius:14px;background:#FAEEDA;border:2px solid #FAC775;display:flex;flex-wrap:wrap;gap:7px;align-items:center;justify-content:center;margin-bottom:8px;}
-.ag-tile{width:46px;height:46px;border-radius:10px;border:1.5px solid #FAC775;background:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:500;color:#633806;cursor:pointer;transition:all .15s;user-select:none;}
+.tiles-area{width:100%;min-height:60px;padding:10px;border-radius:14px;background:#FAEEDA;border:2px solid #FAC775;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;margin-bottom:8px;}
+.ag-tile{width:54px;height:54px;border-radius:10px;border:1.5px solid #FAC775;background:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:500;color:#633806;cursor:pointer;transition:all .15s;user-select:none;}
 .ag-tile:hover{background:#EF9F27;color:#fff;border-color:#EF9F27;}
 .ag-tile.used{opacity:0;pointer-events:none;}
 .ag-result{font-size:18px;font-weight:500;text-align:center;min-height:24px;margin-bottom:6px;}
@@ -353,69 +353,79 @@ body{font-family:sans-serif;background:#f5f4f0;color:#222;}
 
 <!-- PANE: ANAGRAM -->
 <div class="pane" id="pane-anagram">
-  <div class="two-col">
-    <div>
-      <div style="display:flex;gap:6px;align-items:center;margin-bottom:10px;flex-wrap:wrap;">
-        <div class="seg-sm">
-          <button class="active" onclick="agSetJudge('practice')" id="ag-btn-practice">🟢 練習</button>
-          <button onclick="agSetJudge('test')" id="ag-btn-test">📝 測驗</button>
-        </div>
-        <div class="seg-sm">
-          <button class="active" onclick="agSetInput('click')" id="ag-btn-click">🖱 點擊</button>
-          <button onclick="agSetInput('drag')" id="ag-btn-drag">👆 拖曳</button>
-        </div>
-        <button class="tog on" id="ag-tog-word" onclick="agToggleWord()">👁 單字</button>
-        <button class="tog on" id="ag-tog-def" onclick="agToggleDef()">👁 定義</button>
-      </div>
 
-      <!-- vocab input -->
-      <div class="block b-purple" style="margin-bottom:10px">
-        <div class="b-title bt-purple" id="t-ag-vocab">字彙庫（每行：單字,定義,詞性）</div>
-        <textarea id="ag-vocab-ta" rows="4" style="width:100%;resize:none;border:1.5px solid #AFA9EC;border-radius:8px;padding:5px 7px;font-size:12px;background:#fff;color:#26215C;line-height:1.6;" placeholder="apple,蘋果,n.&#10;banana,香蕉,n.&#10;elephant,大象,n."></textarea>
-        <button class="btn btn-purple" style="margin-top:5px" onclick="agApplyVocab()" id="t-ag-apply">▶ 開始練習</button>
-      </div>
+  <!-- Top bar -->
+  <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+    <div class="seg-sm">
+      <button class="active" onclick="agSetJudge('practice')" id="ag-btn-practice">🟢 練習</button>
+      <button onclick="agSetJudge('test')" id="ag-btn-test">📝 測驗</button>
+    </div>
+    <div class="seg-sm">
+      <button class="active" onclick="agSetInput('click')" id="ag-btn-click">🖱 點擊</button>
+      <button onclick="agSetInput('drag')" id="ag-btn-drag">👆 拖曳</button>
+    </div>
+    <button class="tog on" id="ag-tog-word" onclick="agToggleWord()">👁 單字</button>
+    <button class="tog on" id="ag-tog-def" onclick="agToggleDef()">👁 定義</button>
+    <button class="tog" id="ag-tog-vocab" onclick="agToggleVocab()" style="border-color:#AFA9EC;color:#534AB7;">✏️ 編輯字彙庫</button>
+    <div style="flex:1"></div>
+    <div style="display:flex;align-items:center;gap:8px;font-size:13px;" id="ag-topstats">
+      <span id="ag-topstats-score" style="font-family:monospace;font-weight:600;color:#0F6E56;">0 / 0</span>
+      <span id="ag-topstats-pct" style="color:#1D9E75;font-size:11px;"></span>
+    </div>
+    <div style="display:flex;align-items:center;gap:5px;">
+      <select class="ag-stu-sel" id="ag-stu-sel" style="width:120px;margin:0;"><option value="">— 學生 —</option></select>
+      <span style="font-size:11px;color:#185FA5;" id="ag-score-info">+0 分</span>
+      <button class="ag-send-btn" onclick="agSendScore()" id="t-ag-send" style="width:auto;padding:5px 12px;">✓ 傳送</button>
+      <span class="ag-sent-msg" id="ag-sent-msg" style="min-height:auto;"></span>
+    </div>
+  </div>
 
-      <div id="ag-main" style="display:none">
-        <div class="ag-word-card">
-          <div class="ag-img-box" id="ag-img">🔤</div>
-          <div class="ag-meta">
-            <div class="ag-hint-word" id="ag-hint-word">—</div>
-            <div class="ag-def" id="ag-def"></div>
-            <div class="ag-prog" id="ag-prog">1 / 1</div>
-          </div>
-        </div>
-        <div class="slots-area" id="ag-slots"></div>
-        <div class="tiles-area" id="ag-tiles"></div>
-        <div class="ag-result" id="ag-result"></div>
-        <div class="ag-nav-row">
-          <button class="nav-btn" onclick="agNav(-1)">‹</button>
-          <button class="btn btn-outline" style="margin:0;width:auto;padding:7px 14px" onclick="agReset()">重設</button>
-          <button class="btn btn-purple" id="ag-submit-btn" style="display:none;margin:0;width:auto;padding:7px 14px" onclick="agSubmit()">送出</button>
-          <button class="nav-btn" onclick="agNav(1)">›</button>
-        </div>
+  <!-- Collapsible vocab input -->
+  <div id="ag-vocab-panel" class="block b-purple" style="margin-bottom:12px;">
+    <div class="b-title bt-purple" id="t-ag-vocab">字彙庫（每行：單字,定義,詞性）</div>
+    <textarea id="ag-vocab-ta" rows="3" style="width:100%;resize:vertical;border:1.5px solid #AFA9EC;border-radius:8px;padding:5px 7px;font-size:12px;background:#fff;color:#26215C;line-height:1.6;" placeholder="apple,蘋果,n.&#10;banana,香蕉,n.&#10;elephant,大象,n."></textarea>
+    <button class="btn btn-purple" style="margin-top:5px" onclick="agApplyVocab()" id="t-ag-apply">▶ 開始練習</button>
+  </div>
+
+  <!-- Main game area: full width -->
+  <div id="ag-main" style="display:none;max-width:760px;margin:0 auto;">
+
+    <!-- Word card -->
+    <div class="ag-word-card" style="margin-bottom:14px;">
+      <div class="ag-img-box" id="ag-img" style="width:90px;height:90px;font-size:36px;">🔤</div>
+      <div class="ag-meta">
+        <div class="ag-hint-word" id="ag-hint-word" style="font-size:24px;letter-spacing:3px;">—</div>
+        <div class="ag-def" id="ag-def" style="font-size:14px;"></div>
+        <div class="ag-prog" id="ag-prog" style="font-size:12px;">1 / 1</div>
       </div>
     </div>
 
-    <div class="sidebar">
-      <div class="block b-blue">
-        <div class="b-title bt-blue" id="t-ag-send-title">傳送得分給學生</div>
-        <div style="font-size:10px;color:#185FA5;margin-bottom:5px" id="t-ag-send-hint">答對後可傳送分數</div>
-        <select class="ag-stu-sel" id="ag-stu-sel"><option value="">— 選擇學生 —</option></select>
-        <div style="font-size:10px;color:#185FA5;margin-bottom:3px" id="ag-score-info">得分：+0</div>
-        <button class="ag-send-btn" onclick="agSendScore()" id="t-ag-send">✓ 傳送</button>
-        <div class="ag-sent-msg" id="ag-sent-msg"></div>
+    <!-- Slots -->
+    <div class="slots-area" id="ag-slots" style="min-height:70px;gap:10px;padding:12px 16px;margin-bottom:12px;"></div>
+    <!-- Tiles -->
+    <div class="tiles-area" id="ag-tiles" style="min-height:70px;gap:10px;padding:12px 16px;margin-bottom:12px;"></div>
+
+    <div class="ag-result" id="ag-result" style="font-size:20px;margin-bottom:10px;"></div>
+
+    <div class="ag-nav-row" style="gap:12px;">
+      <button class="nav-btn" onclick="agNav(-1)" style="width:44px;height:44px;font-size:22px;">‹</button>
+      <button class="btn btn-outline" style="margin:0;width:auto;padding:10px 22px;font-size:14px;" onclick="agReset()">重設</button>
+      <button class="btn btn-purple" id="ag-submit-btn" style="display:none;margin:0;width:auto;padding:10px 22px;font-size:14px;" onclick="agSubmit()">送出</button>
+      <button class="nav-btn" onclick="agNav(1)" style="width:44px;height:44px;font-size:22px;">›</button>
+    </div>
+
+    <!-- Log (hidden by default) -->
+    <div style="margin-top:16px;border-radius:12px;overflow:hidden;border:1.5px solid #F0997B;background:#FAECE7;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 12px;cursor:pointer;" onclick="agToggleLog()">
+        <span class="b-title bt-coral" id="t-ag-log" style="margin:0;">答題記錄</span>
+        <button class="tog" id="ag-tog-log" style="border-color:#F0997B;color:#993C1D;padding:3px 10px;font-size:11px;">👁 顯示</button>
       </div>
-      <div class="block b-teal">
-        <div class="b-title bt-teal" id="t-ag-stats">本輪統計</div>
-        <div style="font-size:22px;font-weight:500;color:#0F6E56;text-align:center;" id="ag-stats-display">0 / 0</div>
-        <div style="font-size:11px;color:#1D9E75;text-align:center;" id="ag-stats-pct"></div>
-      </div>
-      <div class="block b-coral">
-        <div class="b-title bt-coral" id="t-ag-log">答題記錄</div>
+      <div id="ag-log-wrap" style="display:none;padding:6px 10px 8px;">
         <div class="log-list" id="ag-log"><div class="log-item ln">尚無記錄</div></div>
       </div>
     </div>
   </div>
+
 </div>
 
 <!-- PANE: SENTENCE SCRAMBLE -->
@@ -790,7 +800,7 @@ function lotReset(){lotPos=0;lotSpinning=false;lotHistory=[];lotEditIdx=null;doc
 // ════════════════════════════════════════
 // ANAGRAM
 // ════════════════════════════════════════
-let agJudge='practice',agInput='click',agShowWord=true,agShowDef=true;
+let agJudge='practice',agInput='click',agShowWord=true,agShowDef=true,agVocabOpen=true,agLogOpen=false;
 let agVocab=[],agList=[],agIdx=0,agSlots=[],agTiles=[],agUserAnswer=[],agAnswered=false;
 let agScore={correct:0,total:0},agLogs=[],agLastCorrect=false;
 
@@ -798,6 +808,8 @@ function agSetJudge(m){agJudge=m;document.getElementById('ag-btn-practice').clas
 function agSetInput(m){agInput=m;document.getElementById('ag-btn-click').className=m==='click'?'active':'';document.getElementById('ag-btn-drag').className=m==='drag'?'active':'';agRenderTiles();}
 function agToggleWord(){agShowWord=!agShowWord;document.getElementById('ag-tog-word').className='tog'+(agShowWord?' on':'');const el=document.getElementById('ag-hint-word');if(el)el.className='ag-hint-word'+(agShowWord?'':' blur');}
 function agToggleDef(){agShowDef=!agShowDef;document.getElementById('ag-tog-def').className='tog'+(agShowDef?' on':'');const el=document.getElementById('ag-def');if(el)el.className='ag-def'+(agShowDef?'':' blur');}
+function agToggleVocab(){agVocabOpen=!agVocabOpen;document.getElementById('ag-vocab-panel').style.display=agVocabOpen?'':'none';document.getElementById('ag-tog-vocab').className='tog'+(agVocabOpen?' on':'');document.getElementById('ag-tog-vocab').textContent=agVocabOpen?'✏️ 收起字彙庫':'✏️ 編輯字彙庫';}
+function agToggleLog(){agLogOpen=!agLogOpen;document.getElementById('ag-log-wrap').style.display=agLogOpen?'':'none';document.getElementById('ag-tog-log').textContent=agLogOpen?'🙈 隱藏':'👁 顯示';}
 
 function agApplyVocab(){
   const raw=document.getElementById('ag-vocab-ta').value;
@@ -805,8 +817,10 @@ function agApplyVocab(){
   if(!agVocab.length)return;
   agList=[...agVocab];agIdx=0;agScore={correct:0,total:0};agLogs=[];agAnswered=false;
   document.getElementById('ag-main').style.display='';
+  if(agVocabOpen)agToggleVocab();
   agRenderCard();agUpdateStats();
   document.getElementById('ag-log').innerHTML='<div class="log-item ln">尚無記錄</div>';
+  if(agLogOpen){agLogOpen=false;document.getElementById('ag-log-wrap').style.display='none';document.getElementById('ag-tog-log').textContent='👁 顯示';}
 }
 
 function agRenderCard(){
@@ -821,7 +835,7 @@ function agRenderCard(){
   agTiles=agShuffle([...v.word.toUpperCase()]).map((ch,i)=>({ch,used:false,id:i}));
   agRenderSlots();agRenderTiles();
   document.getElementById('ag-submit-btn').disabled=true;
-  document.getElementById('ag-score-info').textContent=`得分：+0`;
+  document.getElementById('ag-score-info').textContent=`+0 分`;
   document.getElementById('ag-sent-msg').textContent='';
 }
 function agRenderSlots(){
@@ -858,7 +872,7 @@ function agFinish(ok){
   const res=document.getElementById('ag-result');res.textContent=ok?T('correct'):T('wrong');res.className='ag-result '+(ok?'ok':'no');
   if(ok)agScore.correct++;agScore.total++;
   const pts=ok?Math.max(1,agList[agIdx].word.length):0;
-  document.getElementById('ag-score-info').textContent=`得分：${ok?'+'+pts:'0'}`;
+  document.getElementById('ag-score-info').textContent=`${ok?'+'+pts:'0'} 分`;
   agLastCorrect=ok;window._agLastPts=pts;
   agUpdateStats();
   agLogs.unshift((ok?'✓':'✗')+' '+agList[agIdx].word+(ok?' +'+pts:''));
@@ -867,7 +881,13 @@ function agFinish(ok){
 }
 function agNav(dir){agIdx=(agIdx+dir+agList.length)%agList.length;agRenderCard();}
 function agReset(){if(!agList.length)return;agAnswered=false;agUserAnswer=[];agTiles=agShuffle([...agList[agIdx].word.toUpperCase()]).map((ch,i)=>({ch,used:false,id:i}));agSlots=agList[agIdx].word.toUpperCase().split('').map(()=>null);document.getElementById('ag-result').textContent='';document.getElementById('ag-submit-btn').disabled=true;agRenderSlots();agRenderTiles();}
-function agUpdateStats(){const d=document.getElementById('ag-stats-display');const p=document.getElementById('ag-stats-pct');d.textContent=`${agScore.correct} / ${agScore.total}`;p.textContent=agScore.total?Math.round(agScore.correct/agScore.total*100)+'%':'';}
+function agUpdateStats(){
+  const disp=`${agScore.correct} / ${agScore.total}`,pct=agScore.total?Math.round(agScore.correct/agScore.total*100)+'%':'';
+  const ts=document.getElementById('ag-topstats-score');if(ts)ts.textContent=disp;
+  const tp=document.getElementById('ag-topstats-pct');if(tp)tp.textContent=pct;
+  const d=document.getElementById('ag-stats-display');if(d)d.textContent=disp;
+  const p=document.getElementById('ag-stats-pct');if(p)p.textContent=pct;
+}
 function agSendScore(){
   const idx=parseInt(document.getElementById('ag-stu-sel').value);
   if(isNaN(idx)||idx<0||idx>=students.length)return;
