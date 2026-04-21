@@ -189,28 +189,28 @@ body{font-family:sans-serif;background:#f5f4f0;color:#222;}
 .empty-state{text-align:center;padding:30px;color:#aaa;font-size:13px;}
 
 /* ── SENTENCE SCRAMBLE ── */
-.ss-sent-card{width:100%;border-radius:16px;padding:14px 18px;background:#E6F1FB;border:2px solid #B5D4F4;margin-bottom:10px;}
-.ss-sent-num{font-size:10px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:#378ADD;margin-bottom:5px;}
-.ss-sent-hint{font-size:13px;color:#0C447C;line-height:1.7;min-height:22px;}
+.ss-sent-card{width:100%;border-radius:16px;padding:16px 20px;background:#E6F1FB;border:2px solid #B5D4F4;margin-bottom:10px;}
+.ss-sent-num{font-size:11px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:#378ADD;margin-bottom:5px;}
+.ss-sent-hint{font-size:15px;color:#0C447C;line-height:1.7;min-height:22px;}
 .ss-sent-hint.blur{filter:blur(5px);user-select:none;}
-.ss-prog{font-size:11px;color:#378ADD;margin-top:4px;}
-.ss-slots-area{width:100%;min-height:56px;padding:10px 12px;border-radius:14px;background:#EAF3DE;border:2px dashed #97C459;display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-bottom:8px;}
-.ss-slot-ph{font-size:12px;color:#97C459;}
-.ss-word-chip{padding:7px 13px;border-radius:20px;border:2px solid;background:#fff;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;user-select:none;white-space:nowrap;}
+.ss-prog{font-size:12px;color:#378ADD;margin-top:4px;}
+.ss-slots-area{width:100%;min-height:56px;padding:10px 12px;border-radius:14px;background:#EAF3DE;border:2px dashed #97C459;display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin-bottom:8px;}
+.ss-slot-ph{font-size:13px;color:#97C459;}
+.ss-word-chip{padding:9px 17px;border-radius:22px;border:2px solid;background:#fff;font-size:15px;font-weight:500;cursor:pointer;transition:all .15s;user-select:none;white-space:nowrap;line-height:1.3;}
 .ss-word-chip:hover{transform:translateY(-2px);box-shadow:0 3px 10px rgba(0,0,0,.1);}
 .ss-word-chip.placed{border-color:#97C459;background:#EAF3DE;color:#3B6D11;}
 .ss-word-chip.placed:hover{background:#C0DD97;}
 .ss-word-chip.correct-flash{border-color:#3B6D11;background:#C0DD97;color:#1a4d07;animation:spop .3s ease;}
 .ss-word-chip.wrong-flash{border-color:#F09595;background:#FCEBEB;color:#A32D2D;animation:sshake .35s ease;}
-.ss-tiles-area{width:100%;min-height:56px;padding:10px 12px;border-radius:14px;background:#FAEEDA;border:2px solid #FAC775;display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-bottom:8px;}
-.ss-result{font-size:16px;font-weight:500;text-align:center;min-height:22px;margin-bottom:6px;}
+.ss-tiles-area{width:100%;min-height:56px;padding:10px 12px;border-radius:14px;background:#FAEEDA;border:2px solid #FAC775;display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin-bottom:8px;}
+.ss-result{font-size:18px;font-weight:500;text-align:center;min-height:22px;margin-bottom:6px;}
 .ss-result.ok{color:#3B6D11;}.ss-result.no{color:#A32D2D;}
 .ss-nav-row{display:flex;align-items:center;gap:7px;justify-content:center;}
 .ss-stats-display{font-size:22px;font-weight:500;color:#0F6E56;text-align:center;}
 .ss-stats-pct{font-size:11px;color:#1D9E75;text-align:center;}
 .ss-score-info{font-size:11px;color:#378ADD;margin-bottom:4px;}
-.ss-stu-sel{width:100%;padding:5px 7px;border:1.5px solid #B5D4F4;border-radius:8px;font-size:12px;background:#fff;color:#0C447C;margin-bottom:4px;}
-.ss-send-btn{width:100%;padding:6px;border:none;border-radius:8px;background:#185FA5;color:#fff;font-size:12px;font-weight:500;cursor:pointer;}
+.ss-stu-sel{padding:5px 7px;border:1.5px solid #B5D4F4;border-radius:8px;font-size:12px;background:#fff;color:#0C447C;margin-bottom:4px;}
+.ss-send-btn{padding:6px;border:none;border-radius:8px;background:#185FA5;color:#fff;font-size:12px;font-weight:500;cursor:pointer;}
 .ss-send-btn:hover{background:#0C447C;}
 .ss-sent-msg{font-size:11px;color:#3B6D11;text-align:center;min-height:14px;margin-top:2px;}
 </style>
@@ -420,57 +420,80 @@ body{font-family:sans-serif;background:#f5f4f0;color:#222;}
 
 <!-- PANE: SENTENCE SCRAMBLE -->
 <div class="pane" id="pane-sentence">
-  <div class="two-col">
-    <div>
-      <div style="display:flex;gap:6px;align-items:center;margin-bottom:10px;flex-wrap:wrap;">
-        <div class="seg-sm">
-          <button class="active" onclick="ssSetJudge('practice')" id="ss-btn-practice">🟢 練習</button>
-          <button onclick="ssSetJudge('test')" id="ss-btn-test">📝 測驗</button>
-        </div>
-        <button class="tog on" id="ss-tog-hint" onclick="ssToggleHint()">👁 提示</button>
-      </div>
-      <div class="block b-purple" style="margin-bottom:10px">
-        <div class="b-title bt-purple" id="t-ss-input">句子庫（每行：完整句子 | 提示翻譯）</div>
-        <textarea id="ss-sent-ta" rows="5" style="width:100%;resize:none;border:1.5px solid #AFA9EC;border-radius:8px;padding:5px 7px;font-size:12px;background:#fff;color:#26215C;line-height:1.6;" placeholder="She goes to school every day. | 她每天去上學。&#10;I like to eat apples and bananas. | 我喜歡吃蘋果和香蕉。&#10;The cat is sitting on the mat. | 貓坐在墊子上。"></textarea>
-        <button class="btn btn-purple" style="margin-top:5px" onclick="ssApplySents()" id="t-ss-apply">▶ 開始練習</button>
-      </div>
-      <div id="ss-main" style="display:none">
-        <div class="ss-sent-card">
-          <div class="ss-sent-num" id="ss-sent-num">句子 1 / 1</div>
-          <div class="ss-sent-hint" id="ss-sent-hint"></div>
-          <div class="ss-prog" id="ss-prog"></div>
-        </div>
-        <div class="ss-slots-area" id="ss-slots"><span class="ss-slot-ph">點擊下方字詞來排列句子</span></div>
-        <div class="ss-tiles-area" id="ss-tiles"></div>
-        <div class="ss-result" id="ss-result"></div>
-        <div class="ss-nav-row">
-          <button class="nav-btn" onclick="ssNav(-1)">‹</button>
-          <button class="btn btn-outline" style="margin:0;width:auto;padding:7px 14px" onclick="ssReset()">重設</button>
-          <button class="btn btn-purple" id="ss-submit-btn" style="display:none;margin:0;width:auto;padding:7px 14px" onclick="ssSubmit()">送出</button>
-          <button class="nav-btn" onclick="ssNav(1)">›</button>
-        </div>
-      </div>
+
+  <!-- Top bar: controls + collapsed vocab + stats row -->
+  <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+    <div class="seg-sm">
+      <button class="active" onclick="ssSetJudge('practice')" id="ss-btn-practice">🟢 練習</button>
+      <button onclick="ssSetJudge('test')" id="ss-btn-test">📝 測驗</button>
     </div>
-    <div class="sidebar">
-      <div class="block b-blue">
-        <div class="b-title bt-blue" id="t-ss-send-title">傳送得分給學生</div>
-        <div style="font-size:10px;color:#185FA5;margin-bottom:5px" id="t-ss-send-hint">答對後可傳送分數</div>
-        <select class="ss-stu-sel" id="ss-stu-sel"><option value="">— 選擇學生 —</option></select>
-        <div style="font-size:10px;color:#185FA5;margin-bottom:3px" id="ss-score-info">得分：+0</div>
-        <button class="ss-send-btn" onclick="ssSendScore()" id="t-ss-send">✓ 傳送</button>
-        <div class="ss-sent-msg" id="ss-sent-msg"></div>
+    <button class="tog on" id="ss-tog-hint" onclick="ssToggleHint()">👁 提示</button>
+    <button class="tog" id="ss-tog-vocab" onclick="ssToggleVocab()" style="border-color:#AFA9EC;color:#534AB7;">✏️ 編輯句子庫</button>
+    <div style="flex:1"></div>
+    <!-- inline stats -->
+    <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#555;" id="ss-topstats">
+      <span id="ss-topstats-score" style="font-family:monospace;font-weight:600;color:#0F6E56;">0 / 0</span>
+      <span id="ss-topstats-pct" style="color:#1D9E75;font-size:11px;"></span>
+    </div>
+    <!-- score send inline -->
+    <div style="display:flex;align-items:center;gap:5px;" id="ss-send-row">
+      <select class="ss-stu-sel" id="ss-stu-sel" style="width:120px;margin:0;"><option value="">— 學生 —</option></select>
+      <span style="font-size:11px;color:#185FA5;" id="ss-score-info">+0 分</span>
+      <button class="ss-send-btn" onclick="ssSendScore()" id="t-ss-send" style="width:auto;padding:5px 12px;">✓ 傳送</button>
+      <span class="ss-sent-msg" id="ss-sent-msg" style="min-height:auto;"></span>
+    </div>
+  </div>
+
+  <!-- Collapsible vocab input -->
+  <div id="ss-vocab-panel" class="block b-purple" style="margin-bottom:12px;">
+    <div class="b-title bt-purple" id="t-ss-input">句子庫（每行：完整句子 | 提示翻譯）</div>
+    <textarea id="ss-sent-ta" rows="3" style="width:100%;resize:vertical;border:1.5px solid #AFA9EC;border-radius:8px;padding:5px 7px;font-size:12px;background:#fff;color:#26215C;line-height:1.6;" placeholder="She goes to school every day. | 她每天去上學。&#10;I like to eat apples and bananas. | 我喜歡吃蘋果和香蕉。&#10;The cat is sitting on the mat. | 貓坐在墊子上。"></textarea>
+    <button class="btn btn-purple" style="margin-top:5px" onclick="ssApplySents()" id="t-ss-apply">▶ 開始練習</button>
+  </div>
+
+  <!-- Main game area: full width -->
+  <div id="ss-main" style="display:none;max-width:860px;margin:0 auto;">
+
+    <!-- Sentence card -->
+    <div class="ss-sent-card" style="margin-bottom:14px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <div class="ss-sent-num" id="ss-sent-num" style="margin-bottom:0;">句子 1 / 1</div>
+        <div class="ss-prog" id="ss-prog" style="margin-top:0;"></div>
       </div>
-      <div class="block b-teal">
-        <div class="b-title bt-teal" id="t-ss-stats">本輪統計</div>
-        <div class="ss-stats-display" id="ss-stats-display">0 / 0</div>
-        <div class="ss-stats-pct" id="ss-stats-pct"></div>
+      <div class="ss-sent-hint" id="ss-sent-hint"></div>
+    </div>
+
+    <!-- Answer slots -->
+    <div class="ss-slots-area" id="ss-slots" style="min-height:72px;padding:14px 16px;gap:10px;margin-bottom:12px;">
+      <span class="ss-slot-ph">點擊下方字詞來排列句子</span>
+    </div>
+
+    <!-- Word tiles -->
+    <div class="ss-tiles-area" id="ss-tiles" style="min-height:72px;padding:14px 16px;gap:10px;margin-bottom:12px;"></div>
+
+    <!-- Result -->
+    <div class="ss-result" id="ss-result" style="font-size:20px;margin-bottom:10px;"></div>
+
+    <!-- Nav row -->
+    <div class="ss-nav-row" style="gap:12px;">
+      <button class="nav-btn" onclick="ssNav(-1)" style="width:44px;height:44px;font-size:22px;">‹</button>
+      <button class="btn btn-outline" style="margin:0;width:auto;padding:10px 22px;font-size:14px;" onclick="ssReset()">重設</button>
+      <button class="btn btn-purple" id="ss-submit-btn" style="display:none;margin:0;width:auto;padding:10px 22px;font-size:14px;" onclick="ssSubmit()">送出</button>
+      <button class="nav-btn" onclick="ssNav(1)" style="width:44px;height:44px;font-size:22px;">›</button>
+    </div>
+
+    <!-- Log (hidden by default, toggled) -->
+    <div style="margin-top:16px;border-radius:12px;overflow:hidden;border:1.5px solid #F0997B;background:#FAECE7;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 12px;background:#FAECE7;cursor:pointer;" onclick="ssToggleLog()">
+        <span class="b-title bt-coral" id="t-ss-log" style="margin:0;">答題記錄</span>
+        <button class="tog" id="ss-tog-log" style="border-color:#F0997B;color:#993C1D;padding:3px 10px;font-size:11px;">👁 顯示</button>
       </div>
-      <div class="block b-coral">
-        <div class="b-title bt-coral" id="t-ss-log">答題記錄</div>
+      <div id="ss-log-wrap" style="display:none;padding:6px 10px 8px;">
         <div class="log-list" id="ss-log"><div class="log-item ln">尚無記錄</div></div>
       </div>
     </div>
   </div>
+
 </div>
 
 <div id="drag-ghost" style="position:fixed;width:48px;height:48px;border-radius:10px;background:#EF9F27;border:2px solid #854F0B;display:none;align-items:center;justify-content:center;font-size:20px;font-weight:500;color:#fff;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);"></div>
@@ -867,12 +890,14 @@ document.addEventListener('dragover',e=>{const g=document.getElementById('drag-g
 // ════════════════════════════════════════
 // SENTENCE SCRAMBLE
 // ════════════════════════════════════════
-let ssSents=[],ssIdx=0,ssJudge='practice',ssShowHint=true;
+let ssSents=[],ssIdx=0,ssJudge='practice',ssShowHint=true,ssVocabOpen=true,ssLogOpen=false;
 let ssPlaced=[],ssWords=[],ssAnswered=false,ssLastCorrect=false;
 let ssScore={correct:0,total:0},ssLogs=[];
 
 function ssSetJudge(m){ssJudge=m;document.getElementById('ss-btn-practice').className=m==='practice'?'active':'';document.getElementById('ss-btn-test').className=m==='test'?'active':'';document.getElementById('ss-submit-btn').style.display=m==='test'?'':'none';ssReset();}
 function ssToggleHint(){ssShowHint=!ssShowHint;document.getElementById('ss-tog-hint').className='tog'+(ssShowHint?' on':'');const el=document.getElementById('ss-sent-hint');if(el)el.className='ss-sent-hint'+(ssShowHint?'':' blur');}
+function ssToggleVocab(){ssVocabOpen=!ssVocabOpen;document.getElementById('ss-vocab-panel').style.display=ssVocabOpen?'':'none';document.getElementById('ss-tog-vocab').className='tog'+(ssVocabOpen?' on':'');document.getElementById('ss-tog-vocab').textContent=ssVocabOpen?'✏️ 收起句子庫':'✏️ 編輯句子庫';}
+function ssToggleLog(){ssLogOpen=!ssLogOpen;document.getElementById('ss-log-wrap').style.display=ssLogOpen?'':'none';document.getElementById('ss-tog-log').textContent=ssLogOpen?'🙈 隱藏':'👁 顯示';}
 
 function ssApplySents(){
   const raw=document.getElementById('ss-sent-ta').value;
@@ -880,16 +905,14 @@ function ssApplySents(){
   if(!ssSents.length)return;
   ssIdx=0;ssScore={correct:0,total:0};ssLogs=[];ssAnswered=false;
   document.getElementById('ss-main').style.display='';
+  if(ssVocabOpen)ssToggleVocab();
   ssRenderCard();ssUpdateStats();
   document.getElementById('ss-log').innerHTML='<div class="log-item ln">尚無記錄</div>';
+  if(ssLogOpen){ssLogOpen=false;document.getElementById('ss-log-wrap').style.display='none';document.getElementById('ss-tog-log').textContent='👁 顯示';}
 }
 
 function ssShuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
-
-function ssTokenize(sent){
-  // Split sentence into words, preserving punctuation attached to words
-  return sent.match(/\S+/g)||[];
-}
+function ssTokenize(sent){return sent.match(/\S+/g)||[];}
 
 function ssRenderCard(){
   if(!ssSents.length)return;
@@ -897,33 +920,29 @@ function ssRenderCard(){
   document.getElementById('ss-result').textContent='';document.getElementById('ss-result').className='ss-result';
   document.getElementById('ss-sent-num').textContent=(lang==='zh'?'句子 ':'Sentence ')+(ssIdx+1)+' / '+ssSents.length;
   const hint=document.getElementById('ss-sent-hint');hint.textContent=s.hint||'';hint.className='ss-sent-hint'+(ssShowHint?'':' blur');
-  ssWords=ssShuffle(ssTokenize(s.sent));
-  ssPlaced=[];
+  ssWords=ssShuffle(ssTokenize(s.sent));ssPlaced=[];
   ssRenderSlots();ssRenderWordTiles();
   document.getElementById('ss-submit-btn').disabled=true;
-  document.getElementById('ss-score-info').textContent=(lang==='zh'?'得分：+0':'Score: +0');
+  document.getElementById('ss-score-info').textContent='+0 '+(lang==='zh'?'分':'pts');
 }
 
 function ssRenderSlots(){
   const c=document.getElementById('ss-slots');c.innerHTML='';
-  if(!ssPlaced.length){c.innerHTML='<span class="ss-slot-ph">'+(lang==='zh'?'點擊下方字詞來排列句子':'Click words below to build the sentence')+'</span>';return;}
-  ssPlaced.forEach((w,i)=>{
-    const el=document.createElement('div');
-    el.className='ss-word-chip placed';
-    el.style.cssText='border-color:#97C459;color:#3B6D11;';
-    el.textContent=w;
-    el.onclick=()=>ssRemoveFromSlot(i);
-    c.appendChild(el);
-  });
-  document.getElementById('ss-prog').textContent=ssPlaced.length+' / '+ssTokenize(ssSents[ssIdx].sent).length+(lang==='zh'?' 個字詞已放置':' words placed');
+  if(!ssPlaced.length){c.innerHTML='<span class="ss-slot-ph">'+(lang==='zh'?'點擊下方字詞來排列句子':'Click words below to build the sentence')+'</span>';document.getElementById('ss-prog').textContent='';return;}
+  ssPlaced.forEach((w,i)=>{const el=document.createElement('div');el.className='ss-word-chip placed';el.textContent=w;el.onclick=()=>ssRemoveFromSlot(i);c.appendChild(el);});
+  const target=ssTokenize(ssSents[ssIdx].sent);
+  document.getElementById('ss-prog').textContent=ssPlaced.length+' / '+target.length+(lang==='zh'?' 個字詞已放置':' words placed');
 }
 
 function ssRenderWordTiles(){
   const c=document.getElementById('ss-tiles');c.innerHTML='';
+  const usedCount={};ssPlaced.forEach(w=>{usedCount[w]=(usedCount[w]||0)+1;});
+  const totalCount={};ssWords.forEach(w=>{totalCount[w]=(totalCount[w]||0)+1;});
+  const seen={};
   ssWords.forEach((w,i)=>{
-    const used=ssPlaced.includes(w)&&ssPlaced.filter(x=>x===w).length>=ssWords.filter(x=>x===w).length;
-    const el=document.createElement('div');
-    el.className='ss-word-chip';
+    seen[w]=(seen[w]||0)+1;
+    const used=seen[w]<=(usedCount[w]||0);
+    const el=document.createElement('div');el.className='ss-word-chip';
     el.style.cssText=`border-color:#FAC775;color:#633806;${used?'opacity:0;pointer-events:none;':''}`;
     el.id='sstile'+i;el.textContent=w;
     if(!used)el.onclick=()=>ssClickWord(i);
@@ -934,56 +953,38 @@ function ssRenderWordTiles(){
 function ssClickWord(i){
   if(ssAnswered)return;
   const w=ssWords[i];
-  // Count how many times this word appears in ssWords vs already placed
-  const inWords=ssWords.filter(x=>x===w).length;
-  const inPlaced=ssPlaced.filter(x=>x===w).length;
-  if(inPlaced>=inWords)return;
-  ssPlaced.push(w);
-  ssRenderSlots();ssRenderWordTiles();
-  if(ssJudge==='practice')ssCheckLive();
+  const totalCount={};ssWords.forEach(x=>{totalCount[x]=(totalCount[x]||0)+1;});
+  const usedCount={};ssPlaced.forEach(x=>{usedCount[x]=(usedCount[x]||0)+1;});
+  if((usedCount[w]||0)>=(totalCount[w]||0))return;
+  ssPlaced.push(w);ssRenderSlots();ssRenderWordTiles();
   const target=ssTokenize(ssSents[ssIdx].sent);
-  if(ssPlaced.length===target.length){
-    if(ssJudge==='test')document.getElementById('ss-submit-btn').disabled=false;
-    else ssSubmit();
-  }
+  if(ssPlaced.length===target.length){if(ssJudge==='test')document.getElementById('ss-submit-btn').disabled=false;else ssSubmit();}
 }
 
-function ssRemoveFromSlot(i){
-  if(ssAnswered)return;
-  ssPlaced.splice(i,1);
-  document.getElementById('ss-result').textContent='';
-  document.getElementById('ss-submit-btn').disabled=true;
-  ssRenderSlots();ssRenderWordTiles();
-}
-
-function ssCheckLive(){
-  const target=ssTokenize(ssSents[ssIdx].sent);
-  const ok=ssPlaced.every((w,i)=>w===target[i]);
-  if(!ok&&ssPlaced.length<target.length)return; // not full yet, no flash
-}
+function ssRemoveFromSlot(i){if(ssAnswered)return;ssPlaced.splice(i,1);document.getElementById('ss-result').textContent='';document.getElementById('ss-submit-btn').disabled=true;ssRenderSlots();ssRenderWordTiles();}
 
 function ssSubmit(){
   const target=ssTokenize(ssSents[ssIdx].sent);
   const ok=ssPlaced.join(' ')===target.join(' ');
   ssAnswered=true;ssLastCorrect=ok;
-  // flash placed chips
-  const chips=document.getElementById('ss-slots').children;
-  Array.from(chips).forEach(el=>{el.className='ss-word-chip '+(ok?'correct-flash':'wrong-flash');});
-  const res=document.getElementById('ss-result');
-  res.textContent=ok?T('ssCorrect'):T('ssWrong');res.className='ss-result '+(ok?'ok':'no');
+  Array.from(document.getElementById('ss-slots').children).forEach(el=>{el.className='ss-word-chip '+(ok?'correct-flash':'wrong-flash');});
+  const res=document.getElementById('ss-result');res.textContent=ok?T('ssCorrect'):T('ssWrong');res.className='ss-result '+(ok?'ok':'no');
   if(ok)ssScore.correct++;ssScore.total++;
   const pts=ok?Math.max(1,target.length):0;
-  document.getElementById('ss-score-info').textContent=(lang==='zh'?'得分：':'Score: ')+(ok?'+'+pts:'0');
-  window._ssLastPts=pts;
-  ssUpdateStats();
-  ssLogs.unshift((ok?'✓':'✗')+' '+ssSents[ssIdx].sent.slice(0,30)+(ssSents[ssIdx].sent.length>30?'…':'')+(ok?' +'+pts:''));
+  document.getElementById('ss-score-info').textContent=(ok?'+'+pts:'0')+' '+(lang==='zh'?'分':'pts');
+  window._ssLastPts=pts;ssUpdateStats();
+  ssLogs.unshift((ok?'✓':'✗')+' '+ssSents[ssIdx].sent.slice(0,32)+(ssSents[ssIdx].sent.length>32?'…':'')+(ok?' +'+pts:''));
   document.getElementById('ss-log').innerHTML=ssLogs.slice(0,20).map(l=>`<div class="log-item ${l[0]==='✓'?'lp':'lm'}">${l}</div>`).join('');
   if(ok)setTimeout(()=>{if(ssIdx<ssSents.length-1)ssNav(1);},1000);
 }
 
 function ssNav(dir){ssIdx=(ssIdx+dir+ssSents.length)%ssSents.length;ssReset();}
 function ssReset(){if(!ssSents.length)return;ssAnswered=false;ssPlaced=[];ssWords=ssShuffle(ssTokenize(ssSents[ssIdx].sent));document.getElementById('ss-result').textContent='';document.getElementById('ss-submit-btn').disabled=true;ssRenderCard();}
-function ssUpdateStats(){document.getElementById('ss-stats-display').textContent=ssScore.correct+' / '+ssScore.total;document.getElementById('ss-stats-pct').textContent=ssScore.total?Math.round(ssScore.correct/ssScore.total*100)+'%':'';}
+function ssUpdateStats(){
+  const disp=ssScore.correct+' / '+ssScore.total,pct=ssScore.total?Math.round(ssScore.correct/ssScore.total*100)+'%':'';
+  const ts=document.getElementById('ss-topstats-score');if(ts)ts.textContent=disp;
+  const tp=document.getElementById('ss-topstats-pct');if(tp)tp.textContent=pct;
+}
 function ssSendScore(){
   const idx=parseInt(document.getElementById('ss-stu-sel').value);
   if(isNaN(idx)||idx<0||idx>=students.length)return;
