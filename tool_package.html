@@ -364,7 +364,7 @@ body{font-family:sans-serif;background:#f5f4f0;color:#222;}
       <button class="active" onclick="agSetInput('click')" id="ag-btn-click">🖱 點擊</button>
       <button onclick="agSetInput('drag')" id="ag-btn-drag">👆 拖曳</button>
     </div>
-    <button class="tog on" id="ag-tog-word" onclick="agToggleWord()">👁 單字</button>
+    <button class="tog" id="ag-tog-word" onclick="agToggleWord()">👁 單字</button>
     <button class="tog on" id="ag-tog-def" onclick="agToggleDef()">👁 定義</button>
     <button class="tog" id="ag-tog-vocab" onclick="agToggleVocab()" style="border-color:#AFA9EC;color:#534AB7;">✏️ 編輯字彙庫</button>
     <div style="flex:1"></div>
@@ -800,7 +800,7 @@ function lotReset(){lotPos=0;lotSpinning=false;lotHistory=[];lotEditIdx=null;doc
 // ════════════════════════════════════════
 // ANAGRAM
 // ════════════════════════════════════════
-let agJudge='practice',agInput='click',agShowWord=true,agShowDef=true,agVocabOpen=true,agLogOpen=false;
+let agJudge='practice',agInput='click',agShowWord=false,agShowDef=true,agVocabOpen=true,agLogOpen=false;
 let agVocab=[],agList=[],agIdx=0,agSlots=[],agTiles=[],agUserAnswer=[],agAnswered=false;
 let agScore={correct:0,total:0},agLogs=[],agLastCorrect=false;
 
@@ -870,6 +870,9 @@ function agFinish(ok){
   agAnswered=true;agLastCorrect=ok;
   document.querySelectorAll('.ag-slot').forEach((el,i)=>{el.className='ag-slot '+(agSlots[i]===agList[agIdx].word.toUpperCase()[i]?'correct':'wrong');});
   const res=document.getElementById('ag-result');res.textContent=ok?T('correct'):T('wrong');res.className='ag-result '+(ok?'ok':'no');
+  // Always reveal the word after answering
+  const hw=document.getElementById('ag-hint-word');if(hw)hw.className='ag-hint-word';
+  const dh=document.getElementById('ag-def');if(dh)dh.className='ag-def';
   if(ok)agScore.correct++;agScore.total++;
   const pts=ok?Math.max(1,agList[agIdx].word.length):0;
   document.getElementById('ag-score-info').textContent=`${ok?'+'+pts:'0'} 分`;
