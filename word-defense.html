@@ -65,14 +65,21 @@
         }
 
         .bubble {
-            position: absolute; width: 80px; height: 80px;
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            font-weight: bold; cursor: pointer; user-select: none;
-            box-shadow: inset 0 0 15px rgba(255,255,255,0.5);
-            animation: float 0.5s infinite alternate;
-            transition: transform 0.1s;
-            text-align: center; word-break: break-all; padding: 5px; box-sizing: border-box;
-        }
+    position: absolute; 
+    /* 🔴 大小翻倍：從 80px 改為 120px 或 140px */
+    width: 140px; height: 140px; 
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-weight: bold; cursor: pointer; user-select: none;
+    box-shadow: inset 0 0 20px rgba(255,255,255,0.4);
+    transition: transform 0.1s;
+    text-align: center; 
+    /* 🔴 防止字彙切斷：調整字體與間距 */
+    font-size: 18px; 
+    word-break: keep-all; /* 確保單字不被切斷 */
+    padding: 10px; 
+    box-sizing: border-box;
+    border-width: 4px !important; /* 加粗邊框更有質感 */
+}
         
         /* 不同類型的泡泡顏色 */
         .correct { border: 3px solid var(--primary-neon); background: rgba(0, 243, 255, 0.2); color: #fff; }
@@ -115,10 +122,9 @@
             <div style="margin: 15px 0;">
                 <label>難度選擇：</label>
                 <select id="difficulty" style="padding: 5px; background: #000; color: white;">
-                    <option value="1">Level 1 (入門)</option>
-                    <option value="3" selected>Level 3 (標準)</option>
-                    <option value="5">Level 5 (挑戰)</option>
-                    <option value="8">Level 8 (地獄)</option>
+                   <option value="1">Easy (慢速 - 適合初學)</option>
+                   <option value="2" selected>Normal (標準 - 有挑戰性)</option>
+                   <option value="3">Hard (快速 - 專家挑戰)</option>
                 </select>
             </div>
 
@@ -197,25 +203,47 @@ function createBubble(isBonus = false) {
     const bubble = document.createElement('div');
     const targetWord = words[Math.floor(Math.random() * words.length)];
     
-    // 決定這是正確字還是陷阱字
     const useTrap = !isBonus && document.getElementById('trap-mode').checked && Math.random() > 0.4;
     const displayText = useTrap ? generateTrap(targetWord) : targetWord;
-    
-    bubble.className = `bubble ${useTrap ? 'wrong' : (isBonus ? 'bonus' : 'correct')}`;
+
+    // 🎨 顏色隨機化魔法：建立一組隨機顏色，不代表正確性
+    const randomColors = [
+        '#00f3ff', // 亮藍
+        '#bc13fe', // 紫色
+        '#ff00ff', // 粉紅
+        '#4dff00', // 亮綠
+        '#ff8800'  // 橘色
+    ];
+    const pickedColor = isBonus ? 'var(--bonus-gold)' : randomColors[Math.floor(Math.random() * randomColors.length)];
+
+    bubble.className = `bubble`;
     bubble.innerText = displayText;
-    bubble.style.left = Math.random() * (window.innerWidth - 80) + 'px';
-    bubble.style.top = '-100px';
     
-    // 自訂屬性紀錄狀態
+    // 直接注入樣式，覆蓋掉原本 CSS 的顏色預設
+    bubble.style.borderColor = pickedColor;
+    bubble.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'; 
+    bubble.style.color = '#fff';
+    bubble.style.boxShadow = `0 0 15px ${pickedColor}`;
+
+    bubble.style.left = Math.random() * (window.innerWidth - 140) + 'px'; // 扣掉寬度
+    bubble.style.top = '-150px';
+    
     const bubbleObj = {
         element: bubble,
-        y: -100,
-        speed: (Math.random() * 1 + gameSpeed) * (isBonus ? 1.5 : 1),
+        y: -150,
+        // 🚀 速度重新校準：大幅降低速度，讓「地獄版」變成人可以玩的程度
+        speed: (Math.random() * 0.5 + (gameSpeed * 0.4)) * (isBonus ? 1.2 : 1),
         isCorrect: !useTrap,
-        isBonus: isBonus
+        isBonus: isBonus,
+        color: pickedColor // 暫存顏色供後續使用
     };
     
-    bubble.onclick = () => handleTap(bubbleObj);
+    bubble.onclick = () => {
+        // 點擊反饋：點對了變綠色閃一下，點錯了變紅色閃一下
+        bubble.style.backgroundColor = bubbleObj.isCorrect ? '#00ff00' : '#ff0000';
+        handleTap(bubbleObj);
+    };
+    
     stage.appendChild(bubble);
     activeBubbles.push(bubbleObj);
 }
