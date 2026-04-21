@@ -334,11 +334,14 @@
             <div class="grid-container">${gridHtml}</div>
             <div class="word-list-section"><div class="word-list-title">📋 Target Words:</div><div class="word-grid">${data.words.map(w => `<div>□ ${w}</div>`).join('')}</div></div>`;
         } else {
+          // 🔥 魔法 1：前端暴力拉長底線 (只要看到 1 個以上的底線，通通換成 20 個底線！)
+          let stretchedText = data.clozeText.replace(/_+/g, '____________________');
+
           return `${header}
             <div style="text-align: center; margin-top: 10px;"><span style="font-size: 12pt; background: #9b59b6; color: white; padding: 4px 12px; border-radius: 15px;">AI Cloze Test Challenge ✍️</span></div>
             <h2 style="text-align:center;">${data.title}</h2>
             <div class="word-bank">Word Bank: ${data.wordBank.join(' / ')}</div>
-            <div class="cloze-text">${data.clozeText}</div>`;
+            <div class="cloze-text" style="line-height: 3.0 !important;">${stretchedText}</div>`;
         }
       }
     </script>
