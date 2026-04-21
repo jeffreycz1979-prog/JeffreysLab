@@ -2,155 +2,172 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NewCore Turbo B: 俄羅斯拼字戰</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NewCore Turbo B: 堆疊拼字戰</title>
     <style>
         :root { --neon-blue: #00f3ff; --neon-purple: #bc13fe; --neon-red: #ff0055; --bg: #050510; }
-        body { margin: 0; background: var(--bg); color: white; font-family: sans-serif; overflow: hidden; display: flex; flex-direction: column; align-items: center; height: 100vh; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--bg); color: white; font-family: sans-serif; overflow: hidden; display: flex; flex-direction: column; align-items: center; }
         
         /* 遊戲區域 */
-        #game-container { position: relative; width: 360px; height: 600px; border: 4px solid #222; background: rgba(255,255,255,0.02); margin-top: 20px; overflow: hidden; }
+        #game-container { position: relative; width: 100%; max-width: 400px; height: 100%; border: 4px solid #222; background: rgba(255,255,255,0.02); overflow: hidden; }
         
-        /* 下方作答區 */
-        #answer-zone { width: 360px; background: #111; padding: 20px 0; border: 4px solid #222; border-top: none; display: flex; justify-content: center; gap: 10px; }
-        .letter-slot { width: 45px; height: 45px; border: 2px dashed var(--neon-blue); display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; border-radius: 5px; }
-        .filled { border-style: solid; background: rgba(0, 243, 255, 0.2); }
+        /* 字母方塊 - 加大尺寸更靈敏 */
+        .block { 
+            position: absolute; width: 85px; height: 85px; 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 32px; font-weight: bold; border-radius: 12px; 
+            cursor: pointer; user-select: none; z-index: 50;
+            background: rgba(255, 255, 255, 0.1);
+            transition: transform 0.05s active;
+            pointer-events: auto; /* 強制啟動事件 */
+        }
+        .block:active { transform: scale(0.9); }
 
-        /* 掉落方塊 */
-        .block { position: absolute; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; border-radius: 8px; cursor: pointer; box-sizing: border-box; transition: transform 0.1s; }
-        
-        /* 底部堆疊塊 */
-        .stack-block { position: absolute; width: 60px; height: 40px; background: #333; border: 1px solid #555; box-sizing: border-box; bottom: 0; }
+        /* 下方提示與答案區 */
+        #answer-panel { position: absolute; bottom: 0; width: 100%; background: #111; border-top: 3px solid var(--neon-blue); padding: 15px 0; z-index: 60; display: flex; flex-direction: column; align-items: center; }
+        #target-word { font-size: 24px; color: var(--neon-blue); margin-bottom: 10px; font-weight: bold; }
+        .slots-container { display: flex; gap: 8px; }
+        .slot { width: 40px; height: 40px; border: 2px dashed #444; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 4px; }
+        .slot.filled { border: 2px solid var(--neon-blue); background: rgba(0, 243, 255, 0.2); }
 
-        /* HUD */
-        #hud { width: 360px; display: flex; justify-content: space-between; padding: 10px; font-weight: bold; color: var(--neon-blue); }
-        #setup-screen { position: absolute; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
-        textarea { width: 80%; height: 80px; margin: 10px 0; background: #000; color: #fff; border: 1px solid var(--neon-blue); padding: 10px; }
-        button { padding: 10px 30px; background: var(--neon-blue); border: none; font-weight: bold; cursor: pointer; border-radius: 5px; }
+        /* 堆疊磚塊 */
+        .stack-bar { position: absolute; bottom: 100px; width: 100%; height: 10px; background: var(--neon-red); box-shadow: 0 0 15px var(--neon-red); opacity: 0.3; }
+
+        #setup { position: absolute; inset: 0; background: var(--bg); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        textarea { width: 80%; height: 100px; background: #000; color: #fff; border: 1px solid var(--neon-blue); padding: 10px; margin: 10px 0; }
+        button { padding: 15px 40px; background: var(--neon-blue); border: none; font-weight: bold; border-radius: 5px; cursor: pointer; font-size: 18px; }
     </style>
 </head>
 <body>
 
-    <div id="hud">
-        <div id="score">SCORE: 0</div>
-        <div id="target-info">目標單字</div>
+    <div id="setup">
+        <h1 style="color:var(--neon-blue)">NewCore B: 堆疊拼字戰</h1>
+        <p>請輸入單字 (逗號分隔):</p>
+        <textarea id="word-input">APPLE, BANANA, ZOO, DOG</textarea>
+        <div style="margin-bottom: 20px;">
+            <label>難度：</label>
+            <select id="difficulty" style="padding:10px; background:#000; color:#fff;">
+                <option value="1.5">Easy</option>
+                <option value="2.5" selected>Normal</option>
+                <option value="4">Hard</option>
+            </select>
+        </div>
+        <button onclick="startGame()">START GAME</button>
     </div>
 
     <div id="game-container">
-        <div id="setup-screen">
-            <h2 style="color: var(--neon-blue);">NewCore Turbo B</h2>
-            <p>請輸入測驗單字 (逗號分隔):</p>
-            <textarea id="word-input">APPLE, BANANA, ZOO, DOG</textarea>
-            <button onclick="initGame()">START GAME</button>
+        <div style="position:absolute; top:20px; left:20px; font-weight:bold;" id="score-text">SCORE: 0</div>
+        
+        <div class="stack-bar"></div>
+
+        <div id="answer-panel">
+            <div id="target-word">NEXT: APPLE</div>
+            <div class="slots-container" id="slots"></div>
         </div>
     </div>
 
-    <div id="answer-zone"></div>
-
     <script>
         let score = 0;
+        let hp = 3;
+        let words = [];
         let currentWord = "";
         let currentIdx = 0;
-        let words = [];
         let gameActive = false;
         let fallingBlocks = [];
-        let stackCount = 0; // 底部堆疊高度
-        const maxStack = 12; // 堆到幾層結束
+        let speed = 2;
+        const colors = ['#00f3ff', '#bc13fe', '#ff00ff', '#4dff00', '#ff8800'];
 
-        function initGame() {
+        function startGame() {
             const input = document.getElementById('word-input').value;
             words = input.split(',').map(s => s.trim().toUpperCase()).filter(s => s.length > 0);
             if (words.length === 0) return;
 
-            document.getElementById('setup-screen').style.display = 'none';
+            speed = parseFloat(document.getElementById('difficulty').value);
+            document.getElementById('setup').style.display = 'none';
             gameActive = true;
-            score = 0;
             nextWord();
             gameLoop();
-            setInterval(spawnBlock, 1200);
+            
+            // 產生方塊
+            setInterval(() => {
+                if(gameActive) spawnBlock();
+            }, 1200 / (speed * 0.5));
         }
 
         function nextWord() {
             currentWord = words[Math.floor(Math.random() * words.length)];
             currentIdx = 0;
-            document.getElementById('target-info').innerText = `目標: ${currentWord}`;
-            
-            const zone = document.getElementById('answer-zone');
-            zone.innerHTML = '';
-            for (let i = 0; i < currentWord.length; i++) {
-                const slot = document.createElement('div');
-                slot.className = 'letter-slot';
-                slot.id = 'slot-' + i;
-                zone.appendChild(slot);
+            document.getElementById('target-word').innerText = `TARGET: ${currentWord}`;
+            const container = document.getElementById('slots');
+            container.innerHTML = '';
+            for(let i=0; i<currentWord.length; i++) {
+                const s = document.createElement('div');
+                s.className = 'slot';
+                s.id = 'slot-' + i;
+                container.appendChild(s);
             }
         }
 
         function spawnBlock() {
-            if (!gameActive) return;
             const container = document.getElementById('game-container');
             const block = document.createElement('div');
             
-            // 決定掉落字母：50%機率是正確單字的下一個字母，50%是隨機干擾字母
+            // 50% 機率出正確字母
             const isCorrect = Math.random() > 0.5;
-            const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-            const letter = isCorrect ? currentWord[currentIdx] : alphabet[Math.floor(Math.random() * 26)];
+            const letter = isCorrect ? currentWord[currentIdx] : "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[Math.floor(Math.random()*26)];
             
+            const color = colors[Math.floor(Math.random() * colors.length)];
             block.className = 'block';
             block.innerText = letter;
+            block.style.border = `4px solid ${color}`;
+            block.style.boxShadow = `0 0 15px ${color}`;
             
-            // 隨機顏色（如你所求，不預告正確性）
-            const colors = ['#00f3ff', '#bc13fe', '#ff00ff', '#4dff00', '#ff8800'];
-            const color = colors[Math.floor(Math.random() * colors.length)];
-            block.style.border = `3px solid ${color}`;
-            block.style.boxShadow = `0 0 10px ${color}`;
-            block.style.left = Math.floor(Math.random() * 5) * 65 + 10 + 'px'; // 格點化
+            // 限制隨機 X 軸範圍
+            const maxX = Math.min(window.innerWidth, 400) - 90;
+            block.style.left = Math.random() * maxX + 'px';
+            block.style.top = '-100px';
             
-            const obj = {
-                el: block,
-                y: -60,
-                letter: letter,
-                speed: 2 + (score / 200)
-            };
+            const obj = { el: block, y: -100, letter: letter, speed: speed + (Math.random() * 0.5) };
 
-            block.onclick = () => checkLetter(obj);
+            // ⚡ 強化的點擊事件：使用 mousedown 或 touchstart 增加反應速度
+            const handleEvent = (e) => {
+                e.preventDefault();
+                checkLetter(obj);
+            };
+            block.addEventListener('mousedown', handleEvent);
+            block.addEventListener('touchstart', handleEvent);
+
             container.appendChild(block);
             fallingBlocks.push(obj);
         }
 
         function checkLetter(obj) {
+            if (!gameActive) return;
+
             if (obj.letter === currentWord[currentIdx]) {
-                // 接對了！
+                // 對了
                 const slot = document.getElementById('slot-' + currentIdx);
                 slot.innerText = obj.letter;
                 slot.classList.add('filled');
                 currentIdx++;
-                score += 20;
-                
+                score += 10;
                 if (currentIdx === currentWord.length) {
                     score += 50;
                     setTimeout(nextWord, 500);
                 }
             } else {
-                // 接錯了，底部增加廢磚塊
-                addStack();
+                // 錯了
+                score = Math.max(0, score - 5);
+                triggerShake();
             }
             removeBlock(obj);
-            document.getElementById('score').innerText = `SCORE: ${score}`;
+            document.getElementById('score-text').innerText = `SCORE: ${score}`;
         }
 
-        function addStack() {
-            stackCount++;
-            const stack = document.createElement('div');
-            stack.className = 'stack-block';
-            stack.style.bottom = (stackCount - 1) * 40 + 'px';
-            stack.style.width = '100%';
-            document.getElementById('game-container').appendChild(stack);
-            
-            if (stackCount >= maxStack) {
-                gameActive = false;
-                alert("Game Over! 磚塊堆滿了！最終得分: " + score);
-                location.reload();
-            }
+        function triggerShake() {
+            const container = document.getElementById('game-container');
+            container.style.animation = "shake 0.2s";
+            setTimeout(() => container.style.animation = "", 200);
         }
 
         function gameLoop() {
@@ -160,12 +177,8 @@
                 b.y += b.speed;
                 b.el.style.top = b.y + 'px';
 
-                // 沒點到掉出邊界
-                if (b.y > 600) {
-                    // 如果漏掉的是正確字母，也要處罰 (增加堆疊)
-                    if (b.letter === currentWord[currentIdx]) {
-                        addStack();
-                    }
+                // 沒點到掉出底部
+                if (b.y > window.innerHeight - 150) {
                     removeBlock(b);
                 }
             }
@@ -173,9 +186,20 @@
         }
 
         function removeBlock(obj) {
-            obj.el.remove();
+            if (obj.el.parentNode) {
+                obj.el.remove();
+            }
             fallingBlocks = fallingBlocks.filter(b => b !== obj);
         }
     </script>
+
+    <style>
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(5px); }
+            50% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+    </style>
 </body>
 </html>
