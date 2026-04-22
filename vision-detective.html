@@ -14,10 +14,15 @@
         .header h1 { margin: 0; color: #48cae4; letter-spacing: 2px; }
 
         /* 全局設定區 */
-        .global-settings { background: var(--panel-bg); padding: 20px; border-radius: 12px; width: 100%; max-width: 900px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 15px; justify-content: space-between; border-left: 4px solid var(--primary); }
+        .global-settings { background: var(--panel-bg); padding: 20px; border-radius: 12px; width: 100%; max-width: 900px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); margin-bottom: 15px; display: flex; flex-wrap: wrap; gap: 15px; justify-content: space-between; border-left: 4px solid var(--primary); }
         .setting-group { display: flex; align-items: center; gap: 10px; }
         input, select { padding: 10px 15px; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 6px; font-size: 15px; }
         input:focus, select:focus { outline: none; border-color: var(--primary); }
+
+        /* 新增：資源百寶箱 */
+        .resource-links { background: rgba(16, 185, 129, 0.1); padding: 10px 20px; border-radius: 8px; width: 100%; max-width: 900px; margin-bottom: 20px; border: 1px solid rgba(16, 185, 129, 0.3); display: flex; align-items: center; gap: 15px; font-size: 14px; }
+        .resource-links a { color: #34d399; text-decoration: none; font-weight: bold; background: rgba(52, 211, 153, 0.1); padding: 5px 10px; border-radius: 4px; transition: 0.2s; }
+        .resource-links a:hover { background: rgba(52, 211, 153, 0.3); }
 
         /* 題庫編輯區 */
         #question-list { width: 100%; max-width: 900px; display: flex; flex-direction: column; gap: 15px; margin-bottom: 30px; }
@@ -31,10 +36,9 @@
         .btn-launch { background: var(--primary); border: none; color: white; padding: 18px 40px; border-radius: 8px; cursor: pointer; font-size: 20px; font-weight: bold; box-shadow: 0 4px 15px rgba(67, 97, 238, 0.4); transition: 0.2s; width: 100%; max-width: 900px; }
         .btn-launch:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(67, 97, 238, 0.6); }
 
-        /* 隱藏輔助類 */
         .hidden { display: none !important; }
 
-        /* 遊戲畫布區 (收斂邊框，更顯質感) */
+        /* 遊戲畫布區 */
         #game-stage { display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100vh; position: relative; }
         #canvas-container { position: relative; width: 450px; height: 450px; border: 4px solid #334155; border-radius: 8px; background: #000; overflow: hidden; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         
@@ -44,13 +48,13 @@
         #detective-img { width: 100%; height: 100%; object-fit: cover; }
 
         /* 選項按鈕與資訊 */
-        #options-area { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; width: 90%; max-width: 700px; }
+        #options-area { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; width: 90%; max-width: 700px; min-height: 60px;}
         .opt-btn { padding: 15px 30px; background: var(--panel-bg); border: 2px solid #475569; color: #fff; font-size: 22px; font-weight: bold; cursor: pointer; border-radius: 8px; transition: 0.2s; min-width: 160px; }
         .opt-btn:hover { border-color: var(--primary); background: #2563eb; }
 
         #score-display { margin-top: 20px; font-size: 24px; color: #38bdf8; font-weight: bold; font-family: monospace; }
         
-        /* 老師控制面板 (浮動於左下角) */
+        /* 老師控制面板 */
         #teacher-controls { position: absolute; bottom: 20px; left: 20px; display: flex; gap: 10px; }
         .control-btn { padding: 10px 20px; background: rgba(30, 41, 59, 0.8); border: 1px solid #475569; color: #cbd5e1; cursor: pointer; border-radius: 5px; backdrop-filter: blur(5px); }
         .control-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
@@ -63,7 +67,7 @@
     <div id="dashboard">
         <div class="header">
             <h1>NewCore Vision Pro</h1>
-            <p style="color:#94a3b8; margin-top:5px;">互動視覺圖卡教案編輯器</p>
+            <p style="color:#94a3b8; margin-top:5px;">互動視覺圖卡教案編輯器 (無盡題庫版)</p>
         </div>
 
         <div class="global-settings">
@@ -84,13 +88,20 @@
             </div>
         </div>
 
+        <div class="resource-links">
+            <span>🎁 推薦免費圖庫：</span>
+            <a href="https://pixabay.com/" target="_blank">Pixabay</a>
+            <a href="https://www.pexels.com/" target="_blank">Pexels</a>
+            <a href="https://www.freepik.com/" target="_blank">Freepik</a>
+            <span style="color:#64748b; font-size:12px; margin-left:10px;">(可下載後使用「📁 上傳本機圖片」獲得最穩定體驗)</span>
+        </div>
+
         <div id="status-bar"></div>
 
-        <div id="question-list">
-            </div>
+        <div id="question-list"></div>
 
         <button class="btn-add" onclick="addQuestionCard()">+ 新增題目卡</button>
-        <button class="btn-launch" onclick="launchGame()">🚀 啟動課堂遊戲</button>
+        <button class="btn-launch" onclick="launchGame()">🚀 啟動無盡課堂遊戲</button>
     </div>
 
     <div id="game-stage">
@@ -104,7 +115,7 @@
 
         <div id="teacher-controls">
             <button class="control-btn" onclick="location.reload()">⏹ 結束課堂</button>
-            <button class="control-btn" onclick="drawNextQuestion()" style="border-color: #10b981; color: #10b981;">⏭ 下一題 (隨機)</button>
+            <button class="control-btn" onclick="drawNextQuestion()" style="border-color: #10b981; color: #10b981;">⏭ 隨機下一題</button>
         </div>
     </div>
 
@@ -118,13 +129,11 @@
     let currentScore = 1000;
     let isPuzzleSolved = false;
 
-    // 頁面載入時先建立一張空白卡片
     window.onload = () => {
         document.getElementById('api-key').value = localStorage.getItem('nc_vision_key') || '';
         addQuestionCard();
     };
 
-    // --- 題庫 UI 邏輯 ---
     function addQuestionCard() {
         const id = Date.now();
         const card = document.createElement('div');
@@ -185,7 +194,6 @@
         }
     }
 
-    // --- 啟動遊戲與打包資料 ---
     async function launchGame() {
         const apiKey = document.getElementById('api-key').value.trim();
         if(apiKey) localStorage.setItem('nc_vision_key', apiKey);
@@ -193,7 +201,7 @@
         const cards = document.querySelectorAll('.q-card');
         questionsData = [];
 
-        document.getElementById('status-bar').innerText = "⏳ 正在處理教材與驗證資料...";
+        document.getElementById('status-bar').innerText = "⏳ 正在處理教材資料...";
 
         for (let card of cards) {
             const correct = card.querySelector('.q-correct').value.trim();
@@ -202,9 +210,8 @@
             let w1 = card.querySelector('.q-w1').value.trim();
             let w2 = card.querySelector('.q-w2').value.trim();
             const source = card.querySelector('.q-source').value;
-            let imgData = "";
+            let localImgData = "";
 
-            // 處理干擾字：如果沒填且有 API，呼叫 AI
             if ((!w1 || !w2) && apiKey) {
                 const aiWords = await fetchDistractors(apiKey, correct);
                 w1 = w1 || aiWords[0];
@@ -214,23 +221,15 @@
                 w2 = w2 || "Option B";
             }
 
-            // 處理圖片來源
             if (source === 'local') {
                 const preview = card.querySelector('.img-preview');
-                imgData = preview.getAttribute('data-base64');
-                if(!imgData) { alert(`題目 "${correct}" 選擇了上傳圖片卻未選擇檔案！`); return; }
-            } else if (source === 'unsplash-cartoon') {
-                const seed = Math.floor(Math.random() * 100000);
-                const prompt = encodeURIComponent(`A cute, colorful, cartoon-style illustration of a ${correct}, vibrant colors, simple background, educational art for kids`);
-                imgData = `https://image.pollinations.ai/prompt/${prompt}?width=500&height=500&nologo=true&seed=${seed}`;
-            } else {
-                const seed = Math.floor(Math.random() * 100000);
-                const prompt = encodeURIComponent(`A clear, high-resolution, photorealistic image of a ${correct}, bright lighting, plain background, educational`);
-                imgData = `https://image.pollinations.ai/prompt/${prompt}?width=500&height=500&nologo=true&seed=${seed}`;
+                localImgData = preview.getAttribute('data-base64');
+                if(!localImgData) { alert(`題目 "${correct}" 選擇了上傳圖片卻未選擇檔案！`); return; }
             }
 
-            questionsData.push({ correct, options: [correct, w1, w2], imgUrl: imgData });
-        } // ⚠️ 這個迴圈在上一版您貼過來的代碼中沒有被正確關閉，現在修好了！
+            // ⚠️ 重點修正：這裡不再預先生成 AI 圖片網址，只記錄參數。
+            questionsData.push({ correct, options: [correct, w1, w2], source, localImgData });
+        }
 
         if (questionsData.length === 0) {
             document.getElementById('status-bar').innerText = "❌ 請至少完整輸入一題正確單字！";
@@ -242,7 +241,6 @@
         drawNextQuestion();
     }
 
-    // 輕量版 AI 干擾字呼叫 (現在正確放置在迴圈外)
     async function fetchDistractors(key, word) {
         const prompt = `Return JSON array of two single-word English distractors for "${word}". Format: ["A", "B"]`;
         try {
@@ -258,48 +256,75 @@
         } catch(e) { return ["Err1", "Err2"]; }
     }
 
-    // --- 遊戲引擎 ---
+    // --- 遊戲引擎 (即時生成與防卡死) ---
     function drawNextQuestion() {
-        if (questionsData.length === 0) { alert("題庫已空！"); location.reload(); return; }
+        if (questionsData.length === 0) return;
         
-        // 隨機抽取一題並從題庫移除
+        // ⚠️ 重點修正：不再從陣列中刪除，實現「無盡隨機題庫」
         const randIdx = Math.floor(Math.random() * questionsData.length);
-        currentQuestion = questionsData.splice(randIdx, 1)[0];
+        currentQuestion = questionsData[randIdx]; 
         
         gameActive = false;
         isPuzzleSolved = false;
         clearInterval(activeTimer);
         currentScore = 1000;
         
-        document.getElementById('options-area').innerHTML = `<span style="color:#64748b;">準備圖片中... (若是 AI 繪圖可能需要數秒)</span>`;
+        document.getElementById('options-area').innerHTML = `<span style="color:#64748b;">準備圖片中... (最長等待8秒)</span>`;
         document.getElementById('score-display').innerText = "";
+        document.getElementById('detective-img').src = ""; // 清空舊圖
 
-        const img = new Image();
-        
-        // 防 Base64 跨域報錯
-        if (!currentQuestion.imgUrl.startsWith('data:')) {
-            img.crossOrigin = "Anonymous";
+        // 1. 即時動態產生最新網址 (確保即使抽到同一題，每次圖都不一樣)
+        let finalImgUrl = "";
+        if (currentQuestion.source === 'local') {
+            finalImgUrl = currentQuestion.localImgData;
+        } else if (currentQuestion.source === 'unsplash-cartoon') {
+            const seed = Math.floor(Math.random() * 1000000);
+            const prompt = encodeURIComponent(`A cute, colorful, cartoon-style illustration of a ${currentQuestion.correct}, vibrant colors, simple background, educational art for kids`);
+            finalImgUrl = `https://image.pollinations.ai/prompt/${prompt}?width=500&height=500&nologo=true&seed=${seed}`;
+        } else {
+            const seed = Math.floor(Math.random() * 1000000);
+            const prompt = encodeURIComponent(`A clear, high-resolution, photorealistic image of a ${currentQuestion.correct}, bright lighting, plain background, educational`);
+            finalImgUrl = `https://image.pollinations.ai/prompt/${prompt}?width=500&height=500&nologo=true&seed=${seed}`;
         }
 
-        img.onload = () => setupStage(currentQuestion);
+        // 2. 圖片載入與 8 秒超時機制
+        const img = new Image();
+        if (!finalImgUrl.startsWith('data:')) img.crossOrigin = "Anonymous";
+
+        let fallbackTriggered = false;
         
-        // ⚠️ 金剛不壞防護：圖片載入失敗時的備援機制
-        img.onerror = () => {
-            console.warn("主圖片載入失敗，啟動備用圖庫...");
+        // 防卡死函數
+        const triggerFallback = () => {
+            if(fallbackTriggered) return;
+            fallbackTriggered = true;
+            console.warn("圖片超時或載入失敗，啟動備用...");
             const fallbackImg = new Image();
             fallbackImg.crossOrigin = "Anonymous";
             fallbackImg.onload = () => {
-                currentQuestion.imgUrl = fallbackImg.src;
+                currentQuestion.activeImgUrl = fallbackImg.src;
                 setupStage(currentQuestion);
             };
             fallbackImg.onerror = () => {
-                document.getElementById('options-area').innerHTML = `<span style="color:#ef4444;">❌ 圖片載入失敗，請檢查網路連線，或點擊「下一題」。</span>`;
+                document.getElementById('options-area').innerHTML = `<span style="color:#ef4444;">❌ 網路異常，請點擊「隨機下一題」。</span>`;
             };
-            // 使用 loremflickr 作為最後防線
             fallbackImg.src = `https://loremflickr.com/500/500/${currentQuestion.correct}?lock=${Math.floor(Math.random()*100)}`;
         };
 
-        img.src = currentQuestion.imgUrl;
+        // 設定 8 秒終極超時
+        const loadTimeout = setTimeout(triggerFallback, 8000);
+
+        img.onload = () => {
+            if(fallbackTriggered) return; // 如果已經超時就不理會了
+            clearTimeout(loadTimeout);
+            currentQuestion.activeImgUrl = finalImgUrl;
+            setupStage(currentQuestion);
+        };
+        img.onerror = () => {
+            clearTimeout(loadTimeout);
+            triggerFallback();
+        };
+
+        img.src = finalImgUrl;
     }
 
     function setupStage(qData) {
@@ -307,7 +332,6 @@
         const mode = document.getElementById('game-mode').value;
         const size = parseInt(document.getElementById('grid-size').value);
 
-        // 渲染按鈕
         const area = document.getElementById('options-area');
         area.innerHTML = '';
         const shuffled = [...qData.options].sort(() => Math.random() - 0.5);
@@ -320,8 +344,9 @@
             area.appendChild(btn);
         });
 
-        if(mode === 'puzzle') startPuzzle(qData.imgUrl, size);
-        else startDetective(qData.imgUrl);
+        // 傳入真正載入成功的 activeImgUrl
+        if(mode === 'puzzle') startPuzzle(qData.activeImgUrl, size);
+        else startDetective(qData.activeImgUrl);
     }
 
     function handleAnswer(isCorrect) {
@@ -334,7 +359,7 @@
             alert(`🎯 完全正確！\n榮譽積分：${currentScore}`);
             document.getElementById('puzzle-board').style.display = 'none';
             document.getElementById('detective-img').style.display = 'block';
-            document.getElementById('detective-img').src = currentQuestion.imgUrl;
+            document.getElementById('detective-img').src = currentQuestion.activeImgUrl;
             gameActive = false;
         } else {
             alert("❌ 答錯了！分數受到懲罰！");
@@ -343,7 +368,6 @@
         }
     }
 
-    // --- 拼圖模式 ---
     function startPuzzle(url, size) {
         const board = document.getElementById('puzzle-board');
         const imgEl = document.getElementById('detective-img');
@@ -372,7 +396,7 @@
                         if (piecesArray.every((val, i) => val === i)) {
                             isPuzzleSolved = true;
                             clearInterval(activeTimer);
-                            document.getElementById('score-display').innerText = `✅ 拼圖完成！鎖定積分：${currentScore} (請選答案)`;
+                            document.getElementById('score-display').innerText = `✅ 拼圖完成！鎖定積分：${currentScore}`;
                             document.getElementById('score-display').style.color = '#10b981';
                         }
                     }
@@ -386,11 +410,10 @@
         activeTimer = setInterval(() => {
             if(!gameActive || isPuzzleSolved) return;
             currentScore = Math.max(100, currentScore - 10);
-            document.getElementById('score-display').innerText = `🕒 拼圖計時中... 剩餘積分: ${currentScore}`;
+            document.getElementById('score-display').innerText = `🕒 計時中... 剩餘積分: ${currentScore}`;
         }, 1000);
     }
 
-    // --- 馬賽克模式 ---
     function startDetective(url) {
         const board = document.getElementById('puzzle-board');
         const imgEl = document.getElementById('detective-img');
