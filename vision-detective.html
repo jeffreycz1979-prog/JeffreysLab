@@ -219,16 +219,28 @@
             const customPrompt = document.getElementById('img-prompt').value;
             const finalPrompt = customPrompt.replace(/{word}/g, word);
             
-            const nanoApiUrl = `https://nano-banana-2.oldtor.workers.dev/api/sd?prompt=${encodeURIComponent(finalPrompt)}`;
-            const response = await fetch(nanoApiUrl, { headers: { 'Authorization': `Bearer ${key}` } });
+            setStatus("⏳ 正在請 AI 畫師繪製卡通圖片中...");
             
-            if(response.ok) {
-                targetImgUrl = nanoApiUrl;
-            } else { 
-                throw new Error(`Nano API 回傳錯誤: ${response.status}`); 
-            }
+            // 使用支援 Prompt 風格解析的免費 AI 繪圖服務 (Pollinations)
+            // 加入 seed 確保每次點擊都會產生不一樣的圖片
+            const seed = Math.floor(Math.random() * 1000000);
+            const aiImageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(finalPrompt)}?width=500&height=500&nologo=true&seed=${seed}`;
+            
+            // 預先下載圖片，確保圖片真的載入完成才開始遊戲
+            await new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => {
+                    targetImgUrl = aiImageUrl;
+                    resolve();
+                };
+                img.onerror = () => reject("圖片伺服器無回應");
+                img.src = aiImageUrl;
+            });
+            
+            setStatus("✅ 圖片繪製完成！");
         } catch (e) {
-            logError("Nano 繪圖失敗: " + e.message + " (切換為圖庫備援)");
+            logError("AI 繪圖連線失敗: " + e.message + " (將使用備用圖庫)");
+            // 只有在真的完全斷網時，才會退回這個笨笨的真實圖庫
             targetImgUrl = `https://loremflickr.com/500/500/${word}?lock=${Math.floor(Math.random()*100)}`;
         }
     }
