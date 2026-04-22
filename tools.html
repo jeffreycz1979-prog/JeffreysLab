@@ -276,6 +276,7 @@
   .icon-bg-pink   { background: #FFE8F2; }
   .icon-bg-yellow { background: #F5FFD6; }
   .icon-bg-dark   { background: rgba(204,255,0,0.15); }
+  .icon-bg-red    { background: #FFE8E8; }
 
   .tool-tag {
     display: inline-block;
@@ -404,7 +405,7 @@
     </p>
     <div class="hero-stats-row">
       <div class="h-stat">
-        <span class="h-stat-num">6+</span>
+        <span class="h-stat-num">10+</span>
         <span class="h-stat-label">工具總數</span>
       </div>
       <div class="h-stat">
@@ -423,9 +424,9 @@
       <div class="tp-card"><span class="tp-emoji">🎙️</span><div class="tp-name">語音點名</div><div class="tp-cat">教務系統</div></div>
       <div class="tp-card"><span class="tp-emoji">🎰</span><div class="tp-name">獎勵樂透</div><div class="tp-cat">課堂互動</div></div>
       <div class="tp-card"><span class="tp-emoji">🃏</span><div class="tp-name">閃示卡</div><div class="tp-cat">字彙練習</div></div>
-      <div class="tp-card"><span class="tp-emoji">🔍</span><div class="tp-name">找字遊戲</div><div class="tp-cat">AI 出題</div></div>
+      <div class="tp-card"><span class="tp-emoji">🛡️</span><div class="tp-name">單字防禦戰</div><div class="tp-cat">字彙遊戲</div></div>
       <div class="tp-card"><span class="tp-emoji">✏️</span><div class="tp-name">克漏字</div><div class="tp-cat">AI 出題</div></div>
-      <div class="tp-card"><span class="tp-emoji">🔤</span><div class="tp-name">重組單字</div><div class="tp-cat">字彙練習</div></div>
+      <div class="tp-card"><span class="tp-emoji">🔤</span><div class="tp-name">重組句子</div><div class="tp-cat">字彙練習</div></div>
     </div>
   </div>
 </div>
@@ -542,22 +543,68 @@
       <div class="tool-tag">字彙練習</div>
       <div class="tool-name">重組單字遊戲</div>
       <div class="tool-desc">
-        打亂字母讓學生重組，支援點擊、拖拉等互動模式。可連結分數紀錄器，即時傳送答題分數。
+        打亂字母讓學生重組，支援點擊、拖拉等互動模式。答對即時反饋，可連結分數紀錄器，自動傳送答題分數至教務系統。
       </div>
       <div class="tool-footer">
         <span class="tool-badge free">● 免費使用</span>
       </div>
     </a>
 
-    <a href="#" class="tool-card coming-soon" data-cat="vocab">
+    <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/tool_package.html" target="_blank"
+       class="tool-card" data-cat="vocab">
       <div class="tool-icon-wrap icon-bg-mint">🔀</div>
-      <div class="tool-tag">字彙練習 · 開發中</div>
+      <div class="tool-tag">字彙練習 · 句型訓練</div>
       <div class="tool-name">重組句子遊戲</div>
       <div class="tool-desc">
-        將句子打散成單字卡，學生拖拉重組成正確語序。支援文法提示、計時挑戰與難度分級，適合句型練習與文法課使用。
+        將句子打散成單字卡，學生點選重組成正確語序。支援中文提示翻譯、練習與測驗雙模式，適合句型練習與文法課使用，可連結分數紀錄器。
       </div>
       <div class="tool-footer">
-        <span class="tool-badge">● 開發中，敬請期待</span>
+        <span class="tool-badge free">● 免費使用</span>
+      </div>
+    </a>
+
+  </div>
+
+  <!-- 字彙防禦戰 -->
+  <div class="category-label reveal" data-cat="vocab">🛡️ 單字防禦戰 Word Defense Games</div>
+  <div class="tools-grid reveal">
+
+    <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/word-defense.html" target="_blank"
+       class="tool-card" data-cat="vocab">
+      <div class="tool-icon-wrap icon-bg-red">🚀</div>
+      <div class="tool-tag">字彙遊戲 · 選擇挑戰</div>
+      <div class="tool-name">單字防禦戰 Classic</div>
+      <div class="tool-desc">
+        輸入必考單字，系統自動生成多選題，限時內選出正確拼法擊退敵人。支援 Easy／Normal／Hard 三種速度，可開啟 AI 拼字陷阱模式，自動混入形似誘惑選項，讓練習更有挑戰性。
+      </div>
+      <div class="tool-footer">
+        <span class="tool-badge free">● 免費使用</span>
+      </div>
+    </a>
+
+    <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/word-defense2.html" target="_blank"
+       class="tool-card" data-cat="vocab">
+      <div class="tool-icon-wrap icon-bg-orange">⌨️</div>
+      <div class="tool-tag">字彙遊戲 · 打字挑戰</div>
+      <div class="tool-name">單字防禦戰 Stack</div>
+      <div class="tool-desc">
+        輸入「單字：中文」，看到中文提示就要即時打字拼出正確英文。堆疊拼字玩法，可設定 30／60／120 秒計時，三種難度＋計分，適合複習大量單字庫的高效課堂熱身。
+      </div>
+      <div class="tool-footer">
+        <span class="tool-badge free">● 免費使用</span>
+      </div>
+    </a>
+
+    <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/word-defense3.html" target="_blank"
+       class="tool-card" data-cat="vocab">
+      <div class="tool-icon-wrap icon-bg-pink">🥁</div>
+      <div class="tool-tag">字彙遊戲 · 節奏打字</div>
+      <div class="tool-name">單字防禦戰 Rhythm</div>
+      <div class="tool-desc">
+        Rhythm Master 節奏打字終極版——字母從畫面落下，在判定區精準點擊正確字母來拼出單字。結合音樂節奏感與打字挑戰，讓背單字像打節奏遊戲一樣上癮，支援計時與三段難度。
+      </div>
+      <div class="tool-footer">
+        <span class="tool-badge free">● 免費使用</span>
       </div>
     </a>
 
