@@ -2,363 +2,227 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NewCore Vision Detective: 卡通極速版</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NewCore Vision Detective: 題庫大賽版</title>
     <style>
         :root { --neon-blue: #00f3ff; --neon-purple: #bc13fe; --bg: #050510; }
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; display: flex; flex-direction: column; align-items: center; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--bg); color: white; font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif; overflow: hidden; }
         
-        /* 設定面板 */
-        #setup-screen { position: absolute; inset: 0; background: var(--bg); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 20px; text-align: center; overflow-y: auto; }
-        .input-group { margin: 10px 0; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center; width: 100%; max-width: 700px; }
-        input[type="text"], input[type="password"], select, textarea { padding: 12px; background: #000; color: #fff; border: 1px solid #444; border-radius: 5px; font-size: 16px; flex: 1; min-width: 150px; }
-        .api-key-input { border-color: var(--neon-purple) !important; flex: 2 !important; }
-        textarea { resize: vertical; min-height: 80px; font-family: monospace; }
-
-        /* 高階設定區塊 */
-        .advanced-panel { border: 1px solid #333; padding: 15px; border-radius: 8px; background: rgba(255,255,255,0.02); margin-top: 10px; width: 100%; max-width: 670px; }
-        .advanced-title { color: #888; font-size: 14px; margin-bottom: 10px; text-align: left; font-weight: bold; }
-
-        .hidden { display: none !important; }
-
-        /* 遊戲區域 */
+        /* 介面切換 */
+        #setup-screen { position: absolute; inset: 0; background: var(--bg); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
         #game-stage { display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; }
-        #canvas-container { position: relative; width: 450px; height: 450px; border: 6px solid var(--neon-blue); background: #111; overflow: hidden; margin-bottom: 25px; user-select: none; box-shadow: 0 0 20px rgba(0, 243, 255, 0.2); }
-        
+
+        /* 題庫輸入區 */
+        textarea { width: 90%; max-width: 600px; height: 150px; background: #000; color: var(--neon-blue); border: 1px solid #444; padding: 15px; font-size: 16px; border-radius: 8px; }
+        .hint { color: #888; font-size: 14px; margin-bottom: 10px; }
+
+        /* 遊戲畫布 */
+        #canvas-container { position: relative; width: 450px; height: 450px; border: 6px solid var(--neon-blue); background: #111; overflow: hidden; margin-bottom: 25px; }
         #puzzle-board { display: grid; width: 100%; height: 100%; grid-template-columns: repeat(var(--size), 1fr); gap: 2px; }
-        .piece { cursor: pointer; border: 1px solid rgba(255,255,255,0.1); background-size: 450px 450px; box-sizing: border-box; transition: transform 0.1s; }
+        .piece { cursor: pointer; border: 1px solid rgba(255,255,255,0.1); background-size: 450px 450px; transition: transform 0.1s; }
         .piece.selected { outline: 6px solid white; outline-offset: -6px; transform: scale(0.95); z-index: 10; }
-        #detective-img { width: 100%; height: 100%; object-fit: cover; transition: filter 0.5s linear; }
+        #detective-img { width: 100%; height: 100%; object-fit: cover; }
 
+        /* 選項按鈕 */
         #options-area { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; width: 90%; max-width: 700px; }
-        .opt-btn { padding: 15px 30px; background: #111; border: 3px solid var(--neon-blue); color: var(--neon-blue); font-size: 22px; font-weight: bold; cursor: pointer; border-radius: 12px; transition: 0.2s; flex: 1; min-width: 150px; }
-        .opt-btn:hover { background: var(--neon-blue); color: #000; box-shadow: 0 0 15px var(--neon-blue); }
+        .opt-btn { padding: 15px 30px; background: #111; border: 3px solid var(--neon-blue); color: var(--neon-blue); font-size: 24px; font-weight: bold; cursor: pointer; border-radius: 12px; transition: 0.2s; min-width: 180px; }
+        .opt-btn:hover { background: var(--neon-blue); color: #000; }
 
-        .btn-main { padding: 15px 30px; background: #333; border: 1px solid #555; color: white; font-weight: bold; font-size: 18px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
-        .btn-main:hover { background: #555; }
-        .btn-start { background: var(--neon-purple); border-color: var(--neon-purple); box-shadow: 0 0 15px rgba(188, 19, 254, 0.4); margin-top: 10px; width: 100%; max-width: 700px; }
-        .btn-start:hover { background: #d030ff; }
-        
-        #error-log { color: #ff4444; font-size: 14px; margin-top: 10px; font-family: monospace; max-width: 600px; word-break: break-all; }
+        /* 老師專用控制鈕 (隱藏在右下角) */
+        #next-btn { position: absolute; bottom: 20px; right: 20px; padding: 10px 20px; background: rgba(255,255,255,0.1); border: 1px solid #333; color: #555; cursor: pointer; border-radius: 5px; font-size: 12px; }
+        #next-btn:hover { color: white; background: var(--neon-purple); border-color: var(--neon-purple); }
+
+        .btn-start { padding: 20px 60px; background: var(--neon-purple); border: none; color: white; font-weight: bold; font-size: 22px; border-radius: 10px; cursor: pointer; margin-top: 20px; box-shadow: 0 0 20px var(--neon-purple); }
     </style>
 </head>
 <body>
 
     <div id="setup-screen">
-        <h1 style="color:var(--neon-blue); margin-bottom: 5px; margin-top: 20px;">NewCore Vision Detective</h1>
+        <h1 style="color:var(--neon-blue);">Vision Detective: 題庫大賽</h1>
         
-        <div class="input-group">
-            <span style="color:var(--neon-purple); font-weight:bold;">🔑 API:</span>
-            <input type="password" id="api-key" class="api-key-input" placeholder="Gemini / Nano API KEY">
+        <div style="margin-bottom: 20px;">
+            <input type="password" id="api-key" placeholder="API Key (選填，若要AI生干擾字請填)" style="padding:10px; background:#000; color:#fff; border:1px solid var(--neon-purple); width:300px;">
         </div>
+
+        <p class="hint">請輸入題庫 (格式：正確單字:干擾A:干擾B，每行一題。若後兩者留空則AI補位)</p>
+        <textarea id="word-bank">Banana:Apple:Orange
+Lion:Tiger:Cat
+Elephant:Hippo:Rhino</textarea>
         
-        <div class="input-group">
-            <input type="text" id="target-word" placeholder="*必填：正確單字 (例: Banana)">
-            <select id="grid-size" style="flex:0.5;">
-                <option value="2" selected>2x2拼圖 (極簡)</option>
-                <option value="3">3x3拼圖 (初學)</option>
-                <option value="4">4x4拼圖 (標準)</option>
-            </select>
-            <select id="game-mode" style="flex:0.5;">
-                <option value="puzzle">🧩 拼圖模式</option>
-                <option value="detective">🔍 馬賽克搶答</option>
-            </select>
+        <div style="margin-top:20px;">
+            難度：<select id="grid-size" style="padding:10px;"><option value="2">2x2 拼圖</option><option value="3">3x3 拼圖</option><option value="4">4x4 拼圖</option></select>
+            模式：<select id="game-mode" style="padding:10px;"><option value="puzzle">🧩 拼圖模式</option><option value="detective">🔍 馬賽克搶答</option></select>
         </div>
 
-        <div class="input-group">
-            <input type="text" id="wrong-1" placeholder="干擾字 A (建議手動輸入)">
-            <input type="text" id="wrong-2" placeholder="干擾字 B (建議手動輸入)">
-        </div>
-
-        <div class="advanced-panel">
-            <div class="advanced-title">⚙️ AI 高階設定</div>
-            <div class="input-group">
-                <span>單字模型：</span>
-                <select id="ai-model">
-                    <option value="gemini-3.1-flash-lite" selected>Gemini 3.1 Flash Lite (極速)</option>
-                    <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
-                </select>
-            </div>
-            <div class="input-group" style="flex-direction: column; align-items: flex-start;">
-                <span style="font-size: 14px;">繪圖咒語 (使用 {word} 代表正確單字)：</span>
-                <textarea id="img-prompt">A cute, colorful, cartoon-style illustration of a {word}, vibrant colors, childish and fun, simple background, educational art for kids.</textarea>
-            </div>
-        </div>
-
-        <div class="input-group" style="margin-top: 15px;">
-            <input type="file" id="file-upload" accept="image/*" style="display:none" onchange="handleFileUpload(this)">
-            <button class="btn-main" style="flex:1;" onclick="document.getElementById('file-upload').click()">📁 1. 上傳本地圖片 (絕對優先)</button>
-        </div>
-
-        <div id="status-msg" style="color: var(--neon-blue); font-weight: bold; margin: 10px 0;">等待設定...</div>
-        <div id="error-log"></div>
-        
-        <button class="btn-main btn-start" onclick="prepareAndStart()">🚀 2. 啟動挑戰</button>
+        <button class="btn-start" onclick="initGame()">啟 動 題 庫 🚀</button>
+        <div id="status" style="margin-top:15px; color:var(--neon-blue);"></div>
     </div>
 
     <div id="game-stage">
         <div id="canvas-container">
             <div id="puzzle-board" class="hidden"></div>
-            <img id="detective-img" class="hidden" alt="Task">
+            <img id="detective-img" class="hidden">
         </div>
         <div id="options-area"></div>
-        <div style="margin-top:20px; font-size: 24px; color:var(--neon-blue); font-weight:bold;" id="score-display"></div>
-        <button onclick="location.reload()" style="margin-top: 30px; padding: 10px 20px; background: #222; color: #fff; border:none; border-radius: 5px; cursor: pointer;">返回設定</button>
+        <div id="score-display" style="margin-top:20px; font-size:24px; color:var(--neon-blue); font-weight:bold;"></div>
+        
+        <button id="next-btn" onclick="drawNewQuestion()">NEXT QUESTION ➡️</button>
     </div>
 
 <script>
-    let targetWord = "";
-    let distractors = [];
-    let targetImgUrl = "";
+    let wordBank = [];
+    let currentQuestion = null;
+    let gameActive = false;
     let piecesArray = [];
     let firstSelected = null;
-    let gameActive = false;
-    let gameMode = 'puzzle';
-    let isLocalImage = false;
+    let blurTimer;
 
-    window.onload = () => {
-        document.getElementById('api-key').value = localStorage.getItem('nc_vision_key') || '';
-    };
-
-    function setStatus(msg, isError = false) {
-        const el = document.getElementById('status-msg');
-        el.innerText = msg;
-        el.style.color = isError ? "#ff4444" : "var(--neon-blue)";
-    }
-
-    function logError(err) {
-        document.getElementById('error-log').innerText = "錯誤資訊: " + err;
-    }
-
-    function handleFileUpload(input) {
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                targetImgUrl = e.target.result;
-                isLocalImage = true;
-                setStatus("✅ 本地圖片已載入！請點擊啟動！");
-                document.getElementById('error-log').innerText = "";
+    // 1. 初始化題庫
+    function initGame() {
+        const input = document.getElementById('word-bank').value.trim();
+        const lines = input.split('\n');
+        wordBank = lines.map(line => {
+            const parts = line.split(':');
+            return {
+                correct: parts[0].trim(),
+                w1: parts[1] ? parts[1].trim() : "",
+                w2: parts[2] ? parts[2].trim() : ""
             };
-            reader.readAsDataURL(input.files[0]);
-        }
+        }).filter(q => q.correct.length > 0);
+
+        if(wordBank.length === 0) { alert("題庫是空的！"); return; }
+
+        document.getElementById('setup-screen').style.display = 'none';
+        document.getElementById('game-stage').style.display = 'flex';
+        
+        localStorage.setItem('nc_vision_key', document.getElementById('api-key').value);
+        drawNewQuestion();
     }
 
-    async function prepareAndStart() {
-        document.getElementById('error-log').innerText = "";
-        targetWord = document.getElementById('target-word').value.trim();
-        const apiKey = document.getElementById('api-key').value.trim();
-        const w1 = document.getElementById('wrong-1').value.trim();
-        const w2 = document.getElementById('wrong-2').value.trim();
-
-        if (!targetWord) { alert("請輸入正確單字！"); return; }
-        if (apiKey) localStorage.setItem('nc_vision_key', apiKey);
-
-        // 1. 處理干擾字
-        if (w1 && w2) {
-            distractors = [w1, w2];
-        } else if (apiKey) {
-            setStatus("⏳ 正在呼叫 Gemini 生成干擾字...");
-            distractors = await fetchDistractors(apiKey, targetWord);
-            if(distractors[0] === "Error A") {
-                distractors = [w1 || "Option A", w2 || "Option B"];
-            }
-        } else {
-            distractors = [w1 || "Option A", w2 || "Option B"];
-        }
-
-        // 2. 處理圖片
-        if (!isLocalImage) {
-            if (apiKey) {
-                setStatus("⏳ 正在呼叫 AI 繪製卡通圖片...");
-                await fetchAIImage(apiKey, targetWord);
-            } else {
-                targetImgUrl = `https://loremflickr.com/500/500/${targetWord}?lock=${Math.floor(Math.random()*100)}`;
-            }
-        }
-
-        if (!targetImgUrl) { alert("無法取得圖片！"); return; }
+    // 2. 隨機出題核心
+    async function drawNewQuestion() {
+        gameActive = false;
+        clearInterval(blurTimer);
+        document.getElementById('options-area').innerHTML = "⌛ 載入中...";
         
-        startGame();
+        // 隨機選題
+        currentQuestion = wordBank[Math.floor(Math.random() * wordBank.length)];
+        
+        const apiKey = document.getElementById('api-key').value;
+        let finalDistractors = [currentQuestion.w1, currentQuestion.w2];
+
+        // 如果老師沒填干擾字，且有 Key，呼叫 AI
+        if ((!finalDistractors[0] || !finalDistractors[1]) && apiKey) {
+            finalDistractors = await fetchAIDistractors(apiKey, currentQuestion.correct);
+        } else if (!finalDistractors[0]) {
+            finalDistractors = ["Option A", "Option B"];
+        }
+
+        // 穩定圖庫：使用 Unsplash Source (品質最高，聽得懂咒語)
+        const seed = Math.floor(Math.random() * 1000);
+        // 這裡強制加上 'cartoon' 關鍵字，Unsplash 的分類效果極好
+        const imageUrl = `https://source.unsplash.com/featured/500x500/?cartoon,${currentQuestion.correct}&sig=${seed}`;
+        
+        const img = new Image();
+        img.crossOrigin = "Anonymous";
+        img.onload = () => {
+            setupGameUI(imageUrl, currentQuestion.correct, finalDistractors);
+        };
+        img.src = imageUrl;
     }
 
-    // 強化除錯與解析能力的文字生成 API
-    async function fetchDistractors(key, word) {
-        const model = document.getElementById('ai-model').value;
-        const prompt = `Return ONLY a valid JSON array of two English words that are incorrect but plausible choices for a vocabulary quiz where the answer is "${word}". Example output: ["Apple", "Orange"]. Do not include markdown formatting.`;
-        
+    // 3. AI 干擾字優化 (針對 3.1 Flash Lite)
+    async function fetchAIDistractors(key, word) {
+        const prompt = `Return ONLY a valid JSON array of two single words that are incorrect choices for "${word}". Format: ["word1", "word2"]`;
         try {
-            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${key}`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
             });
-            
-            if (!res.ok) throw new Error(`HTTP 狀態碼: ${res.status} (可能是瀏覽器安全性 CORS 阻擋)`);
-            
             const data = await res.json();
-            if(!data.candidates) throw new Error("API 回傳格式異常");
-            
-            let text = data.candidates[0].content.parts[0].text;
-            
-            // 強制抓取中括號內的陣列，避免 AI 廢話
+            const text = data.candidates[0].content.parts[0].text;
             const match = text.match(/\[(.*?)\]/);
-            if (match) {
-                let arr = JSON.parse("[" + match[1] + "]");
-                return Array.isArray(arr) ? arr.slice(0,2) : ["Error A", "Error B"];
-            } else {
-                throw new Error("找不到 JSON 陣列");
-            }
+            return JSON.parse("[" + match[1] + "]");
         } catch (e) {
-            logError("文字生成失敗: " + e.message);
-            return ["Error A", "Error B"];
+            return ["Wrong A", "Wrong B"];
         }
     }
 
-    async function fetchAIImage(key, word) {
-        try {
-            const customPrompt = document.getElementById('img-prompt').value;
-            const finalPrompt = customPrompt.replace(/{word}/g, word);
-            
-            setStatus("⏳ 正在請 AI 畫師繪製卡通圖片中...");
-            
-            // 使用支援 Prompt 風格解析的免費 AI 繪圖服務 (Pollinations)
-            // 加入 seed 確保每次點擊都會產生不一樣的圖片
-            const seed = Math.floor(Math.random() * 1000000);
-            const aiImageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(finalPrompt)}?width=500&height=500&nologo=true&seed=${seed}`;
-            
-            // 預先下載圖片，確保圖片真的載入完成才開始遊戲
-            await new Promise((resolve, reject) => {
-                const img = new Image();
-                img.onload = () => {
-                    targetImgUrl = aiImageUrl;
-                    resolve();
-                };
-                img.onerror = () => reject("圖片伺服器無回應");
-                img.src = aiImageUrl;
-            });
-            
-            setStatus("✅ 圖片繪製完成！");
-        } catch (e) {
-            logError("AI 繪圖連線失敗: " + e.message + " (將使用備用圖庫)");
-            // 只有在真的完全斷網時，才會退回這個笨笨的真實圖庫
-            targetImgUrl = `https://loremflickr.com/500/500/${word}?lock=${Math.floor(Math.random()*100)}`;
-        }
-    }
-
-    function startGame() {
+    function setupGameUI(url, correct, wrgs) {
         gameActive = true;
-        gameMode = document.getElementById('game-mode').value;
+        const mode = document.getElementById('game-mode').value;
         const size = parseInt(document.getElementById('grid-size').value);
 
-        document.getElementById('setup-screen').style.display = 'none';
-        document.getElementById('game-stage').style.display = 'flex';
-
-        renderOptions(targetWord, distractors);
-
-        if (gameMode === 'puzzle') initPuzzleMode(size);
-        else initDetectiveMode();
-    }
-
-    function renderOptions(correct, wrgs) {
+        // 渲染選項
         const area = document.getElementById('options-area');
         area.innerHTML = '';
-        const allOpts = [correct, ...wrgs].sort(() => Math.random() - 0.5);
-        allOpts.forEach(text => {
+        const all = [correct, ...wrgs].sort(() => Math.random() - 0.5);
+        all.forEach(txt => {
             const btn = document.createElement('button');
             btn.className = 'opt-btn';
-            btn.innerText = text;
+            btn.innerText = txt;
             btn.onclick = () => {
                 if(!gameActive) return;
-                if(text === correct) {
-                    alert("🎉 答對了！非常厲害！");
+                if(txt === correct) {
+                    alert("🎯 太棒了！答對了！");
                     gameActive = false;
                     document.getElementById('detective-img').style.filter = 'blur(0px)';
-                } else {
-                    alert("❌ 哎呀，猜錯囉！");
-                }
+                } else alert("❌ 再觀察看看喔！");
             };
             area.appendChild(btn);
         });
+
+        if(mode === 'puzzle') initPuzzle(url, size);
+        else initDetective(url);
     }
 
-    // --- 拼圖模式 ---
-    function initPuzzleMode(size) {
+    // --- 拼圖與偵探邏輯 (保持穩定版) ---
+    function initPuzzle(url, size) {
         const board = document.getElementById('puzzle-board');
-        document.getElementById('detective-img').classList.add('hidden');
-        board.classList.remove('hidden');
-        document.getElementById('score-display').innerText = "";
-        
+        const img = document.getElementById('detective-img');
+        board.classList.remove('hidden'); img.classList.add('hidden');
         board.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
         board.style.setProperty('--size', size);
         board.innerHTML = '';
 
         piecesArray = Array.from({length: size * size}, (_, i) => i).sort(() => Math.random() - 0.5);
-        firstSelected = null;
-        renderPieces(size);
-    }
-
-    function renderPieces(size) {
-        const board = document.getElementById('puzzle-board');
-        board.innerHTML = '';
         const pSize = 450 / size;
 
-        piecesArray.forEach((posInOriginal, currentIndex) => {
-            const piece = document.createElement('div');
-            piece.className = 'piece';
-            piece.style.backgroundImage = `url(${targetImgUrl})`;
-            
-            const originalRow = Math.floor(posInOriginal / size);
-            const originalCol = posInOriginal % size;
-            piece.style.backgroundPosition = `-${originalCol * pSize}px -${originalRow * pSize}px`;
-
-            if (currentIndex === firstSelected) piece.classList.add('selected');
-
-            piece.onclick = () => {
-                if (!gameActive) return;
-                if (firstSelected === null) {
-                    firstSelected = currentIndex;
-                    renderPieces(size);
-                } else {
-                    [piecesArray[firstSelected], piecesArray[currentIndex]] = [piecesArray[currentIndex], piecesArray[firstSelected]];
-                    firstSelected = null;
-                    renderPieces(size);
-                    
-                    if (piecesArray.every((val, i) => val === i)) {
-                        alert("🎯 恭喜完成拼圖！現在請選出正確答案！");
+        const render = () => {
+            board.innerHTML = '';
+            piecesArray.forEach((pos, idx) => {
+                const div = document.createElement('div');
+                div.className = 'piece' + (idx === firstSelected ? ' selected' : '');
+                div.style.backgroundImage = `url(${url})`;
+                div.style.backgroundPosition = `-${(pos % size) * pSize}px -${Math.floor(pos / size) * pSize}px`;
+                div.onclick = () => {
+                    if(!gameActive) return;
+                    if(firstSelected === null) { firstSelected = idx; render(); }
+                    else {
+                        [piecesArray[firstSelected], piecesArray[idx]] = [piecesArray[idx], piecesArray[firstSelected]];
+                        firstSelected = null; render();
                     }
-                }
-            };
-            board.appendChild(piece);
-        });
+                };
+                board.appendChild(div);
+            });
+        };
+        render();
     }
 
-    // --- 馬賽克加速版 ---
-    let blurTimer;
-    function initDetectiveMode() {
-        document.getElementById('puzzle-board').classList.add('hidden');
-        const imgEl = document.getElementById('detective-img');
-        imgEl.classList.remove('hidden');
-        imgEl.src = targetImgUrl;
-        
-        let blurVal = 45; 
-        let score = 1000;
-        
-        // 初始套用濾鏡
-        imgEl.style.filter = `blur(${blurVal}px) contrast(1.2)`;
-        document.getElementById('score-display').innerText = `搶答獎勵: ${score}`;
-        
-        clearInterval(blurTimer);
-        
-        // 【變更點】：時間間隔改為 500ms (0.5秒)，模糊度扣除 2.5，刺激感翻倍！
+    function initDetective(url) {
+        const board = document.getElementById('puzzle-board');
+        const img = document.getElementById('detective-img');
+        board.classList.add('hidden'); img.classList.remove('hidden');
+        img.src = url;
+        let b = 45;
+        img.style.filter = `blur(${b}px) contrast(1.2)`;
         blurTimer = setInterval(() => {
-            if(!gameActive) { clearInterval(blurTimer); return; }
-            blurVal -= 2.5; 
-            score -= 50;    
-            if (blurVal <= 0) { blurVal = 0; score = 0; clearInterval(blurTimer); }
-            
-            imgEl.style.filter = `blur(${blurVal}px) contrast(1.2)`;
-            document.getElementById('score-display').innerText = `搶答獎勵: ${Math.max(0, score)}`;
-        }, 500); 
+            if(!gameActive) return;
+            b -= 2.5;
+            if(b <= 0) { b = 0; clearInterval(blurTimer); }
+            img.style.filter = `blur(${b}px) contrast(1.2)`;
+        }, 500);
     }
 </script>
 </body>
