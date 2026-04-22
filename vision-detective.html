@@ -215,28 +215,24 @@
             }
 
             // 處理圖片來源
+            // 處理圖片來源
             if (source === 'local') {
                 const preview = card.querySelector('.img-preview');
                 imgData = preview.getAttribute('data-base64');
                 if(!imgData) { alert(`題目 "${correct}" 選擇了上傳圖片卻未選擇檔案！`); return; }
             } else if (source === 'unsplash-cartoon') {
-                imgData = `https://source.unsplash.com/featured/500x500/?cartoon,${correct}&sig=${Math.random()}`;
+                // 改用 Pollinations 畫卡通圖，穩定且聽得懂風格
+                const seed = Math.floor(Math.random() * 100000);
+                const prompt = encodeURIComponent(`A cute, colorful, cartoon-style illustration of a ${correct}, vibrant colors, simple background, educational art for kids`);
+                imgData = `https://image.pollinations.ai/prompt/${prompt}?width=500&height=500&nologo=true&seed=${seed}`;
             } else {
-                imgData = `https://source.unsplash.com/featured/500x500/?${correct}&sig=${Math.random()}`;
+                // 改用 Pollinations 畫寫實圖
+                const seed = Math.floor(Math.random() * 100000);
+                const prompt = encodeURIComponent(`A clear, high-resolution, photorealistic image of a ${correct}, bright lighting, plain background, educational`);
+                imgData = `https://image.pollinations.ai/prompt/${prompt}?width=500&height=500&nologo=true&seed=${seed}`;
             }
 
             questionsData.push({ correct, options: [correct, w1, w2], imgUrl: imgData });
-        }
-
-        if (questionsData.length === 0) {
-            document.getElementById('status-bar').innerText = "❌ 請至少完整輸入一題正確單字！";
-            return;
-        }
-
-        document.getElementById('dashboard').style.display = 'none';
-        document.getElementById('game-stage').style.display = 'flex';
-        drawNextQuestion();
-    }
 
     // 輕量版 AI 干擾字呼叫
     async function fetchDistractors(key, word) {
@@ -271,13 +267,34 @@
         document.getElementById('score-display').innerText = "";
 
         // 預載入圖片確保畫面不閃爍
+        // 預載入圖片確保畫面不閃爍 (加入防卡死機制)
         const img = new Image();
-        img.crossOrigin = "Anonymous";
-        img.onload = () => setupStage(currentQuestion);
-        img.src = currentQuestion.imgUrl;
-    }
+        
+        // 只有非本地上傳的圖片才需要跨域設定，否則 Base64 圖片可能會被嚴格的瀏覽器擋下
+        if (!currentQuestion.imgUrl.startsWith('data:')) {
+            img.crossOrigin = "Anonymous";
+        }
 
-    function setupStage(qData) {
+        img.onload = () => setupStage(currentQuestion);
+        
+        // ⚠️ 關鍵防護：如果主圖庫掛了，立刻啟用備用圖庫，絕不卡死
+        img.onerror = () => {
+            console.warn("主圖片載入失敗，啟動備用圖庫...");
+            const fallbackImg = new Image();
+            fallbackImg.crossOrigin = "Anonymous";
+            fallbackImg.onload = () => {
+                currentQuestion.imgUrl = fallbackImg.src;
+                setupStage(currentQuestion);
+            };
+            fallbackImg.onerror = () => {
+                document.getElementById('options-area').innerHTML = `<span style="color:#ef4444;">❌ 圖片載入失敗，學校網路可能阻擋了圖庫，請點擊「下一題」。</span>`;
+            };
+            fallbackImg.src = `https://loremflickr.com/500/500/${currentQuestion.correct}?lock=${Math.floor(Math.random()*100)}`;
+        };
+
+        img.src = currentQuestion.imgUrl;
+        
+        function setupStage(qData) {
         gameActive = true;
         const mode = document.getElementById('game-mode').value;
         const size = parseInt(document.getElementById('grid-size').value);
