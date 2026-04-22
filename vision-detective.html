@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NewCore Vision Detective: 高階設定版</title>
+    <title>NewCore Vision Detective: 卡通極速版</title>
     <style>
         :root { --neon-blue: #00f3ff; --neon-purple: #bc13fe; --bg: #050510; }
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; display: flex; flex-direction: column; align-items: center; }
@@ -13,7 +13,7 @@
         .input-group { margin: 10px 0; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center; width: 100%; max-width: 700px; }
         input[type="text"], input[type="password"], select, textarea { padding: 12px; background: #000; color: #fff; border: 1px solid #444; border-radius: 5px; font-size: 16px; flex: 1; min-width: 150px; }
         .api-key-input { border-color: var(--neon-purple) !important; flex: 2 !important; }
-        textarea { resize: vertical; min-height: 60px; font-family: monospace; }
+        textarea { resize: vertical; min-height: 80px; font-family: monospace; }
 
         /* 高階設定區塊 */
         .advanced-panel { border: 1px solid #333; padding: 15px; border-radius: 8px; background: rgba(255,255,255,0.02); margin-top: 10px; width: 100%; max-width: 670px; }
@@ -54,28 +54,34 @@
         
         <div class="input-group">
             <input type="text" id="target-word" placeholder="*必填：正確單字 (例: Banana)">
-            <select id="grid-size" style="flex:0.5;"><option value="3">3x3拼圖</option><option value="4" selected>4x4拼圖</option><option value="5">5x5拼圖</option></select>
-            <select id="game-mode" style="flex:0.5;"><option value="puzzle">🧩 拼圖模式</option><option value="detective">🔍 馬賽克搶答</option></select>
+            <select id="grid-size" style="flex:0.5;">
+                <option value="2" selected>2x2拼圖 (極簡)</option>
+                <option value="3">3x3拼圖 (初學)</option>
+                <option value="4">4x4拼圖 (標準)</option>
+            </select>
+            <select id="game-mode" style="flex:0.5;">
+                <option value="puzzle">🧩 拼圖模式</option>
+                <option value="detective">🔍 馬賽克搶答</option>
+            </select>
         </div>
 
         <div class="input-group">
-            <input type="text" id="wrong-1" placeholder="干擾字 A (留空則交給 AI)">
-            <input type="text" id="wrong-2" placeholder="干擾字 B (留空則交給 AI)">
+            <input type="text" id="wrong-1" placeholder="干擾字 A (建議手動輸入)">
+            <input type="text" id="wrong-2" placeholder="干擾字 B (建議手動輸入)">
         </div>
 
         <div class="advanced-panel">
-            <div class="advanced-title">⚙️ AI 高階設定 (僅在 API 有效且未上傳圖片時觸發)</div>
+            <div class="advanced-title">⚙️ AI 高階設定</div>
             <div class="input-group">
                 <span>單字模型：</span>
                 <select id="ai-model">
-                  <option value="gemini-3.1-flash-lite" selected>Gemini 3.1 Flash Lite (極速推薦 / 4K RPM)</option>
-                  <option value="gemini-2.5-flash">Gemini 2.5 Flash (標準聰明 / 1K RPM)</option>
-                  <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite (備用輕量模型)</option>
-                 </select>
+                    <option value="gemini-3.1-flash-lite" selected>Gemini 3.1 Flash Lite (極速)</option>
+                    <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+                </select>
             </div>
             <div class="input-group" style="flex-direction: column; align-items: flex-start;">
                 <span style="font-size: 14px;">繪圖咒語 (使用 {word} 代表正確單字)：</span>
-                <textarea id="img-prompt">A clear, educational, photorealistic close-up photo of a {word}, bright lighting, plain white background, sharp focus.</textarea>
+                <textarea id="img-prompt">A cute, colorful, cartoon-style illustration of a {word}, vibrant colors, childish and fun, simple background, educational art for kids.</textarea>
             </div>
         </div>
 
@@ -163,7 +169,7 @@
         // 2. 處理圖片
         if (!isLocalImage) {
             if (apiKey) {
-                setStatus("⏳ 正在呼叫 Nano Banana 生成圖片...");
+                setStatus("⏳ 正在呼叫 AI 繪製卡通圖片...");
                 await fetchAIImage(apiKey, targetWord);
             } else {
                 targetImgUrl = `https://loremflickr.com/500/500/${targetWord}?lock=${Math.floor(Math.random()*100)}`;
@@ -175,6 +181,7 @@
         startGame();
     }
 
+    // 強化除錯與解析能力的文字生成 API
     async function fetchDistractors(key, word) {
         const model = document.getElementById('ai-model').value;
         const prompt = `Return ONLY a valid JSON array of two English words that are incorrect but plausible choices for a vocabulary quiz where the answer is "${word}". Example output: ["Apple", "Orange"]. Do not include markdown formatting.`;
@@ -186,19 +193,23 @@
                 body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
             });
             
-            if (!res.ok) throw new Error(`HTTP 狀態碼: ${res.status} (可能是 API Key 錯誤或 CORS 阻擋)`);
+            if (!res.ok) throw new Error(`HTTP 狀態碼: ${res.status} (可能是瀏覽器安全性 CORS 阻擋)`);
             
             const data = await res.json();
             if(!data.candidates) throw new Error("API 回傳格式異常");
             
             let text = data.candidates[0].content.parts[0].text;
-            // 強制清理可能出現的 markdown 標籤
-            text = text.replace(/```json/gi, '').replace(/```/gi, '').trim();
             
-            let arr = JSON.parse(text);
-            return Array.isArray(arr) ? arr.slice(0,2) : ["Error A", "Error B"];
+            // 強制抓取中括號內的陣列，避免 AI 廢話
+            const match = text.match(/\[(.*?)\]/);
+            if (match) {
+                let arr = JSON.parse("[" + match[1] + "]");
+                return Array.isArray(arr) ? arr.slice(0,2) : ["Error A", "Error B"];
+            } else {
+                throw new Error("找不到 JSON 陣列");
+            }
         } catch (e) {
-            logError("Gemini 連線失敗: " + e.message);
+            logError("文字生成失敗: " + e.message);
             return ["Error A", "Error B"];
         }
     }
@@ -258,7 +269,7 @@
         });
     }
 
-    // 拼圖模式與偵探模式的渲染邏輯不變 (保持穩定運作)
+    // --- 拼圖模式 ---
     function initPuzzleMode(size) {
         const board = document.getElementById('puzzle-board');
         document.getElementById('detective-img').classList.add('hidden');
@@ -309,6 +320,7 @@
         });
     }
 
+    // --- 馬賽克加速版 ---
     let blurTimer;
     function initDetectiveMode() {
         document.getElementById('puzzle-board').classList.add('hidden');
@@ -319,18 +331,22 @@
         let blurVal = 45; 
         let score = 1000;
         
+        // 初始套用濾鏡
         imgEl.style.filter = `blur(${blurVal}px) contrast(1.2)`;
         document.getElementById('score-display').innerText = `搶答獎勵: ${score}`;
         
         clearInterval(blurTimer);
+        
+        // 【變更點】：時間間隔改為 500ms (0.5秒)，模糊度扣除 2.5，刺激感翻倍！
         blurTimer = setInterval(() => {
             if(!gameActive) { clearInterval(blurTimer); return; }
-            blurVal -= 1.5; 
-            score -= 30;    
+            blurVal -= 2.5; 
+            score -= 50;    
             if (blurVal <= 0) { blurVal = 0; score = 0; clearInterval(blurTimer); }
+            
             imgEl.style.filter = `blur(${blurVal}px) contrast(1.2)`;
             document.getElementById('score-display').innerText = `搶答獎勵: ${Math.max(0, score)}`;
-        }, 1000);
+        }, 500); 
     }
 </script>
 </body>
