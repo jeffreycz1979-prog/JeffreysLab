@@ -96,7 +96,7 @@
     <div id="game-stage">
         <div id="canvas-container">
             <div id="puzzle-board" class="hidden"></div>
-            <img id="detective-img" class="hidden">
+            <img id="detective-img" class="hidden" alt="Game Image">
         </div>
         
         <div id="score-display"></div>
@@ -142,8 +142,8 @@
             
             <div style="display:flex; flex-direction:column; gap:8px;">
                 <select class="q-source" onchange="handleSourceChange(this, ${id})">
-                    <option value="unsplash-cartoon">圖庫 (卡通風格)</option>
-                    <option value="unsplash-real">圖庫 (寫實風格)</option>
+                    <option value="unsplash-cartoon">AI 繪圖 (卡通風格)</option>
+                    <option value="unsplash-real">AI 繪圖 (寫實風格)</option>
                     <option value="local">📁 上傳本機圖片</option>
                 </select>
                 <input type="file" id="file-${id}" class="hidden" accept="image/*" onchange="handleLocalFile(this, ${id})">
@@ -215,26 +215,34 @@
             }
 
             // 處理圖片來源
-            // 處理圖片來源
             if (source === 'local') {
                 const preview = card.querySelector('.img-preview');
                 imgData = preview.getAttribute('data-base64');
                 if(!imgData) { alert(`題目 "${correct}" 選擇了上傳圖片卻未選擇檔案！`); return; }
             } else if (source === 'unsplash-cartoon') {
-                // 改用 Pollinations 畫卡通圖，穩定且聽得懂風格
                 const seed = Math.floor(Math.random() * 100000);
                 const prompt = encodeURIComponent(`A cute, colorful, cartoon-style illustration of a ${correct}, vibrant colors, simple background, educational art for kids`);
                 imgData = `https://image.pollinations.ai/prompt/${prompt}?width=500&height=500&nologo=true&seed=${seed}`;
             } else {
-                // 改用 Pollinations 畫寫實圖
                 const seed = Math.floor(Math.random() * 100000);
                 const prompt = encodeURIComponent(`A clear, high-resolution, photorealistic image of a ${correct}, bright lighting, plain background, educational`);
                 imgData = `https://image.pollinations.ai/prompt/${prompt}?width=500&height=500&nologo=true&seed=${seed}`;
             }
 
             questionsData.push({ correct, options: [correct, w1, w2], imgUrl: imgData });
+        } // ⚠️ 這個迴圈在上一版您貼過來的代碼中沒有被正確關閉，現在修好了！
 
-    // 輕量版 AI 干擾字呼叫
+        if (questionsData.length === 0) {
+            document.getElementById('status-bar').innerText = "❌ 請至少完整輸入一題正確單字！";
+            return;
+        }
+
+        document.getElementById('dashboard').style.display = 'none';
+        document.getElementById('game-stage').style.display = 'flex';
+        drawNextQuestion();
+    }
+
+    // 輕量版 AI 干擾字呼叫 (現在正確放置在迴圈外)
     async function fetchDistractors(key, word) {
         const prompt = `Return JSON array of two single-word English distractors for "${word}". Format: ["A", "B"]`;
         try {
@@ -254,7 +262,7 @@
     function drawNextQuestion() {
         if (questionsData.length === 0) { alert("題庫已空！"); location.reload(); return; }
         
-        // 隨機抽取一題並從題庫移除 (避免重複)
+        // 隨機抽取一題並從題庫移除
         const randIdx = Math.floor(Math.random() * questionsData.length);
         currentQuestion = questionsData.splice(randIdx, 1)[0];
         
@@ -263,21 +271,19 @@
         clearInterval(activeTimer);
         currentScore = 1000;
         
-        document.getElementById('options-area').innerHTML = `<span style="color:#64748b;">準備圖片中...</span>`;
+        document.getElementById('options-area').innerHTML = `<span style="color:#64748b;">準備圖片中... (若是 AI 繪圖可能需要數秒)</span>`;
         document.getElementById('score-display').innerText = "";
 
-        // 預載入圖片確保畫面不閃爍
-        // 預載入圖片確保畫面不閃爍 (加入防卡死機制)
         const img = new Image();
         
-        // 只有非本地上傳的圖片才需要跨域設定，否則 Base64 圖片可能會被嚴格的瀏覽器擋下
+        // 防 Base64 跨域報錯
         if (!currentQuestion.imgUrl.startsWith('data:')) {
             img.crossOrigin = "Anonymous";
         }
 
         img.onload = () => setupStage(currentQuestion);
         
-        // ⚠️ 關鍵防護：如果主圖庫掛了，立刻啟用備用圖庫，絕不卡死
+        // ⚠️ 金剛不壞防護：圖片載入失敗時的備援機制
         img.onerror = () => {
             console.warn("主圖片載入失敗，啟動備用圖庫...");
             const fallbackImg = new Image();
@@ -287,14 +293,16 @@
                 setupStage(currentQuestion);
             };
             fallbackImg.onerror = () => {
-                document.getElementById('options-area').innerHTML = `<span style="color:#ef4444;">❌ 圖片載入失敗，學校網路可能阻擋了圖庫，請點擊「下一題」。</span>`;
+                document.getElementById('options-area').innerHTML = `<span style="color:#ef4444;">❌ 圖片載入失敗，請檢查網路連線，或點擊「下一題」。</span>`;
             };
+            // 使用 loremflickr 作為最後防線
             fallbackImg.src = `https://loremflickr.com/500/500/${currentQuestion.correct}?lock=${Math.floor(Math.random()*100)}`;
         };
 
         img.src = currentQuestion.imgUrl;
-        
-        function setupStage(qData) {
+    }
+
+    function setupStage(qData) {
         gameActive = true;
         const mode = document.getElementById('game-mode').value;
         const size = parseInt(document.getElementById('grid-size').value);
@@ -317,7 +325,7 @@
     }
 
     function handleAnswer(isCorrect) {
-        if (!gameActive && !isPuzzleSolved) return; // 如果還在跑不能亂點
+        if (!gameActive && !isPuzzleSolved) return;
 
         clearInterval(activeTimer);
         document.getElementById('detective-img').style.filter = 'none';
@@ -335,7 +343,7 @@
         }
     }
 
-    // --- 拼圖模式 (新增計分計時) ---
+    // --- 拼圖模式 ---
     function startPuzzle(url, size) {
         const board = document.getElementById('puzzle-board');
         const imgEl = document.getElementById('detective-img');
@@ -361,7 +369,6 @@
                         [piecesArray[firstSelected], piecesArray[idx]] = [piecesArray[idx], piecesArray[firstSelected]];
                         firstSelected = null; render();
                         
-                        // 檢查勝利
                         if (piecesArray.every((val, i) => val === i)) {
                             isPuzzleSolved = true;
                             clearInterval(activeTimer);
@@ -375,7 +382,6 @@
         };
         render();
 
-        // 拼圖專用計時器 (每秒扣 10 分)
         document.getElementById('score-display').style.color = '#38bdf8';
         activeTimer = setInterval(() => {
             if(!gameActive || isPuzzleSolved) return;
