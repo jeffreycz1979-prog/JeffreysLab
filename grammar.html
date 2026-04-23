@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NewCore AI Grammar Lab</title>
+    <title>NewCore AI Grammar Lab V2</title>
     <style>
         :root { --primary: #FF6B6B; --secondary: #4ECDC4; --accent: #FFE66D; --bg: #F7FFF7; --text: #2F2F2F; --error-red: #ff4757; --success-green: #2ed573; }
         * { box-sizing: border-box; font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif; }
@@ -34,6 +34,7 @@
 
         /* 遊戲區 */
         .game-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: var(--accent); border-radius: 12px; margin-bottom: 10px; flex-shrink: 0; }
+        .score-display { font-size: 22px; font-weight: bold; color: var(--error-red); background: white; padding: 5px 15px; border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: 0.3s;}
         .game-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; align-items: center; }
         .sentence-card { background: white; padding: 25px; border: 2px solid #ddd; border-radius: 12px; width: 80%; max-width: 800px; font-size: 22px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: center; position: relative; transition: 0.3s;}
         .sentence-card.solved { border-color: var(--success-green); background: #f0fff4; }
@@ -51,20 +52,21 @@
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
         .shake-error { animation: shake 0.4s; color: var(--error-red); }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .score-drop { animation: shake 0.4s; transform: scale(1.1); color: #c0392b !important; }
 
         /* 列印區 */
         #print-view { overflow-y: auto; background: #555; padding: 30px 0; }
-        .a4-page { width: 794px; min-height: 1123px; background: white; margin: 0 auto; padding: 50px; display: flex; flex-direction: column; box-shadow: 0 0 20px rgba(0,0,0,0.5); page-break-after: always; }
+        .a4-page { width: 794px; min-height: 1123px; background: white; margin: 0 auto 30px auto; padding: 60px; display: flex; flex-direction: column; box-shadow: 0 0 20px rgba(0,0,0,0.5); page-break-after: always; }
         .print-header { border-bottom: 3px solid #333; margin-bottom: 30px; text-align: center; padding-bottom: 10px; }
-        .print-item { margin-bottom: 35px; font-size: 16px; line-height: 1.8; }
-        .print-line { border-bottom: 1px solid #333; width: 100%; height: 30px; margin-top: 10px; }
+        .print-item { margin-bottom: 45px; font-size: 18px; line-height: 1.8; }
+        .print-line { border-bottom: 1px solid #777; width: 100%; height: 35px; margin-top: 15px; }
 
         @media print {
             nav, .input-area, .game-header { display: none !important; }
             body, main { background: white; overflow: visible; }
             .view { display: none !important; }
             #print-view { display: block !important; padding: 0;}
-            .a4-page { margin: 0; border: none; box-shadow: none; width: 100%; height: auto; padding: 20px; }
+            .a4-page { margin: 0; border: none; box-shadow: none; width: 100%; height: auto; padding: 30px; }
         }
         button { cursor: pointer; border: none; border-radius: 12px; font-weight: bold; padding: 10px 20px; }
         .btn-primary { background: var(--secondary); color: white; }
@@ -93,7 +95,7 @@
         <div class="input-area">
             <div>
                 <label id="lbl-input" style="font-size: 13px; font-weight: bold;">📝 給 AI 的出題指令 (Prompt)：</label>
-                <textarea id="raw-prompt" placeholder="例如：我要六句不同時態的句子，四句關於比較級跟最高級的句子，適合國中程度。"></textarea>
+                <textarea id="raw-prompt" placeholder="例如：我要六句不同時態的句子，適合國中程度。"></textarea>
             </div>
             <div class="setting-group">
                 <button class="btn-primary" onclick="generateGrammarQuestions()" id="btn-ai" style="background:var(--primary); width:100%;">✨ AI 生成題目</button>
@@ -118,6 +120,7 @@
     <div id="game-view" class="view">
         <div class="game-header">
             <div id="game-msg" style="font-weight: bold; font-size: 18px;">請找出句子裡的錯誤！</div>
+            <div class="score-display" id="score-box">💯 總分: 100</div>
             <button class="btn-primary" id="btn-restart" onclick="renderGameCards()">🔄 重新開始</button>
         </div>
         <div class="game-container" id="game-box">
@@ -126,7 +129,7 @@
 
     <div id="print-view" class="view">
         <div style="text-align: center; margin-bottom: 10px;">
-            <button class="btn-primary" style="background: #333;" id="btn-print-action" onclick="window.print()">🖨️ 直接列印 (A4)</button>
+            <button class="btn-primary" style="background: #333;" id="btn-print-action" onclick="window.print()">🖨️ 直接列印 (A4 兩頁)</button>
         </div>
         <div id="print-container"></div>
     </div>
@@ -135,23 +138,28 @@
 <script>
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycby63WiGPMwr6FmUeZiGtHwwzuY30q7PovCBN7Por7kj164AcuX69QMztOJn1jIHH1lzAg/exec";
     
-    // 資料結構：[{ wrong_sentence: "", error_word: "", correct_word: "", distractors: ["",""] }]
     let questionsData = [];
+    
+    // 計分與挑戰進度變數
+    let currentScore = 100;
+    let solvedCount = 0;
 
     const translations = {
         zh: {
             logo: "🔍 NewCore Grammar Lab", tabEdit: "✏️ 編輯題目", tabGame: "🎮 數位挑戰", tabPrint: "🖨️ 列印考卷",
             lblInput: "📝 給 AI 的出題指令 (Prompt)：", btnAi: "✨ AI 生成題目", btnClear: "🗑️ 全部清空",
             thSent: "錯誤句子 (點擊修改)", thErr: "錯誤處", thCorr: "正確解答", thDist: "干擾項 (用逗號分隔)",
-            gameMsg: "請找出句子裡的錯誤！", btnRestart: "🔄 重新開始", btnPrintAction: "🖨️ 直接列印 (A4)",
-            printTitle: "Grammar Correction Challenge", printSubtitle: "Find the mistake and rewrite the correct sentence."
+            gameMsg: "請找出句子裡的錯誤！", btnRestart: "🔄 重新開始", btnPrintAction: "🖨️ 直接列印 (A4 兩頁)",
+            printTitle: "Grammar Correction Challenge", printSubtitle: "👉 請圈出句子中的錯誤，並在下方橫線上重寫正確的句子。",
+            scoreLabel: "💯 總分"
         },
         en: {
             logo: "🔍 Grammar Correction Lab", tabEdit: "✏️ Editor", tabGame: "🎮 Challenge", tabPrint: "🖨️ Print",
             lblInput: "📝 Prompt for AI (e.g., 5 past tense sentences):", btnAi: "✨ AI Generate", btnClear: "🗑️ Clear All",
             thSent: "Wrong Sentence (Edit)", thErr: "Error Word", thCorr: "Correction", thDist: "Distractors (comma separated)",
-            gameMsg: "Find the mistake in the sentences!", btnRestart: "🔄 Restart", btnPrintAction: "🖨️ Print (A4)",
-            printTitle: "Grammar Correction Challenge", printSubtitle: "Find the mistake and rewrite the correct sentence."
+            gameMsg: "Find the mistake in the sentences!", btnRestart: "🔄 Restart", btnPrintAction: "🖨️ Print (2 Pages)",
+            printTitle: "Grammar Correction Challenge", printSubtitle: "👉 Circle the mistake in the sentence and rewrite the correct sentence below.",
+            scoreLabel: "💯 Score"
         }
     };
 
@@ -171,6 +179,12 @@
         document.getElementById('game-msg').innerText = t.gameMsg;
         document.getElementById('btn-restart').innerText = t.btnRestart;
         document.getElementById('btn-print-action').innerText = t.btnPrintAction;
+        updateScoreDisplay();
+        
+        // 如果在列印分頁，即時更新列印內容的語系
+        if (document.getElementById('print-view').classList.contains('active')) {
+            renderPrintPages();
+        }
     }
 
     function switchTab(tab) {
@@ -199,7 +213,6 @@
         const lang = document.getElementById('ui-lang').value;
         btn.innerText = "⏳ AI 思考中..."; btn.disabled = true;
 
-        // 🔥 強制 JSON Array 格式的指令
         const aiPrompt = `Task: Create sentence correction exercises based on this request: "${promptText}". 
         RULE: You MUST return a JSON ARRAY of objects. Each object MUST have EXACTLY these 4 keys:
         1. "wrong_sentence": The full English sentence containing ONE grammatical error.
@@ -249,18 +262,43 @@
     function updateData(index, field, value) { questionsData[index][field] = value; }
     function updateDistractors(index, value) { questionsData[index].distractors = value.split(',').map(s=>s.trim()); }
 
-    // --- 遊戲區邏輯 ---
+    // --- 遊戲區與計分邏輯 ---
+    function deductScore() {
+        if (currentScore > 0) {
+            currentScore -= 5;
+            if (currentScore < 0) currentScore = 0;
+            updateScoreDisplay();
+            
+            // 觸發扣分動畫
+            const scoreBox = document.getElementById('score-box');
+            scoreBox.classList.remove('score-drop');
+            void scoreBox.offsetWidth; // trigger reflow
+            scoreBox.classList.add('score-drop');
+        }
+    }
+
+    function updateScoreDisplay() {
+        const lang = document.getElementById('ui-lang').value;
+        const scoreLabel = translations[lang].scoreLabel;
+        document.getElementById('score-box').innerText = `${scoreLabel}: ${currentScore}`;
+    }
+
     function renderGameCards() {
         const box = document.getElementById('game-box');
         box.innerHTML = '';
-        if(questionsData.length === 0) { box.innerHTML = '<p>請先在編輯區生成題目。</p>'; return; }
+        
+        // 重置分數與進度
+        currentScore = 100;
+        solvedCount = 0;
+        updateScoreDisplay();
+
+        if(questionsData.length === 0) { box.innerHTML = '<p style="font-size:18px;">請先在編輯區生成題目。</p>'; return; }
 
         questionsData.forEach((q, index) => {
             const card = document.createElement('div');
             card.className = 'sentence-card';
             card.id = `card-${index}`;
 
-            // 智慧斷字系統：將錯誤的字詞單獨包裝，其餘的拆成單字
             const regex = new RegExp(`(${escapeRegExp(q.error_word)})`, 'i');
             const parts = q.wrong_sentence.split(regex);
             
@@ -284,12 +322,14 @@
 
     window.handleWordClick = function(el, qIndex, isError) {
         const card = document.getElementById(`card-${qIndex}`);
-        if(card.classList.contains('solved')) return; // 已過關不反應
+        if(card.classList.contains('solved')) return; 
 
         if (isError) {
             el.classList.add('selected-error');
             showOptions(qIndex, el);
         } else {
+            // 點錯字：扣 5 分，字體震動
+            deductScore();
             el.classList.add('shake-error');
             setTimeout(() => el.classList.remove('shake-error'), 400);
         }
@@ -299,29 +339,41 @@
         const q = questionsData[qIndex];
         const optContainer = document.getElementById(`opts-${qIndex}`);
         
-        // 組合正確答案與干擾項並打亂
         let options = [q.correct_word, ...q.distractors].sort(() => Math.random() - 0.5);
         
         optContainer.innerHTML = options.map(opt => `
-            <button class="opt-btn" onclick="checkOption(${qIndex}, '${opt.replace(/'/g, "\\'")}')">${opt}</button>
+            <button class="opt-btn" onclick="checkOption(this, ${qIndex}, '${opt.replace(/'/g, "\\'")}')">${opt}</button>
         `).join('');
         
         optContainer.classList.add('active');
     }
 
-    window.checkOption = function(qIndex, selectedOpt) {
+    window.checkOption = function(btnEl, qIndex, selectedOpt) {
         const q = questionsData[qIndex];
         const card = document.getElementById(`card-${qIndex}`);
         const optContainer = document.getElementById(`opts-${qIndex}`);
 
         if (selectedOpt === q.correct_word) {
-            // 答對了！替換句子並鎖定
+            // 答對了！
             const correctSent = q.wrong_sentence.replace(new RegExp(escapeRegExp(q.error_word), 'i'), `<span style="color:var(--success-green); font-weight:bold;">${q.correct_word}</span>`);
             document.getElementById(`sent-${qIndex}`).innerHTML = correctSent;
             card.classList.add('solved');
             optContainer.classList.remove('active');
+            
+            // 檢查是否全數過關
+            solvedCount++;
+            if(solvedCount === questionsData.length) {
+                setTimeout(() => {
+                    alert(`🎉 恭喜完成所有挑戰！\n您的最終得分為：${currentScore} 分！`);
+                }, 500);
+            }
         } else {
-            // 答錯了，選項容器震動
+            // 答錯選項：扣 5 分，按鈕變紅震動
+            deductScore();
+            btnEl.style.backgroundColor = 'var(--error-red)';
+            btnEl.style.color = 'white';
+            btnEl.style.borderColor = 'var(--error-red)';
+            
             optContainer.classList.add('shake-error');
             setTimeout(() => optContainer.classList.remove('shake-error'), 400);
         }
@@ -333,26 +385,30 @@
         const lang = document.getElementById('ui-lang').value;
         if(questionsData.length === 0) return;
 
+        // 產生單頁內容
         let itemsHTML = questionsData.map((q, i) => `
             <div class="print-item">
-                <b>${i+1}.</b> ${q.wrong_sentence}
+                <span style="font-weight:bold; margin-right: 10px;">${i+1}.</span> ${q.wrong_sentence}
                 <div class="print-line"></div>
             </div>
         `).join('');
 
-        container.innerHTML = `
+        const singlePageHTML = `
             <div class="a4-page">
                 <div class="print-header">
-                    <h1>${translations[lang].printTitle}</h1>
-                    <p style="margin-top:-10px; color:#555;">${translations[lang].printSubtitle}</p>
+                    <h1 style="margin-bottom: 5px;">${translations[lang].printTitle}</h1>
+                    <p style="margin-top:0; font-size: 16px; color:#444;">${translations[lang].printSubtitle}</p>
                 </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 30px; font-weight: bold;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 40px; font-weight: bold; font-size: 16px;">
                     <span>Class: ________</span><span>Name: ________</span><span>Score: ________</span>
                 </div>
                 <div>${itemsHTML}</div>
                 <div style="text-align:center; font-size:11px; color:#aaa; margin-top:auto; padding-top: 30px;">NewCore AI Learning System</div>
             </div>
         `;
+
+        // 將相同內容印兩次，產出兩頁以供列印排版彈性
+        container.innerHTML = singlePageHTML + singlePageHTML;
     }
 </script>
 </body>
