@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NewCore AI 繽紛連連看 V3</title>
+    <title>NewCore AI 詞彙實驗室 V4</title>
     <style>
         :root {
             --primary: #FF6B6B;
@@ -20,15 +20,15 @@
             height: 100vh; display: flex; flex-direction: column; overflow: hidden; 
         }
 
-        /* 導覽列 */
+        /* 導覽與控制 */
         nav {
-            background: white; padding: 10px 20px; display: flex; justify-content: space-between;
+            background: white; padding: 8px 20px; display: flex; justify-content: space-between;
             align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 100;
         }
         .logo { font-size: 18px; font-weight: bold; color: var(--primary); }
         .tabs { display: flex; gap: 8px; }
         .tab-btn {
-            padding: 6px 12px; border: none; border-radius: 15px; background: #eee;
+            padding: 6px 15px; border: none; border-radius: 20px; background: #eee;
             cursor: pointer; transition: 0.3s; font-weight: bold; font-size: 14px;
         }
         .tab-btn.active { background: var(--primary); color: white; }
@@ -37,102 +37,113 @@
         .view { display: none; height: 100%; overflow: hidden; }
         .view.active { display: flex; flex-direction: column; }
 
-        /* 編輯模式優化 */
+        /* 編輯區優化 */
         .input-area { 
-            background: white; padding: 12px; border-radius: 12px; margin-bottom: 10px;
-            display: flex; gap: 10px; align-items: flex-end; flex-shrink: 0;
+            background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px;
+            display: grid; grid-template-columns: 1fr 280px; gap: 15px; flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
-        .flex-1 { flex: 1; }
-        textarea { width: 100%; height: 60px; resize: none; padding: 8px; border: 2px solid #ddd; border-radius: 8px; }
-        
-        .edit-table-container { 
-            flex: 1; overflow-y: auto; background: white; border-radius: 12px; 
-            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
-        }
+        textarea { width: 100%; height: 80px; resize: none; padding: 10px; border: 2px solid #ddd; border-radius: 8px; }
+        .setting-group { display: flex; flex-direction: column; gap: 8px; }
+        .btn-row { display: flex; gap: 5px; }
+
+        .edit-table-container { flex: 1; overflow-y: auto; background: white; border-radius: 12px; }
         table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        th, td { padding: 8px 12px; border-bottom: 1px solid #eee; }
+        th, td { padding: 10px 15px; border-bottom: 1px solid #eee; }
         th { background: #f9f9f9; position: sticky; top: 0; }
 
-        /* 遊戲模式比例優化 */
+        /* 遊戲模式：拉開間距 */
         .game-header { 
             display: flex; justify-content: space-between; align-items: center; 
-            padding: 8px 15px; background: var(--accent); border-radius: 10px; margin-bottom: 10px; flex-shrink: 0;
+            padding: 10px 20px; background: var(--accent); border-radius: 12px; margin-bottom: 10px; flex-shrink: 0;
         }
-        .timer-display { font-size: 20px; font-weight: bold; color: #333; }
-
         .game-container { 
-            flex: 1; position: relative; display: grid; grid-template-columns: 200px 1fr; 
-            gap: 40px; padding: 10px; align-items: center; justify-content: center;
+            flex: 1; position: relative; display: grid; grid-template-columns: 180px 1fr; 
+            gap: 120px; padding: 20px 60px; align-items: center; justify-content: center;
         }
-        .card-list { display: flex; flex-direction: column; gap: 8px; justify-content: space-around; height: 100%; }
+        .card-list { display: flex; flex-direction: column; gap: 12px; height: 100%; justify-content: center; }
         .card { 
-            background: white; padding: 8px 12px; border: 2px solid #ddd; 
-            border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 14px;
-            min-height: 40px; display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            background: white; padding: 12px 18px; border: 2px solid #ddd; 
+            border-radius: 10px; cursor: pointer; transition: 0.2s; font-size: 15px;
+            min-height: 45px; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); text-align: center;
         }
-        .card.selected { border-color: var(--primary); background: #fff5f5; transform: scale(1.03); }
-        .card.matched { border-color: var(--secondary); background: #f0fff0; opacity: 0.6; cursor: default; }
-
+        .card.selected { border-color: var(--primary); background: #fff5f5; transform: scale(1.05); }
+        .card.matched { border-color: var(--secondary); background: #f0fff0; opacity: 0.5; cursor: default; }
         #connections-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
 
-        /* 列印模式 (A4 比例與題號) */
-        .a4-preview {
-            width: 500px; height: 707px; background: white; margin: 0 auto;
-            padding: 30px; box-shadow: 0 0 15px rgba(0,0,0,0.1);
-            display: flex; flex-direction: column; transform: scale(0.9); transform-origin: top center;
+        /* 列印模式 (A4 橫向 2-Up) */
+        #print-view { overflow-y: auto; }
+        .print-layout {
+            display: flex; gap: 20px; justify-content: center; 
+            padding: 20px; width: 1120px; margin: 0 auto;
         }
-        .student-info { display: flex; justify-content: space-between; margin: 15px 0; font-size: 14px; }
-        .matching-area { display: flex; justify-content: space-between; flex: 1; margin-top: 20px; }
-        .print-col { width: 42%; display: flex; flex-direction: column; justify-content: space-between; }
-        .print-item { 
-            display: flex; align-items: center; gap: 10px; min-height: 35px; font-size: 14px; position: relative;
+        .a4-half {
+            width: 540px; height: 760px; background: white; padding: 30px;
+            border: 1px dashed #ccc; display: flex; flex-direction: column;
+            position: relative;
         }
-        .dot { width: 8px; height: 8px; background: #333; border-radius: 50%; }
-        .num { font-weight: bold; color: #666; width: 20px; }
+        .print-title { text-align: center; margin: 0 0 10px 0; font-size: 18px; }
+        .student-box { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 20px; }
+        .print-matching-area { display: flex; justify-content: space-between; flex: 1; }
+        .print-col { width: 45%; display: flex; flex-direction: column; gap: 15px; }
+        
+        .print-item { display: flex; align-items: center; min-height: 40px; font-size: 13px; position: relative; }
+        .anchor-o { width: 12px; height: 12px; border: 2px solid #333; border-radius: 50%; margin-left: auto; }
+        .anchor-dot { width: 12px; height: 12px; background: #333; border-radius: 50%; margin-right: 10px; }
+        .word-bank-box { border: 1.5px solid #333; padding: 15px; border-radius: 5px; }
 
         @media print {
-            nav, .tab-btn, .input-area, .game-header { display: none !important; }
+            nav, .tab-btn, .input-area, .game-header, button { display: none !important; }
             body, main { background: white; overflow: visible; }
             .view { display: none !important; }
             #print-view { display: block !important; }
-            .a4-preview { transform: none; box-shadow: none; width: 100%; height: auto; padding: 0; }
+            .print-layout { width: 100%; gap: 0; padding: 0; }
+            .a4-half { border: none; width: 50%; height: auto; }
+            @page { size: A4 landscape; margin: 5mm; }
         }
 
-        button { cursor: pointer; border: none; border-radius: 8px; font-weight: bold; padding: 8px 15px; }
+        button { cursor: pointer; border: none; border-radius: 12px; font-weight: bold; padding: 10px 18px; transition: 0.2s; }
+        button:hover { opacity: 0.9; transform: translateY(-1px); }
         .btn-primary { background: var(--secondary); color: white; }
     </style>
 </head>
 <body>
 
 <nav>
-    <div class="logo">🚀 NewCore Lab: Matching</div>
+    <div class="logo">🎨 NewCore Labs: Comprehensive Lab</div>
     <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('edit')">✏️ 編輯</button>
-        <button class="tab-btn" onclick="switchTab('game')">🎮 挑戰</button>
-        <button class="tab-btn" onclick="switchTab('print')">🖨️ 列印</button>
+        <button class="tab-btn active" onclick="switchTab('edit')">✏️ 編輯內容</button>
+        <button class="tab-btn" onclick="switchTab('game')">🎮 數位挑戰</button>
+        <button class="tab-btn" onclick="switchTab('print')">🖨️ A4 省紙列印</button>
     </div>
 </nav>
 
 <main>
     <div id="edit-view" class="view active">
         <div class="input-area">
-            <div class="flex-1">
-                <label style="font-size: 12px; font-weight: bold;">1. 輸入單字 (逗號或換行分隔)：</label>
-                <textarea id="raw-input" placeholder="apple, banana, dinosaur..."></textarea>
+            <div>
+                <label style="font-size: 13px; font-weight: bold;">📝 輸入字彙清單：</label>
+                <textarea id="raw-input" placeholder="例如：apple, banana, dinosaur..."></textarea>
             </div>
-            <div style="display: flex; flex-direction: column; gap: 5px;">
-                <select id="lang-type" style="font-size: 12px;">
+            <div class="setting-group">
+                <select id="mode-type" onchange="updateModeHint()">
+                    <option value="def">模式：定義配對</option>
+                    <option value="sent">模式：句子克漏字</option>
+                </select>
+                <select id="lang-type">
                     <option value="zh-en">英漢雙語</option>
                     <option value="en">純英文</option>
                 </select>
-                <button class="btn-primary" onclick="processInput()">✅ 更新清單</button>
-                <button class="btn-primary" style="background:var(--primary)" onclick="callAiApi()">✨ AI 生成定義</button>
+                <div class="btn-row">
+                    <button class="btn-primary" onclick="processInput()" style="flex:1">更新</button>
+                    <button class="btn-primary" onclick="callAiApi()" style="background:var(--primary); flex:2">✨ AI 生成</button>
+                </div>
             </div>
         </div>
         <div class="edit-table-container">
             <table>
-                <thead><tr><th width="120px">單字</th><th>定義 (可修改)</th></tr></thead>
+                <thead><tr><th width="150px">單字</th><th id="column-header">定義 / 句子 (可修改)</th></tr></thead>
                 <tbody id="vocab-body"></tbody>
             </table>
         </div>
@@ -141,8 +152,8 @@
     <div id="game-view" class="view">
         <div class="game-header">
             <div class="timer-display" id="timer-box">00:00</div>
-            <div id="game-msg" style="font-weight: bold;">準備好了嗎？</div>
-            <button class="btn-primary" onclick="startGame()">▶️ 開始遊戲</button>
+            <div id="game-msg">準備好挑戰了嗎？</div>
+            <button class="btn-primary" onclick="startGame()">▶️ 開始連線</button>
         </div>
         <div class="game-container" id="game-box">
             <svg id="connections-svg"></svg>
@@ -152,20 +163,11 @@
     </div>
 
     <div id="print-view" class="view">
-        <div style="text-align: center; margin-bottom: 5px;">
-            <button class="btn-primary" style="background: #333;" onclick="window.print()">🖨️ 直接列印 A4 考卷</button>
+        <div style="text-align: center; margin-bottom: 10px;">
+            <button class="btn-primary" style="background: #333;" onclick="window.print()">🖨️ 列印 A4 考卷 (一張兩份)</button>
         </div>
-        <div class="a4-preview">
-            <h2 style="text-align:center; margin:0;">Vocabulary Matching Challenge</h2>
-            <div class="student-info">
-                <span>Class: ________</span> <span>Name: ________</span> <span>Score: ________</span>
+        <div class="print-layout" id="print-content">
             </div>
-            <div class="matching-area">
-                <div class="print-col" id="print-left"></div>
-                <div class="print-col" id="print-right"></div>
-            </div>
-            <p style="font-size: 10px; text-align: center; color: #999; margin-top: 20px;">Matching definitions with correct words.</p>
-        </div>
     </div>
 </main>
 
@@ -182,15 +184,18 @@
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(`${tab}-view`).classList.add('active');
         event.target.classList.add('active');
-        if(tab === 'print') renderPrint();
+        if(tab === 'print') renderPrintLayout();
     }
 
-    // 1. 處理手動輸入
+    function updateModeHint() {
+        const mode = document.getElementById('mode-type').value;
+        document.getElementById('column-header').innerText = mode === 'def' ? '定義內容' : '克漏字句子 (含 _______________)';
+    }
+
     function processInput() {
         const text = document.getElementById('raw-input').value;
-        if(!text) return alert("請輸入單字");
         const words = text.split(/[,\n]/).map(w => w.trim()).filter(w => w.length > 0);
-        vocabData = words.map(w => ({ word: w, def: "等待 AI 生成或手動輸入..." }));
+        vocabData = words.map(w => ({ word: w, content: "點擊 AI 生成內容..." }));
         renderEdit();
     }
 
@@ -199,45 +204,56 @@
         tbody.innerHTML = vocabData.map((item, i) => `
             <tr>
                 <td><b>${item.word}</b></td>
-                <td><input type="text" value="${item.def}" style="width:100%" onchange="vocabData[${i}].def=this.value"></td>
+                <td><input type="text" value="${item.content}" style="width:100%; border:none; outline:none;" onchange="vocabData[${i}].content=this.value"></td>
             </tr>
         `).join('');
     }
 
-    // 2. 接通您的 GAS
     async function callAiApi() {
-        if(vocabData.length === 0) return alert("請先更新單字清單");
+        if(vocabData.length === 0) return alert("請先輸入單字");
         const btn = event.target;
-        btn.innerText = "⏳ 思考中..."; btn.disabled = true;
+        const mode = document.getElementById('mode-type').value;
+        const lang = document.getElementById('lang-type').value;
+        
+        btn.innerText = "⏳ AI 正在編寫..."; btn.disabled = true;
+
+        // 構建針對模式的 Prompt
+        let customPrompt = mode === 'def' 
+            ? `請為以下單字提供${lang === 'zh-en' ? '英漢雙語' : '純英文'}定義。格式為 JSON。`
+            : `請為以下每個單字寫一個合適的英文例句，並將該單字替換為「_______________」(固定15個底線)。格式為 JSON。`;
 
         try {
             const response = await fetch(GAS_API_URL, {
                 method: "POST",
                 body: JSON.stringify({
-                    type: "crossword", // 沿用原本 GAS 邏輯
+                    type: "crossword", 
                     words: vocabData.map(d => d.word).join(','),
+                    customPrompt: customPrompt, // 如果您的 GAS 有支援傳送自訂 prompt
                     model: "gemini-2.5-flash"
                 })
             });
             const data = await response.json();
             if(data.error) throw new Error(data.error);
 
-            vocabData = Object.keys(data).map(key => ({ word: key, def: data[key] }));
+            vocabData = Object.keys(data).map(key => ({ word: key, content: data[key] }));
             renderEdit();
-            alert("✨ 生成完畢！");
-        } catch (e) { alert("失敗：" + e.message); }
-        finally { btn.innerText = "✨ AI 生成定義"; btn.disabled = false; }
+        } catch (e) { alert("生成失敗：" + e.message); }
+        finally { btn.innerText = "✨ AI 生成內容"; btn.disabled = false; }
     }
 
-    // 3. 遊戲區 (比例優化)
+    // 數位遊戲邏輯
     function startGame() {
-        if(vocabData.length === 0) return alert("請先在編輯區準備單字");
+        if(vocabData.length === 0) return;
         isPlaying = true; seconds = 0;
         document.getElementById('connections-svg').innerHTML = '';
         const left = [...vocabData].sort(() => Math.random() - 0.5);
         const right = [...vocabData].sort(() => Math.random() - 0.5);
         
-        renderCards(left, right);
+        renderGameCards(left, right);
+        startTimer();
+    }
+
+    function startTimer() {
         clearInterval(timer);
         timer = setInterval(() => {
             seconds++;
@@ -247,14 +263,15 @@
         }, 1000);
     }
 
-    function renderCards(left, right) {
+    function renderGameCards(left, right) {
         const lBox = document.getElementById('left-cards');
         const rBox = document.getElementById('right-cards');
         lBox.innerHTML = ''; rBox.innerHTML = '';
 
         left.forEach(item => {
             const d = document.createElement('div');
-            d.className = 'card'; d.innerText = item.word;
+            d.className = 'card'; d.style.width = "180px";
+            d.innerText = item.word;
             d.onclick = () => {
                 if(d.classList.contains('matched')) return;
                 document.querySelectorAll('#left-cards .card').forEach(c => c.classList.remove('selected'));
@@ -265,7 +282,7 @@
 
         right.forEach(item => {
             const d = document.createElement('div');
-            d.className = 'card'; d.innerText = item.def;
+            d.className = 'card'; d.innerText = item.content;
             d.onclick = () => {
                 if(!selectedLeft || d.classList.contains('matched')) return;
                 if(selectedLeft.item.word === item.word) {
@@ -273,7 +290,7 @@
                     drawLink(selectedLeft.el, d);
                     selectedLeft = null;
                     if(document.querySelectorAll('.card.matched').length === vocabData.length*2) {
-                        clearInterval(timer); alert("🎉 太棒了！花費時間：" + document.getElementById('timer-box').innerText);
+                        clearInterval(timer); alert("🎉 完美達成！");
                     }
                 } else {
                     d.style.borderColor = 'red'; setTimeout(() => d.style.borderColor = '#ddd', 500);
@@ -290,26 +307,57 @@
         const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
         line.setAttribute("x1", r1.right - pb.left); line.setAttribute("y1", r1.top + r1.height/2 - pb.top);
         line.setAttribute("x2", r2.left - pb.left); line.setAttribute("y2", r2.top + r2.height/2 - pb.top);
-        line.setAttribute("stroke", "#4ECDC4"); line.setAttribute("stroke-width", "3");
+        line.setAttribute("stroke", "#4ECDC4"); line.setAttribute("stroke-width", "4");
         svg.appendChild(line);
     }
 
-    // 4. 列印區 (題號 + 小圓點)
-    function renderPrint() {
-        const l = document.getElementById('print-left');
-        const r = document.getElementById('print-right');
-        l.innerHTML = ''; r.innerHTML = '';
+    // 列印功能：一頁兩份
+    function renderPrintLayout() {
+        const container = document.getElementById('print-content');
+        container.innerHTML = '';
+        
+        // 建立兩份相同的 HTML
+        const singleTaskHTML = createSingleTaskHTML();
+        container.innerHTML = singleTaskHTML + singleTaskHTML;
+    }
+
+    function createSingleTaskHTML() {
         const sL = [...vocabData].sort(() => Math.random() - 0.5);
         const sR = [...vocabData].sort(() => Math.random() - 0.5);
 
-        sL.forEach((item, i) => {
-            l.innerHTML += `<div class="print-item"><span class="num">${i+1}.</span> ${item.word} <div class="dot" style="margin-left:auto"></div></div>`;
-        });
-        sR.forEach((item, i) => {
-            const char = String.fromCharCode(65 + i);
-            r.innerHTML += `<div class="print-item"><div class="dot"></div> <span class="num" style="margin-left:10px">${char}.</span> ${item.def}</div>`;
-        });
+        let leftItems = sL.map((item, i) => `
+            <div class="print-item">
+                <span style="width:20px; font-weight:bold;">${i+1}.</span>
+                <span>${item.word}</span>
+                <div class="anchor-o"></div>
+            </div>
+        `).join('');
+
+        let rightItems = sR.map((item, i) => `
+            <div class="print-item">
+                <div class="anchor-dot"></div>
+                <span style="width:25px; font-weight:bold;">(${String.fromCharCode(65+i)})</span>
+                <span style="flex:1;">${item.content}</span>
+            </div>
+        `).join('');
+
+        return `
+            <div class="a4-half">
+                <h3 class="print-title">Vocabulary Lab Challenge</h3>
+                <div class="student-box">
+                    <span>Class: ________</span> <span>Name: ________</span> <span>Score: ____</span>
+                </div>
+                <div class="print-matching-area">
+                    <div class="print-col">${leftItems}</div>
+                    <div class="print-col" style="padding-left:15px; border-left:1px solid #eee;">
+                        <div class="word-bank-box">${rightItems}</div>
+                    </div>
+                </div>
+                <div style="font-size:9px; color:#aaa; text-align:center; margin-top:10px;">NewCore AI Learning System</div>
+            </div>
+        `;
     }
 </script>
+
 </body>
 </html>
