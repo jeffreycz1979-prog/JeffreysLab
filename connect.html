@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NewCore AI Multi-Lab V5</title>
+    <title>NewCore AI Multi-Lab V6</title>
     <style>
         :root { --primary: #FF6B6B; --secondary: #4ECDC4; --accent: #FFE66D; --bg: #F7FFF7; --text: #2F2F2F; }
         * { box-sizing: border-box; font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif; }
@@ -20,42 +20,49 @@
         .view { display: none; height: 100%; overflow: hidden; }
         .view.active { display: flex; flex-direction: column; }
 
-        .input-area { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; display: grid; grid-template-columns: 1fr 300px; gap: 15px; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        textarea { width: 100%; height: 80px; resize: none; padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; }
-        .setting-group { display: flex; flex-direction: column; gap: 8px; }
-        select { padding: 5px; border-radius: 5px; border: 1px solid #ccc; font-size: 13px; outline: none; }
+        .input-area { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; display: grid; grid-template-columns: 1fr 320px; gap: 15px; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        textarea { width: 100%; height: 110px; resize: none; padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; }
+        .setting-group { display: flex; flex-direction: column; gap: 6px; }
+        select { padding: 6px; border-radius: 5px; border: 1px solid #ccc; font-size: 13px; outline: none; }
 
         .edit-table-container { flex: 1; overflow-y: auto; background: white; border-radius: 12px; }
         table { width: 100%; border-collapse: collapse; font-size: 14px; }
         th, td { padding: 12px 15px; border-bottom: 1px solid #eee; text-align: left; }
-        th { background: #f9f9f9; position: sticky; top: 0; }
+        th { background: #f9f9f9; position: sticky; top: 0; z-index: 10;}
 
+        /* 遊戲區 */
         .game-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: var(--accent); border-radius: 12px; margin-bottom: 10px; flex-shrink: 0; }
-        .game-container { flex: 1; position: relative; display: grid; grid-template-columns: 200px 1fr; gap: 150px; padding: 20px 80px; align-items: center; justify-content: center; }
-        .card-list { display: flex; flex-direction: column; gap: 12px; height: 100%; justify-content: center; }
-        .card { background: white; padding: 12px 18px; border: 2px solid #ddd; border-radius: 10px; cursor: pointer; transition: 0.2s; font-size: 15px; min-height: 45px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .game-container { flex: 1; position: relative; display: grid; grid-template-columns: 200px 1fr; gap: 120px; padding: 10px 60px; align-items: center; justify-content: center; }
+        .card-list { display: flex; flex-direction: column; gap: 10px; height: 100%; justify-content: center; }
+        .card { background: white; padding: 10px 15px; border: 2px solid #ddd; border-radius: 10px; cursor: pointer; transition: 0.2s; font-size: 14px; min-height: 40px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); text-align: center; }
         .card.selected { border-color: var(--primary); background: #fff5f5; transform: scale(1.05); }
         .card.matched { border-color: var(--secondary); background: #f0fff0; opacity: 0.5; cursor: default; }
         #connections-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
 
-        #print-view { overflow-y: auto; background: #555; padding: 40px 0; }
-        .a4-page { width: 794px; height: 1123px; background: white; margin: 0 auto 40px auto; padding: 60px; display: flex; flex-direction: column; box-shadow: 0 0 20px rgba(0,0,0,0.5); page-break-after: always; }
-        .print-header { border-bottom: 3px solid #333; margin-bottom: 30px; text-align: center; padding-bottom: 10px; }
-        .student-box { display: flex; justify-content: space-between; margin-bottom: 50px; font-weight: bold; font-size: 16px; }
+        /* 列印模式優化：為了塞入10題 */
+        #print-view { overflow-y: auto; background: #555; padding: 30px 0; }
+        .a4-page { width: 794px; min-height: 1123px; background: white; margin: 0 auto 30px auto; padding: 50px; display: flex; flex-direction: column; box-shadow: 0 0 20px rgba(0,0,0,0.5); page-break-after: always; }
+        .print-header { border-bottom: 3px solid #333; margin-bottom: 20px; text-align: center; padding-bottom: 10px; }
+        .student-box { display: flex; justify-content: space-between; margin-bottom: 30px; font-weight: bold; font-size: 15px; }
         .print-area { display: flex; justify-content: space-between; flex: 1; }
-        .print-col { width: 42%; display: flex; flex-direction: column; gap: 25px; }
-        .print-item { display: flex; align-items: flex-start; min-height: 40px; font-size: 17px; line-height: 1.4; }
-        .print-num { width: 35px; font-weight: bold; flex-shrink: 0; }
-        .print-letter { width: 40px; font-weight: bold; flex-shrink: 0; }
+        
+        /* 左右比例調整：左30% 右65%，給句子更多空間 */
+        .print-col-left { width: 30%; display: flex; flex-direction: column; gap: 20px; }
+        .print-col-right { width: 65%; display: flex; flex-direction: column; gap: 20px; border-left: 1px dashed #ccc; padding-left: 25px; }
+        
+        /* 字體微縮，確保10題能一頁完成 */
+        .print-item { display: flex; align-items: flex-start; min-height: 35px; font-size: 14px; line-height: 1.4; }
+        .print-num { width: 30px; font-weight: bold; flex-shrink: 0; }
+        .print-letter { width: 35px; font-weight: bold; flex-shrink: 0; }
 
         @media print {
             nav, button, .input-area, .game-header { display: none !important; }
             body, main { background: white; overflow: visible; }
             .view { display: none !important; }
-            #print-view { display: block !important; }
-            .a4-page { margin: 0; border: none; box-shadow: none; width: 100%; height: auto; }
+            #print-view { display: block !important; padding: 0;}
+            .a4-page { margin: 0; border: none; box-shadow: none; width: 100%; height: auto; padding: 20px; }
         }
-        button { cursor: pointer; border: none; border-radius: 12px; font-weight: bold; padding: 10px 18px; }
+        button { cursor: pointer; border: none; border-radius: 12px; font-weight: bold; padding: 8px 15px; }
         .btn-primary { background: var(--secondary); color: white; }
     </style>
 </head>
@@ -80,10 +87,15 @@
     <div id="edit-view" class="view active">
         <div class="input-area">
             <div>
-                <label id="lbl-input" style="font-size: 13px; font-weight: bold;">📝 輸入字彙清單：</label>
+                <label id="lbl-input" style="font-size: 13px; font-weight: bold;">📝 輸入字彙清單 (最多建議 10-12 個)：</label>
                 <textarea id="raw-input" placeholder="apple, orange..."></textarea>
             </div>
             <div class="setting-group">
+                <select id="diff-level">
+                    <option value="Level A1 (Easy for kids)">難度：A1 (小學/簡單)</option>
+                    <option value="Level B1 (Intermediate)" selected>難度：B1 (國中/中等)</option>
+                    <option value="Level C1 (Advanced)">難度：C1 (高中/挑戰)</option>
+                </select>
                 <select id="mode-type" onchange="updateTableUI()">
                     <option value="def" id="opt-mode-def">模式：定義配對</option>
                     <option value="sent" id="opt-mode-sent">模式：句子克漏字</option>
@@ -92,7 +104,7 @@
                     <option value="zh-en" id="opt-lang-bi">雙語 (Bilingual)</option>
                     <option value="en" id="opt-lang-en">純英文 (English Only)</option>
                 </select>
-                <div style="display:flex; gap:5px;">
+                <div style="display:flex; gap:5px; margin-top: 5px;">
                     <button class="btn-primary" onclick="processInput()" style="flex:1" id="btn-update">更新</button>
                     <button class="btn-primary" onclick="callAiApi()" style="background:var(--primary); flex:2" id="btn-ai">✨ AI 生成</button>
                 </div>
@@ -127,7 +139,9 @@
 </main>
 
 <script>
+    // ⚠️ 記得替換為您的 GAS 網址
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycby63WiGPMwr6FmUeZiGtHwwzuY30q7PovCBN7Por7kj164AcuX69QMztOJn1jIHH1lzAg/exec";
+    
     let vocabData = [];
     let isPlaying = false;
     let timer = null;
@@ -137,7 +151,7 @@
     const translations = {
         zh: {
             logo: "🎨 NewCore AI Multi-Lab", tabEdit: "✏️ 編輯內容", tabGame: "🎮 數位挑戰", tabPrint: "🖨️ 列印考卷",
-            lblInput: "📝 輸入字彙清單：", btnUpdate: "更新清單", btnAi: "✨ AI 生成內容",
+            lblInput: "📝 輸入字彙清單 (建議 10 題以內)：", btnUpdate: "更新清單", btnAi: "✨ AI 生成內容",
             thWord: "單字", thContent: "定義內容", optModeDef: "模式：定義配對", optModeSent: "模式：句子克漏字",
             optLangBi: "雙語 (Bilingual)", optLangEn: "純英文 (English Only)",
             btnStartGame: "▶️ 開始遊戲", btnPrintAction: "🖨️ 直接列印 (A4 兩頁)", printTitle: "Vocabulary Matching Challenge",
@@ -145,7 +159,7 @@
         },
         en: {
             logo: "🎨 AI Learning Lab", tabEdit: "✏️ Editor", tabGame: "🎮 Game", tabPrint: "🖨️ Print",
-            lblInput: "📝 Vocabulary List:", btnUpdate: "Update", btnAi: "✨ AI Generate",
+            lblInput: "📝 Vocabulary List (Max 10 recommended):", btnUpdate: "Update", btnAi: "✨ AI Generate",
             thWord: "Word", thContent: "Definitions", optModeDef: "Mode: Definition", optModeSent: "Mode: Gap-fill Sentence",
             optLangBi: "Bilingual", optLangEn: "English Only",
             btnStartGame: "▶️ Start Game", btnPrintAction: "🖨️ Print Now (2 Pages)", printTitle: "Vocabulary Matching Challenge",
@@ -198,56 +212,52 @@
         tbody.innerHTML = vocabData.map((item, i) => `
             <tr>
                 <td><b>${item.word}</b></td>
-                <td><input type="text" value="${item.content}" style="width:100%; border:none;" onchange="vocabData[${i}].content=this.value"></td>
+                <td><input type="text" value="${item.content}" style="width:100%; border:none; outline:none;" onchange="vocabData[${i}].content=this.value"></td>
             </tr>
         `).join('');
     }
 
     async function callAiApi() {
-    if(vocabData.length === 0) return;
-    const btn = document.getElementById('btn-ai');
-    const mode = document.getElementById('mode-type').value;
-    const lang = document.getElementById('lang-type').value;
-    btn.innerText = "..."; btn.disabled = true;
+        if(vocabData.length === 0) return;
+        const btn = document.getElementById('btn-ai');
+        const mode = document.getElementById('mode-type').value;
+        const lang = document.getElementById('lang-type').value;
+        const diff = document.getElementById('diff-level').value; // 抓取難度
+        
+        btn.innerText = "⏳ 處理中..."; btn.disabled = true;
 
-    let instruction = "";
-    if (mode === 'def') {
-        // 如果是雙語，直接要求中文。如果不行生成雙語，我們就強制中文。
-        instruction = (lang === 'zh-en') 
-            ? `Task: Provide Chinese definitions. Words: ${vocabData.map(d=>d.word).join(',')}. Return JSON {word: "中文定義"}.`
-            : `Task: Provide English definitions. Words: ${vocabData.map(d=>d.word).join(',')}. Return JSON {word: "English definition"}.`;
-    } else {
-        // 句子克漏字 (暴力指令)
-        instruction = `Task: Create English Gap-fill sentences. 
-        RULE: REPLACE the target word with "_______________" (15 underscores). 
-        Words: ${vocabData.map(d=>d.word).join(',')}. 
-        Return JSON {word: "Sentence with _______________"}.`;
+        // 構建精準指令
+        let prompt = "";
+        const wordsStr = vocabData.map(d=>d.word).join(', ');
+
+        if(mode === 'def') {
+            const outLang = (lang === 'zh-en') ? 'English definition with (Traditional Chinese Translation)' : 'English only';
+            prompt = `Provide ${diff} definitions for these words: ${wordsStr}. Language: ${outLang}. Return JSON format {word: definition}.`;
+        } else {
+            prompt = `Write ONE ${diff} English sentence for each word. CRITICAL RULE: Replace the target word with exactly 15 underscores "_______________" in the sentence. Words: ${wordsStr}. Return JSON format {word: sentence}.`;
+        }
+
+        try {
+            const response = await fetch(GAS_API_URL, {
+                method: "POST",
+                body: JSON.stringify({ type: "crossword", words: wordsStr, customPrompt: prompt, model: "gemini-2.5-flash" })
+            });
+            const resText = await response.text();
+            
+            try {
+                const data = JSON.parse(resText);
+                if (data.error) throw new Error(data.error);
+                vocabData = Object.keys(data).map(key => ({ word: key, content: data[key] }));
+                renderEdit();
+            } catch(parseErr) {
+                console.error(resText);
+                throw new Error("伺服器回傳格式異常 (可能是單字量過多導致超時)。");
+            }
+        } catch (e) { alert("AI 錯誤: " + e.message); }
+        finally { btn.innerText = translations[document.getElementById('ui-lang').value].btnAi; btn.disabled = false; }
     }
 
-    try {
-        const response = await fetch(GAS_API_URL, {
-            method: "POST",
-            body: JSON.stringify({
-                type: "crossword", 
-                words: vocabData.map(d => d.word).join(','),
-                customPrompt: instruction,
-                model: "gemini-2.5-flash"
-            })
-        });
-        
-        const resText = await response.text(); 
-        const data = JSON.parse(resText); // 這裡如果報錯代表 GAS 回傳了非 JSON 的內容
-        
-        vocabData = Object.keys(data).map(key => ({ word: key, content: data[key] }));
-        renderEdit();
-    } catch (e) { 
-        alert("AI Error: " + e.message); 
-    } finally { 
-        btn.innerText = translations[document.getElementById('ui-lang').value].btnAi; 
-        btn.disabled = false; 
-    }
-}
-    // 數位遊戲邏輯
+    // --- 數位遊戲邏輯 ---
     function startGame() {
         if(vocabData.length === 0) return;
         isPlaying = true; seconds = 0;
@@ -304,7 +314,7 @@
         svg.appendChild(line);
     }
 
-    // 列印：極簡兩頁式
+    // --- 列印排版邏輯 ---
     function renderPrintPages() {
         const container = document.getElementById('print-container');
         container.innerHTML = '';
@@ -317,7 +327,7 @@
         const sR = [...vocabData].sort(() => Math.random() - 0.5);
         const lang = document.getElementById('ui-lang').value;
 
-        let leftItems = sL.map((item, i) => `<div class="print-item"><span class="print-num">${i+1}.</span><span>${item.word}</span></div>`).join('');
+        let leftItems = sL.map((item, i) => `<div class="print-item"><span class="print-num">${i+1}.</span><span style="flex:1;">${item.word}</span></div>`).join('');
         let rightItems = sR.map((item, i) => `<div class="print-item"><span class="print-letter">(${String.fromCharCode(65+i)})</span><span style="flex:1;">${item.content}</span></div>`).join('');
 
         return `
@@ -325,10 +335,10 @@
                 <div class="print-header"><h1>${translations[lang].printTitle}</h1></div>
                 <div class="student-box"><span>Class: ________</span><span>Name: ________</span><span>Score: ________</span></div>
                 <div class="print-area">
-                    <div class="print-col">${leftItems}</div>
-                    <div class="print-col" style="border-left: 1px dashed #eee; padding-left: 40px;">${rightItems}</div>
+                    <div class="print-col-left">${leftItems}</div>
+                    <div class="print-col-right">${rightItems}</div>
                 </div>
-                <div style="text-align:center; font-size:11px; color:#aaa; margin-top:20px;">NewCore AI Learning System</div>
+                <div style="text-align:center; font-size:11px; color:#aaa; margin-top:30px;">NewCore AI Learning System</div>
             </div>
         `;
     }
