@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NewCore AI 繽紛連連看</title>
+    <style>
+        :root {
+            --primary: #FF6B6B;
+            --secondary: #4ECDC4;
+            --accent: #FFE66D;
+            --bg: #F7FFF7;
+            --text: #2F2F2F;
+            --card-bg: #FFFFFF;
+        }
+
+        * { box-sizing: border-box; font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif; }
+        
+        body { 
+            margin: 0; 
+            background-color: var(--bg); 
+            color: var(--text);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* 強制單頁不捲動 */
+        }
+
+        /* 導覽列 */
+        nav {
+            background: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        .logo { font-size: 20px; font-weight: bold; color: var(--primary); }
+
+        .tabs { display: flex; gap: 10px; }
+        .tab-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 20px;
+            background: #eee;
+            cursor: pointer;
+            transition: 0.3s;
+            font-weight: bold;
+        }
+        .tab-btn.active { background: var(--primary); color: white; }
+
+        /* 主要內容區 */
+        main { flex: 1; padding: 20px; position: relative; overflow: hidden; }
+        .view { display: none; height: 100%; }
+        .view.active { display: flex; flex-direction: column; }
+
+        /* 編輯模式 */
+        .controls { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); 
+            gap: 15px; 
+            margin-bottom: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 15px;
+        }
+        .input-group { display: flex; flex-direction: column; gap: 5px; }
+        select, input, textarea { 
+            padding: 8px; 
+            border: 2px solid #ddd; 
+            border-radius: 10px;
+            outline: none;
+        }
+        .btn-ai { 
+            background: var(--secondary); 
+            color: white; 
+            border: none; 
+            padding: 10px; 
+            border-radius: 10px; 
+            cursor: pointer; 
+            font-weight: bold;
+        }
+
+        .edit-table-container { flex: 1; overflow-y: auto; background: white; border-radius: 15px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
+        th { background: #f9f9f9; position: sticky; top: 0; }
+
+        /* 遊戲模式 */
+        #game-view { display: none; }
+        #game-view.active { display: grid; grid-template-rows: auto 1fr; gap: 10px; }
+        .game-header { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: var(--accent); border-radius: 15px; }
+        .timer-display { font-size: 24px; font-weight: bold; font-family: monospace; }
+
+        .game-container { 
+            position: relative; 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 60px; 
+            padding: 20px;
+            align-items: center;
+        }
+        .card-list { display: flex; flex-direction: column; gap: 10px; }
+        .card { 
+            background: white; 
+            padding: 15px; 
+            border: 3px solid #ddd; 
+            border-radius: 12px; 
+            cursor: pointer; 
+            text-align: center;
+            transition: 0.2s;
+            user-select: none;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .card.selected { border-color: var(--primary); background: #fff5f5; transform: scale(1.05); }
+        .card.matched { border-color: var(--secondary); background: #f0fff0; color: #888; cursor: default; }
+        .card.wrong { border-color: var(--primary); animation: shake 0.3s; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        /* SVG 連線 */
+        #connections-svg {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        /* 列印模式 (A4 模擬) */
+        .a4-preview {
+            width: 595px; /* A4 比例縮放 */
+            height: 842px;
+            background: white;
+            margin: 0 auto;
+            padding: 40px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            transform: scale(0.8);
+            transform-origin: top center;
+        }
+        .print-header { border-bottom: 2px solid #333; margin-bottom: 20px; padding-bottom: 10px; }
+        .student-info { display: flex; justify-content: space-between; margin-bottom: 30px; }
+        .matching-area { display: flex; justify-content: space-between; flex: 1; }
+        .print-col { width: 45%; }
+        .print-item { margin-bottom: 25px; min-height: 40px; border-bottom: 1px dashed #ccc; padding-bottom: 5px; }
+
+        /* 列印媒體查詢 */
+        @media print {
+            nav, .tab-btn, .controls { display: none !important; }
+            body, main { background: white; overflow: visible; }
+            .view { display: none !important; }
+            #print-view { display: block !important; }
+            .a4-preview { transform: none; box-shadow: none; width: 100%; height: auto; padding: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="logo">🎨 NewCore Matching Lab</div>
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('edit')">✏️ 編輯題庫</button>
+        <button class="tab-btn" onclick="switchTab('game')">🎮 數位挑戰</button>
+        <button class="tab-btn" onclick="switchTab('print')">🖨️ A4 學習單</button>
+    </div>
+</nav>
+
+<main>
+    <div id="edit-view" class="view active">
+        <div class="controls">
+            <div class="input-group">
+                <label>難度</label>
+                <select id="diff-level">
+                    <option value="A1">簡單 (A1)</option>
+                    <option value="B1" selected>中等 (B1)</option>
+                    <option value="C1">挑戰 (C1)</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>語言</label>
+                <select id="lang-type">
+                    <option value="en">純英文</option>
+                    <option value="zh-en" selected>英漢雙語</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>計時模式</label>
+                <select id="timer-mode">
+                    <option value="up">正數計時</option>
+                    <option value="30">倒數 30s</option>
+                    <option value="60">倒數 60s</option>
+                </select>
+            </div>
+            <div class="input-group" style="justify-content: flex-end;">
+                <button class="btn-ai" onclick="callAiApi()">✨ AI 生成定義</button>
+            </div>
+        </div>
+        <div class="edit-table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th width="30%">單字</th>
+                        <th>定義 (可直接修改)</th>
+                    </tr>
+                </thead>
+                <tbody id="vocab-body">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="game-view" class="view">
+        <div class="game-header">
+            <div id="game-msg">請點擊開始遊戲！</div>
+            <div class="timer-display" id="timer-box">00:00</div>
+            <button class="btn-ai" onclick="startGame()">▶️ 開始挑戰</button>
+        </div>
+        <div class="game-container" id="game-box">
+            <svg id="connections-svg"></svg>
+            <div class="card-list" id="left-cards"></div>
+            <div class="card-list" id="right-cards"></div>
+        </div>
+    </div>
+
+    <div id="print-view" class="view">
+        <div style="text-align: center; margin-bottom: 10px;">
+            <button class="btn-ai" style="background: #333;" onclick="window.print()">🖨️ 直接列印 (A4)</button>
+        </div>
+        <div class="a4-preview">
+            <div class="print-header">
+                <h1 style="text-align:center; margin:0;">Vocabulary Matching Challenge</h1>
+            </div>
+            <div class="student-info">
+                <span>Class: __________</span>
+                <span>Name: __________</span>
+                <span>Score: __________</span>
+            </div>
+            <div class="matching-area">
+                <div class="print-col" id="print-left"></div>
+                <div class="print-col" id="print-right"></div>
+            </div>
+            <div style="margin-top:auto; font-size: 10px; color: #999; text-align: right;">
+                Generated by NewCore AI Engine
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+const GAS_API_URL = "https://script.google.com/macros/s/AKfycby63WiGPMwr6FmUeZiGtHwwzuY30q7PovCBN7Por7kj164AcuX69QMztOJn1jIHH1lzAg/exec";
+    // 預設資料
+    let vocabData = [
+        { word: "Apple", def: "A round fruit with red or green skin. (蘋果)" },
+        { word: "Dinosaur", def: "A giant animal that lived millions of years ago. (恐龍)" },
+        { word: "Plant a tree", def: "To put a young tree into the ground to grow. (種樹)" },
+        { word: "December", def: "The last month of the year. (十二月)" },
+        { word: "Water", def: "A clear liquid we need to drink to live. (水)" },
+        { word: "Book", def: "Something you read with many pages. (書本)" }
+    ];
+
+    let selectedLeft = null;
+    let timerInterval = null;
+    let seconds = 0;
+    let isPlaying = false;
+
+    // 初始化介面
+    function init() {
+        renderEditTable();
+    }
+
+    function switchTab(tab) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(`${tab}-view`).classList.add('active');
+        event.target.classList.add('active');
+        
+        if(tab === 'print') renderPrintView();
+        if(tab === 'game') stopGame();
+    }
+
+    // 渲染編輯表格
+    function renderEditTable() {
+        const tbody = document.getElementById('vocab-body');
+        tbody.innerHTML = vocabData.map((item, index) => `
+            <tr>
+                <td><b>${item.word}</b></td>
+                <td><input type="text" value="${item.def}" style="width:100%" onchange="updateDef(${index}, this.value)"></td>
+            </tr>
+        `).join('');
+    }
+
+    function updateDef(index, val) {
+        vocabData[index].def = val;
+    }
+
+    // 模擬 AI API 呼叫
+    async function callAiApi() {
+    const btn = event.target;
+    const diff = document.getElementById('diff-level').value;
+    const lang = document.getElementById('lang-type').value;
+    const words = vocabData.map(d => d.word).join(',');
+
+    btn.innerText = "⏳ AI 老師思考中...";
+    btn.disabled = true;
+
+    try {
+        const response = await fetch(GAS_API_URL, {
+            method: "POST",
+            body: JSON.stringify({
+                type: "crossword", // 這裡沿用原本 GAS 裡的提示語生成邏輯
+                words: words,
+                model: "gemini-2.5-flash"
+            })
+        });
+
+        const data = await response.json();
+        
+        if (data.error) throw new Error(data.error);
+
+        // 將 AI 回傳的定義更新回資料中
+        vocabData = Object.keys(data).map(key => ({
+            word: key,
+            def: data[key]
+        }));
+
+        renderEditTable(); // 重新渲染表格
+        alert("✨ AI 定義生成成功！你可以手動微調內容。");
+
+    } catch (e) {
+        alert("生成失敗：" + e.message);
+    } finally {
+        btn.innerText = "✨ AI 生成定義";
+        btn.disabled = false;
+    }
+}
+    // 遊戲邏輯
+    function startGame() {
+        isPlaying = true;
+        seconds = document.getElementById('timer-mode').value === 'up' ? 0 : parseInt(document.getElementById('timer-mode').value);
+        document.getElementById('game-msg').innerText = "挑戰開始！請連線正確的定義。";
+        
+        const leftSide = [...vocabData].sort(() => Math.random() - 0.5);
+        const rightSide = [...vocabData].sort(() => Math.random() - 0.5);
+
+        renderCards(leftSide, rightSide);
+        startTimer();
+    }
+
+    function stopGame() {
+        clearInterval(timerInterval);
+        isPlaying = false;
+        document.getElementById('connections-svg').innerHTML = '';
+    }
+
+    function startTimer() {
+        clearInterval(timerInterval);
+        const mode = document.getElementById('timer-mode').value;
+        timerInterval = setInterval(() => {
+            if (mode === 'up') seconds++; else seconds--;
+            
+            let m = Math.floor(Math.abs(seconds) / 60).toString().padStart(2, '0');
+            let s = (Math.abs(seconds) % 60).toString().padStart(2, '0');
+            document.getElementById('timer-box').innerText = `${m}:${s}`;
+
+            if (seconds === 0 && mode !== 'up') {
+                clearInterval(timerInterval);
+                alert("時間到！再接再厲！");
+                stopGame();
+            }
+        }, 1000);
+    }
+
+    function renderCards(left, right) {
+        const leftContainer = document.getElementById('left-cards');
+        const rightContainer = document.getElementById('right-cards');
+        leftContainer.innerHTML = '';
+        rightContainer.innerHTML = '';
+
+        left.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'card';
+            div.innerText = item.word;
+            div.onclick = () => selectLeft(div, item);
+            leftContainer.appendChild(div);
+        });
+
+        right.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'card';
+            div.innerText = item.def;
+            div.onclick = () => selectRight(div, item);
+            rightContainer.appendChild(div);
+        });
+    }
+
+    function selectLeft(el, item) {
+        if (!isPlaying || el.classList.contains('matched')) return;
+        document.querySelectorAll('#left-cards .card').forEach(c => c.classList.remove('selected'));
+        el.classList.add('selected');
+        selectedLeft = { el, item };
+    }
+
+    function selectRight(el, item) {
+        if (!selectedLeft || el.classList.contains('matched')) return;
+
+        if (selectedLeft.item.word === item.word) {
+            // 答對了
+            el.classList.add('matched');
+            selectedLeft.el.classList.add('matched');
+            selectedLeft.el.classList.remove('selected');
+            drawLink(selectedLeft.el, el);
+            selectedLeft = null;
+            checkWin();
+        } else {
+            // 答錯了
+            el.classList.add('wrong');
+            setTimeout(() => el.classList.remove('wrong'), 500);
+        }
+    }
+
+    function drawLink(el1, el2) {
+        const svg = document.getElementById('connections-svg');
+        const rect1 = el1.getBoundingClientRect();
+        const rect2 = el2.getBoundingClientRect();
+        const parentRect = document.getElementById('game-box').getBoundingClientRect();
+
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", rect1.right - parentRect.left);
+        line.setAttribute("y1", rect1.top + rect1.height/2 - parentRect.top);
+        line.setAttribute("x2", rect2.left - parentRect.left);
+        line.setAttribute("y2", rect2.top + rect2.height/2 - parentRect.top);
+        line.setAttribute("stroke", "#4ECDC4");
+        line.setAttribute("stroke-width", "4");
+        svg.appendChild(line);
+    }
+
+    function checkWin() {
+        const matched = document.querySelectorAll('.card.matched').length;
+        if (matched === vocabData.length * 2) {
+            clearInterval(timerInterval);
+            document.getElementById('game-msg').innerText = "🎉 恭喜完成挑戰！";
+            alert("太棒了！你完成了所有單字配對！");
+        }
+    }
+
+    // 列印預覽渲染
+    function renderPrintView() {
+        const left = document.getElementById('print-left');
+        const right = document.getElementById('print-right');
+        left.innerHTML = '';
+        right.innerHTML = '';
+
+        const shuffledLeft = [...vocabData].sort(() => Math.random() - 0.5);
+        const shuffledRight = [...vocabData].sort(() => Math.random() - 0.5);
+
+        shuffledLeft.forEach(item => {
+            left.innerHTML += `<div class="print-item">${item.word}</div>`;
+        });
+        shuffledRight.forEach(item => {
+            right.innerHTML += `<div class="print-item">${item.def}</div>`;
+        });
+    }
+
+    init();
+</script>
+
+</body>
+</html>
