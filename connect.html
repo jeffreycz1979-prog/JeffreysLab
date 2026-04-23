@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NewCore AI Multi-Lab V6</title>
+    <title>NewCore AI Multi-Lab V6.1</title>
     <style>
         :root { --primary: #FF6B6B; --secondary: #4ECDC4; --accent: #FFE66D; --bg: #F7FFF7; --text: #2F2F2F; }
         * { box-sizing: border-box; font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif; }
@@ -39,19 +39,17 @@
         .card.matched { border-color: var(--secondary); background: #f0fff0; opacity: 0.5; cursor: default; }
         #connections-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
 
-        /* 列印模式優化：為了塞入10題 */
+        /* 列印模式 */
         #print-view { overflow-y: auto; background: #555; padding: 30px 0; }
         .a4-page { width: 794px; min-height: 1123px; background: white; margin: 0 auto 30px auto; padding: 50px; display: flex; flex-direction: column; box-shadow: 0 0 20px rgba(0,0,0,0.5); page-break-after: always; }
         .print-header { border-bottom: 3px solid #333; margin-bottom: 20px; text-align: center; padding-bottom: 10px; }
         .student-box { display: flex; justify-content: space-between; margin-bottom: 30px; font-weight: bold; font-size: 15px; }
         .print-area { display: flex; justify-content: space-between; flex: 1; }
         
-        /* 左右比例調整：左30% 右65%，給句子更多空間 */
-        .print-col-left { width: 30%; display: flex; flex-direction: column; gap: 20px; }
-        .print-col-right { width: 65%; display: flex; flex-direction: column; gap: 20px; border-left: 1px dashed #ccc; padding-left: 25px; }
+        .print-col-left { width: 30%; display: flex; flex-direction: column; }
+        .print-col-right { width: 65%; display: flex; flex-direction: column; border-left: 1px dashed #ccc; padding-left: 25px; }
         
-        /* 字體微縮，確保10題能一頁完成 */
-        .print-item { display: flex; align-items: flex-start; min-height: 35px; font-size: 14px; line-height: 1.4; }
+        .print-item { display: flex; align-items: flex-start; line-height: 1.4; }
         .print-num { width: 30px; font-weight: bold; flex-shrink: 0; }
         .print-letter { width: 35px; font-weight: bold; flex-shrink: 0; }
 
@@ -87,7 +85,7 @@
     <div id="edit-view" class="view active">
         <div class="input-area">
             <div>
-                <label id="lbl-input" style="font-size: 13px; font-weight: bold;">📝 輸入字彙清單 (最多建議 10-12 個)：</label>
+                <label id="lbl-input" style="font-size: 13px; font-weight: bold;">📝 輸入字彙清單 (超過 10 個建議分兩批生成)：</label>
                 <textarea id="raw-input" placeholder="apple, orange..."></textarea>
             </div>
             <div class="setting-group">
@@ -139,7 +137,7 @@
 </main>
 
 <script>
-    // ⚠️ 記得替換為您的 GAS 網址
+    // ⚠️ 您的 GAS 網址
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycby63WiGPMwr6FmUeZiGtHwwzuY30q7PovCBN7Por7kj164AcuX69QMztOJn1jIHH1lzAg/exec";
     
     let vocabData = [];
@@ -151,19 +149,19 @@
     const translations = {
         zh: {
             logo: "🎨 NewCore AI Multi-Lab", tabEdit: "✏️ 編輯內容", tabGame: "🎮 數位挑戰", tabPrint: "🖨️ 列印考卷",
-            lblInput: "📝 輸入字彙清單 (建議 10 題以內)：", btnUpdate: "更新清單", btnAi: "✨ AI 生成內容",
+            lblInput: "📝 輸入字彙清單 (超過 10 個建議分批生成)：", btnUpdate: "更新清單", btnAi: "✨ AI 生成內容",
             thWord: "單字", thContent: "定義內容", optModeDef: "模式：定義配對", optModeSent: "模式：句子克漏字",
             optLangBi: "雙語 (Bilingual)", optLangEn: "純英文 (English Only)",
             btnStartGame: "▶️ 開始遊戲", btnPrintAction: "🖨️ 直接列印 (A4 兩頁)", printTitle: "Vocabulary Matching Challenge",
-            sentHeader: "句子 (挖空)"
+            sentHeader: "句子 (挖空)", errFetch: "連線超時！(請嘗試減少單字量或分批生成)"
         },
         en: {
             logo: "🎨 AI Learning Lab", tabEdit: "✏️ Editor", tabGame: "🎮 Game", tabPrint: "🖨️ Print",
-            lblInput: "📝 Vocabulary List (Max 10 recommended):", btnUpdate: "Update", btnAi: "✨ AI Generate",
+            lblInput: "📝 Vocabulary List (Batch gen if >10):", btnUpdate: "Update", btnAi: "✨ AI Generate",
             thWord: "Word", thContent: "Definitions", optModeDef: "Mode: Definition", optModeSent: "Mode: Gap-fill Sentence",
             optLangBi: "Bilingual", optLangEn: "English Only",
             btnStartGame: "▶️ Start Game", btnPrintAction: "🖨️ Print Now (2 Pages)", printTitle: "Vocabulary Matching Challenge",
-            sentHeader: "Sentences (Gap-fill)"
+            sentHeader: "Sentences (Gap-fill)", errFetch: "Timeout! (Try fewer words or batch generate)"
         }
     };
 
@@ -222,11 +220,11 @@
         const btn = document.getElementById('btn-ai');
         const mode = document.getElementById('mode-type').value;
         const lang = document.getElementById('lang-type').value;
-        const diff = document.getElementById('diff-level').value; // 抓取難度
+        const diff = document.getElementById('diff-level').value; 
+        const currentLang = document.getElementById('ui-lang').value;
         
         btn.innerText = "⏳ 處理中..."; btn.disabled = true;
 
-        // 構建精準指令
         let prompt = "";
         const wordsStr = vocabData.map(d=>d.word).join(', ');
 
@@ -250,11 +248,17 @@
                 vocabData = Object.keys(data).map(key => ({ word: key, content: data[key] }));
                 renderEdit();
             } catch(parseErr) {
-                console.error(resText);
                 throw new Error("伺服器回傳格式異常 (可能是單字量過多導致超時)。");
             }
-        } catch (e) { alert("AI 錯誤: " + e.message); }
-        finally { btn.innerText = translations[document.getElementById('ui-lang').value].btnAi; btn.disabled = false; }
+        } catch (e) { 
+            // 捕捉 Failed to fetch (超時或網路錯誤)
+            if(e.message.includes("Failed to fetch")) {
+                alert(translations[currentLang].errFetch);
+            } else {
+                alert("AI 錯誤: " + e.message); 
+            }
+        }
+        finally { btn.innerText = translations[currentLang].btnAi; btn.disabled = false; }
     }
 
     // --- 數位遊戲邏輯 ---
@@ -314,7 +318,7 @@
         svg.appendChild(line);
     }
 
-    // --- 列印排版邏輯 ---
+    // --- 列印排版邏輯 (動態縮放) ---
     function renderPrintPages() {
         const container = document.getElementById('print-container');
         container.innerHTML = '';
@@ -326,17 +330,38 @@
         const sL = [...vocabData].sort(() => Math.random() - 0.5);
         const sR = [...vocabData].sort(() => Math.random() - 0.5);
         const lang = document.getElementById('ui-lang').value;
+        const count = vocabData.length;
 
-        let leftItems = sL.map((item, i) => `<div class="print-item"><span class="print-num">${i+1}.</span><span style="flex:1;">${item.word}</span></div>`).join('');
-        let rightItems = sR.map((item, i) => `<div class="print-item"><span class="print-letter">(${String.fromCharCode(65+i)})</span><span style="flex:1;">${item.content}</span></div>`).join('');
+        // 🔥 動態字體與間距演算法
+        let fSize = "14px";
+        let gap = "15px";
+        let minH = "35px";
+
+        if (count <= 6) { fSize = "19px"; gap = "35px"; minH = "55px"; }
+        else if (count <= 8) { fSize = "17px"; gap = "25px"; minH = "45px"; }
+        else if (count <= 10) { fSize = "15px"; gap = "20px"; minH = "40px"; }
+
+        let leftItems = sL.map((item, i) => `
+            <div class="print-item" style="font-size:${fSize}; min-height:${minH};">
+                <span class="print-num">${i+1}.</span>
+                <span style="flex:1;">${item.word}</span>
+            </div>
+        `).join('');
+        
+        let rightItems = sR.map((item, i) => `
+            <div class="print-item" style="font-size:${fSize}; min-height:${minH};">
+                <span class="print-letter">(${String.fromCharCode(65+i)})</span>
+                <span style="flex:1;">${item.content}</span>
+            </div>
+        `).join('');
 
         return `
             <div class="a4-page">
                 <div class="print-header"><h1>${translations[lang].printTitle}</h1></div>
                 <div class="student-box"><span>Class: ________</span><span>Name: ________</span><span>Score: ________</span></div>
                 <div class="print-area">
-                    <div class="print-col-left">${leftItems}</div>
-                    <div class="print-col-right">${rightItems}</div>
+                    <div class="print-col-left" style="gap:${gap};">${leftItems}</div>
+                    <div class="print-col-right" style="gap:${gap};">${rightItems}</div>
                 </div>
                 <div style="text-align:center; font-size:11px; color:#aaa; margin-top:30px;">NewCore AI Learning System</div>
             </div>
