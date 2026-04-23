@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NewCore AI Multi-Lab V6.1</title>
+    <title>NewCore AI Multi-Lab V7.0</title>
     <style>
         :root { --primary: #FF6B6B; --secondary: #4ECDC4; --accent: #FFE66D; --bg: #F7FFF7; --text: #2F2F2F; }
         * { box-sizing: border-box; font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif; }
@@ -20,7 +20,7 @@
         .view { display: none; height: 100%; overflow: hidden; }
         .view.active { display: flex; flex-direction: column; }
 
-        .input-area { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; display: grid; grid-template-columns: 1fr 320px; gap: 15px; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .input-area { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; display: grid; grid-template-columns: 1fr 340px; gap: 15px; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         textarea { width: 100%; height: 110px; resize: none; padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; }
         .setting-group { display: flex; flex-direction: column; gap: 6px; }
         select { padding: 6px; border-radius: 5px; border: 1px solid #ccc; font-size: 13px; outline: none; }
@@ -62,6 +62,7 @@
         }
         button { cursor: pointer; border: none; border-radius: 12px; font-weight: bold; padding: 8px 15px; }
         .btn-primary { background: var(--secondary); color: white; }
+        .btn-danger { background: #ff4757; color: white; font-size: 12px; }
     </style>
 </head>
 <body>
@@ -85,8 +86,12 @@
     <div id="edit-view" class="view active">
         <div class="input-area">
             <div>
-                <label id="lbl-input" style="font-size: 13px; font-weight: bold;">📝 輸入字彙清單 (超過 10 個建議分兩批生成)：</label>
-                <textarea id="raw-input" placeholder="apple, orange..."></textarea>
+                <label id="lbl-input" style="font-size: 13px; font-weight: bold;">📝 輸入字彙清單：</label>
+                <textarea id="raw-input" placeholder="apple, orange, banana..."></textarea>
+                <div style="display:flex; gap:10px; margin-top:5px;">
+                    <button class="btn-danger" onclick="clearContents()" id="btn-clear-content">🗑️ 只清空內容 (重做 AI)</button>
+                    <button class="btn-danger" style="background:#747d8c;" onclick="clearAll()" id="btn-clear-all">💥 全部清空</button>
+                </div>
             </div>
             <div class="setting-group">
                 <select id="diff-level">
@@ -103,14 +108,14 @@
                     <option value="en" id="opt-lang-en">純英文 (English Only)</option>
                 </select>
                 <div style="display:flex; gap:5px; margin-top: 5px;">
-                    <button class="btn-primary" onclick="processInput()" style="flex:1" id="btn-update">更新</button>
-                    <button class="btn-primary" onclick="callAiApi()" style="background:var(--primary); flex:2" id="btn-ai">✨ AI 生成</button>
+                    <button class="btn-primary" onclick="syncInput()" style="flex:1" id="btn-update">更新列表</button>
+                    <button class="btn-primary" onclick="autoQueueGenerate()" style="background:var(--primary); flex:2" id="btn-ai">✨ AI 智慧生成</button>
                 </div>
             </div>
         </div>
         <div class="edit-table-container">
             <table>
-                <thead><tr><th width="150px" id="th-word">單字</th><th id="th-content">內容</th></tr></thead>
+                <thead><tr><th width="150px" id="th-word">單字</th><th id="th-content">內容 (點擊可修改)</th></tr></thead>
                 <tbody id="vocab-body"></tbody>
             </table>
         </div>
@@ -137,7 +142,6 @@
 </main>
 
 <script>
-    // ⚠️ 您的 GAS 網址
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycby63WiGPMwr6FmUeZiGtHwwzuY30q7PovCBN7Por7kj164AcuX69QMztOJn1jIHH1lzAg/exec";
     
     let vocabData = [];
@@ -149,19 +153,19 @@
     const translations = {
         zh: {
             logo: "🎨 NewCore AI Multi-Lab", tabEdit: "✏️ 編輯內容", tabGame: "🎮 數位挑戰", tabPrint: "🖨️ 列印考卷",
-            lblInput: "📝 輸入字彙清單 (超過 10 個建議分批生成)：", btnUpdate: "更新清單", btnAi: "✨ AI 生成內容",
-            thWord: "單字", thContent: "定義內容", optModeDef: "模式：定義配對", optModeSent: "模式：句子克漏字",
+            lblInput: "📝 輸入字彙清單：", btnUpdate: "更新列表", btnAi: "✨ AI 智慧生成",
+            thWord: "單字", thContent: "內容 (點擊可修改)", optModeDef: "模式：定義配對", optModeSent: "模式：句子克漏字",
             optLangBi: "雙語 (Bilingual)", optLangEn: "純英文 (English Only)",
             btnStartGame: "▶️ 開始遊戲", btnPrintAction: "🖨️ 直接列印 (A4 兩頁)", printTitle: "Vocabulary Matching Challenge",
-            sentHeader: "句子 (挖空)", errFetch: "連線超時！(請嘗試減少單字量或分批生成)"
+            sentHeader: "句子 (挖空)", btnClearContent: "🗑️ 只清空內容", btnClearAll: "💥 全部清空"
         },
         en: {
             logo: "🎨 AI Learning Lab", tabEdit: "✏️ Editor", tabGame: "🎮 Game", tabPrint: "🖨️ Print",
-            lblInput: "📝 Vocabulary List (Batch gen if >10):", btnUpdate: "Update", btnAi: "✨ AI Generate",
-            thWord: "Word", thContent: "Definitions", optModeDef: "Mode: Definition", optModeSent: "Mode: Gap-fill Sentence",
+            lblInput: "📝 Vocabulary List:", btnUpdate: "Sync List", btnAi: "✨ AI Generate",
+            thWord: "Word", thContent: "Content (Click to edit)", optModeDef: "Mode: Definition", optModeSent: "Mode: Gap-fill Sentence",
             optLangBi: "Bilingual", optLangEn: "English Only",
             btnStartGame: "▶️ Start Game", btnPrintAction: "🖨️ Print Now (2 Pages)", printTitle: "Vocabulary Matching Challenge",
-            sentHeader: "Sentences (Gap-fill)", errFetch: "Timeout! (Try fewer words or batch generate)"
+            sentHeader: "Sentences (Gap-fill)", btnClearContent: "🗑️ Clear Content Only", btnClearAll: "💥 Wipe All"
         }
     };
 
@@ -181,6 +185,8 @@
         document.getElementById('opt-lang-en').innerText = t.optLangEn;
         document.getElementById('btn-start-game').innerText = t.btnStartGame;
         document.getElementById('btn-print-action').innerText = t.btnPrintAction;
+        document.getElementById('btn-clear-content').innerText = t.btnClearContent;
+        document.getElementById('btn-clear-all').innerText = t.btnClearAll;
         updateTableUI();
     }
 
@@ -198,10 +204,33 @@
         if(tab === 'print') renderPrintPages();
     }
 
-    function processInput() {
+    // --- 核心清除功能 ---
+    function clearContents() {
+        if(!confirm("確定要洗掉右側的所有 AI 內容嗎？(單字會保留)")) return;
+        vocabData.forEach(v => v.content = "Wait for AI...");
+        renderEdit();
+    }
+
+    function clearAll() {
+        if(!confirm("確定要全部清空嗎？")) return;
+        vocabData = [];
+        document.getElementById('raw-input').value = "";
+        renderEdit();
+    }
+
+    function syncInput() {
         const text = document.getElementById('raw-input').value;
-        const words = text.split(/[,\n]/).map(w => w.trim()).filter(w => w.length > 0);
-        vocabData = words.map(w => ({ word: w, content: "Wait for AI..." }));
+        const inputWords = text.split(/[,\n]/).map(w => w.trim()).filter(w => w.length > 0);
+        let newVocabData = [];
+        inputWords.forEach(word => {
+            const existing = vocabData.find(v => v.word.toLowerCase() === word.toLowerCase());
+            if (existing && existing.content !== "Wait for AI...") {
+                newVocabData.push(existing);
+            } else {
+                newVocabData.push({ word: word, content: "Wait for AI..." });
+            }
+        });
+        vocabData = newVocabData;
         renderEdit();
     }
 
@@ -210,58 +239,64 @@
         tbody.innerHTML = vocabData.map((item, i) => `
             <tr>
                 <td><b>${item.word}</b></td>
-                <td><input type="text" value="${item.content}" style="width:100%; border:none; outline:none;" onchange="vocabData[${i}].content=this.value"></td>
+                <td><input type="text" value="${item.content}" style="width:100%; border:none; outline:none; background:transparent;" onchange="vocabData[${i}].content=this.value"></td>
             </tr>
         `).join('');
     }
 
-    async function callAiApi() {
-        if(vocabData.length === 0) return;
+    // 🔥 核心重構：全自動佇列佇列生成系統
+    async function autoQueueGenerate() {
+        syncInput();
+        const pending = vocabData.filter(v => v.content === "Wait for AI...");
+        if(pending.length === 0) return alert("沒有需要生成的單字。");
+
         const btn = document.getElementById('btn-ai');
+        btn.disabled = true;
+        
+        // 設定每 5 個單字為一組
+        const batchSize = 5;
+        const batches = [];
+        for (let i = 0; i < pending.length; i += batchSize) {
+            batches.push(pending.slice(i, i + batchSize));
+        }
+
         const mode = document.getElementById('mode-type').value;
         const lang = document.getElementById('lang-type').value;
-        const diff = document.getElementById('diff-level').value; 
-        const currentLang = document.getElementById('ui-lang').value;
-        
-        btn.innerText = "⏳ 處理中..."; btn.disabled = true;
+        const diff = document.getElementById('diff-level').value;
 
-        let prompt = "";
-        const wordsStr = vocabData.map(d=>d.word).join(', ');
+        for (let i = 0; i < batches.length; i++) {
+            const currentBatch = batches[i];
+            const batchWords = currentBatch.map(d => d.word).join(', ');
+            btn.innerText = `⏳ 處理中 (${i+1}/${batches.length})...`;
 
-        if(mode === 'def') {
-            const outLang = (lang === 'zh-en') ? 'English definition with (Traditional Chinese Translation)' : 'English only';
-            prompt = `Provide ${diff} definitions for these words: ${wordsStr}. Language: ${outLang}. Return JSON format {word: definition}.`;
-        } else {
-            prompt = `Write ONE ${diff} English sentence for each word. CRITICAL RULE: Replace the target word with exactly 15 underscores "_______________" in the sentence. Words: ${wordsStr}. Return JSON format {word: sentence}.`;
-        }
+            let prompt = (mode === 'def') 
+                ? `Provide ${diff} definitions for: ${batchWords}. Language: ${(lang === 'zh-en') ? 'English with Chinese Translation' : 'English only'}. Return JSON {word: definition}.`
+                : `Write ONE ${diff} English sentence for each: ${batchWords}. RULE: Replace word with "_______________". Return JSON {word: sentence}.`;
 
-        try {
-            const response = await fetch(GAS_API_URL, {
-                method: "POST",
-                body: JSON.stringify({ type: "crossword", words: wordsStr, customPrompt: prompt, model: "gemini-2.5-flash" })
-            });
-            const resText = await response.text();
-            
             try {
-                const data = JSON.parse(resText);
-                if (data.error) throw new Error(data.error);
-                vocabData = Object.keys(data).map(key => ({ word: key, content: data[key] }));
-                renderEdit();
-            } catch(parseErr) {
-                throw new Error("伺服器回傳格式異常 (可能是單字量過多導致超時)。");
-            }
-        } catch (e) { 
-            // 捕捉 Failed to fetch (超時或網路錯誤)
-            if(e.message.includes("Failed to fetch")) {
-                alert(translations[currentLang].errFetch);
-            } else {
-                alert("AI 錯誤: " + e.message); 
+                const response = await fetch(GAS_API_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ type: "crossword", words: batchWords, customPrompt: prompt, model: "gemini-2.5-flash" })
+                });
+                const data = await response.json();
+                if(data.error) throw new Error(data.error);
+
+                currentBatch.forEach(item => {
+                    const returnedKey = Object.keys(data).find(k => k.toLowerCase() === item.word.toLowerCase());
+                    if(returnedKey) item.content = data[returnedKey];
+                });
+                renderEdit(); // 每完成一組就更新一次畫面，讓老師看到進度
+            } catch (e) {
+                alert(`批次 ${i+1} 生成失敗: ` + e.message);
+                break; // 報錯就停止，避免連續報錯
             }
         }
-        finally { btn.innerText = translations[currentLang].btnAi; btn.disabled = false; }
+
+        btn.innerText = translations[document.getElementById('ui-lang').value].btnAi;
+        btn.disabled = false;
     }
 
-    // --- 數位遊戲邏輯 ---
+    // 其餘遊戲區與列印區程式碼 (保持 V6.2 邏輯)
     function startGame() {
         if(vocabData.length === 0) return;
         isPlaying = true; seconds = 0;
@@ -271,102 +306,11 @@
         renderGameCards(left, right);
         startTimer();
     }
-
-    function startTimer() {
-        clearInterval(timer);
-        timer = setInterval(() => {
-            seconds++;
-            const m = Math.floor(seconds/60).toString().padStart(2,'0');
-            const s = (seconds%60).toString().padStart(2,'0');
-            document.getElementById('timer-box').innerText = `${m}:${s}`;
-        }, 1000);
-    }
-
-    function renderGameCards(left, right) {
-        const lBox = document.getElementById('left-cards');
-        const rBox = document.getElementById('right-cards');
-        lBox.innerHTML = ''; rBox.innerHTML = '';
-        left.forEach(item => {
-            const d = document.createElement('div');
-            d.className = 'card'; d.innerText = item.word;
-            d.onclick = () => { if(!d.classList.contains('matched')) { document.querySelectorAll('#left-cards .card').forEach(c => c.classList.remove('selected')); d.classList.add('selected'); selectedLeft = { el: d, item }; } };
-            lBox.appendChild(d);
-        });
-        right.forEach(item => {
-            const d = document.createElement('div');
-            d.className = 'card'; d.innerText = item.content;
-            d.onclick = () => {
-                if(!selectedLeft || d.classList.contains('matched')) return;
-                if(selectedLeft.item.word === item.word) {
-                    d.classList.add('matched'); selectedLeft.el.classList.add('matched');
-                    drawLink(selectedLeft.el, d); selectedLeft = null;
-                    if(document.querySelectorAll('.card.matched').length === vocabData.length*2) clearInterval(timer);
-                } else { d.style.borderColor = 'red'; setTimeout(() => d.style.borderColor = '#ddd', 500); }
-            };
-            rBox.appendChild(d);
-        });
-    }
-
-    function drawLink(e1, e2) {
-        const svg = document.getElementById('connections-svg');
-        const r1 = e1.getBoundingClientRect(); const r2 = e2.getBoundingClientRect();
-        const pb = document.getElementById('game-box').getBoundingClientRect();
-        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        line.setAttribute("x1", r1.right - pb.left); line.setAttribute("y1", r1.top + r1.height/2 - pb.top);
-        line.setAttribute("x2", r2.left - pb.left); line.setAttribute("y2", r2.top + r2.height/2 - pb.top);
-        line.setAttribute("stroke", "#4ECDC4"); line.setAttribute("stroke-width", "4");
-        svg.appendChild(line);
-    }
-
-    // --- 列印排版邏輯 (動態縮放) ---
-    function renderPrintPages() {
-        const container = document.getElementById('print-container');
-        container.innerHTML = '';
-        const pageHTML = createPageHTML();
-        container.innerHTML = pageHTML + pageHTML;
-    }
-
-    function createPageHTML() {
-        const sL = [...vocabData].sort(() => Math.random() - 0.5);
-        const sR = [...vocabData].sort(() => Math.random() - 0.5);
-        const lang = document.getElementById('ui-lang').value;
-        const count = vocabData.length;
-
-        // 🔥 動態字體與間距演算法
-        let fSize = "14px";
-        let gap = "15px";
-        let minH = "35px";
-
-        if (count <= 6) { fSize = "19px"; gap = "35px"; minH = "55px"; }
-        else if (count <= 8) { fSize = "17px"; gap = "25px"; minH = "45px"; }
-        else if (count <= 10) { fSize = "15px"; gap = "20px"; minH = "40px"; }
-
-        let leftItems = sL.map((item, i) => `
-            <div class="print-item" style="font-size:${fSize}; min-height:${minH};">
-                <span class="print-num">${i+1}.</span>
-                <span style="flex:1;">${item.word}</span>
-            </div>
-        `).join('');
-        
-        let rightItems = sR.map((item, i) => `
-            <div class="print-item" style="font-size:${fSize}; min-height:${minH};">
-                <span class="print-letter">(${String.fromCharCode(65+i)})</span>
-                <span style="flex:1;">${item.content}</span>
-            </div>
-        `).join('');
-
-        return `
-            <div class="a4-page">
-                <div class="print-header"><h1>${translations[lang].printTitle}</h1></div>
-                <div class="student-box"><span>Class: ________</span><span>Name: ________</span><span>Score: ________</span></div>
-                <div class="print-area">
-                    <div class="print-col-left" style="gap:${gap};">${leftItems}</div>
-                    <div class="print-col-right" style="gap:${gap};">${rightItems}</div>
-                </div>
-                <div style="text-align:center; font-size:11px; color:#aaa; margin-top:30px;">NewCore AI Learning System</div>
-            </div>
-        `;
-    }
+    function startTimer() { clearInterval(timer); timer = setInterval(() => { seconds++; const m = Math.floor(seconds/60).toString().padStart(2,'0'); const s = (seconds%60).toString().padStart(2,'0'); document.getElementById('timer-box').innerText = `${m}:${s}`; }, 1000); }
+    function renderGameCards(left, right) { const lBox = document.getElementById('left-cards'); const rBox = document.getElementById('right-cards'); lBox.innerHTML = ''; rBox.innerHTML = ''; left.forEach(item => { const d = document.createElement('div'); d.className = 'card'; d.innerText = item.word; d.onclick = () => { if(!d.classList.contains('matched')) { document.querySelectorAll('#left-cards .card').forEach(c => c.classList.remove('selected')); d.classList.add('selected'); selectedLeft = { el: d, item }; } }; lBox.appendChild(d); }); right.forEach(item => { const d = document.createElement('div'); d.className = 'card'; d.innerText = item.content; d.onclick = () => { if(!selectedLeft || d.classList.contains('matched')) return; if(selectedLeft.item.word === item.word) { d.classList.add('matched'); selectedLeft.el.classList.add('matched'); drawLink(selectedLeft.el, d); selectedLeft = null; if(document.querySelectorAll('.card.matched').length === vocabData.length*2) clearInterval(timer); } else { d.style.borderColor = 'red'; setTimeout(() => d.style.borderColor = '#ddd', 500); } }; rBox.appendChild(d); }); }
+    function drawLink(e1, e2) { const svg = document.getElementById('connections-svg'); const r1 = e1.getBoundingClientRect(); const r2 = e2.getBoundingClientRect(); const pb = document.getElementById('game-box').getBoundingClientRect(); const line = document.createElementNS("http://www.w3.org/2000/svg", "line"); line.setAttribute("x1", r1.right - pb.left); line.setAttribute("y1", r1.top + r1.height/2 - pb.top); line.setAttribute("x2", r2.left - pb.left); line.setAttribute("y2", r2.top + r2.height/2 - pb.top); line.setAttribute("stroke", "#4ECDC4"); line.setAttribute("stroke-width", "4"); svg.appendChild(line); }
+    function renderPrintPages() { const container = document.getElementById('print-container'); container.innerHTML = ''; const pageHTML = createPageHTML(); container.innerHTML = pageHTML + pageHTML; }
+    function createPageHTML() { const sL = [...vocabData].sort(() => Math.random() - 0.5); const sR = [...vocabData].sort(() => Math.random() - 0.5); const lang = document.getElementById('ui-lang').value; const count = vocabData.length; let fSize = "14px"; let gap = "15px"; let minH = "35px"; if (count <= 6) { fSize = "19px"; gap = "35px"; minH = "55px"; } else if (count <= 8) { fSize = "17px"; gap = "25px"; minH = "45px"; } else if (count <= 10) { fSize = "15px"; gap = "20px"; minH = "40px"; } let leftItems = sL.map((item, i) => `<div class="print-item" style="font-size:${fSize}; min-height:${minH};"><span class="print-num">${i+1}.</span><span style="flex:1;">${item.word}</span></div>`).join(''); let rightItems = sR.map((item, i) => `<div class="print-item" style="font-size:${fSize}; min-height:${minH};"><span class="print-letter">(${String.fromCharCode(65+i)})</span><span style="flex:1;">${item.content}</span></div>`).join(''); return `<div class="a4-page"><div class="print-header"><h1>${translations[lang].printTitle}</h1></div><div class="student-box"><span>Class: ________</span><span>Name: ________</span><span>Score: ________</span></div><div class="print-area"><div class="print-col-left" style="gap:${gap};">${leftItems}</div><div class="print-col-right" style="gap:${gap};">${rightItems}</div></div><div style="text-align:center; font-size:11px; color:#aaa; margin-top:30px;">NewCore AI Learning System</div></div>`; }
 </script>
 </body>
 </html>
