@@ -204,32 +204,58 @@
     }
 
     async function callAiApi() {
-        if(vocabData.length === 0) return;
-        const btn = document.getElementById('btn-ai');
-        const mode = document.getElementById('mode-type').value;
-        const lang = document.getElementById('lang-type').value;
-        btn.innerText = "..."; btn.disabled = true;
+    if(vocabData.length === 0) return;
+    const btn = document.getElementById('btn-ai');
+    const mode = document.getElementById('mode-type').value;
+    const lang = document.getElementById('lang-type').value;
+    btn.innerText = "..."; btn.disabled = true;
 
-        // 🔥 超級強化版指令 (強制執行)
-        let prompt;
-        if(mode === 'def') {
-            prompt = `Task: Provide definitions. Lang: ${lang === 'zh-en' ? 'English with Chinese translation in ()' : 'English only'}. Words: ${vocabData.map(d=>d.word).join(',')}. Return JSON {word: definition}.`;
+    let instruction = "";
+    
+    if (mode === 'def') {
+        // 如果是雙語模式，直接要求中文優先
+        if (lang === 'zh-en') {
+            instruction = `Task: Provide Chinese definitions for these words. (中文定義) 
+            Words: ${vocabData.map(d=>d.word).join(',')}. 
+            Format: Return a JSON object {word: "中文定義"}. 
+            Example: {"apple": "一種紅色的水果"}`;
         } else {
-            prompt = `Task: Create gap-fill sentences. Rule: REPLACE the target word with "_______________" (15 underscores). DO NOT show the word. Words: ${vocabData.map(d=>d.word).join(',')}. Return JSON {word: sentence}.`;
+            instruction = `Task: Provide simple English definitions. 
+            Words: ${vocabData.map(d=>d.word).join(',')}. 
+            Format: Return a JSON object {word: "English definition"}.`;
         }
-
-        try {
-            const response = await fetch(GAS_API_URL, {
-                method: "POST",
-                body: JSON.stringify({ type: "crossword", words: vocabData.map(d => d.word).join(','), customPrompt: prompt, model: "gemini-2.5-flash" })
-            });
-            const data = await response.json();
-            vocabData = Object.keys(data).map(key => ({ word: key, content: data[key] }));
-            renderEdit();
-        } catch (e) { alert("AI Error: " + e.message); }
-        finally { btn.innerText = translations[document.getElementById('ui-lang').value].btnAi; btn.disabled = false; }
+    } else {
+        // 句子克漏字模式 (極致強化指令)
+        instruction = `Task: Create English Gap-fill sentences. 
+        CRITICAL RULES:
+        1. YOU MUST REPLACE the word with "_______________" (15 underscores).
+        2. DO NOT show the word in the sentence.
+        3. Only provide the sentence.
+        Words: ${vocabData.map(d=>d.word).join(',')}. 
+        Format: Return a JSON object {word: "Sentence with _______________"}.
+        Example for 'apple': {"apple": "I eat a red _______________ for breakfast."}`;
     }
 
+    try {
+        const response = await fetch(GAS_API_URL, {
+            method: "POST",
+            body: JSON.stringify({
+                type: "crossword", 
+                words: vocabData.map(d => d.word).join(','),
+                customPrompt: instruction, // 確保這行有傳出去
+                model: "gemini-2.5-flash"
+            })
+        });
+        const data = await response.json();
+        vocabData = Object.keys(data).map(key => ({ word: key, content: data[key] }));
+        renderEdit();
+    } catch (e) { alert("AI Error: " + e.message); }
+    finally { 
+        const currentLang = document.getElementById('ui-lang').value;
+        btn.innerText = translations[currentLang].btnAi; 
+        btn.disabled = false; 
+    }
+}
     // 數位遊戲邏輯
     function startGame() {
         if(vocabData.length === 0) return;
