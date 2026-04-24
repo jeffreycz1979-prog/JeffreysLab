@@ -405,7 +405,7 @@
     </p>
     <div class="hero-stats-row">
       <div class="h-stat">
-        <span class="h-stat-num">10+</span>
+        <span class="h-stat-num">16+</span>
         <span class="h-stat-label">工具總數</span>
       </div>
       <div class="h-stat">
@@ -422,10 +422,10 @@
   <div class="hero-visual">
     <div class="tool-preview-grid">
       <div class="tp-card"><span class="tp-emoji">🎙️</span><div class="tp-name">語音點名</div><div class="tp-cat">教務系統</div></div>
-      <div class="tp-card"><span class="tp-emoji">🎰</span><div class="tp-name">獎勵樂透</div><div class="tp-cat">課堂互動</div></div>
-      <div class="tp-card"><span class="tp-emoji">🃏</span><div class="tp-name">閃示卡</div><div class="tp-cat">字彙練習</div></div>
+      <div class="tp-card"><span class="tp-emoji">🖼️</span><div class="tp-name">視覺圖卡偵探</div><div class="tp-cat">視覺教學</div></div>
+      <div class="tp-card"><span class="tp-emoji">🧩</span><div class="tp-name">AI 配對挑戰</div><div class="tp-cat">AI 出題</div></div>
       <div class="tp-card"><span class="tp-emoji">🛡️</span><div class="tp-name">單字防禦戰</div><div class="tp-cat">字彙遊戲</div></div>
-      <div class="tp-card"><span class="tp-emoji">✏️</span><div class="tp-name">克漏字</div><div class="tp-cat">AI 出題</div></div>
+      <div class="tp-card"><span class="tp-emoji">🃏</span><div class="tp-name">閃示卡</div><div class="tp-cat">字彙練習</div></div>
       <div class="tp-card"><span class="tp-emoji">🔤</span><div class="tp-name">重組句子</div><div class="tp-cat">字彙練習</div></div>
     </div>
   </div>
@@ -438,6 +438,7 @@
   <button class="filter-btn" data-cat="vocab">字彙練習</button>
   <button class="filter-btn" data-cat="ai">AI 出題</button>
   <button class="filter-btn" data-cat="admin">教務管理</button>
+  <button class="filter-btn" data-cat="visual">視覺教學</button>
 </div>
 
 <!-- TOOLS GRID -->
@@ -527,13 +528,13 @@
     <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/flashcard_match.html" target="_blank"
        class="tool-card" data-cat="vocab">
       <div class="tool-icon-wrap icon-bg-purple">🃏</div>
-      <div class="tool-tag">字彙練習 · AI 圖片</div>
+      <div class="tool-tag">字彙練習 · AI 圖片 · 語音</div>
       <div class="tool-name">閃示卡 ＋ 配對記憶遊戲</div>
       <div class="tool-desc">
-        自訂字彙庫，Gemini AI 自動生成配圖閃示卡。支援閃示卡練習、測驗模式，以及翻牌配對遊戲——找出英文單字與中文定義的對應，支援計時與分數。
+        自訂字彙庫，Gemini AI 自動生成配圖閃示卡。點擊卡片自動朗讀英文發音，幫助學生建立字音連結。支援閃示卡練習、測驗模式，以及翻牌配對遊戲——找出英文單字與中文定義的對應，支援計時與分數。
       </div>
       <div class="tool-footer">
-        <span class="tool-badge ai">● AI 驅動</span>
+        <span class="tool-badge ai">● AI 驅動 · 語音輸出</span>
       </div>
     </a>
 
@@ -627,16 +628,62 @@
       </div>
     </a>
 
-    <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/wordsearch.html" target="_blank"
+    <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/connect.html" target="_blank"
        class="tool-card" data-cat="ai">
-      <div class="tool-icon-wrap icon-bg-purple">✏️</div>
-      <div class="tool-tag">AI 出題 · Gemini</div>
-      <div class="tool-name">AI 克漏字產生器</div>
+      <div class="tool-icon-wrap icon-bg-purple">🧩</div>
+      <div class="tool-tag">AI 出題 · Gemini · 可列印</div>
+      <div class="tool-name">AI 定義配對挑戰</div>
       <div class="tool-desc">
-        輸入單字與故事主題，Gemini AI 自動生成情境故事克漏字考卷，一鍵列印，內容每次不同。
+        輸入字彙清單，Gemini AI 依難度（A1–C1）自動生成英文定義，支援雙語模式。數位挑戰直接在課堂互動作答，也可一鍵列印成 A4 紙本，一套題目數位紙本兩用。
       </div>
       <div class="tool-footer">
         <span class="tool-badge ai">● AI 驅動</span>
+      </div>
+    </a>
+
+    <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/connect.html" target="_blank"
+       class="tool-card" data-cat="ai">
+      <div class="tool-icon-wrap icon-bg-mint">✏️</div>
+      <div class="tool-tag">AI 出題 · Gemini · 可列印</div>
+      <div class="tool-name">AI 克漏字挑戰</div>
+      <div class="tool-desc">
+        同一介面切換至克漏字模式，AI 依字彙自動生成情境例句，學生在空格填入正確單字。支援數位互動作答與 A4 列印，課堂練習與正式考卷一次搞定。
+      </div>
+      <div class="tool-footer">
+        <span class="tool-badge ai">● AI 驅動</span>
+      </div>
+    </a>
+
+    <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/grammar.html" target="_blank"
+       class="tool-card" data-cat="ai">
+      <div class="tool-icon-wrap icon-bg-yellow">🔎</div>
+      <div class="tool-tag">AI 出題 · Gemini · 可列印</div>
+      <div class="tool-name">AI 文法改錯訓練</div>
+      <div class="tool-desc">
+        輸入出題指令，Gemini AI 自動生成含錯誤的英文句子，標註錯誤位置並設定干擾選項。學生在數位挑戰模式中找出並改正錯誤，即時計分回饋；也可一鍵列印成 A4 兩頁紙本考卷，適合文法專項練習與段考前複習。
+      </div>
+      <div class="tool-footer">
+        <span class="tool-badge ai">● AI 驅動</span>
+      </div>
+    </a>
+
+  </div>
+
+  <!-- 視覺教學 -->
+  <div class="category-label reveal" data-cat="visual">🖼️ 視覺教學 Visual Learning</div>
+  <div class="tools-grid reveal">
+
+    <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/vision-detective.html" target="_blank"
+       class="tool-card featured" data-cat="visual">
+      <div class="tool-icon-wrap icon-bg-dark">🖼️</div>
+      <div class="tool-tag">視覺教學 · AI 生圖 · 互動搶答</div>
+      <div class="tool-name">視覺圖卡偵探<br>拼圖搶答 · 馬賽克解謎</div>
+      <div class="tool-desc">
+        上傳圖片或讓 AI 生成圖卡，設定題目與答案，啟動無盡課堂遊戲。支援「拼圖模式」（2×2 到 4×4 逐塊揭示）與「馬賽克模式」（像素漸漸清晰），學生搶答猜出答案。老師沒有素材？內建推薦 Pixabay、Pexels、Freepik 免費圖庫連結，直接下載使用，讓每堂課都有新鮮視覺刺激。
+      </div>
+      <div class="tool-footer">
+        <span class="tool-badge">● 需 Gemini API Key</span>
+        <span style="font-size:0.8rem;color:rgba(255,255,255,0.4);">開啟工具 →</span>
       </div>
     </a>
 
