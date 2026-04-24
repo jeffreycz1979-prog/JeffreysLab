@@ -296,13 +296,24 @@ body{font-family:sans-serif;background:#f5f4f0;color:#222;min-height:100vh;}
 // ══════════════════════════════
 // STATE
 // ══════════════════════════════
+// 🔊 共用語音發音函式
 let lang='zh';
 let vocab=[]; // {word,def,pos,imgSrc}
 let fcList=[], fcIdx=0, fcFlipped=false, fcGridMode=false, fcShowWord=true, fcShowDef=true;
 let matchType='img-word', matchLayout='mixed';
 let matchCards=[], matchFlipped=[], matchMatched=0, matchTries=0, matchTimer=null, matchSeconds=0, matchLocked=false;
 let editRowIdx=null, generating=false;
-
+  
+function playAudio(text) {
+  if ('speechSynthesis' in window) {
+    // 播放前先中斷前一次的發音，避免快速點擊時聲音重疊
+    window.speechSynthesis.cancel(); 
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-US'; // 預設使用美式英文 (可改為 en-GB 英式英文)
+    utterance.rate = 1.0;     // 語速
+    window.speechSynthesis.speak(utterance);
+  }
+}
 const GEMINI_MODELS=['gemini-2.5-flash','gemini-2.5-flash-lite'];
 const GEMINI_BASE='https://generativelanguage.googleapis.com/v1beta/models/';
 
@@ -478,7 +489,14 @@ function renderFCCard(){
   const posEl=document.getElementById('fc-pos');if(v.pos){posEl.style.display='';posEl.textContent=v.pos;}else posEl.style.display='none';
   const defEl=document.getElementById('fc-def');defEl.textContent=v.def||'—';defEl.className='fc-def'+(fcShowDef?'':' blur');
 }
-function fcFlip(){const c=document.getElementById('fc-card');fcFlipped=!fcFlipped;c.classList.toggle('flipped',fcFlipped);}
+function fcFlip() {
+  const c = document.getElementById('fc-card');
+  fcFlipped = !fcFlipped;
+  c.classList.toggle('flipped', fcFlipped);
+  
+  // 🔊 觸發發音：唸出當前閃示卡的英文單字
+  playAudio(fcList[fcIdx].word);
+}
 function fcNav(dir){fcIdx=(fcIdx+dir+fcList.length)%fcList.length;renderFCCard();if(fcGridMode)renderFCGrid();}
 function fcToggleWord(){
   fcShowWord=!fcShowWord;
@@ -654,29 +672,61 @@ function makeCard(card,idx){
 
 function matchFlipCard(idx){
   if(matchLocked)return;
-  const card=matchCards[idx];const el=document.getElementById('mc'+idx);
+  const card=matchCards[idx];
+  const el=document.getElementById('mc'+idx);
+  
+  // 1. 如果卡片已經翻開、已經配對成功，或是正在播放錯誤動畫鎖定中，則不作動
   if(!el||el.classList.contains('flipped')||el.classList.contains('matched'))return;
   if(matchFlipped.length>=2)return;
+  
+  // 2. 執行翻牌動作
   el.classList.add('flipped');
   matchFlipped.push(idx);
+
+  // 🔊 3. 新增發音功能：唸出該卡片對應的英文單字
+  // (加上防呆判斷，確保 playAudio 函式存在才執行)
+  if (typeof playAudio === 'function') {
+    playAudio(card.v.word);
+  }
+
+  // 4. 配對邏輯判斷
   if(matchFlipped.length===2){
     matchTries++;
-    const a=matchCards[matchFlipped[0]],b=matchCards[matchFlipped[1]];
+    const a=matchCards[matchFlipped[0]], b=matchCards[matchFlipped[1]];
+    
     if(a.pair===b.pair&&a.side!==b.side||(a.side===b.side&&a.id!==b.id&&matchType==='img-img')){
-      // correct match
+      // 答對了 (correct match)
       setTimeout(()=>{
-        matchFlipped.forEach(i=>{const e=document.getElementById('mc'+i);if(e){e.classList.remove('flipped');e.classList.add('matched');}});
-        matchFlipped=[];matchMatched++;
+        matchFlipped.forEach(i=>{
+          const e=document.getElementById('mc'+i);
+          if(e){
+            e.classList.remove('flipped');
+            e.classList.add('matched');
+          }
+        });
+        matchFlipped=[];
+        matchMatched++;
         updateMatchStats(matchMatched,fcList.length);
-        if(matchMatched===fcList.length){clearInterval(matchTimer);showMatchComplete();}
-      },400);
+        if(matchMatched===fcList.length){
+          clearInterval(matchTimer);
+          showMatchComplete();
+        }
+      }, 400);
     } else {
+      // 答錯了 (wrong match)
       matchLocked=true;
       document.querySelectorAll('.mcard.flipped:not(.matched)').forEach(e=>e.classList.add('wrong-flash'));
       setTimeout(()=>{
-        matchFlipped.forEach(i=>{const e=document.getElementById('mc'+i);if(e){e.classList.remove('flipped');e.classList.remove('wrong-flash');}});
-        matchFlipped=[];matchLocked=false;
-      },900);
+        matchFlipped.forEach(i=>{
+          const e=document.getElementById('mc'+i);
+          if(e){
+            e.classList.remove('flipped');
+            e.classList.remove('wrong-flash');
+          }
+        });
+        matchFlipped=[];
+        matchLocked=false;
+      }, 900);
     }
     updateMatchStats(matchMatched,fcList.length);
   }
