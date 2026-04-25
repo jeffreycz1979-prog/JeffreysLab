@@ -8,350 +8,211 @@
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Noto+Sans+TC:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #F4F1EB;
-  --bg-card: #FFFFFF;
-  --green-dark: #1a3a1a;
-  --green-mid: #2d5a2d;
-  --green-accent: #3d8c3d;
-  --yellow: #CCFF00;
-  --coral: #E05C5C;
-  --coral-light: #FFF5F5;
-  --teal: #3BBFAD;
-  --teal-light: #F0FAFA;
-  --text: #1a1a1a;
-  --text-muted: #888;
-  --border: #E5E0D8;
-  --border-dark: #d0c8be;
+  --bg:#F4F1EB;--bg-card:#FFFFFF;--green-dark:#1a3a1a;--green-mid:#2d5a2d;
+  --green-accent:#3d8c3d;--yellow:#CCFF00;--coral:#E05C5C;--coral-light:#FFF5F5;
+  --teal:#3BBFAD;--teal-light:#F0FAFA;--text:#1a1a1a;--text-muted:#888;
+  --border:#E5E0D8;--border-dark:#d0c8be;
 }
+/* AUTH GATE */
+#authGate{position:fixed;inset:0;z-index:9999;background:#1a3a1a;display:flex;align-items:center;justify-content:center;padding:2rem}
+#authGate.hidden{display:none}
+.gate-box{background:white;border-radius:20px;padding:3rem 2.5rem;max-width:480px;width:100%;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.3)}
+.gate-logo{font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;color:#1a3a1a;margin-bottom:.5rem}
+.gate-sub{font-size:.85rem;color:#888;margin-bottom:2rem}
+.gate-spinner{width:40px;height:40px;border:3px solid #e0e0e0;border-top-color:#1a3a1a;border-radius:50%;animation:spin .8s linear infinite;margin:1rem auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+.gate-msg{font-size:.95rem;color:#555;line-height:1.6;margin-bottom:1.5rem}
+.gate-msg.error{color:#cc3333}.gate-msg.success{color:#1a3a1a}
+.gate-btn{display:inline-block;padding:.85rem 2rem;border-radius:100px;font-weight:700;font-size:.95rem;text-decoration:none;transition:all .2s;margin:.4rem}
+.gate-btn-primary{background:#CCFF00;color:#1a3a1a}.gate-btn-line{background:#06C755;color:white}
+.gate-name-badge{display:inline-block;background:#e8f5e9;color:#1a3a1a;padding:.3rem 1rem;border-radius:100px;font-size:.85rem;font-weight:600;margin-bottom:1rem}
+.gate-expiry{font-size:.78rem;color:#aaa;margin-top:.5rem}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+/* NAV */
+nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:.75rem 2rem;background:rgba(244,241,235,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.nav-logo{font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;color:var(--green-dark);text-decoration:none}
+.nav-right{display:flex;align-items:center;gap:.75rem}
+.nav-back{font-size:.82rem;color:var(--text-muted);text-decoration:none}
+.nav-back:hover{color:var(--green-dark)}
+.lang-seg{display:flex;background:white;border:1px solid var(--border);border-radius:100px;padding:2px;gap:2px}
+.lang-seg button{border:none;background:none;border-radius:100px;padding:.2rem .7rem;font-size:.75rem;cursor:pointer;color:var(--text-muted);font-family:'Noto Sans TC',sans-serif}
+.lang-seg button.on{background:var(--green-dark);color:var(--yellow);font-weight:700}
+/* MODE TABS */
+.mode-bar{display:flex;background:white;border-bottom:1px solid var(--border);padding:0 2rem;overflow-x:auto}
+.mode-tab{display:flex;align-items:center;gap:.4rem;padding:.85rem 1.25rem;border:none;background:none;font-family:'Noto Sans TC',sans-serif;font-size:.85rem;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:all .2s}
+.mode-tab:hover{color:var(--green-dark)}
+.mode-tab.active{color:var(--coral);border-bottom-color:var(--coral);font-weight:700}
+/* LAYOUT */
+.page{display:none}.page.active{display:block}
+.container{max-width:760px;margin:0 auto;padding:1.5rem 1.5rem 4rem}
+/* CARDS */
+.card{background:white;border-radius:16px;border:1px solid var(--border);padding:1.25rem;margin-bottom:1rem}
+.card-label{font-family:'Space Mono',monospace;font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--coral);margin-bottom:.85rem}
+/* FORM */
+textarea.field,select.field,input.field{width:100%;border:1px solid var(--border);border-radius:10px;padding:.65rem .85rem;font-size:.875rem;font-family:'Noto Sans TC',sans-serif;color:var(--text);background:var(--bg);transition:border-color .15s}
+textarea.field{resize:none;line-height:1.6}
+textarea.field:focus,select.field:focus,input.field:focus{outline:none;border-color:var(--coral);background:white}
+.upload-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;background:var(--bg);border:1.5px dashed var(--border-dark);border-radius:10px;padding:.6rem;font-size:.8rem;color:var(--text-muted);cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:all .15s}
+.upload-btn:hover{border-color:var(--coral);color:var(--coral)}
+/* TYPE CARDS */
+.type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.65rem;margin-bottom:1rem}
+.type-card{border:1.5px solid var(--border);border-radius:12px;padding:.85rem .5rem;cursor:pointer;text-align:center;background:var(--bg);transition:all .15s;user-select:none}
+.type-card.on{border-color:var(--coral);background:var(--coral-light)}
+.type-card .tc-ico{font-size:1.4rem;margin-bottom:.25rem;display:block}
+.type-card .tc-nm{font-size:.75rem;font-weight:700;color:var(--text-muted)}
+.type-card.on .tc-nm{color:var(--coral)}
+.tc-cnt{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:.4rem}
+.tc-cnt button{border:1px solid var(--border);background:white;width:20px;height:20px;border-radius:50%;font-size:14px;cursor:pointer;color:var(--text);line-height:1;display:flex;align-items:center;justify-content:center}
+.tc-cnt span{font-size:.85rem;font-weight:700;min-width:16px;text-align:center}
+/* CHIPS */
+.chip-row{display:flex;gap:.4rem;flex-wrap:wrap}
+.chip{border:1px solid var(--border);background:var(--bg);border-radius:100px;padding:.3rem .9rem;font-size:.78rem;cursor:pointer;color:var(--text-muted);font-family:'Noto Sans TC',sans-serif;transition:all .15s}
+.chip.on{border-color:var(--teal);background:var(--teal-light);color:var(--teal);font-weight:700}
+/* CEFR */
+.cefr-info{background:var(--teal-light);border:1px solid rgba(59,191,173,.3);border-radius:10px;padding:.75rem 1rem;margin-top:.75rem;font-size:.78rem;color:#2A9D8F;line-height:1.7;display:none}
+.cefr-info.show{display:block}
+.cefr-toggle{background:none;border:none;font-size:.75rem;color:var(--teal);cursor:pointer;font-family:'Noto Sans TC',sans-serif;text-decoration:underline;margin-top:.4rem}
+/* GEN BTN */
+.gen-btn{width:100%;padding:.9rem;background:var(--green-dark);color:var(--yellow);border:none;border-radius:12px;font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;cursor:pointer;letter-spacing:.02em;display:flex;align-items:center;justify-content:center;gap:.5rem;transition:all .2s}
+.gen-btn:hover{background:var(--green-mid);transform:translateY(-1px)}
+.gen-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.spinner{width:18px;height:18px;border:2px solid rgba(204,255,0,.3);border-top-color:var(--yellow);border-radius:50%;animation:spin .7s linear infinite;display:none}
+.gen-btn.loading .spinner{display:block}
+.gen-btn.loading .btn-txt{opacity:.5}
+/* PRINT TOPBAR */
+.print-topbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;margin-bottom:1rem}
+.print-tabs{display:flex;gap:.35rem}
+.ptab{border:1px solid var(--border);background:var(--bg);border-radius:100px;padding:.3rem .9rem;font-size:.78rem;cursor:pointer;color:var(--text-muted);font-family:'Noto Sans TC',sans-serif}
+.ptab.on{background:var(--coral);color:white;border-color:var(--coral);font-weight:700}
+.act-btn{border:1px solid var(--border);background:white;border-radius:10px;padding:.4rem .85rem;font-size:.78rem;cursor:pointer;color:var(--text-muted);font-family:'Noto Sans TC',sans-serif;display:flex;align-items:center;gap:4px}
+.act-btn:hover{background:var(--bg)}
+.act-btn.teal{background:var(--teal);color:white;border-color:var(--teal)}
+/* PAPER */
+.paper{background:white;border-radius:16px;border:1px solid var(--border);padding:2rem}
+.paper-top{text-align:center;border-bottom:2px solid var(--text);padding-bottom:1rem;margin-bottom:1.5rem}
+.paper-title{font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800}
+.paper-sub{font-size:.78rem;color:var(--text-muted);margin-top:.25rem}
+.paper-meta{display:flex;justify-content:space-between;margin-top:.85rem;font-size:.75rem}
+.q-section{margin-bottom:1.5rem}
+.q-section-hd{font-family:'Space Mono',monospace;font-size:.65rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--coral);border-bottom:1px solid #FFE0E0;padding-bottom:.3rem;margin-bottom:.85rem}
+.q-item{margin-bottom:1.1rem}
+.q-stem{font-size:.875rem;line-height:1.65;display:flex;gap:.35rem;align-items:flex-start}
+.q-num{font-weight:700;min-width:20px;flex-shrink:0}
+.edit-ico{background:none;border:none;cursor:pointer;font-size:.7rem;color:var(--border-dark);padding:0 2px;flex-shrink:0}
+.edit-ico:hover{color:var(--coral)}
+.opts-g{display:grid;grid-template-columns:1fr 1fr;gap:.15rem 1rem;margin:.45rem 0 0 1.2rem}
+.opt{font-size:.8rem;color:var(--text-muted);padding:.08rem 0}
+.opt.ans{color:var(--teal);font-weight:700}
+.write-lines{margin:.5rem 0 0 1.2rem;display:flex;flex-direction:column;gap:.6rem}
+.wline{border-bottom:1px solid var(--border-dark);height:24px}
+.ans-ref{background:var(--teal-light);border-radius:8px;padding:.45rem .75rem;font-size:.78rem;color:#2A9D8F;margin:.35rem 0 0 1.2rem;line-height:1.6}
 
-/* ── AUTH GATE ── */
-#authGate {
-  position: fixed; inset: 0; z-index: 9999;
-  background: #1a3a1a;
-  display: flex; align-items: center; justify-content: center;
-  padding: 2rem;
-}
-#authGate.hidden { display: none; }
-.gate-box {
-  background: white; border-radius: 20px;
-  padding: 3rem 2.5rem; max-width: 480px; width: 100%;
-  text-align: center; box-shadow: 0 24px 60px rgba(0,0,0,0.3);
-}
-.gate-logo { font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800; color: #1a3a1a; margin-bottom: 0.5rem; }
-.gate-sub { font-size: 0.85rem; color: #888; margin-bottom: 2rem; }
-.gate-spinner { width: 40px; height: 40px; border: 3px solid #e0e0e0; border-top-color: #1a3a1a; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 1rem auto; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.gate-msg { font-size: 0.95rem; color: #555; line-height: 1.6; margin-bottom: 1.5rem; }
-.gate-msg.error { color: #cc3333; }
-.gate-msg.success { color: #1a3a1a; }
-.gate-btn { display: inline-block; padding: 0.85rem 2rem; border-radius: 100px; font-weight: 700; font-size: 0.95rem; text-decoration: none; transition: all 0.2s; margin: 0.4rem; }
-.gate-btn-primary { background: #CCFF00; color: #1a3a1a; }
-.gate-btn-line { background: #06C755; color: white; }
-.gate-name-badge { display: inline-block; background: #e8f5e9; color: #1a3a1a; padding: 0.3rem 1rem; border-radius: 100px; font-size: 0.85rem; font-weight: 600; margin-bottom: 1rem; }
-.gate-expiry { font-size: 0.78rem; color: #aaa; margin-top: 0.5rem; }
+/* ── MATCH PRINT (redesigned: img LEFT, text RIGHT) ── */
+.match-section-listen{background:var(--teal-light);border:1px solid rgba(59,191,173,.3);border-radius:10px;padding:.6rem .85rem;margin-bottom:.85rem;display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
+.match-listen-script{font-size:.8rem;color:#2A9D8F;font-style:italic;flex:1}
+.match-pairs{margin:.5rem 0 0 0}
+.match-row-p{display:grid;grid-template-columns:auto 1fr;gap:.75rem 1rem;align-items:center;margin-bottom:.85rem;padding-bottom:.85rem;border-bottom:1px dashed var(--border)}
+.match-row-p:last-child{border-bottom:none}
+/* left = img */
+.match-img-cell{display:flex;flex-direction:column;align-items:center;gap:.35rem}
+.img-slot{width:108px;height:84px;border:1.5px dashed var(--border-dark);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:.65rem;color:var(--text-muted);cursor:pointer;position:relative;overflow:hidden;background:var(--bg);flex-shrink:0}
+.img-slot img{width:100%;height:100%;object-fit:cover;border-radius:9px}
+.img-slot:hover .img-dl{display:flex}
+.img-dl{display:none;position:absolute;inset:0;background:rgba(0,0,0,.5);align-items:center;justify-content:center;flex-direction:column;gap:3px}
+.img-dl button{background:white;border:none;border-radius:4px;font-size:.6rem;padding:2px 6px;cursor:pointer;color:var(--green-dark)}
+.img-actions{display:flex;gap:4px}
+.img-act-btn{border:1px solid var(--border);background:white;border-radius:6px;padding:2px 8px;font-size:.65rem;cursor:pointer;color:var(--text-muted);font-family:'Noto Sans TC',sans-serif;white-space:nowrap}
+.img-act-btn:hover{border-color:var(--teal);color:var(--teal)}
+/* right = text options */
+.match-text-cell{display:flex;flex-direction:column;gap:.35rem}
+.match-letter-row{display:flex;align-items:center;gap:.5rem;font-size:.82rem}
+.match-answer-blank{display:inline-block;border:1px solid var(--border);border-radius:5px;padding:0 10px;font-size:.75rem;min-width:28px;text-align:center}
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+/* DIGITAL */
+.score-strip{background:white;border:1px solid var(--border);border-radius:12px;padding:.85rem 1.25rem;display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.score-val{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;color:var(--coral)}
+.score-lbl{font-size:.75rem;color:var(--text-muted)}
+.reset-btn{border:1px solid var(--border);background:var(--bg);border-radius:8px;padding:.3rem .85rem;font-size:.78rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif;color:var(--text-muted)}
+.dig-card{background:white;border:1px solid var(--border);border-radius:14px;padding:1.1rem;margin-bottom:.85rem}
+/* listen box with hide/show */
+.listen-box{background:var(--teal-light);border:1px solid rgba(59,191,173,.35);border-radius:10px;padding:.65rem .85rem;margin-bottom:.75rem}
+.listen-lbl{font-family:'Space Mono',monospace;font-size:.6rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--teal);margin-bottom:.3rem;display:flex;align-items:center;justify-content:space-between}
+.listen-toggle{background:none;border:1px solid rgba(59,191,173,.4);border-radius:100px;padding:.1rem .55rem;font-size:.65rem;color:var(--teal);cursor:pointer;font-family:'Noto Sans TC',sans-serif}
+.listen-script{font-size:.82rem;line-height:1.6;color:var(--text);margin-bottom:.35rem}
+.listen-script.hidden-script{display:none}
+.listen-row{display:flex;align-items:center;gap:.5rem;margin-top:.35rem}
+.tts-btn{background:var(--teal);color:white;border:none;border-radius:100px;padding:.25rem .75rem;font-size:.75rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif;display:flex;align-items:center;gap:4px}
+.tts-btn:hover{background:#2da898}
+.edit-script-btn{background:none;border:none;font-size:.72rem;color:var(--teal);cursor:pointer;text-decoration:underline;font-family:'Noto Sans TC',sans-serif}
+.dig-q-stem{font-size:.875rem;line-height:1.65;margin-bottom:.65rem;display:flex;gap:.35rem}
+.dig-opts{display:flex;flex-direction:column;gap:.4rem}
+.dig-opt{border:1px solid var(--border);border-radius:9px;padding:.55rem .85rem;font-size:.82rem;cursor:pointer;background:var(--bg);color:var(--text);text-align:left;font-family:'Noto Sans TC',sans-serif;transition:all .12s}
+.dig-opt:hover{border-color:var(--coral);background:var(--coral-light)}
+.dig-opt.correct{border-color:var(--teal);background:var(--teal-light);color:#2A9D8F;font-weight:700}
+.dig-opt.wrong{border-color:var(--coral);background:var(--coral-light);color:#c94a4a}
+.dig-write textarea{width:100%;border:1px solid var(--border);border-radius:9px;padding:.6rem .85rem;font-size:.82rem;font-family:'Noto Sans TC',sans-serif;resize:none;min-height:60px;background:var(--bg);color:var(--text)}
+.dig-write textarea:focus{outline:none;border-color:var(--coral);background:white}
 
-/* ── NAV ── */
-nav {
-  position: sticky; top: 0; z-index: 100;
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 0.75rem 2rem;
-  background: rgba(244,241,235,0.95);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border);
-}
-.nav-logo { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 800; color: var(--green-dark); text-decoration: none; display: flex; align-items: center; gap: 0.4rem; }
-.nav-right { display: flex; align-items: center; gap: 0.75rem; }
-.nav-back { font-size: 0.82rem; color: var(--text-muted); text-decoration: none; }
-.nav-back:hover { color: var(--green-dark); }
-.lang-seg { display: flex; background: white; border: 1px solid var(--border); border-radius: 100px; padding: 2px; gap: 2px; }
-.lang-seg button { border: none; background: none; border-radius: 100px; padding: 0.2rem 0.7rem; font-size: 0.75rem; cursor: pointer; color: var(--text-muted); font-family: 'Noto Sans TC', sans-serif; }
-.lang-seg button.on { background: var(--green-dark); color: var(--yellow); font-weight: 700; }
+/* ── CLICK-TO-MATCH DIGITAL ── */
+.match-dig-instr{font-size:.78rem;color:var(--text-muted);margin-bottom:.75rem;background:var(--bg);border-radius:8px;padding:.5rem .75rem}
+.match-dig-grid{display:grid;grid-template-columns:1fr 1fr;gap:.65rem 1rem;margin-top:.5rem}
+.match-dig-left,.match-dig-right{display:flex;flex-direction:column;gap:.5rem}
+/* clickable img card */
+.match-img-card{border:2px solid var(--border);border-radius:12px;padding:.5rem;cursor:pointer;background:var(--bg);transition:all .15s;text-align:center}
+.match-img-card img{width:100%;height:70px;object-fit:cover;border-radius:8px;display:block;margin-bottom:.3rem}
+.match-img-card .img-placeholder{width:100%;height:70px;background:var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin-bottom:.3rem}
+.match-img-card .img-idx{font-size:.75rem;color:var(--text-muted);font-weight:600}
+.match-img-card.selected{border-color:var(--coral);background:var(--coral-light)}
+.match-img-card.matched{border-color:var(--teal);background:var(--teal-light)}
+.match-img-card.matched .img-idx{color:var(--teal);font-weight:700}
+/* clickable text card */
+.match-txt-card{border:2px solid var(--border);border-radius:10px;padding:.55rem .85rem;cursor:pointer;background:var(--bg);font-size:.82rem;transition:all .15s;display:flex;align-items:center;gap:.5rem}
+.match-txt-card:hover{border-color:var(--teal);background:var(--teal-light)}
+.match-txt-card.selected{border-color:var(--coral);background:var(--coral-light);font-weight:600}
+.match-txt-card.matched{border-color:var(--teal);background:var(--teal-light);color:#2A9D8F;font-weight:700;cursor:default}
+.match-txt-card.wrong-flash{border-color:var(--coral);background:var(--coral-light);animation:wrongFlash .4s ease}
+@keyframes wrongFlash{0%,100%{transform:none}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.match-result-bar{margin-top:.75rem;text-align:center;font-size:.82rem;color:var(--teal);font-weight:600;display:none}
+.match-result-bar.show{display:block}
 
-/* ── MODE TABS ── */
-.mode-bar {
-  display: flex; gap: 0; background: white; border-bottom: 1px solid var(--border);
-  padding: 0 2rem; overflow-x: auto;
+/* OVERLAY */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:500;align-items:center;justify-content:center;padding:1rem}
+.overlay.show{display:flex}
+.overlay-box{background:white;border-radius:16px;padding:1.5rem;width:100%;max-width:460px;border:1px solid var(--border)}
+.overlay-box h3{font-family:'Syne',sans-serif;font-size:.95rem;font-weight:800;margin-bottom:.85rem}
+.overlay-box textarea{width:100%;border:1px solid var(--border);border-radius:9px;padding:.65rem;font-size:.875rem;font-family:'Noto Sans TC',sans-serif;resize:vertical;min-height:72px;background:var(--bg);color:var(--text)}
+.overlay-box textarea:focus{outline:none;border-color:var(--coral);background:white}
+.overlay-row{display:flex;justify-content:flex-end;gap:.5rem;margin-top:.85rem}
+.o-btn{border:1px solid var(--border);background:var(--bg);border-radius:8px;padding:.4rem 1rem;font-size:.82rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif;color:var(--text)}
+.o-btn.save{background:var(--coral);color:white;border-color:var(--coral)}
+/* LOADING */
+#loadingOverlay{display:none;position:fixed;inset:0;background:rgba(26,58,26,.85);z-index:400;flex-direction:column;align-items:center;justify-content:center;gap:1rem}
+#loadingOverlay.show{display:flex}
+.load-spinner{width:48px;height:48px;border:3px solid rgba(204,255,0,.2);border-top-color:var(--yellow);border-radius:50%;animation:spin .8s linear infinite}
+.load-txt{font-family:'Syne',sans-serif;color:var(--yellow);font-size:1rem;font-weight:700}
+.load-sub{font-size:.78rem;color:rgba(204,255,0,.55)}
+/* EMPTY / TOAST */
+.empty-state{text-align:center;padding:3rem 1rem;color:var(--text-muted)}
+.empty-ico{font-size:2.5rem;margin-bottom:.75rem}
+.empty-title{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;margin-bottom:.4rem;color:var(--text)}
+#toast{display:none;position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#c94a4a;color:white;border-radius:100px;padding:.65rem 1.5rem;font-size:.82rem;z-index:600;white-space:nowrap}
+/* PRINT CSS */
+@media print{
+  nav,.mode-bar,.print-topbar,#authGate,#loadingOverlay,#toast,.edit-ico,.img-dl,.img-actions,.tts-btn,.edit-script-btn,.listen-row,.listen-toggle,.match-result-bar{display:none!important}
+  body{background:white}
+  .page{display:block!important}
+  #page-edit,#page-digital{display:none!important}
+  .paper{box-shadow:none;border:none;padding:0}
+  .container{padding:0;max-width:100%}
+  .listen-box{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .listen-script.hidden-script{display:block!important}
 }
-.mode-tab {
-  display: flex; align-items: center; gap: 0.4rem;
-  padding: 0.85rem 1.25rem; border: none; background: none;
-  font-family: 'Noto Sans TC', sans-serif; font-size: 0.85rem;
-  color: var(--text-muted); cursor: pointer;
-  border-bottom: 2px solid transparent; margin-bottom: -1px;
-  white-space: nowrap; transition: all 0.2s;
-}
-.mode-tab:hover { color: var(--green-dark); }
-.mode-tab.active { color: var(--coral); border-bottom-color: var(--coral); font-weight: 700; }
-.mode-tab .tab-ico { font-size: 1rem; }
-
-/* ── LAYOUT ── */
-.page { display: none; }
-.page.active { display: block; }
-.container { max-width: 760px; margin: 0 auto; padding: 1.5rem 1.5rem 4rem; }
-
-/* ── CARDS ── */
-.card {
-  background: white; border-radius: 16px;
-  border: 1px solid var(--border); padding: 1.25rem;
-  margin-bottom: 1rem;
-}
-.card-label {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em;
-  text-transform: uppercase; color: var(--coral);
-  margin-bottom: 0.85rem;
-}
-
-/* ── FORM ELEMENTS ── */
-textarea.field, select.field, input.field {
-  width: 100%; border: 1px solid var(--border);
-  border-radius: 10px; padding: 0.65rem 0.85rem;
-  font-size: 0.875rem; font-family: 'Noto Sans TC', sans-serif;
-  color: var(--text); background: var(--bg);
-  transition: border-color 0.15s;
-}
-textarea.field { resize: none; line-height: 1.6; }
-textarea.field:focus, select.field:focus, input.field:focus { outline: none; border-color: var(--coral); background: white; }
-
-.upload-btn {
-  flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
-  background: var(--bg); border: 1.5px dashed var(--border-dark);
-  border-radius: 10px; padding: 0.6rem; font-size: 0.8rem;
-  color: var(--text-muted); cursor: pointer; font-family: 'Noto Sans TC', sans-serif;
-  transition: all 0.15s;
-}
-.upload-btn:hover { border-color: var(--coral); color: var(--coral); }
-
-/* ── TYPE CARDS ── */
-.type-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 0.65rem; margin-bottom: 1rem; }
-.type-card {
-  border: 1.5px solid var(--border); border-radius: 12px;
-  padding: 0.85rem 0.5rem; cursor: pointer; text-align: center;
-  background: var(--bg); transition: all 0.15s; user-select: none;
-}
-.type-card.on { border-color: var(--coral); background: var(--coral-light); }
-.type-card .tc-ico { font-size: 1.4rem; margin-bottom: 0.25rem; display: block; }
-.type-card .tc-nm { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); }
-.type-card.on .tc-nm { color: var(--coral); }
-.tc-cnt { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 0.4rem; }
-.tc-cnt button {
-  border: 1px solid var(--border); background: white; width: 20px; height: 20px;
-  border-radius: 50%; font-size: 14px; cursor: pointer; color: var(--text);
-  line-height: 1; display: flex; align-items: center; justify-content: center;
-}
-.tc-cnt span { font-size: 0.85rem; font-weight: 700; min-width: 16px; text-align: center; }
-
-/* ── DIFF / LANG CHIPS ── */
-.chip-row { display: flex; gap: 0.4rem; flex-wrap: wrap; }
-.chip {
-  border: 1px solid var(--border); background: var(--bg);
-  border-radius: 100px; padding: 0.3rem 0.9rem;
-  font-size: 0.78rem; cursor: pointer; color: var(--text-muted);
-  font-family: 'Noto Sans TC', sans-serif; transition: all 0.15s;
-}
-.chip.on { border-color: var(--teal); background: var(--teal-light); color: var(--teal); font-weight: 700; }
-
-/* ── CEFR INFO ── */
-.cefr-info {
-  background: var(--teal-light); border: 1px solid rgba(59,191,173,0.3);
-  border-radius: 10px; padding: 0.75rem 1rem; margin-top: 0.75rem;
-  font-size: 0.78rem; color: #2A9D8F; line-height: 1.7; display: none;
-}
-.cefr-info.show { display: block; }
-.cefr-toggle { background: none; border: none; font-size: 0.75rem; color: var(--teal); cursor: pointer; font-family: 'Noto Sans TC', sans-serif; text-decoration: underline; margin-top: 0.4rem; }
-
-/* ── GEN BUTTON ── */
-.gen-btn {
-  width: 100%; padding: 0.9rem;
-  background: var(--green-dark); color: var(--yellow);
-  border: none; border-radius: 12px;
-  font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 800;
-  cursor: pointer; letter-spacing: 0.02em;
-  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
-  transition: all 0.2s;
-}
-.gen-btn:hover { background: var(--green-mid); transform: translateY(-1px); }
-.gen-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-.spinner { width: 18px; height: 18px; border: 2px solid rgba(204,255,0,0.3); border-top-color: var(--yellow); border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
-.gen-btn.loading .spinner { display: block; }
-.gen-btn.loading .btn-txt { opacity: 0.5; }
-
-/* ── PRINT MODE ── */
-.print-topbar {
-  display: flex; align-items: center; justify-content: space-between;
-  flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem;
-}
-.print-topbar-left { display: flex; align-items: center; gap: 0.65rem; }
-.print-tabs { display: flex; gap: 0.35rem; }
-.ptab {
-  border: 1px solid var(--border); background: var(--bg);
-  border-radius: 100px; padding: 0.3rem 0.9rem;
-  font-size: 0.78rem; cursor: pointer; color: var(--text-muted);
-  font-family: 'Noto Sans TC', sans-serif;
-}
-.ptab.on { background: var(--coral); color: white; border-color: var(--coral); font-weight: 700; }
-.act-btn {
-  border: 1px solid var(--border); background: white;
-  border-radius: 10px; padding: 0.4rem 0.85rem;
-  font-size: 0.78rem; cursor: pointer; color: var(--text-muted);
-  font-family: 'Noto Sans TC', sans-serif; display: flex; align-items: center; gap: 4px;
-}
-.act-btn:hover { background: var(--bg); }
-.act-btn.teal { background: var(--teal); color: white; border-color: var(--teal); }
-
-/* ── PAPER ── */
-.paper {
-  background: white; border-radius: 16px;
-  border: 1px solid var(--border); padding: 2rem;
-}
-.paper-top { text-align: center; border-bottom: 2px solid var(--text); padding-bottom: 1rem; margin-bottom: 1.5rem; }
-.paper-title { font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 800; }
-.paper-sub { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.25rem; }
-.paper-meta { display: flex; justify-content: space-between; margin-top: 0.85rem; font-size: 0.75rem; }
-.meta-field { display: flex; align-items: center; gap: 4px; }
-.meta-line { display: inline-block; border-bottom: 1px solid var(--text); width: 90px; }
-.q-section { margin-bottom: 1.5rem; }
-.q-section-hd {
-  font-family: 'Space Mono', monospace; font-size: 0.65rem;
-  font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
-  color: var(--coral); border-bottom: 1px solid #FFE0E0;
-  padding-bottom: 0.3rem; margin-bottom: 0.85rem;
-}
-.q-item { margin-bottom: 1.1rem; }
-.q-stem { font-size: 0.875rem; line-height: 1.65; display: flex; gap: 0.35rem; align-items: flex-start; }
-.q-num { font-weight: 700; min-width: 20px; flex-shrink: 0; }
-.edit-ico { background: none; border: none; cursor: pointer; font-size: 0.7rem; color: var(--border-dark); padding: 0 2px; flex-shrink: 0; }
-.edit-ico:hover { color: var(--coral); }
-.opts-g { display: grid; grid-template-columns: 1fr 1fr; gap: 0.15rem 1rem; margin: 0.45rem 0 0 1.2rem; }
-.opt { font-size: 0.8rem; color: var(--text-muted); padding: 0.08rem 0; }
-.opt.ans { color: var(--teal); font-weight: 700; }
-.write-lines { margin: 0.5rem 0 0 1.2rem; display: flex; flex-direction: column; gap: 0.6rem; }
-.wline { border-bottom: 1px solid var(--border-dark); height: 24px; }
-.ans-ref { background: var(--teal-light); border-radius: 8px; padding: 0.45rem 0.75rem; font-size: 0.78rem; color: #2A9D8F; margin: 0.35rem 0 0 1.2rem; line-height: 1.6; }
-
-/* ── MATCHING PRINT ── */
-.match-pairs { margin: 0.5rem 0 0 1.2rem; }
-.match-row-p { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; align-items: center; margin-bottom: 0.6rem; }
-.match-left-cell { display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; }
-.match-blank-line { flex: 1; border-bottom: 1px solid var(--border-dark); min-width: 30px; }
-.match-right-cell { display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; color: var(--text-muted); }
-.img-slot {
-  width: 80px; height: 64px; border: 1.5px dashed var(--border-dark);
-  border-radius: 8px; display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  font-size: 0.65rem; color: var(--text-muted); cursor: pointer;
-  position: relative; overflow: hidden; flex-shrink: 0; background: var(--bg);
-}
-.img-slot img { width: 100%; height: 100%; object-fit: cover; border-radius: 7px; }
-.img-slot:hover .img-dl { display: flex; }
-.img-dl {
-  display: none; position: absolute; inset: 0;
-  background: rgba(0,0,0,0.5); align-items: center; justify-content: center;
-  gap: 3px; flex-direction: column;
-}
-.img-dl button {
-  background: white; border: none; border-radius: 4px;
-  font-size: 0.6rem; padding: 2px 6px; cursor: pointer; color: var(--green-dark);
-}
-.img-actions { display: flex; flex-direction: column; gap: 3px; }
-.img-act-btn {
-  border: 1px solid var(--border); background: white;
-  border-radius: 6px; padding: 2px 8px; font-size: 0.65rem;
-  cursor: pointer; color: var(--text-muted); font-family: 'Noto Sans TC', sans-serif;
-  white-space: nowrap;
-}
-.img-act-btn:hover { border-color: var(--teal); color: var(--teal); }
-
-/* ── DIGITAL MODE ── */
-.score-strip {
-  background: white; border: 1px solid var(--border); border-radius: 12px;
-  padding: 0.85rem 1.25rem; display: flex; align-items: center;
-  justify-content: space-between; margin-bottom: 1rem;
-}
-.score-val { font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 800; color: var(--coral); }
-.score-lbl { font-size: 0.75rem; color: var(--text-muted); }
-.reset-btn { border: 1px solid var(--border); background: var(--bg); border-radius: 8px; padding: 0.3rem 0.85rem; font-size: 0.78rem; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; color: var(--text-muted); }
-
-.dig-card { background: white; border: 1px solid var(--border); border-radius: 14px; padding: 1.1rem; margin-bottom: 0.85rem; }
-.listen-box { background: var(--teal-light); border: 1px solid rgba(59,191,173,0.35); border-radius: 10px; padding: 0.65rem 0.85rem; margin-bottom: 0.75rem; }
-.listen-lbl { font-family: 'Space Mono', monospace; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--teal); margin-bottom: 0.3rem; }
-.listen-script { font-size: 0.82rem; line-height: 1.6; color: var(--text); }
-.listen-row { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.4rem; }
-.tts-btn { background: var(--teal); color: white; border: none; border-radius: 100px; padding: 0.25rem 0.75rem; font-size: 0.75rem; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; display: flex; align-items: center; gap: 4px; }
-.tts-btn:hover { background: #2da898; }
-.edit-script-btn { background: none; border: none; font-size: 0.72rem; color: var(--teal); cursor: pointer; text-decoration: underline; font-family: 'Noto Sans TC', sans-serif; }
-.dig-q-stem { font-size: 0.875rem; line-height: 1.65; margin-bottom: 0.65rem; display: flex; gap: 0.35rem; }
-.dig-opts { display: flex; flex-direction: column; gap: 0.4rem; }
-.dig-opt {
-  border: 1px solid var(--border); border-radius: 9px; padding: 0.55rem 0.85rem;
-  font-size: 0.82rem; cursor: pointer; background: var(--bg); color: var(--text);
-  text-align: left; font-family: 'Noto Sans TC', sans-serif; transition: all 0.12s;
-}
-.dig-opt:hover { border-color: var(--coral); background: var(--coral-light); }
-.dig-opt.correct { border-color: var(--teal); background: var(--teal-light); color: #2A9D8F; font-weight: 700; }
-.dig-opt.wrong { border-color: var(--coral); background: var(--coral-light); color: #c94a4a; }
-.dig-write textarea { width: 100%; border: 1px solid var(--border); border-radius: 9px; padding: 0.6rem 0.85rem; font-size: 0.82rem; font-family: 'Noto Sans TC', sans-serif; resize: none; min-height: 60px; background: var(--bg); color: var(--text); }
-.dig-write textarea:focus { outline: none; border-color: var(--coral); background: white; }
-
-/* match digital */
-.match-dig-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; margin-top: 0.5rem; }
-.drag-item { border: 1px solid var(--border); border-radius: 8px; padding: 0.4rem 0.75rem; font-size: 0.8rem; background: var(--bg); display: flex; align-items: center; gap: 6px; }
-.drop-zone { border: 1.5px dashed var(--border-dark); border-radius: 8px; padding: 0.4rem 0.75rem; font-size: 0.8rem; min-height: 34px; display: flex; align-items: center; color: var(--text-muted); }
-.drop-zone.filled { border-color: var(--teal); background: var(--teal-light); color: #2A9D8F; font-weight: 600; border-style: solid; }
-
-/* ── EDIT OVERLAY ── */
-.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 500; align-items: center; justify-content: center; padding: 1rem; }
-.overlay.show { display: flex; }
-.overlay-box { background: white; border-radius: 16px; padding: 1.5rem; width: 100%; max-width: 460px; border: 1px solid var(--border); }
-.overlay-box h3 { font-family: 'Syne', sans-serif; font-size: 0.95rem; font-weight: 800; margin-bottom: 0.85rem; }
-.overlay-box textarea { width: 100%; border: 1px solid var(--border); border-radius: 9px; padding: 0.65rem; font-size: 0.875rem; font-family: 'Noto Sans TC', sans-serif; resize: vertical; min-height: 72px; background: var(--bg); color: var(--text); }
-.overlay-box textarea:focus { outline: none; border-color: var(--coral); background: white; }
-.overlay-row { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.85rem; }
-.o-btn { border: 1px solid var(--border); background: var(--bg); border-radius: 8px; padding: 0.4rem 1rem; font-size: 0.82rem; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; color: var(--text); }
-.o-btn.save { background: var(--coral); color: white; border-color: var(--coral); }
-
-/* ── LOADING OVERLAY ── */
-#loadingOverlay {
-  display: none; position: fixed; inset: 0;
-  background: rgba(26,58,26,0.85); z-index: 400;
-  flex-direction: column; align-items: center; justify-content: center; gap: 1rem;
-}
-#loadingOverlay.show { display: flex; }
-.load-spinner { width: 48px; height: 48px; border: 3px solid rgba(204,255,0,0.2); border-top-color: var(--yellow); border-radius: 50%; animation: spin 0.8s linear infinite; }
-.load-txt { font-family: 'Syne', sans-serif; color: var(--yellow); font-size: 1rem; font-weight: 700; }
-.load-sub { font-size: 0.78rem; color: rgba(204,255,0,0.55); }
-
-/* ── EMPTY STATE ── */
-.empty-state { text-align: center; padding: 3rem 1rem; color: var(--text-muted); }
-.empty-ico { font-size: 2.5rem; margin-bottom: 0.75rem; }
-.empty-title { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; margin-bottom: 0.4rem; color: var(--text); }
-
-/* ── ERROR TOAST ── */
-#toast { display: none; position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: #c94a4a; color: white; border-radius: 100px; padding: 0.65rem 1.5rem; font-size: 0.82rem; z-index: 600; white-space: nowrap; }
-
-/* ── PRINT CSS ── */
-@media print {
-  nav, .mode-bar, .print-topbar, #authGate, #loadingOverlay, #toast, .edit-ico, .img-dl, .img-actions, .tts-btn, .edit-script-btn, .listen-row { display: none !important; }
-  body { background: white; }
-  .page { display: block !important; }
-  #page-edit { display: none !important; }
-  #page-digital { display: none !important; }
-  .paper { box-shadow: none; border: none; padding: 0; }
-  .container { padding: 0; max-width: 100%; }
-}
-
-/* ── RESPONSIVE ── */
-@media (max-width: 600px) {
-  nav { padding: 0.65rem 1rem; }
-  .container { padding: 1rem 1rem 4rem; }
-  .type-grid { grid-template-columns: repeat(3,1fr); gap: 0.5rem; }
-  .opts-g { grid-template-columns: 1fr; }
-  .match-row-p { grid-template-columns: 1fr; }
-  .match-dig-wrap { grid-template-columns: 1fr; }
-  .print-topbar { flex-direction: column; align-items: flex-start; }
+@media(max-width:600px){
+  nav{padding:.65rem 1rem}
+  .container{padding:1rem 1rem 4rem}
+  .opts-g{grid-template-columns:1fr}
+  .match-dig-grid{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -369,11 +230,11 @@ textarea.field:focus, select.field:focus, input.field:focus { outline: none; bor
   </div>
 </div>
 
-<!-- LOADING OVERLAY -->
+<!-- LOADING -->
 <div id="loadingOverlay">
   <div class="load-spinner"></div>
   <div class="load-txt" id="loadTxt">AI 出題中…</div>
-  <div class="load-sub" id="loadSub">Gemini 正在閱讀您的內容並生成題目</div>
+  <div class="load-sub">Gemini 正在閱讀您的內容並生成題目</div>
 </div>
 
 <!-- EDIT OVERLAY -->
@@ -388,7 +249,6 @@ textarea.field:focus, select.field:focus, input.field:focus { outline: none; bor
   </div>
 </div>
 
-<!-- ERROR TOAST -->
 <div id="toast"></div>
 
 <!-- NAV -->
@@ -406,66 +266,45 @@ textarea.field:focus, select.field:focus, input.field:focus { outline: none; bor
 <!-- MODE TABS -->
 <div class="mode-bar">
   <button class="mode-tab active" onclick="setMode('edit')" id="tab-edit">
-    <span class="tab-ico">✏️</span> <span id="lbl-tab-edit">編輯內容</span>
+    <span>✏️</span> <span id="lbl-tab-edit">編輯內容</span>
   </button>
   <button class="mode-tab" onclick="setMode('print')" id="tab-print">
-    <span class="tab-ico">🖨️</span> <span id="lbl-tab-print">列印考卷</span>
+    <span>🖨️</span> <span id="lbl-tab-print">列印考卷</span>
   </button>
   <button class="mode-tab" onclick="setMode('digital')" id="tab-digital">
-    <span class="tab-ico">🎮</span> <span id="lbl-tab-digital">數位練習</span>
+    <span>🎮</span> <span id="lbl-tab-digital">數位練習</span>
   </button>
 </div>
 
-<!-- ════════════════════════════════ EDIT PAGE ════════════════════════════════ -->
+<!-- ══ EDIT PAGE ══ -->
 <div class="page active" id="page-edit">
   <div class="container">
-
     <div class="card">
       <div class="card-label" id="lbl-input">輸入內容</div>
       <textarea class="field" id="promptInput" rows="4"
         placeholder="描述你想出的題目，或貼上課文內容…&#10;例：出5題關於過去式動詞的選擇題，配合4組動物配合題"></textarea>
-      <div style="display:flex;gap:0.5rem;margin-top:0.6rem">
-        <button class="upload-btn" onclick="mockUpload()">
-          📷 <span id="lbl-upload">上傳照片 / PDF</span>
-        </button>
+      <div style="display:flex;gap:.5rem;margin-top:.6rem">
+        <button class="upload-btn" onclick="mockUpload()">📷 <span id="lbl-upload">上傳照片 / PDF</span></button>
       </div>
     </div>
-
     <div class="card">
       <div class="card-label" id="lbl-settings">出題設定</div>
-
-      <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.5rem" id="lbl-types">題型與題數</div>
+      <div style="font-size:.75rem;color:var(--text-muted);margin-bottom:.5rem" id="lbl-types">題型與題數</div>
       <div class="type-grid">
         <div class="type-card on" data-type="mc" onclick="toggleType(this)">
-          <span class="tc-ico">☑️</span>
-          <div class="tc-nm" id="tc-mc">選擇題</div>
-          <div class="tc-cnt">
-            <button onclick="adj(event,'mc',-1)">−</button>
-            <span id="cnt-mc">5</span>
-            <button onclick="adj(event,'mc',1)">+</button>
-          </div>
+          <span class="tc-ico">☑️</span><div class="tc-nm" id="tc-mc">選擇題</div>
+          <div class="tc-cnt"><button onclick="adj(event,'mc',-1)">−</button><span id="cnt-mc">5</span><button onclick="adj(event,'mc',1)">+</button></div>
         </div>
         <div class="type-card on" data-type="sa" onclick="toggleType(this)">
-          <span class="tc-ico">✏️</span>
-          <div class="tc-nm" id="tc-sa">書寫題</div>
-          <div class="tc-cnt">
-            <button onclick="adj(event,'sa',-1)">−</button>
-            <span id="cnt-sa">3</span>
-            <button onclick="adj(event,'sa',1)">+</button>
-          </div>
+          <span class="tc-ico">✏️</span><div class="tc-nm" id="tc-sa">書寫題</div>
+          <div class="tc-cnt"><button onclick="adj(event,'sa',-1)">−</button><span id="cnt-sa">3</span><button onclick="adj(event,'sa',1)">+</button></div>
         </div>
         <div class="type-card" data-type="match" onclick="toggleType(this)">
-          <span class="tc-ico">🔗</span>
-          <div class="tc-nm" id="tc-match">配合題</div>
-          <div class="tc-cnt">
-            <button onclick="adj(event,'match',-1)">−</button>
-            <span id="cnt-match">4</span>
-            <button onclick="adj(event,'match',1)">+</button>
-          </div>
+          <span class="tc-ico">🔗</span><div class="tc-nm" id="tc-match">配合題</div>
+          <div class="tc-cnt"><button onclick="adj(event,'match',-1)">−</button><span id="cnt-match">4</span><button onclick="adj(event,'match',1)">+</button></div>
         </div>
       </div>
-
-      <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.4rem" id="lbl-cefr">難度（CEFR）</div>
+      <div style="font-size:.75rem;color:var(--text-muted);margin-bottom:.4rem" id="lbl-cefr">難度（CEFR）</div>
       <div class="chip-row" id="cefr-chips">
         <button class="chip" data-cefr="A1" onclick="setCefr(this)">A1 入門</button>
         <button class="chip on" data-cefr="A2" onclick="setCefr(this)">A2 基礎</button>
@@ -474,216 +313,181 @@ textarea.field:focus, select.field:focus, input.field:focus { outline: none; bor
       </div>
       <div class="cefr-info" id="cefrInfo"></div>
       <button class="cefr-toggle" onclick="toggleCefrInfo()" id="cefrToggleBtn">ⓘ 查看 CEFR 難度說明</button>
-
-      <div style="font-size:0.75rem;color:var(--text-muted);margin:0.85rem 0 0.4rem" id="lbl-outlang">題目語言</div>
+      <div style="font-size:.75rem;color:var(--text-muted);margin:.85rem 0 .4rem" id="lbl-outlang">題目語言</div>
       <div class="chip-row" id="lang-chips">
         <button class="chip on" data-lang="English" onclick="setOutLang(this)">English</button>
         <button class="chip" data-lang="中文" onclick="setOutLang(this)">中文</button>
         <button class="chip" data-lang="English + 中文" onclick="setOutLang(this)">雙語</button>
       </div>
     </div>
-
     <button class="gen-btn" id="genBtn" onclick="generate()">
       <div class="spinner" id="genSpinner"></div>
       <span class="btn-txt" id="genBtnTxt">✨ 生成考卷</span>
     </button>
-
   </div>
 </div>
 
-<!-- ════════════════════════════════ PRINT PAGE ════════════════════════════════ -->
+<!-- ══ PRINT PAGE ══ -->
 <div class="page" id="page-print">
   <div class="container">
-
     <div class="print-topbar">
       <div class="print-tabs">
         <button class="ptab on" onclick="switchPrintTab('student')" id="ptab-s">學生試卷</button>
         <button class="ptab" onclick="switchPrintTab('answer')" id="ptab-a">解答卷</button>
       </div>
-      <div style="display:flex;gap:0.4rem;flex-wrap:wrap">
-        <button class="act-btn" onclick="setMode('edit')" id="btn-back">← <span id="lbl-back">返回編輯</span></button>
+      <div style="display:flex;gap:.4rem;flex-wrap:wrap">
+        <button class="act-btn" onclick="setMode('edit')">← <span id="lbl-back">返回編輯</span></button>
         <button class="act-btn" onclick="toggleAns()" id="btn-ans-toggle">👁 <span id="lbl-ans-toggle">顯示解答</span></button>
         <button class="act-btn teal" onclick="window.print()">🖨️ <span id="lbl-print">列印</span></button>
       </div>
     </div>
-
     <div class="paper" id="paperEl">
       <div class="empty-state">
         <div class="empty-ico">📄</div>
         <div class="empty-title" id="lbl-empty-print">尚未生成考卷</div>
-        <p style="font-size:0.8rem;margin-top:0.25rem">請先到「編輯內容」頁填寫設定，按下生成考卷</p>
+        <p style="font-size:.8rem;margin-top:.25rem">請先到「編輯內容」頁填寫設定，按下生成考卷</p>
       </div>
     </div>
-
   </div>
 </div>
 
-<!-- ════════════════════════════════ DIGITAL PAGE ════════════════════════════════ -->
+<!-- ══ DIGITAL PAGE ══ -->
 <div class="page" id="page-digital">
   <div class="container">
-
     <div class="score-strip">
-      <div>
-        <div class="score-val" id="scoreVal">0 / 0</div>
-        <div class="score-lbl" id="lbl-score">已作答題數</div>
-      </div>
+      <div><div class="score-val" id="scoreVal">0 / 0</div><div class="score-lbl" id="lbl-score">已作答題數</div></div>
       <button class="reset-btn" onclick="resetDigital()" id="btn-reset">重設</button>
     </div>
-
     <div id="digContent">
       <div class="empty-state">
         <div class="empty-ico">🎮</div>
         <div class="empty-title" id="lbl-empty-dig">尚未生成題目</div>
-        <p style="font-size:0.8rem;margin-top:0.25rem">請先到「編輯內容」頁生成考卷</p>
+        <p style="font-size:.8rem;margin-top:.25rem">請先到「編輯內容」頁生成考卷</p>
       </div>
     </div>
-
   </div>
 </div>
 
 <script>
-// ══════════════════════════════════════════════════════════════
-// AUTH GATE（與 tools.html 相同邏輯）
-// ══════════════════════════════════════════════════════════════
-const AUTH_GAS = 'https://script.google.com/macros/s/AKfycbyF9mEn3_pijcuQaZgGI1gug1Pxrrh3c7WhBHMHLvMdLk00dkpPfKc0bvsLUlDfRhF8/exec';
-const QUIZ_GAS = 'https://script.google.com/macros/s/AKfycby63WiGPMwr6FmUeZiGtHwwzuY30q7PovCBN7Por7kj164AcuX69QMztOJn1jIHH1lzAg/exec';
-const STORAGE_KEY  = 'newcore_tools_token';
-const STORAGE_INFO = 'newcore_tools_info';
-
-function showGate(type, msg, extra) {
-  document.getElementById('gateSpinner').style.display = 'none';
-  document.getElementById('gateMsg').className = 'gate-msg ' + (type||'');
-  document.getElementById('gateMsg').textContent = msg;
-  document.getElementById('gateActions').innerHTML = extra||'';
+// ── AUTH ──
+var AUTH_GAS='https://script.google.com/macros/s/AKfycbyF9mEn3_pijcuQaZgGI1gug1Pxrrh3c7WhBHMHLvMdLk00dkpPfKc0bvsLUlDfRhF8/exec';
+var QUIZ_GAS='https://script.google.com/macros/s/AKfycby63WiGPMwr6FmUeZiGtHwwzuY30q7PovCBN7Por7kj164AcuX69QMztOJn1jIHH1lzAg/exec';
+var STORAGE_KEY='newcore_tools_token';
+function showGate(type,msg,extra){
+  document.getElementById('gateSpinner').style.display='none';
+  document.getElementById('gateMsg').className='gate-msg '+(type||'');
+  document.getElementById('gateMsg').textContent=msg;
+  document.getElementById('gateActions').innerHTML=extra||'';
 }
-function checkToken(token, save) {
-  const cb = 'authCb_' + Date.now();
-  const s = document.createElement('script');
-  window[cb] = function(data) {
-    s.remove(); delete window[cb];
-    if (data.valid) {
-      if (save) { localStorage.setItem(STORAGE_KEY, token); localStorage.setItem(STORAGE_INFO, JSON.stringify({name:data.name,plan:data.plan,expiry:data.expiry})); }
-      document.getElementById('gateMsg').className = 'gate-msg success';
-      document.getElementById('gateMsg').textContent = '✅ 驗證成功，載入中…';
-      document.getElementById('gateActions').innerHTML = '<div class="gate-name-badge">👋 ' + data.name + '</div>';
-      setTimeout(()=>document.getElementById('authGate').classList.add('hidden'), 900);
-    } else {
+function checkToken(token,save){
+  var cb='authCb_'+Date.now();
+  var s=document.createElement('script');
+  window[cb]=function(data){
+    s.remove();delete window[cb];
+    if(data.valid){
+      if(save){localStorage.setItem(STORAGE_KEY,token);localStorage.setItem('newcore_tools_info',JSON.stringify({name:data.name,plan:data.plan,expiry:data.expiry}));}
+      document.getElementById('gateMsg').className='gate-msg success';
+      document.getElementById('gateMsg').textContent='✅ 驗證成功，載入中…';
+      document.getElementById('gateActions').innerHTML='<div class="gate-name-badge">👋 '+data.name+'</div>';
+      setTimeout(function(){document.getElementById('authGate').classList.add('hidden');},900);
+    }else{
       localStorage.removeItem(STORAGE_KEY);
-      showGate('error','❌ '+(data.message||'授權無效'),`<a href="https://jeffreycz1979-prog.github.io/JeffreysLab/index.html#apply" class="gate-btn gate-btn-primary">📋 申請試用</a>`);
+      showGate('error','❌ '+(data.message||'授權無效'),'<a href="https://jeffreycz1979-prog.github.io/JeffreysLab/index.html#apply" class="gate-btn gate-btn-primary">📋 申請試用</a>');
     }
   };
-  s.src = AUTH_GAS + '?action=checkToolsToken&token=' + encodeURIComponent(token) + '&callback=' + cb;
+  s.src=AUTH_GAS+'?action=checkToolsToken&token='+encodeURIComponent(token)+'&callback='+cb;
   document.head.appendChild(s);
 }
 (function(){
-  const urlToken = new URLSearchParams(window.location.search).get('token');
-  if (urlToken) { checkToken(urlToken, true); history.replaceState({},'',' quiz.html'); return; }
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved) { checkToken(saved, true); return; }
-  showGate('','尚未取得授權。',`<a href="https://jeffreycz1979-prog.github.io/JeffreysLab/index.html#apply" class="gate-btn gate-btn-primary">📋 申請試用</a><a href="https://line.me/ti/p/~@593fbons" target="_blank" class="gate-btn gate-btn-line">💬 LINE</a>`);
+  var urlToken=new URLSearchParams(window.location.search).get('token');
+  if(urlToken){checkToken(urlToken,true);history.replaceState({},'','quiz.html');return;}
+  var saved=localStorage.getItem(STORAGE_KEY);
+  if(saved){checkToken(saved,true);return;}
+  showGate('','尚未取得授權。','<a href="https://jeffreycz1979-prog.github.io/JeffreysLab/index.html#apply" class="gate-btn gate-btn-primary">📋 申請試用</a><a href="https://line.me/ti/p/~@593fbons" target="_blank" class="gate-btn gate-btn-line">💬 LINE</a>');
 })();
 
-// ══════════════════════════════════════════════════════════════
-// STATE
-// ══════════════════════════════════════════════════════════════
-var lang = 'zh';
-var showAns = false;
-var printTab = 'student';
-var digAnswers = {};
-var quizData = { mc:[], sa:[], match:[] };
-var counts = { mc:5, sa:3, match:4 };
-var cefrShown = false;
-var editCtx = {};
+// ── STATE ──
+var lang='zh', showAns=false, printTab='student';
+var digAnswers={}, quizData={mc:[],sa:[],match:[]};
+var counts={mc:5,sa:3,match:4};
+var cefrShown=false, editCtx={};
+// match digital state
+var matchSel={left:null,right:null}, matchPairs={};
 
-// ── i18n ──
-var T = {
-  zh: {
-    tabEdit:'編輯內容', tabPrint:'列印考卷', tabDig:'數位練習',
-    lblInput:'輸入內容', lblUpload:'上傳照片 / PDF',
-    lblSettings:'出題設定', lblTypes:'題型與題數',
-    tcMc:'選擇題', tcSa:'書寫題', tcMatch:'配合題',
-    lblCefr:'難度（CEFR）', lblOutlang:'題目語言',
-    genBtn:'✨ 生成考卷', generating:'AI 生成中…',
-    tabS:'學生試卷', tabA:'解答卷',
-    lblBack:'返回編輯', lblAnsShow:'顯示解答', lblAnsHide:'隱藏解答',
-    lblPrint:'列印', lblScore:'已作答題數', btnReset:'重設',
-    emptyPrint:'尚未生成考卷', emptyDig:'尚未生成題目',
-    cefrToggle:'ⓘ 查看 CEFR 難度說明', cefrHide:'▲ 收起說明',
-    paperTitle:'英語小考',
-    paperMeta:'班級：______　姓名：______　日期：______　分數：______',
-    secMc:'第一部份｜選擇題', secSa:'第二部份｜書寫題', secMatch:'第三部份｜配合題',
-    matchInstr:'請將左欄單字與右欄圖片正確配對，填入正確編號。',
-    matchInstrDig:'請配對左欄單字與右欄圖片。',
-    listenLbl:'🎧 聽力稿（老師朗讀 / TTS 播放）',
-    editQ:'編輯題目', editRef:'編輯參考答案', editScript:'編輯聽力稿',
-    imgAi:'AI 生圖', imgUp:'上傳', imgDl:'⬇ 下載',
-    playBtn:'▶ 播放',
-    cefrDesc: {
-      A1:'字彙：100以內基礎單字　句型：現在式短句　干擾選項：明顯不同　書寫：填一個詞　聽力：1句簡單指令',
-      A2:'字彙：500以內常用詞　句型：現在/過去式　干擾選項：有些相似　書寫：1–2句話　聽力：2–3句描述',
-      B1:'字彙：2000詞含片語　句型：複合句/完成式　干擾選項：容易混淆　書寫：完整段落　聽力：短對話',
-      B2:'字彙：進階學術詞彙　句型：假設語氣/被動　干擾選項：非常相近　書寫：論述段落　聽力：完整對話',
+var T={
+  zh:{
+    tabEdit:'編輯內容',tabPrint:'列印考卷',tabDig:'數位練習',
+    lblInput:'輸入內容',lblUpload:'上傳照片 / PDF',lblSettings:'出題設定',lblTypes:'題型與題數',
+    tcMc:'選擇題',tcSa:'書寫題',tcMatch:'配合題',
+    lblCefr:'難度（CEFR）',lblOutlang:'題目語言',
+    genBtn:'✨ 生成考卷',generating:'AI 生成中…',
+    tabS:'學生試卷',tabA:'解答卷',
+    lblBack:'返回編輯',lblAnsShow:'顯示解答',lblAnsHide:'隱藏解答',
+    lblPrint:'列印',lblScore:'已作答題數',btnReset:'重設',
+    emptyPrint:'尚未生成考卷',emptyDig:'尚未生成題目',
+    cefrToggle:'ⓘ 查看 CEFR 難度說明',cefrHide:'▲ 收起說明',
+    paperTitle:'英語小考',paperMeta:'班級：______　姓名：______　日期：______　分數：______',
+    secMc:'第一部份｜選擇題',secSa:'第二部份｜書寫題',secMatch:'第三部份｜配合題',
+    matchInstr:'請根據聽力稿，將圖片與正確的答案配對，填入正確字母。',
+    listenLbl:'🎧 聽力稿',listenShow:'顯示',listenHide:'隱藏',
+    editQ:'編輯題目',editRef:'編輯參考答案',editScript:'編輯聽力稿',
+    imgAi:'AI 生圖',imgUp:'上傳',imgDl:'⬇ 下載',playBtn:'▶ 播放',
+    matchDigInstr:'點擊左邊圖片，再點擊右邊對應的文字完成配對。',
+    matchComplete:'🎉 全部配對完成！',
+    cefrDesc:{
+      A1:'字彙：100以內基礎單字　句型：現在式短句　書寫：填一個詞　聽力：1句簡單指令',
+      A2:'字彙：500以內常用詞　句型：現在/過去式　書寫：1–2句話　聽力：2–3句描述',
+      B1:'字彙：2000詞含片語　句型：複合句/完成式　書寫：完整段落　聽力：短對話',
+      B2:'字彙：進階學術詞彙　句型：假設語氣/被動　書寫：論述段落　聽力：完整對話',
     }
   },
-  en: {
-    tabEdit:'Edit', tabPrint:'Print', tabDig:'Digital',
-    lblInput:'Input', lblUpload:'Upload photo / PDF',
-    lblSettings:'Settings', lblTypes:'Question types & counts',
-    tcMc:'Multiple choice', tcSa:'Short answer', tcMatch:'Matching',
-    lblCefr:'Difficulty (CEFR)', lblOutlang:'Output language',
-    genBtn:'✨ Generate Quiz', generating:'Generating…',
-    tabS:'Student version', tabA:'Answer key',
-    lblBack:'Back to edit', lblAnsShow:'Show answers', lblAnsHide:'Hide answers',
-    lblPrint:'Print', lblScore:'Questions answered', btnReset:'Reset',
-    emptyPrint:'No quiz generated yet', emptyDig:'No quiz generated yet',
-    cefrToggle:'ⓘ CEFR difficulty guide', cefrHide:'▲ Hide guide',
-    paperTitle:'English Quiz',
-    paperMeta:'Class: ______  Name: ______  Date: ______  Score: ______',
-    secMc:'Part A｜Multiple Choice', secSa:'Part B｜Short Answer', secMatch:'Part C｜Matching',
-    matchInstr:'Match each word on the left with the correct picture on the right.',
-    matchInstrDig:'Match each word with the correct image.',
-    listenLbl:'🎧 Listening script (teacher reads / TTS)',
-    editQ:'Edit question', editRef:'Edit sample answer', editScript:'Edit listening script',
-    imgAi:'AI image', imgUp:'Upload', imgDl:'⬇ Download',
-    playBtn:'▶ Play',
-    cefrDesc: {
-      A1:'Vocab: top 100 words　Grammar: simple present　Distractors: clearly different　Writing: fill one word　Listening: 1 simple command',
-      A2:'Vocab: top 500 words　Grammar: present/past　Distractors: somewhat similar　Writing: 1–2 sentences　Listening: 2–3 sentence description',
-      B1:'Vocab: 2000 words + phrases　Grammar: complex/perfect　Distractors: easily confused　Writing: full paragraph　Listening: short dialogue',
-      B2:'Vocab: academic/advanced　Grammar: conditionals/passive　Distractors: very similar　Writing: argumentative　Listening: full conversation',
+  en:{
+    tabEdit:'Edit',tabPrint:'Print',tabDig:'Digital',
+    lblInput:'Input',lblUpload:'Upload photo / PDF',lblSettings:'Settings',lblTypes:'Question types & counts',
+    tcMc:'Multiple choice',tcSa:'Short answer',tcMatch:'Matching',
+    lblCefr:'Difficulty (CEFR)',lblOutlang:'Output language',
+    genBtn:'✨ Generate Quiz',generating:'Generating…',
+    tabS:'Student version',tabA:'Answer key',
+    lblBack:'Back to edit',lblAnsShow:'Show answers',lblAnsHide:'Hide answers',
+    lblPrint:'Print',lblScore:'Questions answered',btnReset:'Reset',
+    emptyPrint:'No quiz generated yet',emptyDig:'No quiz generated yet',
+    cefrToggle:'ⓘ CEFR difficulty guide',cefrHide:'▲ Hide guide',
+    paperTitle:'English Quiz',paperMeta:'Class: ______  Name: ______  Date: ______  Score: ______',
+    secMc:'Part A｜Multiple Choice',secSa:'Part B｜Short Answer',secMatch:'Part C｜Matching',
+    matchInstr:'Listen to the script and match each picture to the correct answer. Write the letter.',
+    listenLbl:'🎧 Listening script',listenShow:'Show',listenHide:'Hide',
+    editQ:'Edit question',editRef:'Edit sample answer',editScript:'Edit listening script',
+    imgAi:'AI image',imgUp:'Upload',imgDl:'⬇ Download',playBtn:'▶ Play',
+    matchDigInstr:'Click a picture on the left, then click the matching word on the right.',
+    matchComplete:'🎉 All pairs matched!',
+    cefrDesc:{
+      A1:'Vocab: top 100 words　Grammar: simple present　Writing: fill one word　Listening: 1 simple command',
+      A2:'Vocab: top 500 words　Grammar: present/past　Writing: 1–2 sentences　Listening: 2–3 sentences',
+      B1:'Vocab: 2000 words + phrases　Grammar: complex/perfect　Writing: full paragraph　Listening: short dialogue',
+      B2:'Vocab: academic/advanced　Grammar: conditionals/passive　Writing: argumentative　Listening: full conversation',
     }
   }
 };
-function t(){ return T[lang]; }
+function t(){return T[lang];}
 
 // ── LANG ──
 function setLang(l){
-  lang = l;
+  lang=l;
   document.querySelectorAll('.lang-seg button').forEach(function(b,i){
     b.classList.toggle('on',(l==='zh'&&i===0)||(l==='en'&&i===1));
   });
   applyLang();
-  if(quizData.mc.length||quizData.sa.length||quizData.match.length){
-    renderPaper(); renderDigital();
-  }
+  if(quizData.mc.length||quizData.sa.length||quizData.match.length){renderPaper();renderDigital();}
 }
 function applyLang(){
   var T2=t();
-  var map={
-    'lbl-tab-edit':'tabEdit','lbl-tab-print':'tabPrint','lbl-tab-digital':'tabDig',
-    'lbl-input':'lblInput','lbl-upload':'lblUpload','lbl-settings':'lblSettings',
-    'lbl-types':'lblTypes','tc-mc':'tcMc','tc-sa':'tcSa','tc-match':'tcMatch',
-    'lbl-cefr':'lblCefr','lbl-outlang':'lblOutlang',
-    'genBtnTxt':'genBtn',
-    'ptab-s':'tabS','ptab-a':'tabA',
-    'lbl-back':'lblBack','lbl-print':'lblPrint','lbl-score':'lblScore','btn-reset':'btnReset',
-    'lbl-empty-print':'emptyPrint','lbl-empty-dig':'emptyDig',
-    'cefrToggleBtn':'cefrToggle'
-  };
-  Object.keys(map).forEach(function(id){
-    var el=document.getElementById(id);
-    if(el) el.textContent=T2[map[id]]||'';
-  });
+  var map={'lbl-tab-edit':'tabEdit','lbl-tab-print':'tabPrint','lbl-tab-digital':'tabDig',
+    'lbl-input':'lblInput','lbl-upload':'lblUpload','lbl-settings':'lblSettings','lbl-types':'lblTypes',
+    'tc-mc':'tcMc','tc-sa':'tcSa','tc-match':'tcMatch','lbl-cefr':'lblCefr','lbl-outlang':'lblOutlang',
+    'genBtnTxt':'genBtn','ptab-s':'tabS','ptab-a':'tabA','lbl-back':'lblBack',
+    'lbl-print':'lblPrint','lbl-score':'lblScore','btn-reset':'btnReset',
+    'lbl-empty-print':'emptyPrint','lbl-empty-dig':'emptyDig','cefrToggleBtn':'cefrToggle'};
+  Object.keys(map).forEach(function(id){var el=document.getElementById(id);if(el)el.textContent=T2[map[id]]||'';});
   document.getElementById('lbl-ans-toggle').textContent=showAns?T2.lblAnsHide:T2.lblAnsShow;
   updateCefrInfo();
 }
@@ -698,108 +502,50 @@ function setMode(m){
   if(m==='digital') renderDigital();
 }
 
-// ── TYPE TOGGLE ──
-function toggleType(el){ el.classList.toggle('on'); }
-function adj(e,type,d){
-  e.stopPropagation();
-  counts[type]=Math.max(1,Math.min(15,counts[type]+d));
-  document.getElementById('cnt-'+type).textContent=counts[type];
-}
-function getTypes(){
-  var r={};
-  document.querySelectorAll('.type-card').forEach(function(c){ r[c.dataset.type]=c.classList.contains('on'); });
-  return r;
-}
-
-// ── CEFR ──
-function setCefr(el){
-  document.querySelectorAll('#cefr-chips .chip').forEach(function(c){ c.classList.remove('on'); });
-  el.classList.add('on');
-  updateCefrInfo();
-}
-function getCefr(){
-  var el=document.querySelector('#cefr-chips .chip.on');
-  return el ? el.dataset.cefr : 'A2';
-}
-function toggleCefrInfo(){
-  cefrShown=!cefrShown;
-  document.getElementById('cefrInfo').classList.toggle('show',cefrShown);
-  document.getElementById('cefrToggleBtn').textContent=cefrShown?t().cefrHide:t().cefrToggle;
-  updateCefrInfo();
-}
-function updateCefrInfo(){
-  if(!cefrShown) return;
-  document.getElementById('cefrInfo').textContent=t().cefrDesc[getCefr()]||'';
-}
-
-// ── OUTPUT LANG ──
-function setOutLang(el){
-  document.querySelectorAll('#lang-chips .chip').forEach(function(c){ c.classList.remove('on'); });
-  el.classList.add('on');
-}
-function getOutLang(){
-  var el=document.querySelector('#lang-chips .chip.on');
-  return el ? el.dataset.lang : 'English';
-}
-
-// ── MOCK UPLOAD ──
-function mockUpload(){
-  document.getElementById('promptInput').value='[照片已上傳：課本第12頁，關於過去式動詞的課文]';
-}
+// ── EDIT SETTINGS ──
+function toggleType(el){el.classList.toggle('on');}
+function adj(e,type,d){e.stopPropagation();counts[type]=Math.max(1,Math.min(15,counts[type]+d));document.getElementById('cnt-'+type).textContent=counts[type];}
+function getTypes(){var r={};document.querySelectorAll('.type-card').forEach(function(c){r[c.dataset.type]=c.classList.contains('on');});return r;}
+function setCefr(el){document.querySelectorAll('#cefr-chips .chip').forEach(function(c){c.classList.remove('on');});el.classList.add('on');updateCefrInfo();}
+function getCefr(){var el=document.querySelector('#cefr-chips .chip.on');return el?el.dataset.cefr:'A2';}
+function toggleCefrInfo(){cefrShown=!cefrShown;document.getElementById('cefrInfo').classList.toggle('show',cefrShown);document.getElementById('cefrToggleBtn').textContent=cefrShown?t().cefrHide:t().cefrToggle;updateCefrInfo();}
+function updateCefrInfo(){if(!cefrShown)return;document.getElementById('cefrInfo').textContent=t().cefrDesc[getCefr()]||'';}
+function setOutLang(el){document.querySelectorAll('#lang-chips .chip').forEach(function(c){c.classList.remove('on');});el.classList.add('on');}
+function getOutLang(){var el=document.querySelector('#lang-chips .chip.on');return el?el.dataset.lang:'English';}
+function mockUpload(){document.getElementById('promptInput').value='[照片已上傳：課本第12頁，關於過去式動詞的課文]';}
 
 // ── GENERATE ──
 async function generate(){
   var types=getTypes();
-  if(!types.mc && !types.sa && !types.match){ showToast('請至少選擇一種題型'); return; }
+  if(!types.mc&&!types.sa&&!types.match){showToast('請至少選擇一種題型');return;}
   var prompt=document.getElementById('promptInput').value.trim();
-  if(!prompt){ showToast('請填寫題目內容或描述'); return; }
-
-  var T2=t();
+  if(!prompt){showToast('請填寫題目內容或描述');return;}
   document.getElementById('loadingOverlay').classList.add('show');
-  document.getElementById('loadTxt').textContent=T2.generating;
-  document.getElementById('loadSub').textContent='Gemini 正在閱讀您的內容並生成題目…';
-
-  try {
-    var res = await fetch(QUIZ_GAS, {
-      method: 'POST',
-      body: JSON.stringify({
-        type: 'quiz',
-        prompt: prompt,
-        settings: {
-          cefr: getCefr(),
-          outLang: getOutLang(),
-          mcCount: types.mc ? counts.mc : 0,
-          saCount: types.sa ? counts.sa : 0,
-          matchCount: types.match ? counts.match : 0
-        }
-      })
-    });
-    var data = await res.json();
-    if(data.error){ showToast('錯誤：'+data.error); return; }
-    quizData = { mc: data.mc||[], sa: data.sa||[], match: data.match||[] };
-    digAnswers = {};
-    document.getElementById('loadingOverlay').classList.remove('show');
+  try{
+    var res=await fetch(QUIZ_GAS,{method:'POST',body:JSON.stringify({
+      type:'quiz',prompt:prompt,
+      settings:{cefr:getCefr(),outLang:getOutLang(),
+        mcCount:types.mc?counts.mc:0,saCount:types.sa?counts.sa:0,matchCount:types.match?counts.match:0}
+    })});
+    var data=await res.json();
+    if(data.error){showToast('錯誤：'+data.error);return;}
+    quizData={mc:data.mc||[],sa:data.sa||[],match:data.match||[]};
+    digAnswers={};matchSel={left:null,right:null};matchPairs={};
     setMode('print');
-  } catch(e) {
-    showToast('網路錯誤，請稍後再試');
-  } finally {
-    document.getElementById('loadingOverlay').classList.remove('show');
-  }
+  }catch(e){showToast('網路錯誤，請稍後再試');}
+  finally{document.getElementById('loadingOverlay').classList.remove('show');}
 }
 
-// ══════════════════════════════════════════════════════════════
-// PRINT RENDER
-// ══════════════════════════════════════════════════════════════
+// ══ PRINT RENDER ══
 function toggleAns(){
-  showAns=!showAns;
-  printTab=showAns?'answer':'student';
+  showAns=!showAns;printTab=showAns?'answer':'student';
   document.getElementById('ptab-s').classList.toggle('on',!showAns);
   document.getElementById('ptab-a').classList.toggle('on',showAns);
   document.getElementById('lbl-ans-toggle').textContent=showAns?t().lblAnsHide:t().lblAnsShow;
   renderPaper();
 }
 function switchPrintTab(tab){
-  printTab=tab; showAns=(tab==='answer');
+  printTab=tab;showAns=(tab==='answer');
   document.getElementById('ptab-s').classList.toggle('on',tab==='student');
   document.getElementById('ptab-a').classList.toggle('on',tab==='answer');
   document.getElementById('lbl-ans-toggle').textContent=showAns?t().lblAnsHide:t().lblAnsShow;
@@ -807,34 +553,26 @@ function switchPrintTab(tab){
 }
 
 function renderPaper(){
-  var T2=t();
-  var el=document.getElementById('paperEl');
-  if(!quizData.mc.length && !quizData.sa.length && !quizData.match.length){
-    el.innerHTML='<div class="empty-state"><div class="empty-ico">📄</div><div class="empty-title">'+T2.emptyPrint+'</div><p style="font-size:0.8rem;margin-top:0.25rem">請先到「編輯內容」頁填寫設定，按下生成考卷</p></div>';
-    return;
+  var T2=t();var el=document.getElementById('paperEl');
+  if(!quizData.mc.length&&!quizData.sa.length&&!quizData.match.length){
+    el.innerHTML='<div class="empty-state"><div class="empty-ico">📄</div><div class="empty-title">'+T2.emptyPrint+'</div></div>';return;
   }
-  var h='';
-  h+='<div class="paper-top">';
-  h+='<div class="paper-title">'+T2.paperTitle+'</div>';
+  var h='',qn=0;
+  h+='<div class="paper-top"><div class="paper-title">'+T2.paperTitle+'</div>';
   h+='<div class="paper-sub">NewCore · Jeffrey\'s Lab</div>';
-  h+='<div class="paper-meta"><div class="meta-field">'+T2.paperMeta+'</div></div>';
-  h+='</div>';
-
-  var qn=0;
+  h+='<div class="paper-meta"><div>'+T2.paperMeta+'</div></div></div>';
 
   // MC
   if(quizData.mc.length){
     h+='<div class="q-section"><div class="q-section-hd">'+T2.secMc+'</div>';
     quizData.mc.forEach(function(q,i){
       qn++;
-      h+='<div class="q-item">';
-      h+='<div class="q-stem"><span class="q-num">'+qn+'.</span><span>'+escHtml(q.q)+'</span>';
-      h+='<button class="edit-ico" onclick="openEdit(\'mc\','+i+',\'q\')" title="編輯">✎</button></div>';
+      h+='<div class="q-item"><div class="q-stem"><span class="q-num">'+qn+'.</span><span>'+escHtml(q.q)+'</span>';
+      h+='<button class="edit-ico" onclick="openEdit(\'mc\','+i+',\'q\')">✎</button></div>';
       h+='<div class="opts-g">';
-      var ltrs=['A','B','C','D'];
-      q.opts.forEach(function(o,j){
-        var isA=(showAns && j===q.ans);
-        h+='<div class="opt'+(isA?' ans':'')+'">'+ltrs[j]+'. '+escHtml(o)+(isA?' ✓':'')+'</div>';
+      ['A','B','C','D'].forEach(function(l,j){
+        var isA=(showAns&&j===q.ans);
+        h+='<div class="opt'+(isA?' ans':'')+'">'+l+'. '+escHtml(q.opts[j])+(isA?' ✓':'')+'</div>';
       });
       h+='</div></div>';
     });
@@ -846,12 +584,11 @@ function renderPaper(){
     h+='<div class="q-section"><div class="q-section-hd">'+T2.secSa+'</div>';
     quizData.sa.forEach(function(q,i){
       qn++;
-      h+='<div class="q-item">';
-      h+='<div class="q-stem"><span class="q-num">'+qn+'.</span><span>'+escHtml(q.q)+'</span>';
-      h+='<button class="edit-ico" onclick="openEdit(\'sa\','+i+',\'q\')" title="編輯">✎</button></div>';
+      h+='<div class="q-item"><div class="q-stem"><span class="q-num">'+qn+'.</span><span>'+escHtml(q.q)+'</span>';
+      h+='<button class="edit-ico" onclick="openEdit(\'sa\','+i+',\'q\')">✎</button></div>';
       if(showAns){
         h+='<div class="ans-ref">'+escHtml(q.sampleAnswer)+'<button class="edit-ico" onclick="openEdit(\'sa\','+i+',\'ref\')" style="margin-left:4px">✎</button></div>';
-      } else {
+      }else{
         h+='<div class="write-lines"><div class="wline"></div><div class="wline"></div></div>';
       }
       h+='</div>';
@@ -859,138 +596,111 @@ function renderPaper(){
     h+='</div>';
   }
 
-  // MATCH
+  // MATCH — img LEFT, text RIGHT
   if(quizData.match.length){
     h+='<div class="q-section"><div class="q-section-hd">'+T2.secMatch+'</div>';
     qn++;
+    // listening script for whole section
+    var sectionScript=quizData.match[0]&&quizData.match[0].listeningScript?quizData.match[0].listeningScript:'';
+    h+='<div class="match-section-listen">';
+    h+='<button class="tts-btn" onclick="speakText(\''+escJs(sectionScript)+'\')">▶ '+T2.playBtn+'</button>';
+    h+='<span class="match-listen-script" id="matchScript">'+escHtml(sectionScript)+'</span>';
+    h+='<button class="edit-ico" onclick="openEdit(\'match-script\',0,\'script\')">✎</button>';
+    h+='</div>';
     h+='<div class="q-item"><div class="q-stem"><span class="q-num">'+qn+'.</span><span>'+T2.matchInstr+'</span></div>';
     h+='<div class="match-pairs">';
+    // shuffle right-side options
     var ltrs=['A','B','C','D','E','F'];
-    var shuffled=quizData.match.map(function(m,i){return{i:i,m:m}}).sort(function(){return Math.random()-0.5});
+    var rightShuffled=quizData.match.map(function(m,i){return{idx:i,m:m}}).sort(function(){return Math.random()-0.5});
+    // build lookup: original index → shuffled letter
+    var ansMap={};
+    rightShuffled.forEach(function(r,j){ansMap[r.idx]=ltrs[j];});
+
     quizData.match.forEach(function(m,i){
       h+='<div class="match-row-p">';
-      // left: word + blank
-      h+='<div class="match-left-cell">';
-      h+='<span style="color:var(--text-muted);font-size:0.75rem;min-width:16px">'+(i+1)+'.</span> ';
-      h+=escHtml(m.word);
-      h+='<button class="edit-ico" onclick="openEdit(\'match\','+i+',\'word\')">✎</button>';
-      h+='<span style="border:1px solid var(--border);border-radius:5px;padding:0 8px;font-size:0.75rem;min-width:24px;display:inline-block;text-align:center;margin-left:6px">'+(showAns?ltrs[i]:'&nbsp;&nbsp;')+'</span>';
-      h+='<div class="match-blank-line"></div></div>';
-      // right: img slot + actions
-      h+='<div class="match-right-cell">';
-      h+='<div class="img-slot" onclick="promptImg('+i+')" title="點擊換圖" id="imgSlot'+i+'">';
+      // LEFT: image
+      h+='<div class="match-img-cell">';
+      h+='<div class="img-slot" onclick="promptImg('+i+')" id="imgSlot'+i+'" title="點擊換圖">';
       if(m.imgData){
         h+='<img src="'+m.imgData+'" alt="'+escHtml(m.word)+'">';
-        h+='<div class="img-dl"><button onclick="event.stopPropagation();dlImg('+i+')">⬇ '+T2.imgDl+'</button></div>';
-      } else {
-        h+='<span style="font-size:1.2rem">🖼️</span>';
-        h+='<span style="font-size:0.6rem;margin-top:2px">'+ltrs[i]+'</span>';
+        h+='<div class="img-dl"><button onclick="event.stopPropagation();dlImg('+i+')">⬇</button></div>';
+      }else{
+        h+='<span style="font-size:1.4rem">🖼️</span><span style="font-size:.6rem;margin-top:2px">'+(i+1)+'.</span>';
       }
       h+='</div>';
       h+='<div class="img-actions">';
-      h+='<button class="img-act-btn" onclick="event.stopPropagation();aiGenImg('+i+')">🤖 '+T2.imgAi+'</button>';
-      h+='<button class="img-act-btn" onclick="event.stopPropagation();uploadImg('+i+')">📁 '+T2.imgUp+'</button>';
-      if(m.imgData){
-        h+='<button class="img-act-btn" onclick="event.stopPropagation();dlImg('+i+')">'+T2.imgDl+'</button>';
-      }
+      h+='<button class="img-act-btn" onclick="aiGenImg('+i+')">🤖 '+T2.imgAi+'</button>';
+      h+='<button class="img-act-btn" onclick="uploadImg('+i+')">📁 '+T2.imgUp+'</button>';
+      if(m.imgData)h+='<button class="img-act-btn" onclick="dlImg('+i+')">'+T2.imgDl+'</button>';
+      h+='</div></div>';
+      // RIGHT: word + answer blank + shuffled options
+      h+='<div class="match-text-cell">';
+      // answer fill blank
+      h+='<div style="font-size:.82rem;display:flex;align-items:center;gap:.5rem">';
+      h+='<span style="color:var(--text-muted)">'+(i+1)+'.</span>';
+      h+='<span class="match-answer-blank">'+(showAns?ansMap[i]:'&nbsp;&nbsp;')+'</span>';
+      if(showAns)h+='<span style="font-size:.78rem;color:var(--teal);font-weight:700">→ '+escHtml(m.word)+' / '+escHtml(m.definition)+'</span>';
       h+='</div>';
-      if(showAns){
-        h+='<span class="match-ans-txt" style="font-size:0.78rem;color:var(--teal);font-weight:700;margin-left:4px">→ '+escHtml(m.definition)+'</span>';
-      }
       h+='</div>';
       h+='</div>';
     });
-    h+='</div></div></div>';
+    // show shuffled options on the side
+    h+='<div style="margin-top:.65rem;background:var(--bg);border-radius:10px;padding:.65rem .85rem">';
+    h+='<div style="font-size:.72rem;color:var(--text-muted);margin-bottom:.4rem">選項 Options</div>';
+    h+='<div style="display:flex;flex-wrap:wrap;gap:.5rem">';
+    rightShuffled.forEach(function(r,j){
+      h+='<span style="font-size:.8rem;background:white;border:1px solid var(--border);border-radius:8px;padding:.25rem .7rem">'+ltrs[j]+'. '+escHtml(r.m.word)+'</span>';
+    });
+    h+='</div></div>';
+    h+='</div></div>';
   }
-
   el.innerHTML=h;
 }
 
-// ══════════════════════════════════════════════════════════════
-// IMAGE FUNCTIONS
-// ══════════════════════════════════════════════════════════════
-function promptImg(i){
-  // show upload option
-  uploadImg(i);
-}
-function uploadImg(i){
-  var inp=document.createElement('input');
-  inp.type='file'; inp.accept='image/*';
-  inp.onchange=function(e){
-    var file=e.target.files[0];
-    if(!file) return;
-    var reader=new FileReader();
-    reader.onload=function(ev){
-      quizData.match[i].imgData=ev.target.result;
-      renderPaper();
-    };
-    reader.readAsDataURL(file);
-  };
-  inp.click();
-}
-function aiGenImg(i){
-  showToast('AI 生圖功能開發中（Imagen API），目前請使用上傳圖片');
-}
-function dlImg(i){
-  var data=quizData.match[i].imgData;
-  if(!data){ showToast('尚未有圖片可下載'); return; }
-  var a=document.createElement('a');
-  a.href=data;
-  a.download='match_'+(i+1)+'_'+quizData.match[i].word+'.png';
-  a.click();
-}
-
-// ══════════════════════════════════════════════════════════════
-// DIGITAL RENDER
-// ══════════════════════════════════════════════════════════════
+// ══ DIGITAL RENDER ══
 function updateScore(){
   var total=quizData.mc.length+quizData.sa.length+(quizData.match.length?1:0);
   var answered=Object.keys(digAnswers).length;
   document.getElementById('scoreVal').textContent=answered+' / '+total;
 }
-function resetDigital(){ digAnswers={}; renderDigital(); }
+function resetDigital(){digAnswers={};matchSel={left:null,right:null};matchPairs={};renderDigital();}
 
 function renderDigital(){
-  var T2=t();
-  var el=document.getElementById('digContent');
-  if(!quizData.mc.length && !quizData.sa.length && !quizData.match.length){
-    el.innerHTML='<div class="empty-state"><div class="empty-ico">🎮</div><div class="empty-title">'+T2.emptyDig+'</div><p style="font-size:0.8rem;margin-top:0.25rem">請先到「編輯內容」頁生成考卷</p></div>';
-    return;
+  var T2=t();var el=document.getElementById('digContent');
+  if(!quizData.mc.length&&!quizData.sa.length&&!quizData.match.length){
+    el.innerHTML='<div class="empty-state"><div class="empty-ico">🎮</div><div class="empty-title">'+T2.emptyDig+'</div></div>';return;
   }
-  var h=''; var qn=0;
+  var h='',qn=0;
 
   // MC
   quizData.mc.forEach(function(q,i){
-    qn++;
-    var key='mc_'+i;
+    qn++;var key='mc_'+i;
     h+='<div class="dig-card">';
     if(q.listeningScript){
       h+='<div class="listen-box">';
-      h+='<div class="listen-lbl">'+T2.listenLbl+'</div>';
-      h+='<div class="listen-script" id="script-mc-'+i+'">'+escHtml(q.listeningScript)+'</div>';
+      h+='<div class="listen-lbl"><span>'+T2.listenLbl+'</span>';
+      h+='<button class="listen-toggle" onclick="toggleScript(\'ls-mc-'+i+'\')" id="ls-toggle-mc-'+i+'">'+T2.listenShow+'</button></div>';
+      h+='<div class="listen-script hidden-script" id="ls-mc-'+i+'">'+escHtml(q.listeningScript)+'</div>';
       h+='<div class="listen-row">';
-      h+='<button class="tts-btn" onclick="speak(\'mc\','+i+')">▶ '+T2.playBtn+'</button>';
-      h+='<button class="edit-script-btn" onclick="openEdit(\'script-mc\','+i+',\'script\')">✎ 編輯聽力稿</button>';
+      h+='<button class="tts-btn" onclick="speakId(\'ls-mc-'+i+'\',\''+escJs(q.listeningScript)+'\')">▶ '+T2.playBtn+'</button>';
+      h+='<button class="edit-script-btn" onclick="openEdit(\'script-mc\','+i+',\'script\')">✎ 編輯</button>';
       h+='</div></div>';
     }
     h+='<div class="dig-q-stem"><span class="q-num">'+qn+'.</span><span>'+escHtml(q.q)+'</span></div>';
     h+='<div class="dig-opts">';
-    var ltrs=['A','B','C','D'];
-    q.opts.forEach(function(o,j){
-      var da=digAnswers[key];
-      var cls='dig-opt';
-      if(da!==undefined){ cls+=(j===q.ans?' correct':(j===da?' wrong':'')); }
-      h+='<button class="'+cls+'" onclick="pickOpt(\''+key+'\','+j+','+q.ans+',this.parentNode)">'+ltrs[j]+'. '+escHtml(o)+'</button>';
+    ['A','B','C','D'].forEach(function(l,j){
+      var da=digAnswers[key];var cls='dig-opt';
+      if(da!==undefined){cls+=(j===q.ans?' correct':(j===da?' wrong':''));}
+      h+='<button class="'+cls+'" onclick="pickOpt(\''+key+'\','+j+','+q.ans+',this.parentNode)">'+l+'. '+escHtml(q.opts[j])+'</button>';
     });
     h+='</div></div>';
   });
 
   // SA
   quizData.sa.forEach(function(q,i){
-    qn++;
-    var key='sa_'+i;
+    qn++;var key='sa_'+i;
     h+='<div class="dig-card">';
-    h+='<div class="listen-row" style="margin-bottom:0.6rem">';
+    h+='<div class="listen-row" style="margin-bottom:.6rem">';
     h+='<button class="tts-btn" onclick="speakText(\''+escJs(q.q)+'\')">▶ '+T2.playBtn+'</button>';
     h+='</div>';
     h+='<div class="dig-q-stem"><span class="q-num">'+qn+'.</span><span>'+escHtml(q.q)+'</span></div>';
@@ -998,35 +708,106 @@ function renderDigital(){
     h+='</div>';
   });
 
-  // MATCH
+  // MATCH — click to match
   if(quizData.match.length){
     qn++;
+    var mkey='match';
     h+='<div class="dig-card">';
-    h+='<div class="dig-q-stem"><span class="q-num">'+qn+'.</span><span>'+T2.matchInstrDig+'</span></div>';
-    h+='<div class="match-dig-wrap">';
-    h+='<div>';
+    // section listening script
+    var secScript=quizData.match[0]&&quizData.match[0].listeningScript?quizData.match[0].listeningScript:'';
+    if(secScript){
+      h+='<div class="listen-box">';
+      h+='<div class="listen-lbl"><span>'+T2.listenLbl+'</span>';
+      h+='<button class="listen-toggle" onclick="toggleScript(\'ls-match\')" id="ls-toggle-match">'+T2.listenShow+'</button></div>';
+      h+='<div class="listen-script hidden-script" id="ls-match">'+escHtml(secScript)+'</div>';
+      h+='<div class="listen-row"><button class="tts-btn" onclick="speakId(\'ls-match\',\''+escJs(secScript)+'\')">▶ '+T2.playBtn+'</button></div>';
+      h+='</div>';
+    }
+    h+='<div class="dig-q-stem"><span class="q-num">'+qn+'.</span><span>'+T2.matchDigInstr+'</span></div>';
+    h+='<div class="match-dig-instr" id="lbl-score">'+T2.matchDigInstr+'</div>';
+
+    // shuffle right side
+    var ltrs=['A','B','C','D','E','F'];
+    var rightOrder=quizData.match.map(function(m,i){return i}).sort(function(){return Math.random()-0.5});
+    // store shuffle so we can check answers
+    window._matchRightOrder=rightOrder;
+
+    h+='<div class="match-dig-grid">';
+    // LEFT col: images
+    h+='<div class="match-dig-left" id="match-left-col">';
     quizData.match.forEach(function(m,i){
-      h+='<div class="drag-item" style="margin-bottom:0.4rem">';
-      h+='<button class="tts-btn" style="padding:0.15rem 0.5rem;font-size:0.7rem" onclick="speakText(\''+escJs(m.word)+'\')">▶</button>';
-      h+=escHtml(m.word)+'</div>';
-    });
-    h+='</div><div>';
-    var shuf=quizData.match.map(function(m,i){return i}).sort(function(){return Math.random()-0.5});
-    var ltrs2=['A','B','C','D','E','F'];
-    shuf.forEach(function(idx,j){
-      var m=quizData.match[idx];
-      h+='<div class="drop-zone" style="margin-bottom:0.4rem">';
-      h+=ltrs2[j]+'. ';
+      var paired=matchPairs.hasOwnProperty(i);
+      h+='<div class="match-img-card'+(paired?' matched':'')+'" id="ml-'+i+'" onclick="matchClickLeft('+i+')">';
       if(m.imgData){
-        h+='<img src="'+m.imgData+'" style="width:40px;height:32px;object-fit:cover;border-radius:4px;margin-right:4px">';
+        h+='<img src="'+m.imgData+'" alt="'+escHtml(m.word)+'">';
+      }else{
+        h+='<div class="img-placeholder">🖼️</div>';
       }
-      h+=escHtml(m.definition)+'</div>';
+      h+='<div class="img-idx">'+(i+1)+'.'+(paired?' → '+ltrs[rightOrder.indexOf(matchPairs[i])]:'')+'</div>';
+      h+='</div>';
     });
-    h+='</div></div></div>';
+    h+='</div>';
+    // RIGHT col: text options
+    h+='<div class="match-dig-right" id="match-right-col">';
+    rightOrder.forEach(function(origIdx,j){
+      var m=quizData.match[origIdx];
+      var alreadyPaired=Object.values(matchPairs).indexOf(origIdx)>=0;
+      h+='<div class="match-txt-card'+(alreadyPaired?' matched':'')+'" id="mr-'+origIdx+'" onclick="matchClickRight('+origIdx+')">';
+      h+='<button class="tts-btn" style="padding:.15rem .5rem;font-size:.7rem;flex-shrink:0" onclick="event.stopPropagation();speakText(\''+escJs(m.word)+'\')">▶</button>';
+      h+=escHtml(m.word);
+      h+='</div>';
+    });
+    h+='</div>';
+    h+='</div>';
+    h+='<div class="match-result-bar'+(Object.keys(matchPairs).length===quizData.match.length?' show':'')+'" id="match-result">'+T2.matchComplete+'</div>';
+    h+='</div>';
   }
 
   el.innerHTML=h;
   updateScore();
+}
+
+// ── CLICK-TO-MATCH LOGIC ──
+function matchClickLeft(i){
+  // if already matched, ignore
+  if(matchPairs.hasOwnProperty(i)) return;
+  // clear previous left selection
+  document.querySelectorAll('.match-img-card').forEach(function(c){c.classList.remove('selected');});
+  matchSel.left=i;
+  var el=document.getElementById('ml-'+i);
+  if(el) el.classList.add('selected');
+  // if right already selected, try to pair
+  if(matchSel.right!==null) tryPair();
+}
+function matchClickRight(origIdx){
+  // if already matched, ignore
+  if(Object.values(matchPairs).indexOf(origIdx)>=0) return;
+  // clear previous right selection
+  document.querySelectorAll('.match-txt-card').forEach(function(c){if(!c.classList.contains('matched'))c.classList.remove('selected');});
+  matchSel.right=origIdx;
+  var el=document.getElementById('mr-'+origIdx);
+  if(el) el.classList.add('selected');
+  // if left already selected, try to pair
+  if(matchSel.left!==null) tryPair();
+}
+function tryPair(){
+  var leftIdx=matchSel.left, rightIdx=matchSel.right;
+  if(leftIdx===null||rightIdx===null) return;
+  var correct=(leftIdx===rightIdx); // img i should match word i (same original index)
+  if(correct){
+    matchPairs[leftIdx]=rightIdx;
+    digAnswers['match_'+leftIdx]=1;
+    updateScore();
+    renderDigital(); // re-render to show matched state
+  }else{
+    // wrong flash
+    var rEl=document.getElementById('mr-'+rightIdx);
+    var lEl=document.getElementById('ml-'+leftIdx);
+    if(rEl){rEl.classList.add('wrong-flash');setTimeout(function(){rEl.classList.remove('wrong-flash','selected');},450);}
+    if(lEl){lEl.classList.remove('selected');}
+    matchSel={left:null,right:null};
+  }
+  if(correct){matchSel={left:null,right:null};}
 }
 
 function pickOpt(key,j,ans,container){
@@ -1037,64 +818,86 @@ function pickOpt(key,j,ans,container){
   updateScore();
 }
 
-// ══════════════════════════════════════════════════════════════
-// TTS
-// ══════════════════════════════════════════════════════════════
-function speak(type, idx){
-  var txt='';
-  if(type==='mc') txt=document.getElementById('script-mc-'+idx).textContent;
+// ── LISTEN SHOW/HIDE ──
+function toggleScript(id){
+  var el=document.getElementById(id);
+  if(!el) return;
+  var hidden=el.classList.toggle('hidden-script');
+  var toggleId=id.replace('ls-','ls-toggle-');
+  var btn=document.getElementById(toggleId);
+  if(btn) btn.textContent=hidden?t().listenShow:t().listenHide;
+}
+function speakId(id, fallback){
+  var el=document.getElementById(id);
+  var txt=el?el.textContent:fallback;
   speakText(txt);
 }
+
+// ── TTS ──
 function speakText(txt){
   if(!window.speechSynthesis) return;
   var u=new SpeechSynthesisUtterance(txt);
-  u.lang='en-US'; u.rate=0.88;
+  u.lang='en-US';u.rate=0.88;
   speechSynthesis.cancel();
   speechSynthesis.speak(u);
 }
 
-// ══════════════════════════════════════════════════════════════
-// EDIT OVERLAY
-// ══════════════════════════════════════════════════════════════
-function openEdit(section, idx, field){
+// ── IMG FUNCTIONS ──
+function promptImg(i){uploadImg(i);}
+function uploadImg(i){
+  var inp=document.createElement('input');
+  inp.type='file';inp.accept='image/*';
+  inp.onchange=function(e){
+    var file=e.target.files[0];if(!file)return;
+    var reader=new FileReader();
+    reader.onload=function(ev){quizData.match[i].imgData=ev.target.result;renderPaper();};
+    reader.readAsDataURL(file);
+  };
+  inp.click();
+}
+function aiGenImg(i){showToast('AI 生圖功能開發中（Imagen API），目前請使用上傳圖片');}
+function dlImg(i){
+  var data=quizData.match[i].imgData;
+  if(!data){showToast('尚未有圖片可下載');return;}
+  var a=document.createElement('a');
+  a.href=data;a.download='match_'+(i+1)+'_'+quizData.match[i].word+'.png';a.click();
+}
+
+// ── EDIT OVERLAY ──
+function openEdit(section,idx,field){
   editCtx={section:section,idx:idx,field:field};
-  var T2=t(); var val='';
+  var T2=t();var val='';
   if(section==='mc'&&field==='q') val=quizData.mc[idx].q;
   else if(section==='sa'&&field==='q') val=quizData.sa[idx].q;
   else if(section==='sa'&&field==='ref') val=quizData.sa[idx].sampleAnswer;
   else if(section==='match'&&field==='word') val=quizData.match[idx].word;
   else if(section==='script-mc'&&field==='script') val=quizData.mc[idx].listeningScript||'';
+  else if(section==='match-script'&&field==='script') val=(quizData.match[0]&&quizData.match[0].listeningScript)||'';
   document.getElementById('overlayTa').value=val;
   document.getElementById('overlayTitle').textContent=
     field==='ref'?T2.editRef:(field==='script'?T2.editScript:T2.editQ);
   document.getElementById('editOverlay').classList.add('show');
 }
-function closeOverlay(){ document.getElementById('editOverlay').classList.remove('show'); }
+function closeOverlay(){document.getElementById('editOverlay').classList.remove('show');}
 function saveOverlay(){
   var val=document.getElementById('overlayTa').value;
-  var s=editCtx.section, i=editCtx.idx, f=editCtx.field;
+  var s=editCtx.section,i=editCtx.idx,f=editCtx.field;
   if(s==='mc'&&f==='q') quizData.mc[i].q=val;
   else if(s==='sa'&&f==='q') quizData.sa[i].q=val;
   else if(s==='sa'&&f==='ref') quizData.sa[i].sampleAnswer=val;
   else if(s==='match'&&f==='word') quizData.match[i].word=val;
   else if(s==='script-mc'&&f==='script') quizData.mc[i].listeningScript=val;
+  else if(s==='match-script'&&f==='script'){if(quizData.match[0])quizData.match[0].listeningScript=val;}
   closeOverlay();
   if(document.getElementById('page-print').classList.contains('active')) renderPaper();
   if(document.getElementById('page-digital').classList.contains('active')) renderDigital();
 }
 
-// ══════════════════════════════════════════════════════════════
-// UTILS
-// ══════════════════════════════════════════════════════════════
-function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function escJs(s){ return String(s||'').replace(/'/g,"\\'").replace(/\n/g,' '); }
-function showToast(msg){
-  var el=document.getElementById('toast');
-  el.textContent=msg; el.style.display='block';
-  setTimeout(function(){ el.style.display='none'; },3000);
-}
+// ── UTILS ──
+function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function escJs(s){return String(s||'').replace(/'/g,"\\'").replace(/\n/g,' ');}
+function showToast(msg){var el=document.getElementById('toast');el.textContent=msg;el.style.display='block';setTimeout(function(){el.style.display='none';},3000);}
 
-// ── INIT ──
 applyLang();
 </script>
 </body>
