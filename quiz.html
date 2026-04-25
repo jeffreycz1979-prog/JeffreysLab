@@ -568,7 +568,8 @@ function renderPaper(){
     quizData.mc.forEach(function(q,i){
       qn++;
       h+='<div class="q-item"><div class="q-stem"><span class="q-num">'+qn+'.</span><span>'+escHtml(q.q)+'</span>';
-      h+='<button class="edit-ico" onclick="openEdit(\'mc\','+i+',\'q\')">✎</button></div>';
+      h+='<button class="edit-ico" onclick="openEdit(\'mc\','+i+',\'q\')">✎</button>';
+      h+='<button class="edit-ico" onclick="openEditOpts('+i+')" title="編輯選項">☰</button></div>';
       h+='<div class="opts-g">';
       ['A','B','C','D'].forEach(function(l,j){
         var isA=(showAns&&j===q.ans);
