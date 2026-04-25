@@ -774,30 +774,30 @@ function showSuccess(name, plan, expiry) {
 }
 
 function checkToken(token, saveToStorage) {
-  const script = document.createElement('script');
-  const cbName = 'authCb_' + Date.now();
-  window[cbName] = function(data) {
-    script.remove();
-    delete window[cbName];
-    if (data.valid) {
-      if (saveToStorage) {
-        localStorage.setItem(STORAGE_KEY, token);
-        localStorage.setItem(STORAGE_INFO, JSON.stringify({ name: data.name, plan: data.plan, expiry: data.expiry }));
+  fetch(GAS_URL + '?action=checkToolsToken&token=' + encodeURIComponent(token) + '&callback=cb')
+    .then(function(r){ return r.text(); })
+    .then(function(text){
+      var json = text.replace(/^cb\(/, '').replace(/\)\s*$/, '');
+      var data = JSON.parse(json);
+      if (data.valid) {
+        if (saveToStorage) {
+          localStorage.setItem(STORAGE_KEY, token);
+          localStorage.setItem(STORAGE_INFO, JSON.stringify({ name: data.name, plan: data.plan, expiry: data.expiry }));
+        }
+        showSuccess(data.name, data.plan || 'Free', data.expiry);
+      } else {
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(STORAGE_INFO);
+        showGate('error', '❌ ' + (data.message || '授權無效'), `
+          <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/index.html#apply" class="gate-btn gate-btn-primary">📋 申請試用</a>
+          <a href="https://line.me/ti/p/~@593fbons" target="_blank" class="gate-btn gate-btn-line">💬 LINE 聯繫</a>
+        `);
       }
-      showSuccess(data.name, data.plan || 'Free', data.expiry);
-    } else {
-      localStorage.removeItem(STORAGE_KEY);
-      localStorage.removeItem(STORAGE_INFO);
-      showGate('error', '❌ ' + (data.message || '授權無效'), `
-        <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/index.html#apply" class="gate-btn gate-btn-primary">📋 申請試用</a>
-        <a href="https://line.me/ti/p/~@593fbons" target="_blank" class="gate-btn gate-btn-line">💬 LINE 聯繫</a>
-      `);
-    }
-  };
-  script.src = GAS_URL + '?action=checkToolsToken&token=' + encodeURIComponent(token) + '&callback=' + cbName;
-  document.head.appendChild(script);
+    })
+    .catch(function(e){
+      showGate('error', '❌ 網路錯誤，請稍後再試', '');
+    });
 }
-
 // 主流程
 (function() {
   // 1. 先看 URL 有沒有 token
