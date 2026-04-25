@@ -633,13 +633,18 @@ function renderPaper(){
       h+='<button class="img-act-btn" onclick="uploadImg('+i+')">📁 '+T2.imgUp+'</button>';
       if(m.imgData)h+='<button class="img-act-btn" onclick="dlImg('+i+')">'+T2.imgDl+'</button>';
       h+='</div></div>';
-      // RIGHT: word + answer blank + shuffled options
+      // RIGHT: word + answer blank + edit buttons
       h+='<div class="match-text-cell">';
-      // answer fill blank
-      h+='<div style="font-size:.82rem;display:flex;align-items:center;gap:.5rem">';
+      h+='<div style="font-size:.82rem;display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">';
       h+='<span style="color:var(--text-muted)">'+(i+1)+'.</span>';
       h+='<span class="match-answer-blank">'+(showAns?ansMap[i]:'&nbsp;&nbsp;')+'</span>';
       if(showAns)h+='<span style="font-size:.78rem;color:var(--teal);font-weight:700">→ '+escHtml(m.word)+' / '+escHtml(m.definition)+'</span>';
+      h+='</div>';
+      // edit buttons for this pair
+      h+='<div style="display:flex;gap:4px;margin-top:.35rem;flex-wrap:wrap">';
+      h+='<button class="img-act-btn" onclick="openEdit(\'match\','+i+',\'word\')">✎ 單字</button>';
+      h+='<button class="img-act-btn" onclick="openEdit(\'match\','+i+',\'definition\')">✎ 定義</button>';
+      h+='<button class="img-act-btn" onclick="openEdit(\'match\','+i+',\'imagePrompt\')" title="AI 生圖描述">✎ 生圖描述</button>';
       h+='</div>';
       h+='</div>';
       h+='</div>';
@@ -687,7 +692,7 @@ function renderDigital(){
     // edit bar
     h+='<div style="display:flex;gap:.4rem;margin-bottom:.6rem;flex-wrap:wrap">';
     h+='<button class="edit-script-btn" style="color:var(--coral)" onclick="openEdit(\'mc\','+i+',\'q\')">✎ 題目</button>';
-    h+='<button class="edit-script-btn" style="color:var(--coral)" onclick="openEditOpts('+i+')">✎ 選項</button>';
+    h+='<button class="edit-script-btn" style="color:var(--coral)" onclick="openEditOpts('+i+')">✎ 選項／答案</button>';
     if(q.listeningScript) h+='<button class="edit-script-btn" onclick="openEdit(\'script-mc\','+i+',\'script\')">✎ 聽力稿</button>';
     h+='</div>';
     if(q.listeningScript){
@@ -891,11 +896,13 @@ function dlImg(i){
 
 // ── EDIT OVERLAY ──
 function openEditOpts(i){
-  // 編輯選擇題四個選項
   var q=quizData.mc[i];
   editCtx={section:'mc-opts',idx:i,field:'opts'};
-  document.getElementById('overlayTitle').textContent='編輯選項（每行一個，共4行）';
-  document.getElementById('overlayTa').value=q.opts.join('\n');
+  var optsWithMark=q.opts.map(function(o,j){
+    return o+(j===q.ans?' ✓':'');
+  });
+  document.getElementById('overlayTitle').textContent='編輯選項（每行一個，正確答案後面加 ✓）';
+  document.getElementById('overlayTa').value=optsWithMark.join('\n');
   document.getElementById('editOverlay').classList.add('show');
 }
 function openEdit(section,idx,field){
@@ -905,11 +912,17 @@ function openEdit(section,idx,field){
   else if(section==='sa'&&field==='q') val=quizData.sa[idx].q;
   else if(section==='sa'&&field==='ref') val=quizData.sa[idx].sampleAnswer;
   else if(section==='match'&&field==='word') val=quizData.match[idx].word;
+  else if(section==='match'&&field==='definition') val=quizData.match[idx].definition||'';
+  else if(section==='match'&&field==='imagePrompt') val=quizData.match[idx].imagePrompt||'';
   else if(section==='script-mc'&&field==='script') val=quizData.mc[idx].listeningScript||'';
   else if(section==='match-script'&&field==='script') val=(quizData.match[0]&&quizData.match[0].listeningScript)||'';
   document.getElementById('overlayTa').value=val;
-  document.getElementById('overlayTitle').textContent=
-    field==='ref'?T2.editRef:(field==='script'?T2.editScript:T2.editQ);
+  var title=T2.editQ;
+  if(field==='ref') title=T2.editRef;
+  else if(field==='script') title=T2.editScript;
+  else if(field==='definition') title='編輯定義 / 答案選項';
+  else if(field==='imagePrompt') title='編輯 AI 生圖描述（英文，簡短）';
+  document.getElementById('overlayTitle').textContent=title;
   document.getElementById('editOverlay').classList.add('show');
 }
 function closeOverlay(){document.getElementById('editOverlay').classList.remove('show');}
@@ -920,10 +933,21 @@ function saveOverlay(){
   else if(s==='sa'&&f==='q') quizData.sa[i].q=val;
   else if(s==='sa'&&f==='ref') quizData.sa[i].sampleAnswer=val;
   else if(s==='match'&&f==='word') quizData.match[i].word=val;
+  else if(s==='match'&&f==='definition') quizData.match[i].definition=val;
+  else if(s==='match'&&f==='imagePrompt') quizData.match[i].imagePrompt=val;
   else if(s==='script-mc'&&f==='script') quizData.mc[i].listeningScript=val;
   else if(s==='mc-opts'&&f==='opts'){
     var lines=val.split('\n').map(function(l){return l.trim();}).filter(function(l){return l;});
-    if(lines.length>=2) quizData.mc[i].opts=lines.slice(0,4);
+    var newAns=quizData.mc[i].ans; // 預設保留原答案
+    var cleanLines=lines.map(function(l,j){
+      if(l.endsWith('✓')||l.endsWith(' ✓')){newAns=j;return l.replace(/\s*✓\s*$/,'').trim();}
+      return l;
+    });
+    if(cleanLines.length>=2){
+      quizData.mc[i].opts=cleanLines.slice(0,4);
+      quizData.mc[i].ans=newAns;
+    }
+    delete digAnswers['mc_'+i]; // 清空作答讓學生重答
   }
   else if(s==='match-script'&&f==='script'){if(quizData.match[0])quizData.match[0].listeningScript=val;}
   closeOverlay();
