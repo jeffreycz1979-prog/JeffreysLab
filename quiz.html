@@ -659,9 +659,16 @@ function renderPaper(){
 
 // ══ DIGITAL RENDER ══
 function updateScore(){
-  var total=quizData.mc.length+quizData.sa.length+(quizData.match.length?1:0);
-  var answered=Object.keys(digAnswers).length;
-  document.getElementById('scoreVal').textContent=answered+' / '+total;
+  // 配合題每對算1題（B方案）
+  var total=quizData.mc.length+quizData.sa.length+quizData.match.length;
+  // 只計算第一次答對的（mc_i 值為 true）+ 書寫題有輸入 + 每個配對對數
+  var correct=0;
+  Object.keys(digAnswers).forEach(function(k){
+    if(digAnswers[k]===true) correct++; // MC 答對
+    else if(typeof digAnswers[k]==='string'&&digAnswers[k].length>0) correct++; // SA 有輸入
+    else if(digAnswers[k]==='matched') correct++; // match pair
+  });
+  document.getElementById('scoreVal').textContent=correct+' / '+total;
 }
 function resetDigital(){digAnswers={};matchSel={left:null,right:null};matchPairs={};renderDigital();}
 
@@ -675,7 +682,14 @@ function renderDigital(){
   // MC
   quizData.mc.forEach(function(q,i){
     qn++;var key='mc_'+i;
+    var answered=digAnswers[key]!==undefined;
     h+='<div class="dig-card">';
+    // edit bar
+    h+='<div style="display:flex;gap:.4rem;margin-bottom:.6rem;flex-wrap:wrap">';
+    h+='<button class="edit-script-btn" style="color:var(--coral)" onclick="openEdit(\'mc\','+i+',\'q\')">✎ 題目</button>';
+    h+='<button class="edit-script-btn" style="color:var(--coral)" onclick="openEditOpts('+i+')">✎ 選項</button>';
+    if(q.listeningScript) h+='<button class="edit-script-btn" onclick="openEdit(\'script-mc\','+i+',\'script\')">✎ 聽力稿</button>';
+    h+='</div>';
     if(q.listeningScript){
       h+='<div class="listen-box">';
       h+='<div class="listen-lbl"><span>'+T2.listenLbl+'</span>';
@@ -683,15 +697,18 @@ function renderDigital(){
       h+='<div class="listen-script hidden-script" id="ls-mc-'+i+'">'+escHtml(q.listeningScript)+'</div>';
       h+='<div class="listen-row">';
       h+='<button class="tts-btn" onclick="speakId(\'ls-mc-'+i+'\',\''+escJs(q.listeningScript)+'\')">▶ '+T2.playBtn+'</button>';
-      h+='<button class="edit-script-btn" onclick="openEdit(\'script-mc\','+i+',\'script\')">✎ 編輯</button>';
       h+='</div></div>';
     }
     h+='<div class="dig-q-stem"><span class="q-num">'+qn+'.</span><span>'+escHtml(q.q)+'</span></div>';
     h+='<div class="dig-opts">';
     ['A','B','C','D'].forEach(function(l,j){
       var da=digAnswers[key];var cls='dig-opt';
-      if(da!==undefined){cls+=(j===q.ans?' correct':(j===da?' wrong':''));}
-      h+='<button class="'+cls+'" onclick="pickOpt(\''+key+'\','+j+','+q.ans+',this.parentNode)">'+l+'. '+escHtml(q.opts[j])+'</button>';
+      // 已作答後鎖定，不能再改
+      if(da!==undefined){
+        cls+=(j===q.ans?' correct':(j===da?' wrong':''));
+      }
+      var locked=answered?'style="pointer-events:none"':'';
+      h+='<button class="'+cls+'" '+locked+' onclick="pickOpt(\''+key+'\','+j+','+q.ans+',this.parentNode)">'+l+'. '+escHtml(q.opts[j])+'</button>';
     });
     h+='</div></div>';
   });
@@ -700,21 +717,28 @@ function renderDigital(){
   quizData.sa.forEach(function(q,i){
     qn++;var key='sa_'+i;
     h+='<div class="dig-card">';
-    h+='<div class="listen-row" style="margin-bottom:.6rem">';
-    h+='<button class="tts-btn" onclick="speakText(\''+escJs(q.q)+'\')">▶ '+T2.playBtn+'</button>';
+    h+='<div style="display:flex;gap:.4rem;margin-bottom:.6rem">';
+    h+='<button class="edit-script-btn" style="color:var(--coral)" onclick="openEdit(\'sa\','+i+',\'q\')">✎ 題目</button>';
+    h+='<button class="edit-script-btn" style="color:var(--coral)" onclick="openEdit(\'sa\','+i+',\'ref\')">✎ 參考答案</button>';
+    h+='<button class="tts-btn" style="margin-left:auto" onclick="speakText(\''+escJs(q.q)+'\')">▶ '+T2.playBtn+'</button>';
     h+='</div>';
     h+='<div class="dig-q-stem"><span class="q-num">'+qn+'.</span><span>'+escHtml(q.q)+'</span></div>';
-    h+='<div class="dig-write"><textarea rows="2" placeholder="Type your answer here..." oninput="digAnswers[\''+key+'\']=1;updateScore()"></textarea></div>';
+    h+='<div class="dig-write"><textarea rows="2" placeholder="Type your answer here..." oninput="digAnswers[\''+key+'\']=this.value;updateScore()">'+escHtml(digAnswers[key]||'')+'</textarea></div>';
+    if(digAnswers[key]){
+      h+='<div class="ans-ref" style="margin:.5rem 0 0">參考：'+escHtml(q.sampleAnswer)+'</div>';
+    }
     h+='</div>';
   });
 
   // MATCH — click to match
   if(quizData.match.length){
-    qn++;
-    var mkey='match';
+    qn+=quizData.match.length; // 每對算一題
     h+='<div class="dig-card">';
-    // section listening script
     var secScript=quizData.match[0]&&quizData.match[0].listeningScript?quizData.match[0].listeningScript:'';
+    // edit bar
+    h+='<div style="display:flex;gap:.4rem;margin-bottom:.6rem;flex-wrap:wrap">';
+    if(secScript) h+='<button class="edit-script-btn" onclick="openEdit(\'match-script\',0,\'script\')">✎ 聽力稿</button>';
+    h+='</div>';
     if(secScript){
       h+='<div class="listen-box">';
       h+='<div class="listen-lbl"><span>'+T2.listenLbl+'</span>';
@@ -723,8 +747,7 @@ function renderDigital(){
       h+='<div class="listen-row"><button class="tts-btn" onclick="speakId(\'ls-match\',\''+escJs(secScript)+'\')">▶ '+T2.playBtn+'</button></div>';
       h+='</div>';
     }
-    h+='<div class="dig-q-stem"><span class="q-num">'+qn+'.</span><span>'+T2.matchDigInstr+'</span></div>';
-    h+='<div class="match-dig-instr" id="lbl-score">'+T2.matchDigInstr+'</div>';
+    h+='<div class="dig-q-stem"><span style="font-weight:700">🔗 </span><span>'+T2.matchDigInstr+'</span></div>';
 
     // shuffle right side
     var ltrs=['A','B','C','D','E','F'];
@@ -793,14 +816,13 @@ function matchClickRight(origIdx){
 function tryPair(){
   var leftIdx=matchSel.left, rightIdx=matchSel.right;
   if(leftIdx===null||rightIdx===null) return;
-  var correct=(leftIdx===rightIdx); // img i should match word i (same original index)
+  var correct=(leftIdx===rightIdx);
   if(correct){
     matchPairs[leftIdx]=rightIdx;
-    digAnswers['match_'+leftIdx]=1;
+    digAnswers['match_'+leftIdx]='matched'; // 每對各算一題
     updateScore();
-    renderDigital(); // re-render to show matched state
+    renderDigital();
   }else{
-    // wrong flash
     var rEl=document.getElementById('mr-'+rightIdx);
     var lEl=document.getElementById('ml-'+leftIdx);
     if(rEl){rEl.classList.add('wrong-flash');setTimeout(function(){rEl.classList.remove('wrong-flash','selected');},450);}
@@ -811,8 +833,12 @@ function tryPair(){
 }
 
 function pickOpt(key,j,ans,container){
-  digAnswers[key]=j;
+  // 已作答就鎖定，不能修改
+  if(digAnswers[key]!==undefined) return;
+  // 只有答對才記錄 true，答錯記錄 false（不計分）
+  digAnswers[key]=(j===ans)?true:false;
   container.querySelectorAll('.dig-opt').forEach(function(b,idx){
+    b.style.pointerEvents='none';
     b.className='dig-opt'+(idx===ans?' correct':(idx===j&&j!==ans?' wrong':''));
   });
   updateScore();
@@ -864,6 +890,14 @@ function dlImg(i){
 }
 
 // ── EDIT OVERLAY ──
+function openEditOpts(i){
+  // 編輯選擇題四個選項
+  var q=quizData.mc[i];
+  editCtx={section:'mc-opts',idx:i,field:'opts'};
+  document.getElementById('overlayTitle').textContent='編輯選項（每行一個，共4行）';
+  document.getElementById('overlayTa').value=q.opts.join('\n');
+  document.getElementById('editOverlay').classList.add('show');
+}
 function openEdit(section,idx,field){
   editCtx={section:section,idx:idx,field:field};
   var T2=t();var val='';
@@ -887,6 +921,10 @@ function saveOverlay(){
   else if(s==='sa'&&f==='ref') quizData.sa[i].sampleAnswer=val;
   else if(s==='match'&&f==='word') quizData.match[i].word=val;
   else if(s==='script-mc'&&f==='script') quizData.mc[i].listeningScript=val;
+  else if(s==='mc-opts'&&f==='opts'){
+    var lines=val.split('\n').map(function(l){return l.trim();}).filter(function(l){return l;});
+    if(lines.length>=2) quizData.mc[i].opts=lines.slice(0,4);
+  }
   else if(s==='match-script'&&f==='script'){if(quizData.match[0])quizData.match[0].listeningScript=val;}
   closeOverlay();
   if(document.getElementById('page-print').classList.contains('active')) renderPaper();
