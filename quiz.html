@@ -887,7 +887,26 @@ function uploadImg(i){
   };
   inp.click();
 }
-function aiGenImg(i){showToast('AI 生圖功能開發中（Imagen API），目前請使用上傳圖片');}
+function aiGenImg(i){
+  var m=quizData.match[i];
+  var prompt=m.imagePrompt||m.word||'object';
+  showToast('AI 生圖中，請稍候…');
+  fetch(QUIZ_GAS,{
+    method:'POST',
+    body:JSON.stringify({type:'generateImage',prompt:prompt})
+  })
+  .then(function(r){return r.json();})
+  .then(function(data){
+    if(data.error){showToast('生圖失敗：'+data.error);return;}
+    if(data.ok&&data.imageBase64){
+      quizData.match[i].imgData='data:'+data.mimeType+';base64,'+data.imageBase64;
+      showToast('生圖完成！');
+      if(document.getElementById('page-print').classList.contains('active')) renderPaper();
+      if(document.getElementById('page-digital').classList.contains('active')) renderDigital();
+    }
+  })
+  .catch(function(e){showToast('網路錯誤：'+e.message);});
+}
 function dlImg(i){
   var data=quizData.match[i].imgData;
   if(!data){showToast('尚未有圖片可下載');return;}
