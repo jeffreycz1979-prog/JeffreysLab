@@ -773,36 +773,12 @@ function showSuccess(name, plan, expiry) {
   }, 1200);
 }
 
-function checkToken(token, saveToStorage) {
-  fetch(GAS_URL + '?action=checkToolsToken&token=' + encodeURIComponent(token) + '&callback=cb')
-    .then(function(r){ return r.text(); })
-    .then(function(text){
-      var json = text.replace(/^cb\(/, '').replace(/\)\s*$/, '');
-      var data = JSON.parse(json);
-      if (data.valid) {
-        if (saveToStorage) {
-          localStorage.setItem(STORAGE_KEY, token);
-          localStorage.setItem(STORAGE_INFO, JSON.stringify({ name: data.name, plan: data.plan, expiry: data.expiry }));
-        }
-        document.getElementById('gateSpinner').style.display = 'none';
+document.getElementById('gateSpinner').style.display = 'none';
 document.getElementById('gateMsg').className = 'gate-msg success';
 document.getElementById('gateMsg').textContent = '✅ 驗證成功，正在載入工具…';
 document.getElementById('gateActions').innerHTML = '<div class="gate-name-badge">👋 歡迎回來，' + data.name + '</div>';
 document.getElementById('gateExpiry').textContent = '方案：' + (data.plan || 'Free') + ' · 試用到期：' + data.expiry;
 setTimeout(() => { document.getElementById('authGate').classList.add('hidden'); }, 1200);
-      } else {
-        localStorage.removeItem(STORAGE_KEY);
-        localStorage.removeItem(STORAGE_INFO);
-        showGate('error', '❌ ' + (data.message || '授權無效'), `
-          <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/index.html#apply" class="gate-btn gate-btn-primary">📋 申請試用</a>
-          <a href="https://line.me/ti/p/~@593fbons" target="_blank" class="gate-btn gate-btn-line">💬 LINE 聯繫</a>
-        `);
-      }
-    })
-    .catch(function(e){
-      showGate('error', '❌ 網路錯誤，請稍後再試', '');
-    });
-}
 // 主流程
 (function() {
   // 1. 先看 URL 有沒有 token
