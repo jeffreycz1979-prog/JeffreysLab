@@ -112,9 +112,9 @@ textarea.field:focus,select.field:focus,input.field:focus{outline:none;border-co
 .match-section-listen{background:var(--teal-light);border:1px solid rgba(59,191,173,.3);border-radius:10px;padding:.6rem .85rem;margin-bottom:.85rem;display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
 .match-listen-script{font-size:.8rem;color:#2A9D8F;font-style:italic;flex:1}
 .match-pairs{margin:.5rem 0 0 0}
-.match-row-p{display:grid;grid-template-columns:auto 1fr;gap:.75rem 1rem;align-items:center;margin-bottom:.85rem;padding-bottom:.85rem;border-bottom:1px dashed var(--border)}
+/* 每對：左圖右字，兩欄 grid */
+.match-row-p{display:grid;grid-template-columns:auto 1fr;gap:.65rem 1rem;align-items:start;margin-bottom:.85rem;padding-bottom:.85rem;border-bottom:1px dashed var(--border)}
 .match-row-p:last-child{border-bottom:none}
-/* left = img */
 .match-img-cell{display:flex;flex-direction:column;align-items:center;gap:.35rem}
 .img-slot{width:108px;height:84px;border:1.5px dashed var(--border-dark);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:.65rem;color:var(--text-muted);cursor:pointer;position:relative;overflow:hidden;background:var(--bg);flex-shrink:0}
 .img-slot img{width:100%;height:100%;object-fit:cover;border-radius:9px}
@@ -124,9 +124,7 @@ textarea.field:focus,select.field:focus,input.field:focus{outline:none;border-co
 .img-actions{display:flex;gap:4px}
 .img-act-btn{border:1px solid var(--border);background:white;border-radius:6px;padding:2px 8px;font-size:.65rem;cursor:pointer;color:var(--text-muted);font-family:'Noto Sans TC',sans-serif;white-space:nowrap}
 .img-act-btn:hover{border-color:var(--teal);color:var(--teal)}
-/* right = text options */
-.match-text-cell{display:flex;flex-direction:column;gap:.35rem}
-.match-letter-row{display:flex;align-items:center;gap:.5rem;font-size:.82rem}
+.match-text-cell{display:flex;flex-direction:column;gap:.35rem;justify-content:center}
 .match-answer-blank{display:inline-block;border:1px solid var(--border);border-radius:5px;padding:0 10px;font-size:.75rem;min-width:28px;text-align:center}
 
 /* DIGITAL */
@@ -207,6 +205,11 @@ textarea.field:focus,select.field:focus,input.field:focus{outline:none;border-co
   .container{padding:0;max-width:100%}
   .listen-box{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .listen-script.hidden-script{display:block!important}
+  /* 隱藏所有編輯按鈕 */
+  .img-act-btn,.match-edit-btns{display:none!important}
+  /* 配合題圖片放大 */
+  .img-slot{width:130px!important;height:100px!important}
+  .match-row-p{page-break-inside:avoid}
 }
 @media(max-width:600px){
   nav{padding:.65rem 1rem}
@@ -619,7 +622,7 @@ function renderPaper(){
 
     quizData.match.forEach(function(m,i){
       h+='<div class="match-row-p">';
-      // LEFT: image
+      // 左：圖片 + 圖片操作按鈕
       h+='<div class="match-img-cell">';
       h+='<div class="img-slot" onclick="promptImg('+i+')" id="imgSlot'+i+'" title="點擊換圖">';
       if(m.imgData){
@@ -634,15 +637,14 @@ function renderPaper(){
       h+='<button class="img-act-btn" onclick="uploadImg('+i+')">📁 '+T2.imgUp+'</button>';
       if(m.imgData)h+='<button class="img-act-btn" onclick="dlImg('+i+')">'+T2.imgDl+'</button>';
       h+='</div></div>';
-      // RIGHT: word + answer blank + edit buttons
+      // 右：答案空格 + 編輯按鈕（列印時隱藏編輯按鈕）
       h+='<div class="match-text-cell">';
       h+='<div style="font-size:.82rem;display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">';
       h+='<span style="color:var(--text-muted)">'+(i+1)+'.</span>';
       h+='<span class="match-answer-blank">'+(showAns?ansMap[i]:'&nbsp;&nbsp;')+'</span>';
       if(showAns)h+='<span style="font-size:.78rem;color:var(--teal);font-weight:700">→ '+escHtml(m.word)+' / '+escHtml(m.definition)+'</span>';
       h+='</div>';
-      // edit buttons for this pair
-      h+='<div style="display:flex;gap:4px;margin-top:.35rem;flex-wrap:wrap">';
+      h+='<div class="match-edit-btns" style="display:flex;gap:4px;margin-top:.35rem;flex-wrap:wrap">';
       h+='<button class="img-act-btn" onclick="openEdit(\'match\','+i+',\'word\')">✎ 單字</button>';
       h+='<button class="img-act-btn" onclick="openEdit(\'match\','+i+',\'definition\')">✎ 定義</button>';
       h+='<button class="img-act-btn" onclick="openEdit(\'match\','+i+',\'imagePrompt\')" title="AI 生圖描述">✎ 生圖描述</button>';
@@ -650,12 +652,12 @@ function renderPaper(){
       h+='</div>';
       h+='</div>';
     });
-    // show shuffled options on the side
-    h+='<div style="margin-top:.65rem;background:var(--bg);border-radius:10px;padding:.65rem .85rem">';
-    h+='<div style="font-size:.72rem;color:var(--text-muted);margin-bottom:.4rem">選項 Options</div>';
+    // 選項清單：放在圖片配對表格旁邊（列印版右側）
+    h+='<div class="match-options-bar" style="margin-top:.65rem;background:var(--bg);border-radius:10px;padding:.65rem .85rem">';
+    h+='<div style="font-size:.72rem;color:var(--text-muted);margin-bottom:.4rem;font-weight:600">選項 Options</div>';
     h+='<div style="display:flex;flex-wrap:wrap;gap:.5rem">';
     rightShuffled.forEach(function(r,j){
-      h+='<span style="font-size:.8rem;background:white;border:1px solid var(--border);border-radius:8px;padding:.25rem .7rem">'+ltrs[j]+'. '+escHtml(r.m.word)+'</span>';
+      h+='<span style="font-size:.8rem;background:white;border:1px solid var(--border);border-radius:8px;padding:.3rem .85rem;font-weight:500">'+ltrs[j]+'. '+escHtml(r.m.word)+'</span>';
     });
     h+='</div></div>';
     h+='</div></div>';
