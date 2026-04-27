@@ -345,6 +345,7 @@ function showGate(type, msg, extra) {
 }
 
 function showSuccess(name, plan, expiry) {
+  localStorage.setItem('newcore_tools_plan', plan || 'Free'); // 加這行
   document.getElementById('gateSpinner').style.display = 'none';
   document.getElementById('gateMsg').className = 'gate-msg success';
   document.getElementById('gateMsg').textContent = '✅ 驗證成功，正在載入工具…';
