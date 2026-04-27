@@ -270,6 +270,8 @@
             const batchWords = currentBatch.map(d => d.word).join(', ');
             btn.innerText = `⏳ 處理中 (${i+1}/${batches.length})...`;
 
+            const plan = localStorage.getItem('newcore_tools_plan') || 'Free';
+            const useFreeKey = plan !== 'Pro';
             let prompt = (mode === 'def') 
                 ? `Provide ${diff} definitions for: ${batchWords}. Language: ${(lang === 'zh-en') ? 'English with Chinese Translation' : 'English only'}. Return JSON {word: definition}.`
                 : `Write ONE ${diff} English sentence for each: ${batchWords}. RULE: Replace word with "_______________". Return JSON {word: sentence}.`;
@@ -281,8 +283,8 @@
                 body: JSON.stringify({
                 auth:   GATEWAY_TOKEN,
                 action: "lab_tool",
-                params: { type: "crossword", words: batchWords, customPrompt: prompt, model: "gemini-2.5-flash" }
-                })
+                params: { type: "crossword", words: batchWords, customPrompt: prompt, model: "gemini-2.5-flash", useFreeKey: useFreeKey }
+               })
              });
             const gwResult = await response.json();
             if (!gwResult.ok) throw new Error(gwResult.error || "Gateway 失敗");
