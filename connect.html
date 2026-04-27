@@ -143,7 +143,8 @@
 
 <script>
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycby63WiGPMwr6FmUeZiGtHwwzuY30q7PovCBN7Por7kj164AcuX69QMztOJn1jIHH1lzAg/exec";
-    
+    const GATEWAY_URL   = 'https://script.google.com/macros/s/AKfycbz0O6eB9fVC3Xp7g0Kt4U-32Inmf9ieDYJygEf3jW78xaWx10glPscEefEQwgB0jCioug/exec';
+    const GATEWAY_TOKEN = 'MYVIEWBOARDgoogleAPI';
     let vocabData = [];
     let isPlaying = false;
     let timer = null;
@@ -274,17 +275,23 @@
                 : `Write ONE ${diff} English sentence for each: ${batchWords}. RULE: Replace word with "_______________". Return JSON {word: sentence}.`;
 
             try {
-                const response = await fetch(GAS_API_URL, {
-                    method: "POST",
-                    body: JSON.stringify({ type: "crossword", words: batchWords, customPrompt: prompt, model: "gemini-2.5-flash" })
-                });
-                const data = await response.json();
-                if(data.error) throw new Error(data.error);
+                const response = await fetch(GATEWAY_URL, {
+                method: "POST",
+                redirect: "follow",
+                body: JSON.stringify({
+                auth:   GATEWAY_TOKEN,
+                action: "lab_tool",
+                params: { type: "crossword", words: batchWords, customPrompt: prompt, model: "gemini-2.5-flash" }
+                })
+             });
+            const gwResult = await response.json();
+            if (!gwResult.ok) throw new Error(gwResult.error || "Gateway 失敗");
+            const data = JSON.parse(gwResult.text);
 
-                currentBatch.forEach(item => {
-                    const returnedKey = Object.keys(data).find(k => k.toLowerCase() === item.word.toLowerCase());
-                    if(returnedKey) item.content = data[returnedKey];
-                });
+            currentBatch.forEach(item => {
+            const returnedKey = Object.keys(data).find(k => k.toLowerCase() === item.word.toLowerCase());
+            if(returnedKey) item.content = data[returnedKey];
+          });
                 renderEdit(); // 每完成一組就更新一次畫面，讓老師看到進度
             } catch (e) {
                 alert(`批次 ${i+1} 生成失敗: ` + e.message);
