@@ -100,6 +100,7 @@
             <div class="setting-group">
                 <button class="btn-primary" onclick="generateGrammarQuestions()" id="btn-ai" style="background:var(--primary); width:100%;">✨ AI 生成題目</button>
                 <button class="btn-danger" onclick="clearAll()" id="btn-clear" style="width:100%; font-size: 12px; padding: 6px;">🗑️ 全部清空</button>
+                <button onclick="addEmptyRow()" style="background: var(--secondary); color: white; width:100%; font-size: 12px; padding: 6px;">➕ 手動新增題目</button>
             </div>
         </div>
         <div class="edit-table-container">
@@ -419,6 +420,18 @@
         // 將相同內容印兩次，產出兩頁以供列印排版彈性
         container.innerHTML = singlePageHTML + singlePageHTML;
     }
+    function addEmptyRow() {
+    questionsData.push({
+        wrong_sentence: '',
+        error_word: '',
+        correct_word: '',
+        distractors: ['', '']
+    });
+    renderTable();
+    // 捲動到最底部
+    const container = document.querySelector('.edit-table-container');
+    container.scrollTop = container.scrollHeight;
+}
 </script>
 </body>
 </html>
