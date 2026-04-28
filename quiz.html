@@ -492,35 +492,32 @@ function setLang(l){
   if(quizData.mc.length||quizData.sa.length||quizData.match.length){renderPaper();renderDigital();}
 }
 function addManualMC(){
-  quizData.mc.push({
-    q:'',
-    opts:['','','',''],
-    ans:0,
-    listeningScript:''
-  });
-  showToast('已新增選擇題，請到列印頁點擊 ✎ 編輯內容');
-  setMode('print');
+  quizData.mc.push({q:'',opts:['','','',''],ans:0,listeningScript:''});
+  const i = quizData.mc.length - 1;
+  // 直接開 overlay 編輯題目
+  editCtx={section:'mc',idx:i,field:'q'};
+  document.getElementById('overlayTitle').textContent='選擇題題目';
+  document.getElementById('overlayTa').value='';
+  document.getElementById('editOverlay').classList.add('show');
+  showToast('填完題目後，到列印頁點 ☰ 編輯選項與答案');
 }
 
 function addManualSA(){
-  quizData.sa.push({
-    q:'',
-    sampleAnswer:''
-  });
-  showToast('已新增書寫題，請到列印頁點擊 ✎ 編輯內容');
-  setMode('print');
+  quizData.sa.push({q:'',sampleAnswer:''});
+  const i = quizData.sa.length - 1;
+  editCtx={section:'sa',idx:i,field:'q'};
+  document.getElementById('overlayTitle').textContent='書寫題題目');
+  document.getElementById('overlayTa').value='';
+  document.getElementById('editOverlay').classList.add('show');
 }
 
 function addManualMatch(){
-  quizData.match.push({
-    word:'',
-    definition:'',
-    imagePrompt:'',
-    listeningScript:'',
-    imgData:''
-  });
-  showToast('已新增配合題，請到列印頁點擊 ✎ 編輯內容');
-  setMode('print');
+  quizData.match.push({word:'',definition:'',imagePrompt:'',listeningScript:'',imgData:''});
+  const i = quizData.match.length - 1;
+  editCtx={section:'match',idx:i,field:'word'};
+  document.getElementById('overlayTitle').textContent='配合題單字');
+  document.getElementById('overlayTa').value='';
+  document.getElementById('editOverlay').classList.add('show');
 }
 
 function goToPreview(){
