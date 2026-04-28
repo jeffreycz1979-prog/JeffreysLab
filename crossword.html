@@ -82,172 +82,170 @@
 
     <script src="https://cdn.jsdelivr.net/gh/joshua-gould/crossword-layout-generator@master/dist/crossword-layout-generator.js"></script>
 
-    <script>
-        let currentClues = {};
+   <script>
+    let currentClues = {};
 
-        // 記憶 API Key
-        window.onload = () => {
-            const savedKey = localStorage.getItem('my_gemini_key');
-            if (savedKey) document.getElementById('api-key').value = savedKey;
-        };
-        document.getElementById('api-key').onchange = (e) => {
-            localStorage.setItem('my_gemini_key', e.target.value);
-        };
+    const GATEWAY_URL = "https://script.google.com/macros/s/AKfycbz0O6eB9fVC3Xp7g0Kt4U-32Inmf9ieDYJygEf3jW78xaWx10glPscEefEQwgB0jCioug/exec";
+    const GATEWAY_TOKEN = "MYVIEWBOARDgoogleAPI";
 
-        // AI 生成提示
-        // 指向你剛才部署更新過的 GAS 網址
-const GAS_API_URL = "https://script.google.com/macros/s/AKfycby63WiGPMwr6FmUeZiGtHwwzuY30q7PovCBN7Por7kj164AcuX69QMztOJn1jIHH1lzAg/exec"; 
+    async function fetchCluesFromAI(words) {
+        const btn = document.getElementById('btn-generate-clues');
+        const model = document.getElementById('ai-model').value;
 
-async function fetchCluesFromAI(words) {
-    const btn = document.getElementById('btn-generate-clues');
-    const model = document.getElementById('ai-model').value; // 這邊會傳 gemini-3.1-flash-lite 給 GAS
-    
-    btn.innerText = "AI 老師正在出題中...";
-    btn.disabled = true;
+        btn.innerText = "AI 老師正在出題中...";
+        btn.disabled = true;
 
-    try {
-        const response = await fetch(GAS_API_URL, {
-            method: 'POST',
-            body: JSON.stringify({ 
-                type: 'crossword', // 告訴 GAS 現在要做 Crossword
-                words: words.join(','),
-                model: model 
-            })
+        const plan = localStorage.getItem('newcore_tools_plan') || 'Free';
+        const useFreeKey = plan !== 'Pro';
+
+        const aiPrompt = `Generate crossword clues for these words: ${words.join(', ')}.
+Return ONLY a JSON object where each key is the word (uppercase) and value is a short English clue.
+Example: {"APPLE": "A red or green fruit", "RUN": "To move quickly on foot"}
+No markdown, no backticks, just the JSON object.`;
+
+        try {
+            const response = await fetch(GATEWAY_URL, {
+                method: 'POST',
+                redirect: 'follow',
+                body: JSON.stringify({
+                    auth: GATEWAY_TOKEN,
+                    action: 'lab_tool',
+                    params: {
+                        customPrompt: aiPrompt,
+                        model: model,
+                        useFreeKey: useFreeKey
+                    }
+                })
+            });
+            const gwResult = await response.json();
+            if (!gwResult.ok) throw new Error(gwResult.error || 'Gateway 失敗');
+
+            const raw = gwResult.text.replace(/```json|```/g, '').trim();
+            const data = JSON.parse(raw);
+
+            return Object.keys(data).reduce((acc, key) => {
+                acc[key.toUpperCase()] = data[key];
+                return acc;
+            }, {});
+
+        } catch (e) {
+            alert('生成失敗：' + e.message);
+            return null;
+        } finally {
+            btn.innerText = "讓 AI 生成提示語";
+            btn.disabled = false;
+        }
+    }
+
+    function buildGrid() {
+        const rawWords = document.getElementById('word-input').value.split('\n')
+            .map(w => w.trim()).filter(w => w.length > 1);
+        
+        if (rawWords.length === 0) return;
+
+        const inputForLayout = rawWords.map(w => {
+            const cleanWord = w.replace(/\s+/g, '').toUpperCase();
+            return { 
+                answer: cleanWord, 
+                clue: currentClues[w.toUpperCase()] || currentClues[w] || "..." 
+            };
         });
 
-        const data = await response.json();
-        
-        if (data.error) throw new Error(data.error);
-
-        btn.innerText = "讓 AI 生成提示語";
-        btn.disabled = false;
-        
-        // 將 Key 全部轉大寫以利後續匹配
-        return Object.keys(data).reduce((acc, key) => {
-            acc[key.toUpperCase()] = data[key];
-            return acc;
-        }, {});
-
-    } catch (e) {
-        alert('生成失敗：' + e.message);
-        btn.innerText = "讓 AI 生成提示語";
-        btn.disabled = false;
-        return null;
+        try {
+            const layout = window.Ck.generateLayout(inputForLayout);
+            if (!layout || !layout.result || layout.result.length === 0) {
+                alert("無法交叉排列。建議：\n1. 增加單字量\n2. 再點一次重新排列\n3. 確保單字之間有共同字母");
+                return;
+            }
+            renderGrid(layout);
+            renderClues(layout, rawWords);
+        } catch (err) {
+            console.error(err);
+            alert("佈局引擎出錯。可能是單字太長或組合太複雜。");
+        }
     }
-}
-        // 生成佈局
-        function buildGrid() {
-            const rawWords = document.getElementById('word-input').value.split('\n')
-                .map(w => w.trim()).filter(w => w.length > 1);
-            
-            if (rawWords.length === 0) return;
 
-            // 處理空格問題：layout 使用 cleanWord，提示對應 rawWord
-            const inputForLayout = rawWords.map(w => {
-                const cleanWord = w.replace(/\s+/g, '').toUpperCase();
-                return { 
-                    answer: cleanWord, 
-                    clue: currentClues[w.toUpperCase()] || currentClues[w] || "..." 
-                };
-            });
+    function renderGrid(layout) {
+        const container = document.getElementById('grid-container');
+        container.innerHTML = '';
+        
+        const gridTable = document.createElement('div');
+        gridTable.className = `inline-grid crossword-grid border border-slate-400 bg-slate-400 gap-px ans-hidden`;
+        gridTable.id = 'main-grid';
+        if (document.getElementById('show-answer').checked) gridTable.classList.remove('ans-hidden');
 
-            try {
-                const layout = window.Ck.generateLayout(inputForLayout);
-                if (!layout || !layout.result || layout.result.length === 0) {
-                    alert("無法交叉排列。建議：\n1. 增加單字量\n2. 再點一次重新排列\n3. 確保單字之間有共同字母");
-                    return;
+        gridTable.style.gridTemplateColumns = `repeat(${layout.cols}, 30px)`;
+        
+        const gridArray = Array(layout.rows).fill().map(() => Array(layout.cols).fill(null));
+
+        layout.result.forEach(item => {
+            for (let i = 0; i < item.answer.length; i++) {
+                const r = item.orientation === 'across' ? item.starty - 1 : item.starty - 1 + i;
+                const c = item.orientation === 'across' ? item.startx - 1 + i : item.startx - 1;
+                gridArray[r][c] = { char: item.answer[i], num: i === 0 ? item.position : (gridArray[r][c]?.num || null) };
+            }
+        });
+
+        for (let r = 0; r < layout.rows; r++) {
+            for (let c = 0; c < layout.cols; c++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell bg-white';
+                if (!gridArray[r][c]) {
+                    cell.className = 'cell empty';
+                } else {
+                    if (gridArray[r][c].num) cell.innerHTML += `<span class="cell-num">${gridArray[r][c].num}</span>`;
+                    cell.innerHTML += `<span class="ans-text">${gridArray[r][c].char}</span>`;
                 }
-                renderGrid(layout);
-                renderClues(layout, rawWords);
-            } catch (err) {
-                console.error(err);
-                alert("佈局引擎出錯。可能是單字太長或組合太複雜。");
+                gridTable.appendChild(cell);
             }
         }
+        container.appendChild(gridTable);
+    }
 
-        function renderGrid(layout) {
-            const container = document.getElementById('grid-container');
-            container.innerHTML = '';
+    function renderClues(layout, rawWords) {
+        const acrossList = document.getElementById('across-clues');
+        const downList = document.getElementById('down-clues');
+        acrossList.innerHTML = '';
+        downList.innerHTML = '';
+
+        layout.result.sort((a, b) => a.position - b.position).forEach(item => {
+            const originalWord = rawWords.find(rw => rw.replace(/\s+/g, '').toUpperCase() === item.answer);
+            const clueText = currentClues[originalWord?.toUpperCase()] || currentClues[item.answer] || "...";
+
+            const li = document.createElement('li');
+            li.className = "leading-tight";
+            li.innerHTML = `<strong>${item.position}.</strong> <span contenteditable="true" class="editable-clue underline decoration-dotted decoration-slate-300">${clueText}</span>`;
             
-            const gridTable = document.createElement('div');
-            gridTable.className = `inline-grid crossword-grid border border-slate-400 bg-slate-400 gap-px ans-hidden`;
-            gridTable.id = 'main-grid';
-            if (document.getElementById('show-answer').checked) gridTable.classList.remove('ans-hidden');
+            li.querySelector('span').onblur = (e) => {
+                currentClues[(originalWord || item.answer).toUpperCase()] = e.target.innerText;
+            };
 
-            gridTable.style.gridTemplateColumns = `repeat(${layout.cols}, 30px)`;
-            
-            const gridArray = Array(layout.rows).fill().map(() => Array(layout.cols).fill(null));
+            if (item.orientation === 'across') acrossList.appendChild(li);
+            else downList.appendChild(li);
+        });
+    }
 
-            layout.result.forEach(item => {
-                for (let i = 0; i < item.answer.length; i++) {
-                    const r = item.orientation === 'across' ? item.starty - 1 : item.starty - 1 + i;
-                    const c = item.orientation === 'across' ? item.startx - 1 + i : item.startx - 1;
-                    gridArray[r][c] = { char: item.answer[i], num: i === 0 ? item.position : (gridArray[r][c]?.num || null) };
-                }
-            });
+    function toggleAnswer() {
+        const grid = document.getElementById('main-grid');
+        if (!grid) return;
+        if (document.getElementById('show-answer').checked) grid.classList.remove('ans-hidden');
+        else grid.classList.add('ans-hidden');
+    }
 
-            for (let r = 0; r < layout.rows; r++) {
-                for (let c = 0; c < layout.cols; c++) {
-                    const cell = document.createElement('div');
-                    cell.className = 'cell bg-white';
-                    if (!gridArray[r][c]) {
-                        cell.className = 'cell empty';
-                    } else {
-                        if (gridArray[r][c].num) cell.innerHTML += `<span class="cell-num">${gridArray[r][c].num}</span>`;
-                        cell.innerHTML += `<span class="ans-text">${gridArray[r][c].char}</span>`;
-                    }
-                    gridTable.appendChild(cell);
-                }
-            }
-            container.appendChild(gridTable);
+    document.getElementById('btn-generate-clues').onclick = async () => {
+        const words = document.getElementById('word-input').value.split('\n').map(w => w.trim()).filter(w => w.length > 1);
+        if (words.length === 0) return alert("請輸入單字");
+        const clues = await fetchCluesFromAI(words);
+        if (clues) {
+            currentClues = Object.keys(clues).reduce((acc, key) => {
+                acc[key.toUpperCase()] = clues[key];
+                return acc;
+            }, {});
+            buildGrid();
         }
+    };
 
-        function renderClues(layout, rawWords) {
-            const acrossList = document.getElementById('across-clues');
-            const downList = document.getElementById('down-clues');
-            acrossList.innerHTML = '';
-            downList.innerHTML = '';
-
-            layout.result.sort((a, b) => a.position - b.position).forEach(item => {
-                // 找出原始帶空格的單字來匹配提示
-                const originalWord = rawWords.find(rw => rw.replace(/\s+/g, '').toUpperCase() === item.answer);
-                const clueText = currentClues[originalWord?.toUpperCase()] || currentClues[item.answer] || "...";
-
-                const li = document.createElement('li');
-                li.className = "leading-tight";
-                li.innerHTML = `<strong>${item.position}.</strong> <span contenteditable="true" class="editable-clue underline decoration-dotted decoration-slate-300">${clueText}</span>`;
-                
-                li.querySelector('span').onblur = (e) => {
-                    currentClues[(originalWord || item.answer).toUpperCase()] = e.target.innerText;
-                };
-
-                if (item.orientation === 'across') acrossList.appendChild(li);
-                else downList.appendChild(li);
-            });
-        }
-
-        function toggleAnswer() {
-            const grid = document.getElementById('main-grid');
-            if (!grid) return;
-            if (document.getElementById('show-answer').checked) grid.classList.remove('ans-hidden');
-            else grid.classList.add('ans-hidden');
-        }
-
-        document.getElementById('btn-generate-clues').onclick = async () => {
-            const words = document.getElementById('word-input').value.split('\n').map(w => w.trim()).filter(w => w.length > 1);
-            if (words.length === 0) return alert("請輸入單字");
-            const clues = await fetchCluesFromAI(words);
-            if (clues) {
-                // 將 AI 回傳的 key 都轉大寫方便匹配
-                currentClues = Object.keys(clues).reduce((acc, key) => {
-                    acc[key.toUpperCase()] = clues[key];
-                    return acc;
-                }, {});
-                buildGrid();
-            }
-        };
-
-        document.getElementById('btn-build-grid').onclick = buildGrid;
-    </script>
+    document.getElementById('btn-build-grid').onclick = buildGrid;
+</script>
 </body>
 </html>
