@@ -71,11 +71,7 @@
         </div>
 
         <div class="global-settings">
-            <div class="setting-group">
-                <span style="color:#94a3b8;">🔑 API Key:</span>
-                <input type="password" id="api-key" placeholder="Gemini API (選填)" style="width:200px;">
-            </div>
-            <div class="setting-group">
+                <div class="setting-group">
                 <select id="grid-size">
                     <option value="2">2x2 拼圖 (極簡)</option>
                     <option value="3" selected>3x3 拼圖 (標準)</option>
@@ -129,10 +125,12 @@
     let currentScore = 1000;
     let isPuzzleSolved = false;
 
+    const GATEWAY_URL = "https://script.google.com/macros/s/AKfycbz0O6eB9fVC3Xp7g0Kt4U-32Inmf9ieDYJygEf3jW78xaWx10glPscEefEQwgB0jCioug/exec";
+    const GATEWAY_TOKEN = "MYVIEWBOARDgoogleAPI";
+
     window.onload = () => {
-        document.getElementById('api-key').value = localStorage.getItem('nc_vision_key') || '';
-        addQuestionCard();
-    };
+    addQuestionCard(); // 刪掉讀 nc_vision_key 那行
+};
 
     function addQuestionCard() {
         const id = Date.now();
@@ -195,66 +193,65 @@
     }
 
     async function launchGame() {
-        const apiKey = document.getElementById('api-key').value.trim();
-        if(apiKey) localStorage.setItem('nc_vision_key', apiKey);
-        
-        const cards = document.querySelectorAll('.q-card');
-        questionsData = [];
+    // 刪掉 apiKey 相關的兩行，改成直接讀 Gateway plan
+    const cards = document.querySelectorAll('.q-card');
+    questionsData = [];
+    document.getElementById('status-bar').innerText = "⏳ 正在處理教材資料...";
 
-        document.getElementById('status-bar').innerText = "⏳ 正在處理教材資料...";
+    for (let card of cards) {
+        const correct = card.querySelector('.q-correct').value.trim();
+        if (!correct) continue;
 
-        for (let card of cards) {
-            const correct = card.querySelector('.q-correct').value.trim();
-            if (!correct) continue;
+        let w1 = card.querySelector('.q-w1').value.trim();
+        let w2 = card.querySelector('.q-w2').value.trim();
+        const source = card.querySelector('.q-source').value;
+        let localImgData = "";
 
-            let w1 = card.querySelector('.q-w1').value.trim();
-            let w2 = card.querySelector('.q-w2').value.trim();
-            const source = card.querySelector('.q-source').value;
-            let localImgData = "";
-
-            if ((!w1 || !w2) && apiKey) {
-                const aiWords = await fetchDistractors(apiKey, correct);
-                w1 = w1 || aiWords[0];
-                w2 = w2 || aiWords[1];
-            } else {
-                w1 = w1 || "Option A";
-                w2 = w2 || "Option B";
-            }
-
-            if (source === 'local') {
-                const preview = card.querySelector('.img-preview');
-                localImgData = preview.getAttribute('data-base64');
-                if(!localImgData) { alert(`題目 "${correct}" 選擇了上傳圖片卻未選擇檔案！`); return; }
-            }
-
-            // ⚠️ 重點修正：這裡不再預先生成 AI 圖片網址，只記錄參數。
-            questionsData.push({ correct, options: [correct, w1, w2], source, localImgData });
+        if (!w1 || !w2) {
+            const aiWords = await fetchDistractors(correct);
+            w1 = w1 || aiWords[0];
+            w2 = w2 || aiWords[1];
         }
 
-        if (questionsData.length === 0) {
-            document.getElementById('status-bar').innerText = "❌ 請至少完整輸入一題正確單字！";
-            return;
+        if (source === 'local') {
+            const preview = card.querySelector('.img-preview');
+            localImgData = preview.getAttribute('data-base64');
+            if (!localImgData) { alert(`題目 "${correct}" 選擇了上傳圖片卻未選擇檔案！`); return; }
         }
 
-        document.getElementById('dashboard').style.display = 'none';
-        document.getElementById('game-stage').style.display = 'flex';
-        drawNextQuestion();
+        questionsData.push({ correct, options: [correct, w1, w2], source, localImgData });
     }
 
-    async function fetchDistractors(key, word) {
-        const prompt = `Return JSON array of two single-word English distractors for "${word}". Format: ["A", "B"]`;
-        try {
-            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${key}`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-            });
-            const data = await res.json();
-            const text = data.candidates[0].content.parts[0].text;
-            const match = text.match(/\[(.*?)\]/);
-            return JSON.parse("[" + match[1] + "]");
-        } catch(e) { return ["Err1", "Err2"]; }
+    if (questionsData.length === 0) {
+        document.getElementById('status-bar').innerText = "❌ 請至少完整輸入一題正確單字！";
+        return;
     }
+
+    document.getElementById('dashboard').style.display = 'none';
+    document.getElementById('game-stage').style.display = 'flex';
+    drawNextQuestion();
+}
+
+    async function fetchDistractors(word) {
+    const plan = localStorage.getItem('newcore_tools_plan') || 'Free';
+    const useFreeKey = plan !== 'Pro';
+    const prompt = `Return JSON array of two single-word English distractors for "${word}". Format: ["A", "B"]. Return ONLY the JSON array, no markdown.`;
+    try {
+        const res = await fetch(GATEWAY_URL, {
+            method: 'POST',
+            redirect: 'follow',
+            body: JSON.stringify({
+                auth: GATEWAY_TOKEN,
+                action: 'lab_tool',
+                params: { customPrompt: prompt, model: 'gemini-2.5-flash', useFreeKey }
+            })
+        });
+        const gwResult = await res.json();
+        if (!gwResult.ok) throw new Error(gwResult.error);
+        const match = gwResult.text.match(/\[.*?\]/);
+        return match ? JSON.parse(match[0]) : ["Option A", "Option B"];
+    } catch(e) { return ["Option A", "Option B"]; }
+}
 
     // --- 遊戲引擎 (即時生成與防卡死) ---
     function drawNextQuestion() {
