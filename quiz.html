@@ -374,7 +374,8 @@ textarea.field:focus,select.field:focus,input.field:focus{outline:none;border-co
 <script>
 // ── AUTH ──
 var AUTH_GAS='https://script.google.com/macros/s/AKfycbyF9mEn3_pijcuQaZgGI1gug1Pxrrh3c7WhBHMHLvMdLk00dkpPfKc0bvsLUlDfRhF8/exec';
-var QUIZ_GAS='https://script.google.com/macros/s/AKfycby63WiGPMwr6FmUeZiGtHwwzuY30q7PovCBN7Por7kj164AcuX69QMztOJn1jIHH1lzAg/exec';
+var GATEWAY_URL = "https://script.google.com/macros/s/AKfycbz0O6eB9fVC3Xp7g0Kt4U-32Inmf9ieDYJygEf3jW78xaWx10glPscEefEQwgB0jCioug/exec";
+var GATEWAY_TOKEN = "MYVIEWBOARDgoogleAPI";
 var STORAGE_KEY='newcore_tools_token';
 function showGate(type,msg,extra){
   document.getElementById('gateSpinner').style.display='none';
@@ -524,13 +525,26 @@ async function generate(){
   var prompt=document.getElementById('promptInput').value.trim();
   if(!prompt){showToast('請填寫題目內容或描述');return;}
   document.getElementById('loadingOverlay').classList.add('show');
+
+  var plan=localStorage.getItem('newcore_tools_plan')||'Free';
+  var useFreeKey=plan!=='Pro';
+
+  var aiPrompt='[Quiz generation request]\nPrompt: '+prompt+'\nCEFR: '+getCefr()+'\nOutput language: '+getOutLang()+'\nMC count: '+(types.mc?counts.mc:0)+'\nSA count: '+(types.sa?counts.sa:0)+'\nMatch count: '+(types.match?counts.match:0)+'\n\nReturn ONLY valid JSON: {"mc":[...],"sa":[...],"match":[...]}';
+
   try{
-    var res=await fetch(QUIZ_GAS,{method:'POST',body:JSON.stringify({
-      type:'quiz',prompt:prompt,
-      settings:{cefr:getCefr(),outLang:getOutLang(),
-        mcCount:types.mc?counts.mc:0,saCount:types.sa?counts.sa:0,matchCount:types.match?counts.match:0}
-    })});
-    var data=await res.json();
+    var res=await fetch(GATEWAY_URL,{
+      method:'POST',
+      redirect:'follow',
+      body:JSON.stringify({
+        auth:GATEWAY_TOKEN,
+        action:'lab_tool',
+        params:{customPrompt:aiPrompt,model:'gemini-2.5-flash',useFreeKey:useFreeKey}
+      })
+    });
+    var gwResult=await res.json();
+    if(!gwResult.ok){showToast('錯誤：'+(gwResult.error||'Gateway 失敗'));return;}
+    var raw=gwResult.text.replace(/```json|```/g,'').trim();
+    var data=JSON.parse(raw);
     if(data.error){showToast('錯誤：'+data.error);return;}
     quizData={mc:data.mc||[],sa:data.sa||[],match:data.match||[]};
     digAnswers={};matchSel={left:null,right:null};matchPairs={};
@@ -892,15 +906,22 @@ function uploadImg(i){
 function aiGenImg(i){
   var m=quizData.match[i];
   var prompt=m.imagePrompt||m.word||'object';
+  var plan=localStorage.getItem('newcore_tools_plan')||'Free';
+  var useFreeKey=plan!=='Pro';
   showToast('AI 生圖中，請稍候…');
-  fetch(QUIZ_GAS,{
+  fetch(GATEWAY_URL,{
     method:'POST',
-    body:JSON.stringify({type:'generateImage',prompt:prompt})
+    redirect:'follow',
+    body:JSON.stringify({
+      auth:GATEWAY_TOKEN,
+      action:'generate_image',
+      params:{prompt:prompt,useFreeKey:useFreeKey}
+    })
   })
   .then(function(r){return r.json();})
   .then(function(data){
-    if(data.error){showToast('生圖失敗：'+data.error);return;}
-    if(data.ok&&data.imageBase64){
+    if(!data.ok){showToast('生圖失敗：'+(data.error||''));return;}
+    if(data.imageBase64){
       quizData.match[i].imgData='data:'+data.mimeType+';base64,'+data.imageBase64;
       showToast('生圖完成！');
       if(document.getElementById('page-print').classList.contains('active')) renderPaper();
