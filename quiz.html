@@ -506,7 +506,7 @@ function addManualSA(){
   quizData.sa.push({q:'',sampleAnswer:''});
   const i = quizData.sa.length - 1;
   editCtx={section:'sa',idx:i,field:'q'};
-  document.getElementById('overlayTitle').textContent='書寫題題目');
+  document.getElementById('overlayTitle').textContent='書寫題題目';
   document.getElementById('overlayTa').value='';
   document.getElementById('editOverlay').classList.add('show');
 }
@@ -515,7 +515,7 @@ function addManualMatch(){
   quizData.match.push({word:'',definition:'',imagePrompt:'',listeningScript:'',imgData:''});
   const i = quizData.match.length - 1;
   editCtx={section:'match',idx:i,field:'word'};
-  document.getElementById('overlayTitle').textContent='配合題單字');
+  document.getElementById('overlayTitle').textContent='配合題單字';
   document.getElementById('overlayTa').value='';
   document.getElementById('editOverlay').classList.add('show');
 }
