@@ -252,98 +252,131 @@
     </div>
 
     <script>
-      // ⚠️ 請務必將此網址替換成你的 GAS Web App 網址
-      const GAS_API_URL = "https://script.google.com/macros/s/AKfycby63WiGPMwr6FmUeZiGtHwwzuY30q7PovCBN7Por7kj164AcuX69QMztOJn1jIHH1lzAg/exec"; 
-      let currentPage = 'wordsearch';
+  const GAS_API_URL = "https://script.google.com/macros/s/AKfycby63WiGPMwr6FmUeZiGtHwwzuY30q7PovCBN7Por7kj164AcuX69QMztOJn1jIHH1lzAg/exec";
+  const GATEWAY_URL = "https://script.google.com/macros/s/AKfycbz0O6eB9fVC3Xp7g0Kt4U-32Inmf9ieDYJygEf3jW78xaWx10glPscEefEQwgB0jCioug/exec";
+  const GATEWAY_TOKEN = "MYVIEWBOARDgoogleAPI";
 
-      function switchPage(page) {
-        currentPage = page;
-        document.getElementById('btn-ws').classList.toggle('active-nav', page === 'wordsearch');
-        document.getElementById('btn-cloze').classList.toggle('active-nav', page === 'cloze');
-        document.getElementById('lab-title').innerText = page === 'wordsearch' ? '🛠️ Lab 實驗室：找字遊戲' : '🤖 Lab 實驗室：AI 克漏字';
-        document.getElementById('topic-group').style.display = page === 'cloze' ? 'block' : 'none';
-        document.getElementById('diff-group').style.display = page === 'wordsearch' ? 'block' : 'none';
-      }
+  let currentPage = 'wordsearch';
 
-      function generate() {
-        const words = document.getElementById('words').value;
-        const topic = document.getElementById('topic').value;
-        const isHard = document.getElementById('allowDiagonal').checked;
-        const loading = document.getElementById('loading');
+  function switchPage(page) {
+    currentPage = page;
+    document.getElementById('btn-ws').classList.toggle('active-nav', page === 'wordsearch');
+    document.getElementById('btn-cloze').classList.toggle('active-nav', page === 'cloze');
+    document.getElementById('lab-title').innerText = page === 'wordsearch' ? '🛠️ Lab 實驗室：找字遊戲' : '🤖 Lab 實驗室：AI 克漏字';
+    document.getElementById('topic-group').style.display = page === 'cloze' ? 'block' : 'none';
+    document.getElementById('diff-group').style.display = page === 'wordsearch' ? 'block' : 'none';
+  }
 
-        if(!words) return alert("請輸入單字");
-        loading.style.display = 'block';
+  async function generate() {
+    const words = document.getElementById('words').value;
+    const topic = document.getElementById('topic').value;
+    const isHard = document.getElementById('allowDiagonal').checked;
+    const loading = document.getElementById('loading');
 
-        const payload = {
-          type: currentPage,
-          words: words,
-          topic: topic,
-          isHard: isHard
-        };
+    if (!words) return alert("請輸入單字");
+    loading.style.display = 'block';
 
-        fetch(GAS_API_URL, {
+    try {
+      let data;
+
+      if (currentPage === 'wordsearch') {
+        // 找字遊戲：繼續走舊 GAS（網格邏輯在那裡）
+        const res = await fetch(GAS_API_URL, {
           method: "POST",
-          body: JSON.stringify(payload)
-        })
-        .then(res => res.json())
-        .then(data => {
-          loading.style.display = 'none';
-          if (data.error) {
-            alert("錯誤：" + data.error);
-          } else {
-            renderWorksheets(data);
-          }
-        })
-        .catch(err => {
-          loading.style.display = 'none';
-          alert("連線失敗，請檢查 GAS 部署是否正確設定為「任何人」可以存取。");
+          body: JSON.stringify({ type: 'wordsearch', words, isHard })
         });
+        data = await res.json();
+
+      } else {
+        // 克漏字：改走 Gateway
+        const plan = localStorage.getItem('newcore_tools_plan') || 'Free';
+        const useFreeKey = plan !== 'Pro';
+
+        const aiPrompt = `
+你是一位專業的英文老師。請寫一篇約 80-120 字的英文短文，程度適合 CEFR A2 (GEPT 初級)，主題為：${topic}。
+文章中必須包含以下單字：${words}。
+
+請回傳 JSON，格式如下：
+{
+  "title": "文章的英文標題",
+  "clozeText": "將指定的單字替換成底線 (_______) 的文章內容。請保留標點符號。",
+  "wordBank": ["打亂順序的", "指定單字", "列表"],
+  "answerKey": ["依序填入底線的", "正確單字"]
+}
+只回傳 JSON，不要 markdown，不要說明文字。`;
+
+        const res = await fetch(GATEWAY_URL, {
+          method: 'POST',
+          redirect: 'follow',
+          body: JSON.stringify({
+            auth: GATEWAY_TOKEN,
+            action: 'lab_tool',
+            params: { customPrompt: aiPrompt, model: 'gemini-2.5-flash', useFreeKey }
+          })
+        });
+        const gwResult = await res.json();
+        if (!gwResult.ok) throw new Error(gwResult.error || 'Gateway 失敗');
+
+        const raw = gwResult.text.replace(/```json|```/g, '').trim();
+        data = JSON.parse(raw);
+        // 拉長底線
+        data.clozeText = data.clozeText.replace(/_+/g, '____________________');
       }
 
-      function renderWorksheets(data) {
-        const mode = document.getElementById('printMode').value;
-        const htmlContent = buildWorksheetHTML(data);
-        const output = document.getElementById('outputArea');
-
-        if (mode === '2up') {
-          document.body.classList.add('layout-2up');
-          output.innerHTML = `<div class="page-break">${htmlContent}</div><div class="cut-line preview-cut"></div><div class="page-break">${htmlContent}</div>`;
-        } else {
-          document.body.classList.remove('layout-2up');
-          output.innerHTML = `<div class="worksheet">${htmlContent}</div>`;
-        }
+      loading.style.display = 'none';
+      if (data.error) {
+        alert("錯誤：" + data.error);
+      } else {
+        renderWorksheets(data);
       }
 
-      function buildWorksheetHTML(data) {
-        const header = `
-          <div class="header-section">
-            <div class="title-box"><h1>NewCore Jeffrey's Lab</h1></div>
-            <div class="student-info">
-              <span>Name: <div class="input-box box-name"></div></span>
-              <span>Score: <div class="input-box box-score"></div></span>
-            </div>
-          </div>`;
+    } catch (err) {
+      loading.style.display = 'none';
+      alert("連線失敗：" + err.message);
+    }
+  }
 
-        if (currentPage === 'wordsearch') {
-          let gridHtml = '<div class="grid">' + data.grid.map(row => 
-            `<div class="row">${row.map(cell => `<div class="cell">${cell}</div>`).join('')}</div>`
-          ).join('') + '</div>';
+  function renderWorksheets(data) {
+    const mode = document.getElementById('printMode').value;
+    const htmlContent = buildWorksheetHTML(data);
+    const output = document.getElementById('outputArea');
 
-          return `${header}
-            <div style="text-align: center; margin-top: 10px;"><span style="font-size: 12pt; background: #2c3e50; color: white; padding: 4px 12px; border-radius: 15px;">Vocabulary Search Challenge 🔍</span></div>
-            <div class="grid-container">${gridHtml}</div>
-            <div class="word-list-section"><div class="word-list-title">📋 Target Words:</div><div class="word-grid">${data.words.map(w => `<div>□ ${w}</div>`).join('')}</div></div>`;
-        } else {
-          // 🔥 魔法 1：前端暴力拉長底線 (只要看到 1 個以上的底線，通通換成 20 個底線！)
-          let stretchedText = data.clozeText.replace(/_+/g, '____________________');
+    if (mode === '2up') {
+      document.body.classList.add('layout-2up');
+      output.innerHTML = `<div class="page-break">${htmlContent}</div><div class="cut-line preview-cut"></div><div class="page-break">${htmlContent}</div>`;
+    } else {
+      document.body.classList.remove('layout-2up');
+      output.innerHTML = `<div class="worksheet">${htmlContent}</div>`;
+    }
+  }
 
-          return `${header}
-            <div style="text-align: center; margin-top: 10px;"><span style="font-size: 12pt; background: #9b59b6; color: white; padding: 4px 12px; border-radius: 15px;">AI Cloze Test Challenge ✍️</span></div>
-            <h2 style="text-align:center;">${data.title}</h2>
-            <div class="word-bank">Word Bank: ${data.wordBank.join(' / ')}</div>
-            <div class="cloze-text" style="line-height: 2.4 !important;">${stretchedText}</div>`;
-        }
-      }
-    </script>
+  function buildWorksheetHTML(data) {
+    const header = `
+      <div class="header-section">
+        <div class="title-box"><h1>NewCore Jeffrey's Lab</h1></div>
+        <div class="student-info">
+          <span>Name: <div class="input-box box-name"></div></span>
+          <span>Score: <div class="input-box box-score"></div></span>
+        </div>
+      </div>`;
+
+    if (currentPage === 'wordsearch') {
+      let gridHtml = '<div class="grid">' + data.grid.map(row =>
+        `<div class="row">${row.map(cell => `<div class="cell">${cell}</div>`).join('')}</div>`
+      ).join('') + '</div>';
+
+      return `${header}
+        <div style="text-align: center; margin-top: 10px;"><span style="font-size: 12pt; background: #2c3e50; color: white; padding: 4px 12px; border-radius: 15px;">Vocabulary Search Challenge 🔍</span></div>
+        <div class="grid-container">${gridHtml}</div>
+        <div class="word-list-section"><div class="word-list-title">📋 Target Words:</div><div class="word-grid">${data.words.map(w => `<div>□ ${w}</div>`).join('')}</div></div>`;
+    } else {
+      return `${header}
+        <div style="text-align: center; margin-top: 10px;"><span style="font-size: 12pt; background: #9b59b6; color: white; padding: 4px 12px; border-radius: 15px;">AI Cloze Test Challenge ✍️</span></div>
+        <h2 style="text-align:center;">${data.title}</h2>
+        <div class="word-bank">Word Bank: ${data.wordBank.join(' / ')}</div>
+        <div class="cloze-text" style="line-height: 2.4 !important;">${data.clozeText}</div>`;
+    }
+  }
+</script>
   </body>
 </html>
