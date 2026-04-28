@@ -327,8 +327,16 @@ textarea.field:focus,select.field:focus,input.field:focus{outline:none;border-co
       <div class="spinner" id="genSpinner"></div>
       <span class="btn-txt" id="genBtnTxt">✨ 生成考卷</span>
     </button>
-  </div>
-</div>
+    <!-- 手動新增區塊 -->
+    <div class="card" style="margin-top:1rem;">
+      <div class="card-label">手動新增題目</div>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+        <button class="act-btn" onclick="addManualMC()">➕ 選擇題</button>
+        <button class="act-btn" onclick="addManualSA()">➕ 書寫題</button>
+        <button class="act-btn" onclick="addManualMatch()">➕ 配合題</button>
+        <button class="act-btn" onclick="goToPreview()" style="margin-left:auto;background:var(--teal);color:white;border-color:var(--teal);">👁 預覽考卷</button>
+      </div>
+    </div>
 
 <!-- ══ PRINT PAGE ══ -->
 <div class="page" id="page-print">
@@ -483,6 +491,44 @@ function setLang(l){
   applyLang();
   if(quizData.mc.length||quizData.sa.length||quizData.match.length){renderPaper();renderDigital();}
 }
+function addManualMC(){
+  quizData.mc.push({
+    q:'',
+    opts:['','','',''],
+    ans:0,
+    listeningScript:''
+  });
+  showToast('已新增選擇題，請到列印頁點擊 ✎ 編輯內容');
+  setMode('print');
+}
+
+function addManualSA(){
+  quizData.sa.push({
+    q:'',
+    sampleAnswer:''
+  });
+  showToast('已新增書寫題，請到列印頁點擊 ✎ 編輯內容');
+  setMode('print');
+}
+
+function addManualMatch(){
+  quizData.match.push({
+    word:'',
+    definition:'',
+    imagePrompt:'',
+    listeningScript:'',
+    imgData:''
+  });
+  showToast('已新增配合題，請到列印頁點擊 ✎ 編輯內容');
+  setMode('print');
+}
+
+function goToPreview(){
+  if(!quizData.mc.length&&!quizData.sa.length&&!quizData.match.length){
+    showToast('請先新增或生成題目');return;
+  }
+  setMode('print');
+}  
 function applyLang(){
   var T2=t();
   var map={'lbl-tab-edit':'tabEdit','lbl-tab-print':'tabPrint','lbl-tab-digital':'tabDig',
