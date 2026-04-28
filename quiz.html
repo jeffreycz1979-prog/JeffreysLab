@@ -263,9 +263,7 @@ textarea.field:focus,select.field:focus,input.field:focus{outline:none;border-co
   .container{padding:0;max-width:100%}
   .listen-box{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .listen-script.hidden-script{display:block!important}
-  /* 隱藏所有編輯按鈕 */
   .img-act-btn,.match-edit-btns{display:none!important}
-  /* 配合題圖片放大 */
   .img-slot{width:130px!important;height:100px!important}
   .match-row-p{page-break-inside:avoid}
 }
@@ -297,7 +295,9 @@ textarea.field:focus,select.field:focus,input.field:focus{outline:none;border-co
   <div class="load-txt" id="loadTxt">AI 出題中…</div>
   <div class="load-sub">Gemini 正在閱讀您的內容並生成題目</div>
 </div>
+
 <div id="toast"></div>
+
 <!-- EDIT OVERLAY -->
 <div class="overlay" id="editOverlay">
   <div class="overlay-box">
@@ -309,6 +309,7 @@ textarea.field:focus,select.field:focus,input.field:focus{outline:none;border-co
     </div>
   </div>
 </div>
+
 <!-- NAV -->
 <nav>
   <a href="tools.html" class="nav-logo">NewCore · Jeffrey's Lab</a>
@@ -382,16 +383,69 @@ textarea.field:focus,select.field:focus,input.field:focus{outline:none;border-co
       <div class="spinner" id="genSpinner"></div>
       <span class="btn-txt" id="genBtnTxt">✨ 生成考卷</span>
     </button>
+
     <!-- 手動新增區塊 -->
     <div class="card" style="margin-top:1rem;">
       <div class="card-label">手動新增題目</div>
-      <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
-        <button class="act-btn" onclick="addManualMC()">➕ 選擇題</button>
-        <button class="act-btn" onclick="addManualSA()">➕ 書寫題</button>
-        <button class="act-btn" onclick="addManualMatch()">➕ 配合題</button>
-        <button class="act-btn" onclick="goToPreview()" style="margin-left:auto;background:var(--teal);color:white;border-color:var(--teal);">👁 預覽考卷</button>
+      <div style="display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap;">
+        <button class="act-btn" onclick="showManualForm('mc')">➕ 選擇題</button>
+        <button class="act-btn" onclick="showManualForm('sa')">➕ 書寫題</button>
+        <button class="act-btn" onclick="showManualForm('match')">➕ 配合題</button>
+      </div>
+
+      <!-- 選擇題表單 -->
+      <div id="form-mc" style="display:none;">
+        <div style="font-size:.78rem;font-weight:700;color:var(--coral);margin-bottom:.5rem;">選擇題</div>
+        <textarea class="field" id="mc-q" rows="2" placeholder="題目內容" style="margin-bottom:.5rem;"></textarea>
+        <input class="field" id="mc-opt0" placeholder="選項 A" style="margin-bottom:.35rem;">
+        <input class="field" id="mc-opt1" placeholder="選項 B" style="margin-bottom:.35rem;">
+        <input class="field" id="mc-opt2" placeholder="選項 C" style="margin-bottom:.35rem;">
+        <input class="field" id="mc-opt3" placeholder="選項 D" style="margin-bottom:.5rem;">
+        <div style="font-size:.75rem;color:var(--text-muted);margin-bottom:.35rem;">正確答案：</div>
+        <div style="display:flex;gap:.5rem;margin-bottom:.75rem;">
+          <button class="chip" onclick="selectMcAns(0)" id="mc-ans-0">A</button>
+          <button class="chip" onclick="selectMcAns(1)" id="mc-ans-1">B</button>
+          <button class="chip" onclick="selectMcAns(2)" id="mc-ans-2">C</button>
+          <button class="chip" onclick="selectMcAns(3)" id="mc-ans-3">D</button>
+        </div>
+        <div style="display:flex;gap:.5rem;">
+          <button class="act-btn teal" onclick="submitManualMC()">✓ 新增</button>
+          <button class="act-btn" onclick="hideManualForms()">取消</button>
+        </div>
+      </div>
+
+      <!-- 書寫題表單 -->
+      <div id="form-sa" style="display:none;">
+        <div style="font-size:.78rem;font-weight:700;color:var(--coral);margin-bottom:.5rem;">書寫題</div>
+        <textarea class="field" id="sa-q" rows="2" placeholder="題目內容" style="margin-bottom:.5rem;"></textarea>
+        <textarea class="field" id="sa-ans" rows="2" placeholder="參考答案" style="margin-bottom:.75rem;"></textarea>
+        <div style="display:flex;gap:.5rem;">
+          <button class="act-btn teal" onclick="submitManualSA()">✓ 新增</button>
+          <button class="act-btn" onclick="hideManualForms()">取消</button>
+        </div>
+      </div>
+
+      <!-- 配合題表單 -->
+      <div id="form-match" style="display:none;">
+        <div style="font-size:.78rem;font-weight:700;color:var(--coral);margin-bottom:.5rem;">配合題</div>
+        <input class="field" id="match-word" placeholder="單字 (例: apple)" style="margin-bottom:.35rem;">
+        <input class="field" id="match-def" placeholder="定義 / 中文解釋" style="margin-bottom:.35rem;">
+        <input class="field" id="match-img-prompt" placeholder="AI 生圖描述（選填，英文）" style="margin-bottom:.75rem;">
+        <div style="display:flex;gap:.5rem;">
+          <button class="act-btn teal" onclick="submitManualMatch()">✓ 新增</button>
+          <button class="act-btn" onclick="hideManualForms()">取消</button>
+        </div>
+      </div>
+
+      <div id="manual-added-list" style="margin-top:.75rem;font-size:.78rem;color:var(--text-muted);"></div>
+
+      <div style="margin-top:.75rem;border-top:1px solid var(--border);padding-top:.75rem;">
+        <button class="act-btn" onclick="setMode('print')" style="background:var(--teal);color:white;border-color:var(--teal);">👁 預覽考卷</button>
       </div>
     </div>
+
+  </div>
+</div>
 
 <!-- ══ PRINT PAGE ══ -->
 <div class="page" id="page-print">
