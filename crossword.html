@@ -1,251 +1,850 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crossword 生成器 - Jeffrey's Lab</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @media print {
-            .no-print { display: none !important; }
-            body { background: white; }
-            .crossword-grid { border: 2px solid black !important; margin: 0 auto; }
-            .cell { border: 1px solid black !important; }
-            .cell.empty { background-color: transparent !important; border: none !important; }
-        }
-        .cell { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; position: relative; font-weight: bold; font-family: Arial, sans-serif; }
-        .cell.empty { background-color: #333; }
-        .cell-num { position: absolute; top: 1px; left: 1px; font-size: 9px; line-height: 1; color: #000; }
-        .ans-hidden .ans-text { display: none; }
-        .editable-clue:hover { background-color: #fef9c3; cursor: edit; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NewCore Crossword · 填字遊戲</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Noto+Sans+TC:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crossword-layout-generator/1.1.4/crossword-layout-generator.min.js"></script>
+<style>
+:root {
+  --bg:#F4F1EB;--white:#FFFFFF;--green-dark:#1a3a1a;--green-mid:#2d5a2d;
+  --yellow:#CCFF00;--coral:#E05C5C;--coral-light:#FFF5F5;
+  --teal:#3BBFAD;--teal-light:#F0FAFA;--text:#1a1a1a;--text-muted:#888;
+  --border:#E5E0D8;--border-dark:#d0c8be;
+  --cell-size: 38px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:.75rem 2rem;background:rgba(244,241,235,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.nav-logo{font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;color:var(--green-dark);text-decoration:none}
+.nav-right{display:flex;align-items:center;gap:.75rem}
+.nav-back{font-size:.82rem;color:var(--text-muted);text-decoration:none}
+.nav-back:hover{color:var(--green-dark)}
+
+/* MODE TABS */
+.mode-bar{display:flex;background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem;overflow-x:auto}
+.mode-tab{display:flex;align-items:center;gap:.4rem;padding:.85rem 1.25rem;border:none;background:none;font-family:'Noto Sans TC',sans-serif;font-size:.85rem;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:all .2s}
+.mode-tab:hover{color:var(--green-dark)}
+.mode-tab.active{color:var(--coral);border-bottom-color:var(--coral);font-weight:700}
+
+/* LAYOUT */
+.page{display:none}.page.active{display:block}
+.container{max-width:900px;margin:0 auto;padding:1.5rem 1.5rem 4rem}
+
+/* CARDS */
+.card{background:var(--white);border-radius:16px;border:1px solid var(--border);padding:1.25rem;margin-bottom:1rem}
+.card-label{font-family:'Space Mono',monospace;font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--coral);margin-bottom:.85rem}
+
+/* FORM */
+textarea.field,input.field{width:100%;border:1px solid var(--border);border-radius:10px;padding:.65rem .85rem;font-size:.875rem;font-family:'Noto Sans TC',sans-serif;color:var(--text);background:var(--bg);transition:border-color .15s}
+textarea.field{resize:vertical;line-height:1.8}
+textarea.field:focus,input.field:focus{outline:none;border-color:var(--coral);background:var(--white)}
+
+/* BUTTONS */
+.btn{border:none;border-radius:10px;padding:.6rem 1.2rem;font-size:.85rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:all .15s;display:inline-flex;align-items:center;gap:.4rem}
+.btn-primary{background:var(--green-dark);color:var(--yellow)}
+.btn-primary:hover{background:var(--green-mid)}
+.btn-teal{background:var(--teal);color:var(--white)}
+.btn-teal:hover{background:#2da898}
+.btn-outline{background:var(--white);border:1px solid var(--border);color:var(--text-muted)}
+.btn-outline:hover{background:var(--bg)}
+.btn-coral{background:var(--coral);color:var(--white)}
+.btn-coral:hover{background:#c94a4a}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* WORD TABLE */
+.word-table{width:100%;border-collapse:collapse;font-size:.85rem}
+.word-table th{background:var(--bg);padding:.5rem .75rem;text-align:left;font-family:'Space Mono',monospace;font-size:.65rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)}
+.word-table td{padding:.4rem .75rem;border-bottom:1px solid var(--border)}
+.word-table tr:last-child td{border-bottom:none}
+.clue-input{width:100%;border:1px dashed transparent;border-radius:6px;padding:.3rem .5rem;font-size:.82rem;font-family:'Noto Sans TC',sans-serif;background:transparent;color:var(--text);transition:.15s}
+.clue-input:focus{outline:none;border-color:var(--teal);background:var(--teal-light)}
+.word-badge{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:.2rem .6rem;font-family:'Space Mono',monospace;font-size:.82rem;font-weight:700;color:var(--green-dark);letter-spacing:.05em}
+.del-btn{background:none;border:none;cursor:pointer;color:#ccc;font-size:16px;padding:0 4px;transition:.15s}
+.del-btn:hover{color:var(--coral)}
+
+/* CROSSWORD GRID */
+.cw-wrapper{overflow-x:auto;padding:1rem 0}
+.cw-grid{display:inline-grid;gap:2px;background:#ccc;border:2px solid #999;border-radius:4px}
+.cw-cell{width:var(--cell-size);height:var(--cell-size);background:var(--white);display:flex;align-items:center;justify-content:center;position:relative;font-family:'Space Mono',monospace;font-weight:700;font-size:1rem;cursor:pointer;transition:background .1s;user-select:none}
+.cw-cell.black{background:#2c2c2c;cursor:default}
+.cw-cell.highlighted{background:#fff8dc}
+.cw-cell.correct{background:#d4edda}
+.cw-cell.wrong{background:#f8d7da}
+.cw-cell-num{position:absolute;top:2px;left:3px;font-size:8px;font-weight:700;color:var(--coral);line-height:1;font-family:'Noto Sans TC',sans-serif}
+.cw-cell input{width:100%;height:100%;border:none;background:transparent;text-align:center;font-family:'Space Mono',monospace;font-weight:700;font-size:1rem;color:var(--text);text-transform:uppercase;cursor:pointer;padding:0}
+.cw-cell input:focus{outline:none;background:var(--teal-light)}
+.cw-cell input::selection{background:var(--teal)}
+
+/* CLUES SECTION */
+.clues-wrap{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem}
+.clue-section h3{font-family:'Space Mono',monospace;font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--coral);margin-bottom:.6rem}
+.clue-list{list-style:none}
+.clue-list li{padding:.3rem 0;font-size:.82rem;border-bottom:1px solid var(--border);display:flex;gap:.5rem;cursor:pointer;transition:background .1s;border-radius:4px;padding:.3rem .4rem}
+.clue-list li:hover{background:var(--teal-light)}
+.clue-list li.active{background:var(--teal-light);font-weight:600}
+.clue-num{font-family:'Space Mono',monospace;font-weight:700;color:var(--coral);min-width:28px;flex-shrink:0}
+
+/* SCORE / STATUS */
+.status-bar{display:flex;align-items:center;gap:1rem;padding:.75rem 1rem;background:var(--bg);border-radius:10px;margin-bottom:1rem;flex-wrap:wrap}
+.status-item{font-size:.82rem;color:var(--text-muted)}
+.status-val{font-family:'Space Mono',monospace;font-weight:700;color:var(--text)}
+
+/* PRINT */
+.print-grid-wrap{background:var(--white);padding:2rem;border-radius:16px;border:1px solid var(--border)}
+.print-header{text-align:center;border-bottom:2px solid var(--text);padding-bottom:1rem;margin-bottom:1.5rem}
+.print-title{font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800}
+.print-meta{display:flex;justify-content:space-between;margin-top:.75rem;font-size:.8rem}
+
+/* TOAST */
+#toast{display:none;position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#333;color:var(--white);border-radius:100px;padding:.65rem 1.5rem;font-size:.82rem;z-index:600;white-space:nowrap}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:3rem 1rem;color:var(--text-muted)}
+.empty-ico{font-size:2.5rem;margin-bottom:.75rem}
+.empty-title{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;margin-bottom:.4rem;color:var(--text)}
+
+/* RESPONSIVE */
+@media(max-width:600px){
+  nav{padding:.65rem 1rem}
+  .container{padding:1rem 1rem 4rem}
+  .clues-wrap{grid-template-columns:1fr}
+  :root{--cell-size:32px}
+}
+
+/* PRINT CSS */
+@media print{
+  nav,.mode-bar,#page-edit,#page-play,.btn,#toast{display:none!important}
+  body{background:var(--white)}
+  .page{display:block!important}
+  #page-print{display:block!important}
+  .container{padding:0;max-width:100%}
+}
+</style>
 </head>
-<body class="bg-slate-100 min-h-screen p-4">
+<body>
 
-    <div class="max-w-5xl mx-auto">
-        <header class="flex flex-wrap justify-between items-center mb-6 no-print gap-4">
-            <h1 class="text-2xl font-bold text-slate-800">🧩 Jeffrey's Crossword Tool</h1>
-            <div class="flex flex-wrap gap-2">
-                <select id="ai-model" class="border p-2 rounded bg-white text-sm">
-    <option value="gemini-2.5-flash" selected>Gemini 2.5 Flash (標準)</option>
-    <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite (輕量)</option>
-</select>
-                <input type="password" id="api-key" placeholder="貼上 API Key" class="border p-2 rounded text-sm w-40">
-            </div>
-        </header>
+<div id="toast"></div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div class="no-print space-y-4">
-                <div class="bg-white p-5 rounded-xl shadow-sm">
-                    <h2 class="font-bold mb-2 text-slate-700">1. 輸入單字 (可含空格)</h2>
-                    <textarea id="word-input" rows="8" class="w-full border p-3 rounded-lg text-sm" placeholder="Apple&#10;Go birdwatching&#10;Plant a tree"></textarea>
-                    <button id="btn-generate-clues" class="w-full mt-3 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition font-medium">
-                        讓 AI 生成提示語
-                    </button>
-                </div>
+<nav>
+  <a href="tools.html" class="nav-logo">NewCore · Jeffrey's Lab</a>
+  <div class="nav-right">
+    <a href="tools.html" class="nav-back">← 工具包</a>
+  </div>
+</nav>
 
-                <div class="bg-white p-5 rounded-xl shadow-sm">
-                    <h2 class="font-bold mb-2 text-slate-700">2. 設定與輸出</h2>
-                    <button id="btn-build-grid" class="w-full bg-emerald-600 text-white py-2 rounded-lg hover:bg-emerald-700 transition mb-3">
-                        重新排列網格
-                    </button>
-                    <div class="flex items-center gap-2 mb-4 text-sm">
-                        <input type="checkbox" id="show-answer" checked onchange="toggleAnswer()">
-                        <label for="show-answer">顯示答案 (預覽模式)</label>
-                    </div>
-                    <button onclick="window.print()" class="w-full bg-slate-800 text-white py-2 rounded-lg hover:bg-black transition">
-                        🖨️ 列印 / 存為 PDF
-                    </button>
-                </div>
-            </div>
+<div class="mode-bar">
+  <button class="mode-tab active" onclick="setMode('edit')" id="tab-edit">✏️ 編輯單字</button>
+  <button class="mode-tab" onclick="setMode('play')" id="tab-play">🎮 數位練習</button>
+  <button class="mode-tab" onclick="setMode('print')" id="tab-print">🖨️ 列印考卷</button>
+</div>
 
-            <div class="lg:col-span-2 bg-white p-8 rounded-xl shadow-sm border border-slate-200">
-                <div id="print-area">
-                    <h2 class="text-2xl font-bold text-center mb-8">Crossword Puzzle</h2>
-                    <div id="grid-container" class="flex justify-center mb-10 overflow-auto py-4">
-                        <p class="text-slate-400 italic">尚未生成網格</p>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div>
-                            <h3 class="font-bold border-b-2 border-slate-800 mb-3">ACROSS</h3>
-                            <ul id="across-clues" class="space-y-2 text-sm text-slate-700"></ul>
-                        </div>
-                        <div>
-                            <h3 class="font-bold border-b-2 border-slate-800 mb-3">DOWN</h3>
-                            <ul id="down-clues" class="space-y-2 text-sm text-slate-700"></ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
+<!-- ══ EDIT PAGE ══ -->
+<div class="page active" id="page-edit">
+  <div class="container">
+
+    <div style="display:grid;grid-template-columns:280px 1fr;gap:1rem;align-items:start">
+
+      <!-- 左側：輸入 -->
+      <div>
+        <div class="card">
+          <div class="card-label">新增單字</div>
+          <input class="field" id="word-input" placeholder="輸入單字（英文）" style="margin-bottom:.5rem" onkeydown="if(event.key==='Enter')addWord()">
+          <input class="field" id="clue-input" placeholder="提示語（可留空讓 AI 生成）" style="margin-bottom:.75rem" onkeydown="if(event.key==='Enter')addWord()">
+          <button class="btn btn-primary" onclick="addWord()" style="width:100%;justify-content:center">➕ 新增單字</button>
         </div>
+
+        <div class="card">
+          <div class="card-label">快速操作</div>
+          <div style="display:flex;flex-direction:column;gap:.5rem">
+            <button class="btn btn-teal" onclick="buildLayout()" style="width:100%;justify-content:center">🔀 重新排版</button>
+            <button class="btn btn-outline" onclick="generateAllClues()" id="btn-ai-clues" style="width:100%;justify-content:center">✨ AI 生成所有提示語</button>
+            <button class="btn btn-outline" onclick="clearAll()" style="width:100%;justify-content:center;color:var(--coral);border-color:var(--coral)">🗑 全部清空</button>
+          </div>
+        </div>
+
+        <div class="card" style="font-size:.78rem;color:var(--text-muted);line-height:1.7">
+          <div class="card-label">使用說明</div>
+          1. 輸入單字清單<br>
+          2. 按「重新排版」自動生成填字格<br>
+          3. 可手動填提示語，或按 AI 自動生成<br>
+          4. 切換到「數位練習」或「列印考卷」
+        </div>
+      </div>
+
+      <!-- 右側：單字清單 + 預覽 -->
+      <div>
+        <div class="card">
+          <div class="card-label">單字清單 <span id="word-count" style="color:var(--text-muted);font-weight:400">（0 個單字）</span></div>
+          <div id="word-list-wrap">
+            <div class="empty-state" style="padding:1.5rem">
+              <div class="empty-ico">📝</div>
+              <div class="empty-title">尚無單字</div>
+              <p style="font-size:.78rem">在左側輸入單字開始吧</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" id="preview-card" style="display:none">
+          <div class="card-label">填字格預覽</div>
+          <div class="cw-wrapper" id="preview-grid-wrap"></div>
+        </div>
+      </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/gh/joshua-gould/crossword-layout-generator@master/dist/crossword-layout-generator.js"></script>
+  </div>
+</div>
 
-   <script>
-    let currentClues = {};
+<!-- ══ PLAY PAGE ══ -->
+<div class="page" id="page-play">
+  <div class="container">
+    <div id="play-empty" class="empty-state">
+      <div class="empty-ico">🎮</div>
+      <div class="empty-title">尚未建立填字格</div>
+      <p style="font-size:.78rem;margin-top:.25rem">請先到「編輯單字」頁新增單字並排版</p>
+    </div>
+    <div id="play-content" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;margin-bottom:1rem">
+        <div class="status-bar" style="flex:1">
+          <div class="status-item">已完成 <span class="status-val" id="play-progress">0 / 0</span></div>
+          <div class="status-item">正確率 <span class="status-val" id="play-accuracy">—</span></div>
+        </div>
+        <div style="display:flex;gap:.5rem">
+          <button class="btn btn-outline" onclick="checkAnswers()">✓ 檢查答案</button>
+          <button class="btn btn-outline" onclick="resetPlay()">🔄 重設</button>
+          <button class="btn btn-teal" onclick="revealAll()">👁 顯示解答</button>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 280px;gap:1rem;align-items:start">
+        <div>
+          <div class="cw-wrapper" id="play-grid-wrap"></div>
+        </div>
+        <div>
+          <div class="clues-wrap" style="grid-template-columns:1fr;margin-top:0">
+            <div>
+              <div class="clue-section"><h3>→ 橫向 Across</h3><ul class="clue-list" id="play-clues-across"></ul></div>
+            </div>
+            <div style="margin-top:.75rem">
+              <div class="clue-section"><h3>↓ 直向 Down</h3><ul class="clue-list" id="play-clues-down"></ul></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
-    const GATEWAY_URL = "https://script.google.com/macros/s/AKfycbz0O6eB9fVC3Xp7g0Kt4U-32Inmf9ieDYJygEf3jW78xaWx10glPscEefEQwgB0jCioug/exec";
-    const GATEWAY_TOKEN = "MYVIEWBOARDgoogleAPI";
+<!-- ══ PRINT PAGE ══ -->
+<div class="page" id="page-print">
+  <div class="container">
+    <div style="display:flex;gap:.5rem;margin-bottom:1rem">
+      <button class="btn btn-primary" onclick="window.print()">🖨️ 列印</button>
+      <button class="btn btn-outline" onclick="togglePrintAnswer()" id="btn-print-ans">👁 顯示解答</button>
+    </div>
+    <div id="print-empty" class="empty-state">
+      <div class="empty-ico">🖨️</div>
+      <div class="empty-title">尚未建立填字格</div>
+    </div>
+    <div id="print-content" style="display:none">
+      <div class="print-grid-wrap">
+        <div class="print-header">
+          <div class="print-title">Crossword Challenge</div>
+          <div class="print-meta">
+            <span>Name: _______________</span>
+            <span>Class: _______________</span>
+            <span>Score: _______________</span>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;align-items:start">
+          <div class="cw-wrapper" id="print-grid-wrap"></div>
+          <div>
+            <div class="clue-section" style="margin-bottom:1rem"><h3>→ Across</h3><ul class="clue-list" id="print-clues-across" style="cursor:default"></ul></div>
+            <div class="clue-section"><h3>↓ Down</h3><ul class="clue-list" id="print-clues-down" style="cursor:default"></ul></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
-    async function fetchCluesFromAI(words) {
-        const btn = document.getElementById('btn-generate-clues');
-        const model = document.getElementById('ai-model').value;
+<script>
+// ══════════════════════════
+// GATEWAY
+// ══════════════════════════
+const GATEWAY_URL = "https://script.google.com/macros/s/AKfycbz0O6eB9fVC3Xp7g0Kt4U-32Inmf9ieDYJygEf3jW78xaWx10glPscEefEQwgB0jCioug/exec";
+const GATEWAY_TOKEN = "MYVIEWBOARDgoogleAPI";
 
-        btn.innerText = "AI 老師正在出題中...";
-        btn.disabled = true;
+// ══════════════════════════
+// STATE
+// ══════════════════════════
+let wordList = []; // [{word, clue}]
+let layoutResult = null; // crossword layout
+let printShowAnswer = false;
+let activeCell = null;
+let activeDirection = 'across';
 
-        const plan = localStorage.getItem('newcore_tools_plan') || 'Free';
-        const useFreeKey = plan !== 'Pro';
+// ══════════════════════════
+// MODE
+// ══════════════════════════
+function setMode(m) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + m).classList.add('active');
+  document.getElementById('tab-' + m).classList.add('active');
+  if (m === 'play') renderPlay();
+  if (m === 'print') renderPrint();
+}
 
-        const aiPrompt = `Generate crossword clues for these words: ${words.join(', ')}.
-Return ONLY a JSON object where each key is the word (uppercase) and value is a short English clue.
-Example: {"APPLE": "A red or green fruit", "RUN": "To move quickly on foot"}
-No markdown, no backticks, just the JSON object.`;
+// ══════════════════════════
+// WORD MANAGEMENT
+// ══════════════════════════
+function addWord() {
+  const wordEl = document.getElementById('word-input');
+  const clueEl = document.getElementById('clue-input');
+  const word = wordEl.value.trim().toUpperCase().replace(/\s+/g, '');
+  const clue = clueEl.value.trim();
 
-        try {
-            const response = await fetch(GATEWAY_URL, {
-                method: 'POST',
-                redirect: 'follow',
-                body: JSON.stringify({
-                    auth: GATEWAY_TOKEN,
-                    action: 'lab_tool',
-                    params: {
-                        customPrompt: aiPrompt,
-                        model: model,
-                        useFreeKey: useFreeKey
-                    }
-                })
-            });
-            const gwResult = await response.json();
-            if (!gwResult.ok) throw new Error(gwResult.error || 'Gateway 失敗');
+  if (!word) { showToast('請輸入單字'); return; }
+  if (word.length < 2) { showToast('單字至少需要 2 個字母'); return; }
+  if (wordList.find(w => w.word === word)) { showToast('此單字已存在'); return; }
 
-            const raw = gwResult.text.replace(/```json|```/g, '').trim();
-            const data = JSON.parse(raw);
+  wordList.push({ word, clue });
+  wordEl.value = '';
+  clueEl.value = '';
+  wordEl.focus();
+  renderWordList();
+  if (wordList.length >= 2) buildLayout();
+}
 
-            return Object.keys(data).reduce((acc, key) => {
-                acc[key.toUpperCase()] = data[key];
-                return acc;
-            }, {});
+function removeWord(idx) {
+  wordList.splice(idx, 1);
+  renderWordList();
+  if (wordList.length >= 2) buildLayout();
+  else {
+    layoutResult = null;
+    document.getElementById('preview-card').style.display = 'none';
+  }
+}
 
-        } catch (e) {
-            alert('生成失敗：' + e.message);
-            return null;
-        } finally {
-            btn.innerText = "讓 AI 生成提示語";
-            btn.disabled = false;
+function updateClue(idx, val) {
+  wordList[idx].clue = val;
+}
+
+function renderWordList() {
+  const wrap = document.getElementById('word-list-wrap');
+  document.getElementById('word-count').textContent = `（${wordList.length} 個單字）`;
+
+  if (!wordList.length) {
+    wrap.innerHTML = `<div class="empty-state" style="padding:1.5rem"><div class="empty-ico">📝</div><div class="empty-title">尚無單字</div><p style="font-size:.78rem">在左側輸入單字開始吧</p></div>`;
+    return;
+  }
+
+  wrap.innerHTML = `<table class="word-table">
+    <thead><tr><th>#</th><th>單字</th><th>提示語</th><th></th></tr></thead>
+    <tbody>
+      ${wordList.map((w, i) => `
+        <tr>
+          <td style="color:var(--text-muted);font-size:.78rem">${i+1}</td>
+          <td><span class="word-badge">${w.word}</span></td>
+          <td><input class="clue-input" value="${escHtml(w.clue)}" placeholder="提示語（可留空）" oninput="updateClue(${i}, this.value)"></td>
+          <td><button class="del-btn" onclick="removeWord(${i})">×</button></td>
+        </tr>
+      `).join('')}
+    </tbody>
+  </table>`;
+}
+
+function clearAll() {
+  if (!confirm('確定要清空所有單字嗎？')) return;
+  wordList = [];
+  layoutResult = null;
+  renderWordList();
+  document.getElementById('preview-card').style.display = 'none';
+}
+
+// ══════════════════════════
+// LAYOUT ENGINE
+// ══════════════════════════
+function buildLayout() {
+  if (wordList.length < 2) { showToast('請至少輸入 2 個單字'); return; }
+
+  const input = wordList.map(w => ({
+    answer: w.word,
+    clue: w.clue || '...'
+  }));
+
+  try {
+    // 使用 crossword-layout-generator 或自製簡單引擎
+    layoutResult = simpleCrosswordLayout(input);
+    if (!layoutResult || !layoutResult.result || !layoutResult.result.length) {
+      showToast('排版失敗，請增加單字數量或確保單字之間有共同字母');
+      return;
+    }
+    renderPreviewGrid();
+    document.getElementById('preview-card').style.display = '';
+    showToast('排版完成！共放入 ' + layoutResult.result.length + ' 個單字');
+  } catch(e) {
+    console.error(e);
+    showToast('排版失敗：' + e.message);
+  }
+}
+
+// 簡易填字排版引擎
+function simpleCrosswordLayout(words) {
+  if (!words.length) return null;
+
+  const sorted = [...words].sort((a, b) => b.answer.length - a.answer.length);
+  const placed = [];
+  const OFFSET = 20;
+
+  // 放第一個單字（橫向）
+  const first = sorted[0];
+  placed.push({
+    answer: first.answer,
+    clue: first.clue,
+    startx: OFFSET,
+    starty: OFFSET,
+    orientation: 'across',
+    position: 1
+  });
+
+  // 嘗試放其餘單字
+  for (let wi = 1; wi < sorted.length; wi++) {
+    const word = sorted[wi];
+    let placed_flag = false;
+
+    for (let pi = 0; pi < placed.length && !placed_flag; pi++) {
+      const ref = placed[pi];
+
+      for (let ci = 0; ci < word.answer.length && !placed_flag; ci++) {
+        const ch = word.answer[ci];
+
+        for (let ri = 0; ri < ref.answer.length && !placed_flag; ri++) {
+          if (ref.answer[ri] !== ch) continue;
+
+          let newWord;
+          if (ref.orientation === 'across') {
+            // 嘗試直向
+            const nx = ref.startx + ri;
+            const ny = ref.starty - ci;
+            newWord = { answer: word.answer, clue: word.clue, startx: nx, starty: ny, orientation: 'down', position: placed.length + 1 };
+          } else {
+            // 嘗試橫向
+            const nx = ref.startx - ci;
+            const ny = ref.starty + ri;
+            newWord = { answer: word.answer, clue: word.clue, startx: nx, starty: ny, orientation: 'across', position: placed.length + 1 };
+          }
+
+          if (canPlace(placed, newWord)) {
+            placed.push(newWord);
+            placed_flag = true;
+          }
         }
+      }
     }
+  }
 
-    function buildGrid() {
-        const rawWords = document.getElementById('word-input').value.split('\n')
-            .map(w => w.trim()).filter(w => w.length > 1);
-        
-        if (rawWords.length === 0) return;
+  // 正規化座標（最小為1）
+  const minX = Math.min(...placed.map(p => p.startx));
+  const minY = Math.min(...placed.map(p => p.starty));
+  placed.forEach(p => { p.startx -= minX - 1; p.starty -= minY - 1; });
 
-        const inputForLayout = rawWords.map(w => {
-            const cleanWord = w.replace(/\s+/g, '').toUpperCase();
-            return { 
-                answer: cleanWord, 
-                clue: currentClues[w.toUpperCase()] || currentClues[w] || "..." 
-            };
-        });
+  // 計算 grid 大小
+  let maxX = 0, maxY = 0;
+  placed.forEach(p => {
+    if (p.orientation === 'across') maxX = Math.max(maxX, p.startx + p.answer.length - 1);
+    else maxX = Math.max(maxX, p.startx);
+    if (p.orientation === 'down') maxY = Math.max(maxY, p.starty + p.answer.length - 1);
+    else maxY = Math.max(maxY, p.starty);
+  });
 
-        try {
-            const layout = window.Ck.generateLayout(inputForLayout);
-            if (!layout || !layout.result || layout.result.length === 0) {
-                alert("無法交叉排列。建議：\n1. 增加單字量\n2. 再點一次重新排列\n3. 確保單字之間有共同字母");
-                return;
-            }
-            renderGrid(layout);
-            renderClues(layout, rawWords);
-        } catch (err) {
-            console.error(err);
-            alert("佈局引擎出錯。可能是單字太長或組合太複雜。");
+  // 重新編號
+  const numMap = {};
+  placed.sort((a, b) => a.starty !== b.starty ? a.starty - b.starty : a.startx - b.startx);
+  let num = 1;
+  placed.forEach(p => {
+    const key = p.startx + ',' + p.starty;
+    if (!numMap[key]) { numMap[key] = num++; }
+    p.position = numMap[key];
+  });
+
+  return { result: placed, cols: maxX, rows: maxY };
+}
+
+function canPlace(placed, newWord) {
+  const newCells = getCells(newWord);
+
+  for (const existing of placed) {
+    const exCells = getCells(existing);
+
+    for (const nc of newCells) {
+      for (const ec of exCells) {
+        if (nc.x === ec.x && nc.y === ec.y) {
+          // 同位置：字母必須相同
+          if (nc.ch !== ec.ch) return false;
+          // 同方向交叉：不允許
+          if (newWord.orientation === existing.orientation) return false;
         }
+      }
     }
 
-    function renderGrid(layout) {
-        const container = document.getElementById('grid-container');
-        container.innerHTML = '';
-        
-        const gridTable = document.createElement('div');
-        gridTable.className = `inline-grid crossword-grid border border-slate-400 bg-slate-400 gap-px ans-hidden`;
-        gridTable.id = 'main-grid';
-        if (document.getElementById('show-answer').checked) gridTable.classList.remove('ans-hidden');
-
-        gridTable.style.gridTemplateColumns = `repeat(${layout.cols}, 30px)`;
-        
-        const gridArray = Array(layout.rows).fill().map(() => Array(layout.cols).fill(null));
-
-        layout.result.forEach(item => {
-            for (let i = 0; i < item.answer.length; i++) {
-                const r = item.orientation === 'across' ? item.starty - 1 : item.starty - 1 + i;
-                const c = item.orientation === 'across' ? item.startx - 1 + i : item.startx - 1;
-                gridArray[r][c] = { char: item.answer[i], num: i === 0 ? item.position : (gridArray[r][c]?.num || null) };
-            }
-        });
-
-        for (let r = 0; r < layout.rows; r++) {
-            for (let c = 0; c < layout.cols; c++) {
-                const cell = document.createElement('div');
-                cell.className = 'cell bg-white';
-                if (!gridArray[r][c]) {
-                    cell.className = 'cell empty';
-                } else {
-                    if (gridArray[r][c].num) cell.innerHTML += `<span class="cell-num">${gridArray[r][c].num}</span>`;
-                    cell.innerHTML += `<span class="ans-text">${gridArray[r][c].char}</span>`;
-                }
-                gridTable.appendChild(cell);
-            }
+    // 檢查相鄰衝突（同向相鄰）
+    if (newWord.orientation === existing.orientation) {
+      for (const nc of newCells) {
+        for (const ec of exCells) {
+          if (newWord.orientation === 'across') {
+            if (nc.y === ec.y && Math.abs(nc.x - ec.x) === 0 && nc.ch !== ec.ch) return false;
+          } else {
+            if (nc.x === ec.x && Math.abs(nc.y - ec.y) === 0 && nc.ch !== ec.ch) return false;
+          }
         }
-        container.appendChild(gridTable);
+      }
     }
+  }
 
-    function renderClues(layout, rawWords) {
-        const acrossList = document.getElementById('across-clues');
-        const downList = document.getElementById('down-clues');
-        acrossList.innerHTML = '';
-        downList.innerHTML = '';
+  // 檢查是否越界（負座標）
+  for (const nc of newCells) {
+    if (nc.x < 1 || nc.y < 1) return false;
+  }
 
-        layout.result.sort((a, b) => a.position - b.position).forEach(item => {
-            const originalWord = rawWords.find(rw => rw.replace(/\s+/g, '').toUpperCase() === item.answer);
-            const clueText = currentClues[originalWord?.toUpperCase()] || currentClues[item.answer] || "...";
+  return true;
+}
 
-            const li = document.createElement('li');
-            li.className = "leading-tight";
-            li.innerHTML = `<strong>${item.position}.</strong> <span contenteditable="true" class="editable-clue underline decoration-dotted decoration-slate-300">${clueText}</span>`;
-            
-            li.querySelector('span').onblur = (e) => {
-                currentClues[(originalWord || item.answer).toUpperCase()] = e.target.innerText;
-            };
+function getCells(word) {
+  const cells = [];
+  for (let i = 0; i < word.answer.length; i++) {
+    cells.push({
+      x: word.orientation === 'across' ? word.startx + i : word.startx,
+      y: word.orientation === 'down' ? word.starty + i : word.starty,
+      ch: word.answer[i]
+    });
+  }
+  return cells;
+}
 
-            if (item.orientation === 'across') acrossList.appendChild(li);
-            else downList.appendChild(li);
-        });
+// ══════════════════════════
+// GRID RENDERER
+// ══════════════════════════
+function buildGridHTML(layout, mode='preview') {
+  // mode: 'preview' | 'play' | 'print'
+  const rows = layout.rows;
+  const cols = layout.cols;
+
+  // 建立格子地圖
+  const grid = {};
+  const numMap = {};
+
+  layout.result.forEach(word => {
+    for (let i = 0; i < word.answer.length; i++) {
+      const x = word.orientation === 'across' ? word.startx + i : word.startx;
+      const y = word.orientation === 'down' ? word.starty + i : word.starty;
+      const key = x + ',' + y;
+      if (!grid[key]) grid[key] = { ch: word.answer[i], num: null };
+      if (i === 0) {
+        if (!numMap[key]) numMap[key] = word.position;
+        grid[key].num = word.position;
+      }
     }
+  });
 
-    function toggleAnswer() {
-        const grid = document.getElementById('main-grid');
-        if (!grid) return;
-        if (document.getElementById('show-answer').checked) grid.classList.remove('ans-hidden');
-        else grid.classList.add('ans-hidden');
-    }
+  let html = `<div class="cw-grid" style="grid-template-columns:repeat(${cols},var(--cell-size));grid-template-rows:repeat(${rows},var(--cell-size))">`;
 
-    document.getElementById('btn-generate-clues').onclick = async () => {
-        const words = document.getElementById('word-input').value.split('\n').map(w => w.trim()).filter(w => w.length > 1);
-        if (words.length === 0) return alert("請輸入單字");
-        const clues = await fetchCluesFromAI(words);
-        if (clues) {
-            currentClues = Object.keys(clues).reduce((acc, key) => {
-                acc[key.toUpperCase()] = clues[key];
-                return acc;
-            }, {});
-            buildGrid();
+  for (let y = 1; y <= rows; y++) {
+    for (let x = 1; x <= cols; x++) {
+      const key = x + ',' + y;
+      const cell = grid[key];
+      if (!cell) {
+        html += `<div class="cw-cell black"></div>`;
+      } else {
+        const numHTML = cell.num ? `<span class="cw-cell-num">${cell.num}</span>` : '';
+        if (mode === 'preview' || mode === 'print-answer') {
+          html += `<div class="cw-cell">${numHTML}<span style="font-family:'Space Mono',monospace;font-weight:700">${cell.ch}</span></div>`;
+        } else if (mode === 'print') {
+          html += `<div class="cw-cell">${numHTML}</div>`;
+        } else {
+          // play mode
+          html += `<div class="cw-cell" id="cell-${x}-${y}" data-x="${x}" data-y="${y}" data-ch="${cell.ch}" onclick="cellClick(${x},${y})">${numHTML}<input type="text" maxlength="1" id="inp-${x}-${y}" data-x="${x}" data-y="${y}" onkeydown="cellKeydown(event,${x},${y})" oninput="cellInput(event,${x},${y})"></div>`;
         }
-    };
+      }
+    }
+  }
+  html += '</div>';
+  return html;
+}
 
-    document.getElementById('btn-build-grid').onclick = buildGrid;
+function renderPreviewGrid() {
+  if (!layoutResult) return;
+  document.getElementById('preview-grid-wrap').innerHTML = buildGridHTML(layoutResult, 'preview');
+}
+
+// ══════════════════════════
+// PLAY MODE
+// ══════════════════════════
+function renderPlay() {
+  if (!layoutResult || !layoutResult.result.length) {
+    document.getElementById('play-empty').style.display = '';
+    document.getElementById('play-content').style.display = 'none';
+    return;
+  }
+  document.getElementById('play-empty').style.display = 'none';
+  document.getElementById('play-content').style.display = '';
+
+  document.getElementById('play-grid-wrap').innerHTML = buildGridHTML(layoutResult, 'play');
+
+  // Clues
+  const across = layoutResult.result.filter(w => w.orientation === 'across').sort((a,b) => a.position - b.position);
+  const down = layoutResult.result.filter(w => w.orientation === 'down').sort((a,b) => a.position - b.position);
+
+  document.getElementById('play-clues-across').innerHTML = across.map(w =>
+    `<li onclick="highlightWord(${w.startx},${w.starty},'across')" id="clue-across-${w.position}">
+      <span class="clue-num">${w.position}.</span>
+      <span>${escHtml(getClue(w.answer)) || w.answer}</span>
+    </li>`
+  ).join('');
+
+  document.getElementById('play-clues-down').innerHTML = down.map(w =>
+    `<li onclick="highlightWord(${w.startx},${w.starty},'down')" id="clue-down-${w.position}">
+      <span class="clue-num">${w.position}.</span>
+      <span>${escHtml(getClue(w.answer)) || w.answer}</span>
+    </li>`
+  ).join('');
+
+  updatePlayProgress();
+}
+
+function getClue(word) {
+  const found = wordList.find(w => w.word === word);
+  return found ? found.clue : '';
+}
+
+function cellClick(x, y) {
+  if (activeCell && activeCell.x === x && activeCell.y === y) {
+    activeDirection = activeDirection === 'across' ? 'down' : 'across';
+  }
+  activeCell = { x, y };
+  highlightActive();
+  document.getElementById('inp-' + x + '-' + y)?.focus();
+}
+
+function highlightActive() {
+  // 清除所有高亮
+  document.querySelectorAll('.cw-cell').forEach(c => c.classList.remove('highlighted'));
+  if (!activeCell || !layoutResult) return;
+
+  // 找到包含此格的單字
+  layoutResult.result.forEach(word => {
+    if (word.orientation !== activeDirection) return;
+    const cells = getCells(word);
+    if (cells.find(c => c.x === activeCell.x && c.y === activeCell.y)) {
+      cells.forEach(c => {
+        const el = document.getElementById('cell-' + c.x + '-' + c.y);
+        if (el) el.classList.add('highlighted');
+      });
+    }
+  });
+}
+
+function highlightWord(sx, sy, dir) {
+  activeDirection = dir;
+  activeCell = { x: sx, y: sy };
+  highlightActive();
+  document.getElementById('inp-' + sx + '-' + sy)?.focus();
+}
+
+function cellInput(e, x, y) {
+  const inp = e.target;
+  inp.value = inp.value.toUpperCase().slice(-1);
+  updatePlayProgress();
+  // 自動移到下一格
+  moveNext(x, y);
+}
+
+function cellKeydown(e, x, y) {
+  if (e.key === 'Backspace') {
+    const inp = document.getElementById('inp-' + x + '-' + y);
+    if (!inp.value) movePrev(x, y);
+  }
+  if (e.key === 'ArrowRight') { e.preventDefault(); activeDirection='across'; moveNext(x,y,true); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); activeDirection='across'; movePrev(x,y,true); }
+  if (e.key === 'ArrowDown') { e.preventDefault(); activeDirection='down'; moveNext(x,y,true); }
+  if (e.key === 'ArrowUp') { e.preventDefault(); activeDirection='down'; movePrev(x,y,true); }
+}
+
+function moveNext(x, y, noSkip=false) {
+  const nx = activeDirection === 'across' ? x+1 : x;
+  const ny = activeDirection === 'down' ? y+1 : y;
+  const next = document.getElementById('inp-' + nx + '-' + ny);
+  if (next) { activeCell = {x:nx,y:ny}; highlightActive(); next.focus(); }
+}
+function movePrev(x, y) {
+  const px = activeDirection === 'across' ? x-1 : x;
+  const py = activeDirection === 'down' ? y-1 : y;
+  const prev = document.getElementById('inp-' + px + '-' + py);
+  if (prev) { activeCell = {x:px,y:py}; highlightActive(); prev.focus(); prev.select(); }
+}
+
+function checkAnswers() {
+  if (!layoutResult) return;
+  let correct = 0, total = 0;
+
+  layoutResult.result.forEach(word => {
+    getCells(word).forEach(c => {
+      const inp = document.getElementById('inp-' + c.x + '-' + c.y);
+      const cell = document.getElementById('cell-' + c.x + '-' + c.y);
+      if (!inp) return;
+      total++;
+      if (inp.value === c.ch) {
+        correct++;
+        cell.classList.add('correct');
+        cell.classList.remove('wrong');
+      } else if (inp.value) {
+        cell.classList.add('wrong');
+        cell.classList.remove('correct');
+      }
+    });
+  });
+  showToast(`正確 ${correct} / ${total} 格`);
+}
+
+function resetPlay() {
+  document.querySelectorAll('.cw-cell input').forEach(inp => inp.value = '');
+  document.querySelectorAll('.cw-cell').forEach(c => {
+    c.classList.remove('correct','wrong','highlighted');
+  });
+  updatePlayProgress();
+}
+
+function revealAll() {
+  if (!layoutResult) return;
+  layoutResult.result.forEach(word => {
+    getCells(word).forEach(c => {
+      const inp = document.getElementById('inp-' + c.x + '-' + c.y);
+      if (inp) inp.value = c.ch;
+    });
+  });
+  updatePlayProgress();
+}
+
+function updatePlayProgress() {
+  if (!layoutResult) return;
+  const allCells = new Set();
+  layoutResult.result.forEach(w => getCells(w).forEach(c => allCells.add(c.x+','+c.y)));
+  const total = allCells.size;
+  let filled = 0;
+  allCells.forEach(key => {
+    const [x,y] = key.split(',');
+    const inp = document.getElementById('inp-' + x + '-' + y);
+    if (inp && inp.value) filled++;
+  });
+  document.getElementById('play-progress').textContent = filled + ' / ' + total;
+  document.getElementById('play-accuracy').textContent = filled ? Math.round(filled/total*100) + '%' : '—';
+}
+
+// ══════════════════════════
+// PRINT MODE
+// ══════════════════════════
+function renderPrint() {
+  if (!layoutResult || !layoutResult.result.length) {
+    document.getElementById('print-empty').style.display = '';
+    document.getElementById('print-content').style.display = 'none';
+    return;
+  }
+  document.getElementById('print-empty').style.display = 'none';
+  document.getElementById('print-content').style.display = '';
+
+  const mode = printShowAnswer ? 'print-answer' : 'print';
+  document.getElementById('print-grid-wrap').innerHTML = buildGridHTML(layoutResult, mode);
+
+  const across = layoutResult.result.filter(w => w.orientation === 'across').sort((a,b) => a.position - b.position);
+  const down = layoutResult.result.filter(w => w.orientation === 'down').sort((a,b) => a.position - b.position);
+
+  document.getElementById('print-clues-across').innerHTML = across.map(w =>
+    `<li style="cursor:default"><span class="clue-num">${w.position}.</span><span>${escHtml(getClue(w.answer)) || '___'}</span></li>`
+  ).join('');
+  document.getElementById('print-clues-down').innerHTML = down.map(w =>
+    `<li style="cursor:default"><span class="clue-num">${w.position}.</span><span>${escHtml(getClue(w.answer)) || '___'}</span></li>`
+  ).join('');
+}
+
+function togglePrintAnswer() {
+  printShowAnswer = !printShowAnswer;
+  document.getElementById('btn-print-ans').textContent = printShowAnswer ? '🙈 隱藏解答' : '👁 顯示解答';
+  renderPrint();
+}
+
+// ══════════════════════════
+// AI CLUE GENERATION
+// ══════════════════════════
+async function generateAllClues() {
+  if (!wordList.length) { showToast('請先新增單字'); return; }
+
+  const btn = document.getElementById('btn-ai-clues');
+  btn.disabled = true;
+  btn.textContent = '⏳ AI 生成中...';
+
+  const words = wordList.map(w => w.word);
+  const plan = localStorage.getItem('newcore_tools_plan') || 'Free';
+  const useFreeKey = plan !== 'Pro';
+
+  const prompt = `Generate short crossword clues for these English words: ${words.join(', ')}.
+Return ONLY a JSON object where each key is the word (uppercase) and value is a short clue (under 10 words).
+Example: {"APPLE": "A red fruit", "RUN": "Move quickly on foot"}
+No markdown, no backticks, just the JSON.`;
+
+  try {
+    const res = await fetch(GATEWAY_URL, {
+      method: 'POST',
+      redirect: 'follow',
+      body: JSON.stringify({
+        auth: GATEWAY_TOKEN,
+        action: 'lab_tool',
+        params: { customPrompt: prompt, model: 'gemini-2.5-flash', useFreeKey }
+      })
+    });
+    const gwResult = await res.json();
+    if (!gwResult.ok) throw new Error(gwResult.error || 'Gateway 失敗');
+
+    const raw = gwResult.text.replace(/```json|```/g, '').trim();
+    const data = JSON.parse(raw);
+
+    wordList.forEach(w => {
+      const clue = data[w.word] || data[w.word.toLowerCase()];
+      if (clue) w.clue = clue;
+    });
+
+    renderWordList();
+    if (layoutResult) renderPreviewGrid();
+    showToast('提示語生成完成！');
+  } catch(e) {
+    showToast('AI 錯誤：' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '✨ AI 生成所有提示語';
+  }
+}
+
+// ══════════════════════════
+// UTILS
+// ══════════════════════════
+function escHtml(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 3000);
+}
+
+// 預設範例單字
+['APPLE','BANANA','CHERRY','DRAGON','ELEPHANT'].forEach(w => {
+  wordList.push({ word: w, clue: '' });
+});
+renderWordList();
+buildLayout();
 </script>
 </body>
 </html>
