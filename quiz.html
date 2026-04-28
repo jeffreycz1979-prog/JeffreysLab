@@ -1033,7 +1033,82 @@ if(document.getElementById('page-digital').classList.contains('active')) renderD
 function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function escJs(s){return String(s||'').replace(/'/g,"\\'").replace(/\n/g,' ');}
 function showToast(msg){var el=document.getElementById('toast');el.textContent=msg;el.style.display='block';setTimeout(function(){el.style.display='none';},3000);}
+var manualMcAns = 0;
 
+function showManualForm(type) {
+  hideManualForms();
+  document.getElementById('form-' + type).style.display = 'block';
+  if (type === 'mc') {
+    manualMcAns = 0;
+    selectMcAns(0);
+  }
+}
+
+function hideManualForms() {
+  ['mc','sa','match'].forEach(function(t){
+    document.getElementById('form-' + t).style.display = 'none';
+  });
+}
+
+function selectMcAns(idx) {
+  manualMcAns = idx;
+  ['mc-ans-0','mc-ans-1','mc-ans-2','mc-ans-3'].forEach(function(id, i) {
+    document.getElementById(id).classList.toggle('on', i === idx);
+  });
+}
+
+function submitManualMC() {
+  var q = document.getElementById('mc-q').value.trim();
+  var opts = [
+    document.getElementById('mc-opt0').value.trim(),
+    document.getElementById('mc-opt1').value.trim(),
+    document.getElementById('mc-opt2').value.trim(),
+    document.getElementById('mc-opt3').value.trim(),
+  ];
+  if (!q) { showToast('請填寫題目內容'); return; }
+  if (!opts[0] || !opts[1]) { showToast('請至少填寫選項 A 和 B'); return; }
+  quizData.mc.push({ q: q, opts: opts, ans: manualMcAns, listeningScript: '' });
+  updateManualList();
+  hideManualForms();
+  document.getElementById('mc-q').value = '';
+  ['mc-opt0','mc-opt1','mc-opt2','mc-opt3'].forEach(function(id){
+    document.getElementById(id).value = '';
+  });
+  showToast('選擇題已新增！');
+}
+
+function submitManualSA() {
+  var q = document.getElementById('sa-q').value.trim();
+  var ans = document.getElementById('sa-ans').value.trim();
+  if (!q) { showToast('請填寫題目內容'); return; }
+  quizData.sa.push({ q: q, sampleAnswer: ans });
+  updateManualList();
+  hideManualForms();
+  document.getElementById('sa-q').value = '';
+  document.getElementById('sa-ans').value = '';
+  showToast('書寫題已新增！');
+}
+
+function submitManualMatch() {
+  var word = document.getElementById('match-word').value.trim();
+  var def = document.getElementById('match-def').value.trim();
+  var imgPrompt = document.getElementById('match-img-prompt').value.trim();
+  if (!word) { showToast('請填寫單字'); return; }
+  quizData.match.push({ word: word, definition: def, imagePrompt: imgPrompt, listeningScript: '', imgData: '' });
+  updateManualList();
+  hideManualForms();
+  document.getElementById('match-word').value = '';
+  document.getElementById('match-def').value = '';
+  document.getElementById('match-img-prompt').value = '';
+  showToast('配合題已新增！');
+}
+
+function updateManualList() {
+  var el = document.getElementById('manual-added-list');
+  var total = quizData.mc.length + quizData.sa.length + quizData.match.length;
+  if (!total) { el.textContent = ''; return; }
+  el.textContent = '已新增：選擇題 ' + quizData.mc.length + ' 題　書寫題 ' + quizData.sa.length + ' 題　配合題 ' + quizData.match.length + ' 題';
+}
 applyLang();
 </script>
 </body>
