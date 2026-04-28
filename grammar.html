@@ -136,7 +136,8 @@
 </main>
 
 <script>
-    const GAS_API_URL = "https://script.google.com/macros/s/AKfycby63WiGPMwr6FmUeZiGtHwwzuY30q7PovCBN7Por7kj164AcuX69QMztOJn1jIHH1lzAg/exec";
+    const GATEWAY_URL = "https://script.google.com/macros/s/AKfycbz0O6eB9fVC3Xp7g0Kt4U-32Inmf9ieDYJygEf3jW78xaWx10glPscEefEQwgB0jCioug/exec";
+    const GATEWAY_TOKEN = "MYVIEWBOARDgoogleAPI";
     
     let questionsData = [];
     
@@ -206,46 +207,54 @@
 
     // --- AI 生成邏輯 ---
     async function generateGrammarQuestions() {
-        const promptText = document.getElementById('raw-prompt').value.trim();
-        if(!promptText) return alert("請先輸入出題指令！");
+    const promptText = document.getElementById('raw-prompt').value.trim();
+    if (!promptText) return alert("請先輸入出題指令！");
 
-        const btn = document.getElementById('btn-ai');
-        const lang = document.getElementById('ui-lang').value;
-        btn.innerText = "⏳ AI 思考中..."; btn.disabled = true;
+    const btn = document.getElementById('btn-ai');
+    const lang = document.getElementById('ui-lang').value;
+    btn.innerText = "⏳ AI 思考中..."; btn.disabled = true;
 
-        const aiPrompt = `Task: Create sentence correction exercises based on this request: "${promptText}". 
-        RULE: You MUST return a JSON ARRAY of objects. Each object MUST have EXACTLY these 4 keys:
-        1. "wrong_sentence": The full English sentence containing ONE grammatical error.
-        2. "error_word": The exact word or short phrase that is wrong (must exactly match a substring in wrong_sentence).
-        3. "correct_word": The correct word/phrase to fix the error.
-        4. "distractors": An array of 2 plausible incorrect options (strings).
-        Example format: [{"wrong_sentence": "He go to school.", "error_word": "go", "correct_word": "went", "distractors": ["goes", "going"]}]`;
+    const aiPrompt = `Task: Create sentence correction exercises based on this request: "${promptText}". 
+    RULE: You MUST return a JSON ARRAY of objects. Each object MUST have EXACTLY these 4 keys:
+    1. "wrong_sentence": The full English sentence containing ONE grammatical error.
+    2. "error_word": The exact word or short phrase that is wrong (must exactly match a substring in wrong_sentence).
+    3. "correct_word": The correct word/phrase to fix the error.
+    4. "distractors": An array of 2 plausible incorrect options (strings).
+    Example format: [{"wrong_sentence": "He go to school.", "error_word": "go", "correct_word": "went", "distractors": ["goes", "going"]}]
+    IMPORTANT: Return ONLY the JSON array, no markdown, no backticks.`;
 
-        try {
-            const response = await fetch(GAS_API_URL, {
-                method: "POST",
-                body: JSON.stringify({ type: "crossword", words: "grammar", customPrompt: aiPrompt, model: "gemini-2.5-flash" })
-            });
-            const resText = await response.text();
-            
-            try {
-                const data = JSON.parse(resText);
-                if (data.error) throw new Error(data.error);
-                if (!Array.isArray(data)) throw new Error("AI 未回傳陣列格式，請再試一次。");
-                
-                questionsData = data;
-                renderTable();
-            } catch(e) {
-                console.error(resText);
-                throw new Error("伺服器回傳格式異常，請再試一次。");
-            }
-        } catch (e) { 
-            alert("AI 錯誤: " + e.message); 
-        } finally { 
-            btn.innerText = translations[lang].btnAi; btn.disabled = false; 
-        }
+    try {
+        const plan = localStorage.getItem('newcore_tools_plan') || 'Free';
+        const useFreeKey = plan !== 'Pro';
+
+        const response = await fetch(GATEWAY_URL, {
+            method: "POST",
+            redirect: "follow",
+            body: JSON.stringify({
+                auth: GATEWAY_TOKEN,
+                action: "lab_tool",
+                params: {
+                    customPrompt: aiPrompt,
+                    model: "gemini-2.5-flash",
+                    useFreeKey: useFreeKey
+                }
+            })
+        });
+        const gwResult = await response.json();
+        if (!gwResult.ok) throw new Error(gwResult.error || 'Gateway 失敗');
+
+        const raw = gwResult.text.replace(/```json|```/g, '').trim();
+        const data = JSON.parse(raw);
+        if (!Array.isArray(data)) throw new Error("AI 未回傳陣列格式，請再試一次。");
+
+        questionsData = data;
+        renderTable();
+    } catch (e) {
+        alert("AI 錯誤: " + e.message);
+    } finally {
+        btn.innerText = translations[lang].btnAi; btn.disabled = false;
     }
-
+}
     // --- 表格渲染與更新 ---
     function renderTable() {
         const tbody = document.getElementById('q-body');
