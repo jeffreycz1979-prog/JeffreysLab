@@ -208,10 +208,6 @@ body{font-family:sans-serif;background:#f5f4f0;color:#222;min-height:100vh;}
           <div class="iz-ph" id="t-upload-hint">📁 點擊上傳圖片</div>
         </div>
         <input type="file" id="file-in" accept="image/*" style="display:none" onchange="handleUpload(event)">
-        <div class="b-title bt-teal" style="margin-top:8px">Gemini API Key</div>
-        <div class="api-key-wrap">
-          <input type="password" class="api-in" id="api-key" placeholder="貼上 API Key...">
-        </div>
         <button class="gen-btn" onclick="generateImage()" id="gen-btn">✨ Gemini 生成圖片</button>
         <div class="gen-note" id="t-gen-note">支援多模型備援，失敗自動切換</div>
       </div>
@@ -314,37 +310,6 @@ function playAudio(text) {
     window.speechSynthesis.speak(utterance);
   }
 }
-const GEMINI_MODELS=['gemini-2.5-flash','gemini-2.5-flash-lite'];
-const GEMINI_BASE='https://generativelanguage.googleapis.com/v1beta/models/';
-
-async function callGemini(parts, apiKey, maxRetries=2){
-  for(let mi=0;mi<GEMINI_MODELS.length;mi++){
-    const model=GEMINI_MODELS[mi];
-    const url=GEMINI_BASE+model+':generateContent?key='+apiKey;
-    for(let attempt=0;attempt<=maxRetries;attempt++){
-      try{
-        const res=await fetch(url,{
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({contents:[{parts}],generationConfig:{temperature:0.2,maxOutputTokens:200}})
-        });
-        if(res.status===429||res.status>=500){
-          if(attempt<maxRetries){await new Promise(r=>setTimeout(r,800*Math.pow(2,attempt)));continue;}
-          else break;
-        }
-        if(!res.ok) break;
-        const data=await res.json();
-        const text=data.candidates?.[0]?.content?.parts?.[0]?.text||'';
-        if(text){console.log('[Gemini] success:',model);return {text,model};}
-      }catch(e){
-        if(attempt<maxRetries) await new Promise(r=>setTimeout(r,600*Math.pow(2,attempt)));
-      }
-    }
-    console.warn('[Gemini]',model,'failed, trying fallback...');
-  }
-  throw new Error('All Gemini models failed');
-}
-
 const L={
   zh:{navSetup:'設定',navFlash:'閃示卡',navMatch:'配對練習',vocabTitle:'字彙庫',colWord:'英文單字',colDef:'定義／中文',colPos:'詞性',addRow:'＋ 新增單字',apply:'✓ 套用字彙庫',imgTitle:'圖片設定',imgHint:'點選左側單字列再上傳或生成',uploadHint:'📁 點擊上傳圖片',genNote:'支援多模型備援，失敗自動切換',previewTitle:'字彙預覽',emptyPrev:'套用後顯示',togWord:'顯示英文',hideWord:'隱藏英文',togDef:'顯示定義',hideDef:'隱藏定義',togGrid:'總覽模式',singleView:'單張模式',shuffle:'隨機',fcTap:'點擊翻面',matchStart:'▶ 開始',mlMixed:'混合',mlSplit:'分區',tries:'嘗試：',pairs:'配對：',complete:'完成！',completeMsg:'次嘗試，用時'},
   en:{navSetup:'Settings',navFlash:'Flashcards',navMatch:'Memory Match',vocabTitle:'Vocabulary',colWord:'Word',colDef:'Definition',colPos:'POS',addRow:'＋ Add word',apply:'✓ Apply Vocab',imgTitle:'Image settings',imgHint:'Select a word row, then upload or generate',uploadHint:'📁 Click to upload',genNote:'Multi-model fallback — auto-retry on failure',previewTitle:'Preview',emptyPrev:'Apply vocab to preview',togWord:'Show word',hideWord:'Hide word',togDef:'Show definition',hideDef:'Hide definition',togGrid:'Grid view',singleView:'Single view',shuffle:'Shuffle',fcTap:'Tap to flip',matchStart:'▶ Start',mlMixed:'Mixed',mlSplit:'Split',tries:'Tries: ',pairs:'Pairs: ',complete:'Complete!',completeMsg:'tries,'}
@@ -408,49 +373,62 @@ function handleUpload(e){
 // ══════════════════════════════
 // GEMINI MULTI-MODEL IMAGE GEN
 // ══════════════════════════════
-async function generateImage(){
-  if(editRowIdx===null||generating)return;
-  const word=vocab[editRowIdx].word;
-  if(!word){alert(lang==='zh'?'請先輸入英文單字':'Please enter a word first');return;}
-  const apiKey=document.getElementById('api-key').value.trim();
-  if(!apiKey){alert(lang==='zh'?'請輸入 Gemini API Key':'Please enter your Gemini API key');return;}
-  generating=true;
-  const btn=document.getElementById('gen-btn');
-  const note=document.getElementById('t-gen-note');
-  btn.disabled=true;
+const GATEWAY_URL = "https://script.google.com/macros/s/AKfycbz0O6eB9fVC3Xp7g0Kt4U-32Inmf9ieDYJygEf3jW78xaWx10glPscEefEQwgB0jCioug/exec";
+const GATEWAY_TOKEN = "MYVIEWBOARDgoogleAPI";
 
-  const setStatus=(b,n)=>{btn.textContent=b;note.textContent=n;};
-  let imgSrc=null;
+async function generateImage() {
+  if (editRowIdx === null || generating) return;
+  const word = vocab[editRowIdx].word;
+  if (!word) { alert(lang === 'zh' ? '請先輸入英文單字' : 'Please enter a word first'); return; }
 
-  // ── Step 1: Ask text model for emoji + pastel color ──
-  setStatus('⏳ 生成中...', lang==='zh'?'呼叫 gemini-2.5-flash...':'Calling gemini-2.5-flash...');
-  try{
-    const prompt=`For the English word "${word}", reply ONLY with a JSON object (no markdown): {"emoji":"<one relevant emoji>","color":"<soft pastel hex like #FAEEDA>"}`;
-    const result=await callGemini([{text:prompt}], apiKey);
-    const raw=result.text;
-    // robust JSON extract
-    const match=raw.match(/\{[^}]+\}/);
-    if(match){
-      const parsed=JSON.parse(match[0]);
-      if(parsed.emoji) imgSrc=makeSVG(parsed.emoji, parsed.color||'#E6F1FB');
-      setStatus('✨ Gemini 生成圖片', lang==='zh'?`已用 ${result.model} 生成！`:`Generated via ${result.model}!`);
+  generating = true;
+  const btn = document.getElementById('gen-btn');
+  const note = document.getElementById('t-gen-note');
+  btn.disabled = true;
+  btn.textContent = '⏳ 生成中...';
+  note.textContent = lang === 'zh' ? '呼叫 Gateway...' : 'Calling Gateway...';
+
+  const plan = localStorage.getItem('newcore_tools_plan') || 'Free';
+  const useFreeKey = plan !== 'Pro';
+
+  const prompt = `For the English word "${word}", reply ONLY with a JSON object (no markdown): {"emoji":"<one relevant emoji>","color":"<soft pastel hex like #FAEEDA>"}`;
+
+  let imgSrc = null;
+  try {
+    const res = await fetch(GATEWAY_URL, {
+      method: 'POST',
+      redirect: 'follow',
+      body: JSON.stringify({
+        auth: GATEWAY_TOKEN,
+        action: 'lab_tool',
+        params: { customPrompt: prompt, model: 'gemini-2.5-flash', useFreeKey }
+      })
+    });
+    const gwResult = await res.json();
+    if (!gwResult.ok) throw new Error(gwResult.error || 'Gateway 失敗');
+
+    const raw = gwResult.text.replace(/```json|```/g, '').trim();
+    const match = raw.match(/\{[^}]+\}/);
+    if (match) {
+      const parsed = JSON.parse(match[0]);
+      if (parsed.emoji) imgSrc = makeSVG(parsed.emoji, parsed.color || '#E6F1FB');
     }
-  }catch(e){
-    console.error('[generateImage] callGemini error:', e);
-    setStatus('✨ Gemini 生成圖片', lang==='zh'?'API 呼叫失敗，使用預設圖示':'API failed, using default icon');
+    note.textContent = lang === 'zh' ? '生成完成！' : 'Done!';
+  } catch (e) {
+    console.error('[generateImage]', e);
+    note.textContent = lang === 'zh' ? 'Gateway 失敗，使用預設圖示' : 'Gateway failed, using default icon';
   }
 
-  if(!imgSrc) imgSrc=makeSVG('🖼️','#E6F1FB');
-
-  vocab[editRowIdx].imgSrc=imgSrc;
-  selectRow(editRowIdx);renderPreview();
-  generating=false;
-  btn.disabled=false;
-  setTimeout(()=>{
-    note.textContent=lang==='zh'?'主力 gemini-2.5-flash，備援 gemini-2.5-flash-lite':'Primary: gemini-2.5-flash, fallback: gemini-2.5-flash-lite';
-  },3000);
+  if (!imgSrc) imgSrc = makeSVG('🖼️', '#E6F1FB');
+  vocab[editRowIdx].imgSrc = imgSrc;
+  selectRow(editRowIdx); renderPreview();
+  generating = false;
+  btn.disabled = false;
+  btn.textContent = '✨ Gemini 生成圖片';
+  setTimeout(() => {
+    note.textContent = lang === 'zh' ? '支援多模型備援，失敗自動切換' : 'Multi-model fallback — auto-retry on failure';
+  }, 3000);
 }
-
 function makeSVG(emoji,color){
   return `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><rect width='200' height='200' rx='24' fill='${encodeURIComponent(color)}'/><text x='100' y='120' font-size='90' text-anchor='middle' dominant-baseline='middle'>${emoji}</text></svg>`;
 }
