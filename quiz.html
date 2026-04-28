@@ -173,7 +173,65 @@ textarea.field:focus,select.field:focus,input.field:focus{outline:none;border-co
 @keyframes wrongFlash{0%,100%{transform:none}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
 .match-result-bar{margin-top:.75rem;text-align:center;font-size:.82rem;color:var(--teal);font-weight:600;display:none}
 .match-result-bar.show{display:block}
+<!-- 手動新增區塊 -->
+    <div class="card" style="margin-top:1rem;">
+      <div class="card-label">手動新增題目</div>
+      <div style="display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap;">
+        <button class="act-btn" onclick="showManualForm('mc')">➕ 選擇題</button>
+        <button class="act-btn" onclick="showManualForm('sa')">➕ 書寫題</button>
+        <button class="act-btn" onclick="showManualForm('match')">➕ 配合題</button>
+      </div>
 
+      <!-- 選擇題表單 -->
+      <div id="form-mc" style="display:none;">
+        <div style="font-size:.78rem;font-weight:700;color:var(--coral);margin-bottom:.5rem;">選擇題</div>
+        <textarea class="field" id="mc-q" rows="2" placeholder="題目內容" style="margin-bottom:.5rem;"></textarea>
+        <input class="field" id="mc-opt0" placeholder="選項 A" style="margin-bottom:.35rem;">
+        <input class="field" id="mc-opt1" placeholder="選項 B" style="margin-bottom:.35rem;">
+        <input class="field" id="mc-opt2" placeholder="選項 C" style="margin-bottom:.35rem;">
+        <input class="field" id="mc-opt3" placeholder="選項 D" style="margin-bottom:.5rem;">
+        <div style="font-size:.75rem;color:var(--text-muted);margin-bottom:.35rem;">正確答案：</div>
+        <div style="display:flex;gap:.5rem;margin-bottom:.75rem;">
+          <button class="chip" onclick="selectMcAns(0)" id="mc-ans-0">A</button>
+          <button class="chip" onclick="selectMcAns(1)" id="mc-ans-1">B</button>
+          <button class="chip" onclick="selectMcAns(2)" id="mc-ans-2">C</button>
+          <button class="chip" onclick="selectMcAns(3)" id="mc-ans-3">D</button>
+        </div>
+        <div style="display:flex;gap:.5rem;">
+          <button class="act-btn teal" onclick="submitManualMC()">✓ 新增</button>
+          <button class="act-btn" onclick="hideManualForms()">取消</button>
+        </div>
+      </div>
+
+      <!-- 書寫題表單 -->
+      <div id="form-sa" style="display:none;">
+        <div style="font-size:.78rem;font-weight:700;color:var(--coral);margin-bottom:.5rem;">書寫題</div>
+        <textarea class="field" id="sa-q" rows="2" placeholder="題目內容" style="margin-bottom:.5rem;"></textarea>
+        <textarea class="field" id="sa-ans" rows="2" placeholder="參考答案" style="margin-bottom:.75rem;"></textarea>
+        <div style="display:flex;gap:.5rem;">
+          <button class="act-btn teal" onclick="submitManualSA()">✓ 新增</button>
+          <button class="act-btn" onclick="hideManualForms()">取消</button>
+        </div>
+      </div>
+
+      <!-- 配合題表單 -->
+      <div id="form-match" style="display:none;">
+        <div style="font-size:.78rem;font-weight:700;color:var(--coral);margin-bottom:.5rem;">配合題</div>
+        <input class="field" id="match-word" placeholder="單字 (例: apple)" style="margin-bottom:.35rem;">
+        <input class="field" id="match-def" placeholder="定義 / 中文解釋" style="margin-bottom:.35rem;">
+        <input class="field" id="match-img-prompt" placeholder="AI 生圖描述（選填，英文）" style="margin-bottom:.75rem;">
+        <div style="display:flex;gap:.5rem;">
+          <button class="act-btn teal" onclick="submitManualMatch()">✓ 新增</button>
+          <button class="act-btn" onclick="hideManualForms()">取消</button>
+        </div>
+      </div>
+
+      <div id="manual-added-list" style="margin-top:.75rem;font-size:.78rem;color:var(--text-muted);"></div>
+
+      <div style="margin-top:.75rem;border-top:1px solid var(--border);padding-top:.75rem;">
+        <button class="act-btn" onclick="setMode('print')" style="background:var(--teal);color:white;border-color:var(--teal);">👁 預覽考卷</button>
+      </div>
+    </div>
 /* OVERLAY */
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:500;align-items:center;justify-content:center;padding:1rem}
 .overlay.show{display:flex}
@@ -491,41 +549,6 @@ function setLang(l){
   applyLang();
   if(quizData.mc.length||quizData.sa.length||quizData.match.length){renderPaper();renderDigital();}
 }
-function addManualMC(){
-  quizData.mc.push({q:'',opts:['','','',''],ans:0,listeningScript:''});
-  const i = quizData.mc.length - 1;
-  // 直接開 overlay 編輯題目
-  editCtx={section:'mc',idx:i,field:'q'};
-  document.getElementById('overlayTitle').textContent='選擇題題目';
-  document.getElementById('overlayTa').value='';
-  document.getElementById('editOverlay').classList.add('show');
-  showToast('填完題目後，到列印頁點 ☰ 編輯選項與答案');
-}
-
-function addManualSA(){
-  quizData.sa.push({q:'',sampleAnswer:''});
-  const i = quizData.sa.length - 1;
-  editCtx={section:'sa',idx:i,field:'q'};
-  document.getElementById('overlayTitle').textContent='書寫題題目';
-  document.getElementById('overlayTa').value='';
-  document.getElementById('editOverlay').classList.add('show');
-}
-
-function addManualMatch(){
-  quizData.match.push({word:'',definition:'',imagePrompt:'',listeningScript:'',imgData:''});
-  const i = quizData.match.length - 1;
-  editCtx={section:'match',idx:i,field:'word'};
-  document.getElementById('overlayTitle').textContent='配合題單字';
-  document.getElementById('overlayTa').value='';
-  document.getElementById('editOverlay').classList.add('show');
-}
-
-function goToPreview(){
-  if(!quizData.mc.length&&!quizData.sa.length&&!quizData.match.length){
-    showToast('請先新增或生成題目');return;
-  }
-  setMode('print');
-}  
 function applyLang(){
   var T2=t();
   var map={'lbl-tab-edit':'tabEdit','lbl-tab-print':'tabPrint','lbl-tab-digital':'tabDig',
@@ -1037,8 +1060,8 @@ function saveOverlay(){
   }
    else if(s==='match-script'&&f==='script'){if(quizData.match[0])quizData.match[0].listeningScript=val;}
   closeOverlay();
-  // 存完後統一跳到列印頁並重新渲染
-  setMode('print');
+if(document.getElementById('page-print').classList.contains('active')) renderPaper();
+if(document.getElementById('page-digital').classList.contains('active')) renderDigital();
 }
 // ── UTILS ──
 function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
