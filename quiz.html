@@ -1035,11 +1035,10 @@ function saveOverlay(){
     }
     delete digAnswers['mc_'+i]; // 清空作答讓學生重答
   }
-  else if(s==='match-script'&&f==='script'){if(quizData.match[0])quizData.match[0].listeningScript=val;}
+   else if(s==='match-script'&&f==='script'){if(quizData.match[0])quizData.match[0].listeningScript=val;}
   closeOverlay();
-  if(document.getElementById('page-print').classList.contains('active')) renderPaper();
-  if(document.getElementById('page-digital').classList.contains('active')) renderDigital();
-}
+  // 存完後統一跳到列印頁並重新渲染
+  setMode('print');
 
 // ── UTILS ──
 function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
