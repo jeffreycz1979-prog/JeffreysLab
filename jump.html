@@ -3,57 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NewCore Dino Dash - Ultimate Edition</title>
+    <title>NewCore Dino Dash - Giant Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body, html { height: 100vh; overflow: hidden; margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         
         /* === 動態背景與視差滾動 === */
-        /* 天空色調 (隨難度漸變) */
         .sky-day { background: linear-gradient(to bottom, #87CEEB, #E0F6FF); }
         .sky-dusk { background: linear-gradient(to bottom, #FF7E5F, #FEB47B); }
         .sky-night { background: linear-gradient(to bottom, #2B32B2, #141517); }
 
-        /* 雲朵層 (極慢) */
         .layer-clouds {
-            background-image: url('data:image/svg+xml;utf8,<svg width="200" height="100" xmlns="http://www.w3.org/2000/svg"><path d="M 40 60 Q 50 40 70 40 Q 90 20 120 40 Q 150 30 160 50 Q 180 50 180 70 L 40 70 Z" fill="rgba(255,255,255,0.6)"/></svg>');
-            animation: scrollBg 40s linear infinite;
+            background-image: url('data:image/svg+xml;utf8,<svg width="300" height="150" xmlns="http://www.w3.org/2000/svg"><path d="M 60 90 Q 75 60 105 60 Q 135 30 180 60 Q 225 45 240 75 Q 270 75 270 105 L 60 105 Z" fill="rgba(255,255,255,0.5)"/></svg>');
+            animation: scrollBg 30s linear infinite;
         }
-        /* 中景層 (中速) */
         .layer-trees {
-            background-image: url('data:image/svg+xml;utf8,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><polygon points="50,20 10,100 90,100" fill="%232d6a4f"/><rect x="40" y="100" width="20" height="20" fill="%23582f0e"/></svg>');
-            background-position: bottom; background-repeat: repeat-x; background-size: 80px 80px;
-            animation: scrollBg 15s linear infinite; opacity: 0.8;
+            background-image: url('data:image/svg+xml;utf8,<svg width="150" height="150" xmlns="http://www.w3.org/2000/svg"><polygon points="75,30 15,150 135,150" fill="%232d6a4f"/><rect x="60" y="150" width="30" height="30" fill="%23582f0e"/></svg>');
+            background-position: bottom; background-repeat: repeat-x; background-size: 150px 150px;
+            animation: scrollBg 10s linear infinite; opacity: 0.9;
         }
-        /* 地板層 (極快) */
         .layer-ground {
-            background-image: repeating-linear-gradient(-45deg, #4ade80 0, #4ade80 40px, #22c55e 40px, #22c55e 80px);
-            animation: scrollBg 1s linear infinite;
-            box-shadow: 0 -5px 15px rgba(0,0,0,0.1);
+            background-image: repeating-linear-gradient(-45deg, #4ade80 0, #4ade80 60px, #22c55e 60px, #22c55e 120px);
+            animation: scrollBg 0.8s linear infinite;
+            box-shadow: 0 -1vh 2vh rgba(0,0,0,0.15);
         }
-        @keyframes scrollBg { from { background-position: 0 0; } to { background-position: -400px 0; } }
+        @keyframes scrollBg { from { background-position: 0 0; } to { background-position: -600px 0; } }
 
-        /* === 遊戲特效 === */
+        /* === 遊戲特效與巨型化設定 === */
         .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
         @keyframes shake {
-            10%, 90% { transform: translate3d(-2px, 0, 0); }
-            20%, 80% { transform: translate3d(4px, 0, 0); }
-            30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
-            40%, 60% { transform: translate3d(6px, 0, 0); }
+            10%, 90% { transform: translate3d(-5px, 0, 0); }
+            20%, 80% { transform: translate3d(10px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-15px, 0, 0); }
+            40%, 60% { transform: translate3d(15px, 0, 0); }
         }
         
-        .dino-jump { transition: bottom 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        /* 恐龍垂直跳躍的平滑過渡 */
+        .dino-jump { transition: bottom 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         
         /* 粒子特效 */
         .particle {
             position: absolute; border-radius: 50%; pointer-events: none;
-            transition: transform 0.5s ease-out, opacity 0.5s ease-out;
+            transition: transform 0.5s ease-out, opacity 0.5s ease-out; z-index: 40;
         }
 
-        /* 障礙物與道具樣式 */
-        .obs-word { box-shadow: 0 4px 6px rgba(0,0,0,0.1), inset 0 -3px 0 rgba(0,0,0,0.1); }
-        .obs-heart { animation: pulse 1s infinite; filter: drop-shadow(0 0 10px rgba(239,68,68,0.5)); }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        /* 障礙物樣式優化，增加邊框厚度與圓角 */
+        .obs-word { box-shadow: 0 1vh 2vh rgba(0,0,0,0.2), inset 0 -0.5vh 0 rgba(0,0,0,0.15); border-radius: 3vh; border-width: 0.8vh; }
+        .obs-heart { animation: pulse 1s infinite; filter: drop-shadow(0 0 2vh rgba(239,68,68,0.6)); border-radius: 3vh; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
     </style>
 </head>
 <body class="bg-slate-100 flex flex-col">
@@ -75,32 +72,34 @@
         </section>
 
         <section id="pane-game" class="w-[70%] relative flex flex-col hidden overflow-hidden">
-            <div class="absolute top-4 left-4 right-4 flex justify-between items-center z-30">
-                <div class="text-3xl font-black text-white drop-shadow-md">SCORE: <span id="ui-score">0</span></div>
-                <div id="ui-hearts" class="text-3xl drop-shadow-md">❤️❤️❤️</div>
+            <div class="absolute top-4 left-6 right-6 flex justify-between items-center z-30">
+                <div class="text-4xl font-black text-white drop-shadow-lg">SCORE: <span id="ui-score">0</span></div>
+                <div class="text-white text-lg font-bold drop-shadow-md bg-black/30 px-4 py-1 rounded-full">方向鍵 ← → 移動 | 空白鍵跳躍</div>
+                <div id="ui-hearts" class="text-4xl drop-shadow-lg">❤️❤️❤️</div>
             </div>
             
-            <div id="game-canvas" class="flex-1 relative cursor-pointer sky-day transition-colors duration-1000" onclick="handleInput()">
+            <div id="game-canvas" class="flex-1 relative sky-day transition-colors duration-1000 overflow-hidden">
                 <div class="absolute inset-0 layer-clouds"></div>
-                <div class="absolute inset-0 layer-trees mb-[40px]"></div>
+                <div class="absolute inset-0 layer-trees" style="margin-bottom: 10vh;"></div>
                 
                 <div id="game-world" class="absolute inset-0">
-                    <div id="dino" class="absolute left-16 text-6xl dino-jump z-20 filter drop-shadow-[0_10px_5px_rgba(0,0,0,0.3)]" style="bottom: 40px; transform: scaleX(-1);">🦖</div>
+                    <div id="dino" class="absolute dino-jump z-20 filter drop-shadow-[0_2vh_1vh_rgba(0,0,0,0.4)]" 
+                         style="font-size: 30vh; line-height: 1; bottom: 10vh; left: 15%; transform: scaleX(-1);">🦖</div>
                 </div>
 
-                <div id="ground" class="absolute bottom-0 left-0 w-full h-10 border-t-4 border-green-800 layer-ground z-10"></div>
+                <div id="ground" class="absolute bottom-0 left-0 w-full h-[10vh] border-t-[0.8vh] border-green-800 layer-ground z-10"></div>
             </div>
 
-            <div id="game-over-screen" class="absolute inset-0 bg-black/80 hidden z-50 flex flex-col items-center justify-center text-white">
-                <h1 class="text-5xl font-black mb-4 text-red-500">GAME OVER</h1>
-                <p class="text-xl mb-6">最終分數：<span id="final-score" class="font-bold text-yellow-400">0</span></p>
-                <button onclick="startGame()" class="bg-white text-black px-6 py-3 rounded-full font-bold hover:bg-gray-200 transition transform hover:scale-105">再玩一次 (Restart)</button>
+            <div id="game-over-screen" class="absolute inset-0 bg-black/85 hidden z-50 flex flex-col items-center justify-center text-white">
+                <h1 class="text-7xl font-black mb-4 text-red-500 drop-shadow-lg">GAME OVER</h1>
+                <p class="text-3xl mb-8">最終分數：<span id="final-score" class="font-bold text-yellow-400">0</span></p>
+                <button onclick="startGame()" class="bg-white text-black px-8 py-4 rounded-full text-xl font-bold hover:bg-gray-200 transition transform hover:scale-110 shadow-xl">再玩一次 (Restart)</button>
             </div>
         </section>
     </main>
 
     <script>
-        // === 核心變數 ===
+        // === 核心變數 === 
         let wordList = [];
         let score = 0;
         let lives = 3;
@@ -110,12 +109,14 @@
         let currentObstacle = null;
         let animationFrameId = null;
         
-        // 難度參數
-        let baseSpeed = 5;
-        let currentSpeed = 5;
+        // 移動與位置參數 (百分比與 GPU 加速)
+        let dinoX = 15; // 初始位置在畫面 15% 處
+        let keys = { left: false, right: false };
+        let baseSpeed = 8;
+        let currentSpeed = 8;
         let level = 1;
 
-        // === 系統初始化 ===
+        // === 系統初始化 === 
         window.onload = () => {
             const saved = localStorage.getItem('dino_word_list');
             if (saved) document.getElementById('word-input').value = JSON.parse(saved).raw;
@@ -151,6 +152,9 @@
             lives = 3;
             level = 1;
             currentSpeed = baseSpeed;
+            dinoX = 15;
+            document.getElementById('dino').style.left = dinoX + '%';
+            
             updateUI();
             updateDifficulty();
             
@@ -165,33 +169,38 @@
             if (!isPlaying) return;
             
             const world = document.getElementById('game-world');
-            const isHeart = Math.random() < 0.1; // 10% 機率出補血愛心
+            const isHeart = Math.random() < 0.1; 
 
             const el = document.createElement('div');
-            el.className = 'absolute bottom-[40px] px-5 py-2 rounded-full font-bold text-2xl z-20 ';
+            // 巨型化單字方塊 (font-size: 15vh, padding 隨比例)
+            el.className = 'absolute font-black whitespace-nowrap z-20 flex items-center justify-center';
+            el.style.bottom = '10vh';
+            el.style.left = '0px'; // 固定在左側，靠 transform 移動
+            el.style.fontSize = isHeart ? '20vh' : '15vh';
+            el.style.padding = isHeart ? '1vh 2vh' : '2vh 4vh';
 
             let obstacleData = { el: el, x: window.innerWidth, checked: false, type: 'word' };
 
             if (isHeart) {
-                // 愛心道具
                 el.innerText = '💖';
-                el.className += 'obs-heart text-4xl bg-white/50 border-2 border-pink-300';
+                el.className += ' obs-heart bg-white/70 border-pink-400 border-[0.8vh]';
                 obstacleData.type = 'heart';
-                obstacleData.isCorrect = true; // 要撞才對
+                obstacleData.isCorrect = true; 
             } else {
-                // 單字道具
                 const target = wordList[Math.floor(Math.random() * wordList.length)];
                 const isCorrect = Math.random() > 0.5;
                 let displayText = isCorrect ? target.word : (target.custom || generateTypo(target.word));
                 
                 el.innerText = displayText;
-                el.className += 'obs-word bg-white border-4 border-slate-800 text-slate-800';
+                el.className += ' obs-word bg-white border-slate-800 text-slate-800';
                 obstacleData.isCorrect = isCorrect;
                 obstacleData.word = target.word;
                 
-                speak(target.word); // 零成本發音
+                speak(target.word);
             }
 
+            // 初始套用 GPU 硬體加速
+            el.style.transform = `translate3d(${obstacleData.x}px, 0, 0)`;
             world.appendChild(el);
             currentObstacle = obstacleData;
         }
@@ -201,33 +210,45 @@
             return Math.random() > 0.5 ? word.slice(0, -1) : word[1] + word[0] + word.slice(2);
         }
 
-        // 原生發音 API
         function speak(text) {
-            window.speechSynthesis.cancel(); // 確保不會卡住
+            window.speechSynthesis.cancel(); 
             const msg = new SpeechSynthesisUtterance(text);
             msg.lang = 'en-US';
             msg.rate = 0.9;
             window.speechSynthesis.speak(msg);
         }
 
-        // === 碰撞與判定 ===
+        // === 遊戲迴圈與物理判定 ===
         function gameLoop() {
             if (!isPlaying) return;
 
+            // 處理恐龍前後移動
+            if (keys.left && dinoX > 0) dinoX -= 0.6;
+            if (keys.right && dinoX < 50) dinoX += 0.6; // 限制在畫面左半部
+            document.getElementById('dino').style.left = dinoX + '%';
+
             if (currentObstacle) {
                 currentObstacle.x -= currentSpeed;
-                currentObstacle.el.style.left = currentObstacle.x + 'px';
+                // 使用 translate3d 解決移動時文字模糊的問題
+                currentObstacle.el.style.transform = `translate3d(${currentObstacle.x}px, 0, 0)`;
 
-                // 碰撞判定區 (Dino 範圍大約在 X: 64 ~ 120 之間)
-                if (!currentObstacle.checked && currentObstacle.x < 110 && currentObstacle.x > 64) {
-                    if (!isJumping) {
+                // 精準碰撞判定 (使用 getBoundingClientRect 抓取畫面真實座標)
+                if (!currentObstacle.checked) {
+                    const dinoRect = document.getElementById('dino').getBoundingClientRect();
+                    const obsRect = currentObstacle.el.getBoundingClientRect();
+                    
+                    // 給予一點寬容度的碰撞區間 (內縮 40px 防止擦邊即死)
+                    const isXOverlap = (dinoRect.right - 40 > obsRect.left) && (dinoRect.left + 40 < obsRect.right);
+                    const isYOverlap = dinoRect.bottom > obsRect.top;
+
+                    if (isXOverlap && isYOverlap) {
                         handleCollision(currentObstacle);
                         currentObstacle.checked = true;
                     }
                 }
 
-                // 完全錯過 (閃過或漏吃)
-                if (currentObstacle.x < -100) {
+                // 完全移出畫面外
+                if (currentObstacle.x < -1000) { // 因為字變很大，移出範圍也要拉長
                     if (!currentObstacle.checked) {
                         handlePass(currentObstacle);
                     }
@@ -241,31 +262,26 @@
         }
 
         function handleCollision(obs) {
-            obs.el.style.display = 'none'; // 隱藏物體
-            createParticles(100, window.innerHeight - 80, obs.type === 'heart' ? '#ec4899' : '#e2e8f0');
+            obs.el.style.display = 'none'; 
+            
+            // 抓取物件中心點爆炸
+            const rect = obs.el.getBoundingClientRect();
+            createParticles(rect.left + rect.width / 2, rect.top + rect.height / 2, obs.type === 'heart' ? '#ec4899' : '#cbd5e1');
 
             if (obs.type === 'heart') {
                 if (lives < maxLives) lives++;
                 updateScore(10);
             } else {
-                if (obs.isCorrect) {
-                    // 撞對單字
-                    updateScore(10);
-                } else {
-                    // 撞錯單字 (扣血！)
-                    takeDamage();
-                }
+                if (obs.isCorrect) updateScore(10);
+                else takeDamage();
             }
             updateUI();
         }
 
         function handlePass(obs) {
             if (obs.type === 'word') {
-                if (!obs.isCorrect) {
-                    // 成功閃過錯字
-                    updateScore(10);
-                } else {
-                    // 錯過對的單字 (扣分懲罰，防止無腦亂跳)
+                if (!obs.isCorrect) updateScore(10);
+                else {
                     updateScore(-10);
                     showToast("-10 錯過正解!");
                 }
@@ -277,13 +293,10 @@
             const canvas = document.getElementById('game-canvas');
             canvas.classList.add('shake');
             setTimeout(() => canvas.classList.remove('shake'), 400);
-            if (window.navigator.vibrate) window.navigator.vibrate([200, 100, 200]);
-            
             updateUI();
             if (lives <= 0) gameOver();
         }
 
-        // === 動態難度與特效 ===
         function updateScore(val) {
             score = Math.max(0, score + val);
             updateUI();
@@ -294,14 +307,13 @@
             const oldLevel = level;
             if (score >= 300) level = 3;
             else if (score >= 100) level = 2;
-
             if (level !== oldLevel) updateDifficulty();
         }
 
         function updateDifficulty() {
             const canvas = document.getElementById('game-canvas');
             const levelUI = document.getElementById('ui-level');
-            canvas.className = 'flex-1 relative cursor-pointer transition-colors duration-1000'; // reset
+            canvas.className = 'flex-1 relative sky-day transition-colors duration-1000 overflow-hidden'; 
             
             if (level === 1) {
                 currentSpeed = baseSpeed;
@@ -316,9 +328,8 @@
                 canvas.classList.add('sky-night');
                 levelUI.innerText = 'LV.3 狂熱期'; levelUI.className = 'ml-2 text-xs bg-purple-700 px-2 py-1 rounded';
             }
-            // 加速動畫
-            document.querySelector('.layer-trees').style.animationDuration = (15 / level) + 's';
-            document.querySelector('.layer-ground').style.animationDuration = (1 / level) + 's';
+            document.querySelector('.layer-trees').style.animationDuration = (10 / level) + 's';
+            document.querySelector('.layer-ground').style.animationDuration = (0.8 / level) + 's';
         }
 
         function updateUI() {
@@ -332,38 +343,49 @@
             document.getElementById('game-over-screen').classList.remove('hidden');
         }
 
-        // === 玩家輸入與粒子系統 ===
-        function handleInput() {
+        // === 玩家輸入控制器 ===
+        function handleJump() {
             if (isJumping || !isPlaying) return;
             isJumping = true;
             const dino = document.getElementById('dino');
-            dino.style.bottom = '180px';
+            // 跳躍高度以 vh 計算 (從 10vh 飛到 50vh)
+            dino.style.bottom = '50vh';
             setTimeout(() => {
-                dino.style.bottom = '40px';
-                setTimeout(() => { isJumping = false; }, 300);
-            }, 400); // 滯空時間
+                dino.style.bottom = '10vh';
+                setTimeout(() => { isJumping = false; }, 350);
+            }, 400); 
         }
-        window.addEventListener('keydown', (e) => { if (e.code === 'Space') handleInput(); });
 
+        window.addEventListener('keydown', (e) => { 
+            if (e.code === 'Space') handleJump(); 
+            if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = true;
+            if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = true;
+        });
+        window.addEventListener('keyup', (e) => { 
+            if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = false;
+            if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = false;
+        });
+
+        // === 特效系統 ===
         function createParticles(x, y, color) {
             const world = document.getElementById('game-world');
-            for (let i = 0; i < 8; i++) {
+            for (let i = 0; i < 12; i++) {
                 const p = document.createElement('div');
                 p.className = 'particle';
-                p.style.width = Math.random() * 8 + 4 + 'px';
+                p.style.width = Math.random() * 2 + 1 + 'vh'; // 巨型化粒子
                 p.style.height = p.style.width;
                 p.style.backgroundColor = color;
-                p.style.left = x + 20 + 'px';
+                p.style.left = x + 'px';
                 p.style.top = y + 'px';
                 world.appendChild(p);
                 
                 const angle = Math.random() * Math.PI * 2;
-                const velocity = Math.random() * 60 + 20;
+                const velocity = Math.random() * 150 + 50;
                 const tx = Math.cos(angle) * velocity;
-                const ty = Math.sin(angle) * velocity - 20; // 向上拋
+                const ty = Math.sin(angle) * velocity - 50; 
 
                 setTimeout(() => {
-                    p.style.transform = `translate(${tx}px, ${ty}px) scale(0)`;
+                    p.style.transform = `translate3d(${tx}px, ${ty}px, 0) scale(0)`;
                     p.style.opacity = '0';
                 }, 10);
                 setTimeout(() => p.remove(), 500);
@@ -372,11 +394,11 @@
 
         function showToast(msg) {
             const toast = document.createElement('div');
-            toast.className = 'absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-red-600 text-white font-bold px-4 py-2 rounded shadow-lg transition-opacity duration-500 z-50';
+            toast.className = 'absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-red-600 text-white font-black text-4xl px-8 py-4 rounded-xl shadow-2xl transition-opacity duration-500 z-50';
             toast.innerText = msg;
             document.getElementById('pane-game').appendChild(toast);
-            setTimeout(() => toast.style.opacity = '0', 500);
-            setTimeout(() => toast.remove(), 1000);
+            setTimeout(() => toast.style.opacity = '0', 600);
+            setTimeout(() => toast.remove(), 1100);
         }
     </script>
 </body>
