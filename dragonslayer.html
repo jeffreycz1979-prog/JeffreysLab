@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Core Grammar Fighter 🧙‍♂️⚔️🐉</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body, html { height: 100vh; overflow: hidden; margin: 0; background: #0f172a; font-family: 'Segoe UI', sans-serif; }
+        
+        /* 戰場背景 */
+        .battleground {
+            background: radial-gradient(circle at center, #1e293b 0%, #020617 100%);
+            box-shadow: inset 0 0 100px rgba(0,0,0,0.8);
+        }
+
+        /* 血條 UI */
+        .hp-bar-container { width: 100%; height: 24px; background: #334155; border-radius: 12px; overflow: hidden; border: 2px solid #000; }
+        .hp-bar { height: 100%; transition: width 0.3s ease-out; }
+        .hp-player { background: linear-gradient(90deg, #22c55e, #4ade80); }
+        .hp-boss { background: linear-gradient(90deg, #ef4444, #f87171); }
+
+        /* 動畫特效 */
+        .shake { animation: shake 0.4s both; }
+        @keyframes shake { 10%, 90% { transform: translate3d(-5px, 0, 0); } 40%, 60% { transform: translate3d(10px, 0, 0); } }
+        
+        .attack-pulse { animation: pulseRed 0.5s; }
+        @keyframes pulseRed { 0% { filter: drop-shadow(0 0 0px red); } 50% { filter: drop-shadow(0 0 30px red); } 100% { filter: drop-shadow(0 0 0px red); } }
+
+        /* 火球 (Boss 攻擊) */
+        .fireball {
+            position: absolute; top: 40%; right: 15%;
+            transition: all linear; /* 時間由 JS 動態控制 */
+            z-index: 20;
+        }
+
+        /* 魔法反擊 (玩家攻擊) */
+        .magic-beam {
+            position: absolute; top: 50%; left: 15%;
+            width: 0; height: 15px; background: cyan;
+            box-shadow: 0 0 20px cyan, 0 0 40px blue;
+            border-radius: 10px; z-index: 15;
+            transition: width 0.2s ease-out;
+        }
+
+        /* 選項按鈕懸停發光 */
+        .magic-btn { transition: all 0.2s; }
+        .magic-btn:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(59, 130, 246, 0.5); border-color: #60a5fa; }
+        .magic-btn:active { transform: scale(0.95); }
+    </style>
+</head>
+<body class="flex flex-col text-slate-100">
+
+    <header class="h-12 bg-slate-950 text-white flex items-center justify-between px-6 z-50 border-b border-slate-800 shadow-lg">
+        <div class="font-bold tracking-widest text-lg text-blue-400">New Core Grammar Fighter ⚔️</div>
+        <div class="flex gap-4 text-sm font-bold">
+            <button onclick="switchMode('edit')" class="hover:text-blue-300 transition">👨‍🏫 建立魔法書</button>
+            <button onclick="switchMode('game')" class="hover:text-blue-300 transition">🎮 進入戰場</button>
+        </div>
+    </header>
+
+    <main class="flex-1 flex overflow-hidden">
+        <section id="pane-edit" class="w-[30%] p-6 bg-slate-900 border-r border-slate-700 shadow-2xl flex flex-col gap-4 z-20">
+            <h2 class="text-xl font-black border-l-4 border-blue-500 pl-3 text-white">咒語與怪物設定</h2>
+            <div class="text-xs text-blue-200 bg-blue-900/30 p-3 rounded-lg border border-blue-800">
+                <p class="font-bold mb-1">✍️ 輸入格式：</p>
+                <p>句子(含___或---) , 正解 , 錯項1 , 錯項2</p>
+            </div>
+            <textarea id="cloze-input" class="flex-1 p-4 bg-slate-800 border border-slate-600 rounded-xl font-mono text-sm leading-relaxed outline-none focus:ring-2 focus:ring-blue-500 resize-none text-green-300 shadow-inner" 
+                placeholder="He ___ to the park yesterday., went, go, goes&#10;They have ___ their homework., finished, finish, finishing"></textarea>
+            <button onclick="saveAndStart()" class="bg-blue-600 font-bold text-white py-4 rounded-xl hover:bg-blue-500 transition-all shadow-lg active:scale-95 text-lg tracking-wide border border-blue-400">💾 儲存並挑戰 Boss</button>
+        </section>
+
+        <section id="pane-game" class="w-[70%] relative flex flex-col hidden overflow-hidden battleground">
+            
+            <div class="absolute top-4 inset-x-0 flex justify-between items-center px-10 z-30">
+                <div class="w-1/3 flex flex-col gap-1">
+                    <div class="font-bold text-blue-300 text-xl tracking-wider">WIZARD (You)</div>
+                    <div class="hp-bar-container"><div id="hp-player" class="hp-bar hp-player" style="width: 100%;"></div></div>
+                </div>
+                <div class="text-center font-black text-4xl text-yellow-400 drop-shadow-[0_0_10px_rgba(250,204,21,0.8)]">VS</div>
+                <div class="w-1/3 flex flex-col gap-1 items-end">
+                    <div class="font-bold text-red-400 text-xl tracking-wider text-right">ANCIENT DRAGON</div>
+                    <div class="hp-bar-container"><div id="hp-boss" class="hp-bar hp-boss" style="width: 100%;"></div></div>
+                </div>
+            </div>
+
+            <div class="flex-1 relative mt-16">
+                <div id="player" class="absolute bottom-[30%] left-[10%] text-9xl z-10 transition-transform drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)]">🧙‍♂️</div>
+                
+                <div id="boss" class="absolute bottom-[30%] right-[10%] text-[10rem] z-10 transition-transform drop-shadow-[0_10px_10px_rgba(0,0,0,0.8)]" style="transform: scaleX(-1);">🐉</div>
+                
+                <div id="magic-beam" class="magic-beam hidden"></div>
+
+                <div id="fireball-container" class="fireball hidden flex items-center gap-4">
+                    <div id="ui-question" class="bg-slate-900/80 border-2 border-red-500 text-white px-6 py-4 rounded-2xl text-3xl font-bold shadow-[0_0_30px_rgba(239,68,68,0.6)] backdrop-blur-sm whitespace-nowrap">
+                        Ready?
+                    </div>
+                    <div class="text-7xl drop-shadow-[0_0_20px_red]">☄️</div>
+                </div>
+            </div>
+
+            <div id="options-panel" class="absolute bottom-8 inset-x-0 flex justify-center gap-6 px-10 z-30 opacity-0 transition-opacity duration-300 pointer-events-none">
+                </div>
+
+            <div id="game-over-screen" class="absolute inset-0 bg-slate-950/90 hidden z-50 flex flex-col items-center justify-center text-white backdrop-blur-md">
+                <h1 id="result-title" class="text-8xl font-black mb-6 tracking-widest drop-shadow-[0_0_20px_rgba(255,255,255,0.5)]">VICTORY</h1>
+                <p class="text-2xl mb-10 text-slate-300">戰鬥結束，法力結算中...</p>
+                <button onclick="startGame()" class="bg-blue-600 text-white px-10 py-5 rounded-2xl text-2xl font-bold hover:bg-blue-500 transition shadow-[0_0_20px_rgba(37,99,235,0.8)] hover:scale-105">🔄 再次挑戰</button>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 遊戲狀態變數
+        let questions = [], currentIdx = 0, isPlaying = false;
+        let playerHp = 100, bossHp = 100;
+        let damagePerHit = 20; // Boss 總血量 100，根據題數動態調整每擊傷害
+        let fireballTimer = null; // 控制反應時間的計時器
+        let currentCorrectAnswer = "";
+
+        // 初始化
+        window.onload = () => {
+            const saved = localStorage.getItem('fighter_data');
+            if (saved) document.getElementById('cloze-input').value = saved;
+            switchMode('edit');
+        };
+
+        function switchMode(mode) {
+            document.getElementById('pane-edit').classList.toggle('hidden', mode === 'game');
+            document.getElementById('pane-game').classList.toggle('hidden', mode === 'edit');
+            document.getElementById('pane-game').classList.toggle('w-full', mode === 'game');
+            if (mode === 'game' && !isPlaying) startGame();
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // 智慧解析題庫 (支援逗號與不齊全選項)
+        function saveAndStart() {
+            const raw = document.getElementById('cloze-input').value;
+            questions = raw.trim().split('\n').map(line => {
+                const firstComma = line.indexOf(',');
+                if (firstComma === -1) return null;
+
+                const question = line.substring(0, firstComma).trim();
+                const optionsRaw = line.substring(firstComma + 1).split(',').map(s => s.trim()).filter(s => s !== "");
+                
+                if (optionsRaw.length === 0) return null;
+                const correct = optionsRaw[0]; 
+                
+                let options = [...optionsRaw];
+                while(options.length < 3) options.push("???"); // 防呆
+                
+                return { question, correct, rawOptions: options.slice(0,3) };
+            }).filter(item => item !== null);
+
+            if(questions.length === 0) return alert('⚠️ 魔法書解析失敗！請確認格式是否正確。');
+            localStorage.setItem('fighter_data', raw);
+            switchMode('game');
+        }
+
+        function startGame() {
+            document.getElementById('game-over-screen').classList.add('hidden');
+            isPlaying = true; currentIdx = 0;
+            playerHp = 100; bossHp = 100;
+            
+            // 根據題目數量計算 Boss 每題扣血量，保證全部答對剛好打死 Boss
+            damagePerHit = 100 / questions.length;
+            
+            updateHPBar();
+            shuffleArray(questions);
+            setTimeout(nextTurn, 1000);
+        }
+
+        function nextTurn() {
+            if (bossHp <= 0.1) return endGame(true); // 贏了
+            if (playerHp <= 0) return endGame(false); // 輸了
+            if (currentIdx >= questions.length) return endGame(bossHp <= 0.1); // 題目用完結算
+
+            const q = questions[currentIdx];
+            currentCorrectAnswer = q.correct;
+            
+            // 1. 準備按鈕面板
+            const panel = document.getElementById('options-panel');
+            panel.innerHTML = '';
+            const shuffledOptions = shuffleArray([...q.rawOptions]);
+            
+            shuffledOptions.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'magic-btn bg-slate-800 border-2 border-slate-600 text-white px-8 py-5 rounded-2xl text-4xl font-black min-w-[200px] shadow-lg';
+                btn.innerText = opt;
+                btn.onclick = () => handleAnswer(opt, btn);
+                panel.appendChild(btn);
+            });
+
+            // 2. Boss 發動攻擊動畫
+            const boss = document.getElementById('boss');
+            boss.classList.add('attack-pulse');
+            setTimeout(() => boss.classList.remove('attack-pulse'), 500);
+
+            // 3. 火球飛出與題目顯示
+            const fireball = document.getElementById('fireball-container');
+            const qText = document.getElementById('ui-question');
+            qText.innerText = q.question;
+            qText.className = 'bg-slate-900/90 border-2 border-red-500 text-white px-6 py-4 rounded-2xl text-4xl font-bold shadow-[0_0_30px_rgba(239,68,68,0.8)] backdrop-blur-sm whitespace-nowrap';
+            
+            // 語音引導：唸出完整句子 (零成本)
+            speak(q.question.replace(/[-_]{2,}|\.{3,}/, q.correct));
+
+            // 設定火球起點並顯示
+            fireball.style.transition = 'none';
+            fireball.style.right = '15%';
+            fireball.style.top = '40%';
+            fireball.classList.remove('hidden');
+            panel.classList.remove('opacity-0', 'pointer-events-none');
+
+            // 觸發飛行 CSS Transition
+            const flightTime = 4000; // 4秒反應時間
+            setTimeout(() => {
+                fireball.style.transition = `right ${flightTime}ms linear, top ${flightTime}ms linear`;
+                fireball.style.right = '70%'; // 飛向玩家
+                fireball.style.top = '55%';
+            }, 50);
+
+            // 4. 設定超時判定 (沒按按鈕就是被打中)
+            fireballTimer = setTimeout(() => {
+                handleTimeout();
+            }, flightTime);
+        }
+
+        // 處理玩家點擊選項
+        function handleAnswer(selectedOpt, btnElement) {
+            if (!isPlaying) return;
+            clearTimeout(fireballTimer); // 停用超時傷害
+            document.getElementById('options-panel').classList.add('opacity-0', 'pointer-events-none'); // 隱藏按鈕
+
+            const fireball = document.getElementById('fireball-container');
+            const qText = document.getElementById('ui-question');
+            
+            // 停止火球飛行 (鎖定當前位置)
+            const currentRight = window.getComputedStyle(fireball).right;
+            const currentTop = window.getComputedStyle(fireball).top;
+            fireball.style.transition = 'none';
+            fireball.style.right = currentRight;
+            fireball.style.top = currentTop;
+
+            if (selectedOpt === currentCorrectAnswer) {
+                // ✅ 答對：完美格擋 + 魔法反擊
+                btnElement.classList.replace('border-slate-600', 'border-green-400');
+                btnElement.classList.replace('bg-slate-800', 'bg-green-900');
+                
+                // 題目變綠色並顯示正解
+                qText.innerText = questions[currentIdx].question.replace(/[-_]{2,}|\.{3,}/, currentCorrectAnswer);
+                qText.classList.replace('border-red-500', 'border-green-400');
+                qText.classList.replace('shadow-[0_0_30px_rgba(239,68,68,0.8)]', 'shadow-[0_0_30px_rgba(74,222,128,0.8)]');
+
+                // 發射反擊光束
+                setTimeout(() => shootMagicBeam(), 400);
+
+            } else {
+                // ❌ 答錯：受到傷害
+                btnElement.classList.replace('border-slate-600', 'border-red-500');
+                btnElement.classList.replace('bg-slate-800', 'bg-red-900');
+                takeDamage();
+                
+                setTimeout(() => {
+                    fireball.classList.add('hidden');
+                    currentIdx++;
+                    nextTurn();
+                }, 1000);
+            }
+        }
+
+        // 處理超時 (未作答)
+        function handleTimeout() {
+            if (!isPlaying) return;
+            document.getElementById('options-panel').classList.add('opacity-0', 'pointer-events-none');
+            takeDamage();
+            
+            setTimeout(() => {
+                document.getElementById('fireball-container').classList.add('hidden');
+                currentIdx++;
+                nextTurn();
+            }, 1000);
+        }
+
+        // 玩家受傷判定
+        function takeDamage() {
+            playerHp -= 20; // 玩家固定錯 5 題死掉
+            updateHPBar();
+            const pane = document.getElementById('pane-game');
+            pane.classList.add('shake');
+            pane.style.boxShadow = 'inset 0 0 100px rgba(239,68,68,0.8)'; // 螢幕紅光
+            
+            // 讀出正確答案作為回饋
+            speak("Wrong. " + currentCorrectAnswer);
+
+            setTimeout(() => { 
+                pane.classList.remove('shake'); 
+                pane.style.boxShadow = 'inset 0 0 100px rgba(0,0,0,0.8)';
+            }, 500);
+        }
+
+        // 玩家攻擊判定 (發射光束)
+        function shootMagicBeam() {
+            const beam = document.getElementById('magic-beam');
+            const fireball = document.getElementById('fireball-container');
+            
+            beam.classList.remove('hidden');
+            // 光束伸長擊中 Boss
+            setTimeout(() => { beam.style.width = '65%'; }, 50);
+
+            // 擊中 Boss 後的判定
+            setTimeout(() => {
+                fireball.classList.add('hidden'); // 火球消散
+                beam.classList.add('hidden');
+                beam.style.width = '0';
+                
+                // Boss 扣血並震動
+                bossHp -= damagePerHit;
+                updateHPBar();
+                const boss = document.getElementById('boss');
+                boss.classList.add('shake');
+                setTimeout(() => boss.classList.remove('shake'), 400);
+
+                currentIdx++;
+                setTimeout(nextTurn, 1000); // 1秒後進入下一回合
+            }, 300); // 光束飛行時間
+        }
+
+        function updateHPBar() {
+            document.getElementById('hp-player').style.width = Math.max(0, playerHp) + '%';
+            document.getElementById('hp-boss').style.width = Math.max(0, bossHp) + '%';
+        }
+
+        function endGame(isWin) {
+            isPlaying = false;
+            const screen = document.getElementById('game-over-screen');
+            const title = document.getElementById('result-title');
+            
+            screen.classList.remove('hidden');
+            if (isWin) {
+                title.innerText = "VICTORY 🏆";
+                title.className = "text-8xl font-black mb-6 tracking-widest text-yellow-400 drop-shadow-[0_0_30px_rgba(250,204,21,0.8)]";
+            } else {
+                title.innerText = "DEFEATED ☠️";
+                title.className = "text-8xl font-black mb-6 tracking-widest text-red-500 drop-shadow-[0_0_30px_rgba(239,68,68,0.8)]";
+            }
+        }
+
+        function speak(text) {
+            window.speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(text);
+            msg.lang = 'en-US'; msg.rate = 0.9;
+            window.speechSynthesis.speak(msg);
+        }
+    </script>
+</body>
+</html>
