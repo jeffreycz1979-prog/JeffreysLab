@@ -24,47 +24,44 @@
         .shake { animation: shake 0.4s both; }
         @keyframes shake { 10%, 90% { transform: translate3d(-5px, 0, 0); } 40%, 60% { transform: translate3d(10px, 0, 0); } }
 
-        /* 能量球樣式 */
+        /* 🟢 巨型能量球樣式 */
         .orb {
             position: absolute;
-            width: 100px; height: 100px;
+            width: 140px; height: 140px; /* 放大球體 */
             border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 900; font-size: 1.5rem; color: white;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-            box-shadow: inset 0 0 20px rgba(255,255,255,0.5), 0 0 20px rgba(59,130,246,0.6);
+            display: flex; align-items: center; justify-content: center; text-align: center;
+            font-weight: 900; font-size: 2.5rem; color: white; /* 放大字體 */
+            text-shadow: 0 3px 6px rgba(0,0,0,0.9);
+            box-shadow: inset 0 0 25px rgba(255,255,255,0.6), 0 0 30px rgba(59,130,246,0.6);
             background: radial-gradient(circle at 30% 30%, #60a5fa, #1d4ed8);
-            border: 2px solid #93c5fd;
+            border: 3px solid #93c5fd;
             z-index: 20;
+            padding: 10px; word-break: break-all; leading-tight;
         }
 
-        /* 正解被接住時的光芒 */
         .orb-catch { animation: catchPop 0.4s forwards; }
         @keyframes catchPop { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); filter: brightness(2); } 100% { transform: scale(0); opacity: 0; } }
 
-        /* 漏接或接錯的爆裂 */
         .orb-miss { animation: missPop 0.4s forwards; }
         @keyframes missPop { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.2); background: red; box-shadow: 0 0 30px red; } 100% { transform: scale(0); opacity: 0; } }
 
-        /* 玩家接收器 (UFO 飛碟) */
+        /* 🟢 巨大化玩家接收器 (UFO 飛碟) */
         .catcher {
             position: absolute; bottom: 20px;
-            width: 160px; height: 40px;
+            width: 240px; height: 50px; /* 加寬加大 */
             background: linear-gradient(to bottom, #94a3b8, #475569);
-            border-radius: 40px 40px 10px 10px;
-            box-shadow: 0 -5px 20px rgba(56, 189, 248, 0.5), inset 0 5px 10px rgba(255,255,255,0.3);
-            border: 3px solid #cbd5e1;
-            z-index: 30;
-            display: flex; justify-content: center;
+            border-radius: 50px 50px 15px 15px;
+            box-shadow: 0 -5px 25px rgba(56, 189, 248, 0.6), inset 0 5px 10px rgba(255,255,255,0.3);
+            border: 4px solid #cbd5e1;
+            z-index: 30; display: flex; justify-content: center;
         }
-        /* UFO 駕駛艙 */
         .catcher::before {
-            content: ''; position: absolute; top: -20px;
-            width: 80px; height: 40px;
+            content: ''; position: absolute; top: -30px;
+            width: 120px; height: 50px;
             background: radial-gradient(ellipse at top, #bae6fd, #0ea5e9);
-            border-radius: 40px 40px 0 0;
-            opacity: 0.8; border: 2px solid #38bdf8;
-            box-shadow: 0 0 15px rgba(56,189,248,0.8);
+            border-radius: 60px 60px 0 0;
+            opacity: 0.9; border: 3px solid #38bdf8;
+            box-shadow: 0 0 20px rgba(56,189,248,0.8);
         }
     </style>
 </head>
@@ -99,18 +96,18 @@
                 </div>
                 <div class="flex flex-col items-center">
                     <div class="text-sm font-bold text-slate-400 tracking-widest mb-1">TARGET SENTENCE</div>
-                    <div id="ui-sentence" class="bg-slate-900/80 border-2 border-blue-500 text-white px-8 py-3 rounded-2xl text-3xl font-black shadow-[0_0_20px_rgba(59,130,246,0.5)] backdrop-blur-md">
+                    <div id="ui-sentence" class="bg-slate-900/80 border-2 border-blue-500 text-white px-8 py-3 rounded-2xl text-4xl font-black shadow-[0_0_20px_rgba(59,130,246,0.5)] backdrop-blur-md transition-colors duration-300">
                         Ready?
                     </div>
                 </div>
                 <div class="text-right">
                     <div class="text-xl font-black text-yellow-400 tracking-wider">SCORE</div>
-                    <div id="ui-score" class="text-4xl font-black text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">0</div>
+                    <div id="ui-score" class="text-5xl font-black text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.8)]">0</div>
                 </div>
             </div>
 
             <div id="arena" class="flex-1 relative overflow-hidden mt-24 border-t border-blue-900/50">
-                <div id="catcher" class="catcher" style="left: calc(50% - 80px);"></div>
+                <div id="catcher" class="catcher" style="left: calc(50% - 120px);"></div>
             </div>
 
             <div id="game-over-screen" class="absolute inset-0 bg-slate-950/90 hidden z-50 flex flex-col items-center justify-center text-white backdrop-blur-md">
@@ -125,24 +122,20 @@
         let questions = [], currentIdx = 0, score = 0, playerHp = 100;
         let isPlaying = false, animationFrameId = null;
         
-        // 物理引擎變數
-        let orbs = []; // 存放畫面上所有能量球
-        const ORB_SIZE = 100; // 球體直徑
-        const CATCHER_WIDTH = 160;
-        const CATCHER_HEIGHT = 40;
-        let catcherX = 0; // UFO 中心點 X 座標
+        let orbs = []; 
+        const ORB_SIZE = 140; // 🟢 放大球體
+        const CATCHER_WIDTH = 240; // 🟢 加寬接球器
+        const CATCHER_HEIGHT = 50;
+        let catcherX = 0; 
         let arenaWidth = 0, arenaHeight = 0;
-        let baseGravity = 2.5; // 掉落基礎速度
+        let baseGravity = 1.0; // 🟢 大幅降低掉落速度
 
-        // 鍵盤控制狀態
         let keys = { left: false, right: false };
 
         window.onload = () => {
             const saved = localStorage.getItem('catcher_data');
             if (saved) document.getElementById('word-input').value = saved;
             switchMode('edit');
-            
-            // 監聽視窗大小改變
             window.addEventListener('resize', updateArenaSize);
         };
 
@@ -195,9 +188,7 @@
         function startGame() {
             document.getElementById('game-over-screen').classList.add('hidden');
             isPlaying = true; currentIdx = 0; score = 0; playerHp = 100;
-            baseGravity = 2.5; // 重置速度
             
-            // 清空場上殘留的球
             orbs.forEach(orb => orb.el.remove());
             orbs = [];
             
@@ -206,9 +197,9 @@
             shuffleArray(questions);
             
             cancelAnimationFrame(animationFrameId);
-            gameLoop(); // 啟動物理引擎
+            gameLoop(); 
             
-            setTimeout(nextQuestion, 1000);
+            setTimeout(nextQuestion, 500);
         }
 
         function nextQuestion() {
@@ -220,22 +211,31 @@
             }
 
             const q = questions[currentIdx];
-            document.getElementById('ui-sentence').innerText = q.question;
-            document.getElementById('ui-sentence').classList.remove('text-green-400');
-            
-            // 語音引導：完整正確句子
+            const qEl = document.getElementById('ui-sentence');
             const completeSentence = q.question.replace(/[-_]{2,}|\.{3,}/, q.correct);
+            
+            // 🟢 聽力緩衝期：先顯示「發音中」的視覺提示
+            qEl.innerText = "🔊 " + completeSentence;
+            qEl.classList.add('text-yellow-400');
+            
+            // 慢速清晰朗讀
             speak(completeSentence);
             
-            spawnOrbs(q);
+            // 🟢 等待 1.8 秒後，才恢復題目並讓球掉下來
+            setTimeout(() => {
+                if(!isPlaying) return;
+                qEl.innerText = q.question;
+                qEl.classList.remove('text-yellow-400');
+                spawnOrbs(q);
+            }, 1800);
         }
 
         function spawnOrbs(q) {
             const arena = document.getElementById('arena');
             const shuffledOptions = shuffleArray([...q.rawOptions]);
             
-            // 隨著分數稍微加快掉落速度
-            baseGravity = Math.min(6, 2.5 + (score * 0.01)); 
+            // 慢速增長機制 (極限速度限制)
+            baseGravity = Math.min(3.5, 1.2 + (score * 0.005)); 
 
             shuffledOptions.forEach((opt, i) => {
                 const el = document.createElement('div');
@@ -243,8 +243,6 @@
                 el.innerText = opt;
                 arena.appendChild(el);
 
-                // 物理屬性初始化
-                // 將三顆球均勻分布在上方
                 const startX = (arenaWidth / 4) * (i + 1) - (ORB_SIZE / 2);
                 
                 orbs.push({
@@ -252,53 +250,77 @@
                     text: opt,
                     isCorrect: opt === q.correct,
                     x: startX,
-                    y: -150 - (Math.random() * 100), // 錯開掉落時間
-                    vx: (Math.random() - 0.5) * 4, // 隨機橫向初速 (-2 到 2)
-                    vy: baseGravity + (Math.random() * 1.5), // 掉落速度加上些微亂數
+                    y: -150 - (Math.random() * 80), 
+                    vx: (Math.random() - 0.5) * 3, // 橫向飄移
+                    vy: baseGravity + (Math.random() * 0.8), 
                     active: true
                 });
             });
         }
 
-        // 🚀 核心物理與渲染引擎 (Physics & Render Loop)
+        // 🚀 核心物理與渲染引擎
         function gameLoop() {
             if (!isPlaying) return;
 
-            // 1. 處理鍵盤控制 UFO 移動
-            if (keys.left) catcherX -= 12;
-            if (keys.right) catcherX += 12;
+            // UFO 移動 (調快操控手感)
+            if (keys.left) catcherX -= 15;
+            if (keys.right) catcherX += 15;
             
-            // 邊界限制
             if (catcherX < CATCHER_WIDTH / 2) catcherX = CATCHER_WIDTH / 2;
             if (catcherX > arenaWidth - CATCHER_WIDTH / 2) catcherX = arenaWidth - CATCHER_WIDTH / 2;
 
-            // 渲染 UFO
             const catcherEl = document.getElementById('catcher');
             catcherEl.style.left = `${catcherX - CATCHER_WIDTH / 2}px`;
 
-            // 2. 處理能量球物理邏輯
-            let activeCount = 0; // 記錄場上還有幾顆活躍的球
+            let activeCount = 0; 
 
+            // 🟢 處理球與球之間的碰撞 (Ball-to-Ball Collision)
+            for (let i = 0; i < orbs.length; i++) {
+                if (!orbs[i].active) continue;
+                for (let j = i + 1; j < orbs.length; j++) {
+                    if (!orbs[j].active) continue;
+                    
+                    let dx = orbs[i].x - orbs[j].x;
+                    let dy = orbs[i].y - orbs[j].y;
+                    let distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < ORB_SIZE) {
+                        // 碰撞發生！交換橫向速度，營造彈開的感覺
+                        let tempVx = orbs[i].vx;
+                        orbs[i].vx = orbs[j].vx;
+                        orbs[j].vx = tempVx;
+                        
+                        // 微調垂直速度，讓互撞後會稍微減速漂浮
+                        orbs[i].vy = baseGravity - 0.5;
+                        orbs[j].vy = baseGravity + 0.5;
+
+                        // 稍微推開避免黏在一起
+                        let overlap = ORB_SIZE - distance;
+                        orbs[i].x += (dx / distance) * (overlap / 2);
+                        orbs[j].x -= (dx / distance) * (overlap / 2);
+                    }
+                }
+            }
+
+            // 處理球與牆壁、UFO的碰撞
             orbs.forEach(orb => {
                 if (!orb.active) return;
                 activeCount++;
 
-                // 套用速度
                 orb.x += orb.vx;
                 orb.y += orb.vy;
 
-                // 🏓 牆壁反彈邏輯 (Bouncing)
+                // 牆壁反彈
                 if (orb.x <= 0) {
                     orb.x = 0;
-                    orb.vx *= -1; // 反轉橫向速度
+                    orb.vx *= -1; 
                 } else if (orb.x + ORB_SIZE >= arenaWidth) {
                     orb.x = arenaWidth - ORB_SIZE;
                     orb.vx *= -1;
                 }
 
-                // 🛸 碰撞偵測：是否被 UFO 接住
-                // 條件：球的底部碰到 UFO 的頂部，且 X 軸有重疊
-                const catcherTop = arenaHeight - CATCHER_HEIGHT - 20; // bottom 20px
+                // UFO 接球判定
+                const catcherTop = arenaHeight - CATCHER_HEIGHT - 20;
                 const ballBottom = orb.y + ORB_SIZE;
                 const ballCenterX = orb.x + ORB_SIZE / 2;
 
@@ -309,27 +331,24 @@
                     }
                 }
 
-                // 💥 墜毀偵測：掉出螢幕底部
+                // 掉出螢幕底部
                 if (orb.active && orb.y > arenaHeight) {
                     handleDrop(orb);
                     orb.active = false;
                 }
 
-                // 更新 DOM 座標
                 if (orb.active) {
                     orb.el.style.transform = `translate(${orb.x}px, ${orb.y}px)`;
                 }
             });
 
-            // 如果場上沒有活躍的球了，清理陣列並進入下一題
             if (activeCount === 0 && orbs.length > 0) {
-                // 清理 DOM
                 setTimeout(() => {
                     orbs.forEach(o => o.el.remove());
                     orbs = [];
                     currentIdx++;
                     if (playerHp > 0) nextQuestion();
-                }, 500);
+                }, 800); // 清空後稍微等待再出題
             }
 
             animationFrameId = requestAnimationFrame(gameLoop);
@@ -337,21 +356,18 @@
 
         function handleCatch(orb) {
             if (orb.isCorrect) {
-                // ✅ 接對了！
                 orb.el.classList.add('orb-catch');
                 score += 10;
                 document.getElementById('ui-score').innerText = score;
                 
-                // 句子變綠色並填入答案
                 const q = questions[currentIdx];
                 const completeText = q.question.replace(/[-_]{2,}|\.{3,}/, q.correct);
                 const qEl = document.getElementById('ui-sentence');
                 qEl.innerText = completeText;
                 qEl.classList.add('text-green-400');
                 
-                speak(completeText); // 再次強化聽力
+                speak(completeText); 
             } else {
-                // ❌ 接錯了！
                 orb.el.classList.add('orb-miss');
                 takeDamage("Wrong Catch!");
             }
@@ -359,14 +375,13 @@
 
         function handleDrop(orb) {
             orb.el.remove();
-            // 💡 智慧懲罰：只有「漏接正確答案」才會扣血
             if (orb.isCorrect) {
-                takeDamage("Missed the target!");
+                takeDamage("Missed it!");
             }
         }
 
         function takeDamage(reason) {
-            playerHp -= 20; // 容錯 5 次
+            playerHp -= 20; 
             updateHPBar();
             
             const pane = document.getElementById('pane-game');
@@ -393,22 +408,22 @@
             const bar = document.getElementById('hp-player');
             bar.style.width = Math.max(0, playerHp) + '%';
             if (playerHp <= 30) {
-                bar.style.background = 'linear-gradient(90deg, #dc2626, #ef4444)'; // 低血量變紅
+                bar.style.background = 'linear-gradient(90deg, #dc2626, #ef4444)'; 
             } else {
                 bar.style.background = 'linear-gradient(90deg, #22c55e, #4ade80)';
             }
         }
 
+        // 🟢 調慢語音速度
         function speak(text) {
             window.speechSynthesis.cancel();
             const msg = new SpeechSynthesisUtterance(text);
-            msg.lang = 'en-US'; msg.rate = 0.9;
+            msg.lang = 'en-US'; 
+            msg.rate = 0.75; 
             window.speechSynthesis.speak(msg);
         }
 
-        // --- 控制輸入處理 ---
-
-        // 1. 滑鼠 / 觸控跟隨
+        // 控制輸入
         document.getElementById('arena').addEventListener('mousemove', (e) => {
             if (!isPlaying) return;
             const rect = document.getElementById('arena').getBoundingClientRect();
@@ -417,13 +432,11 @@
         
         document.getElementById('arena').addEventListener('touchmove', (e) => {
             if (!isPlaying) return;
-            // 防止螢幕捲動
             e.preventDefault(); 
             const rect = document.getElementById('arena').getBoundingClientRect();
             catcherX = e.touches[0].clientX - rect.left;
         }, { passive: false });
 
-        // 2. 鍵盤 A/D 或左右鍵
         window.addEventListener('keydown', (e) => {
             if (!isPlaying) return;
             if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = true;
