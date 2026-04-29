@@ -135,31 +135,44 @@
             gameLoop();
         }
 
-        function spawnObstacle() {
-            if (!isPlaying) return;
-            const world = document.getElementById('game-world');
-            const isHeart = Math.random() < 0.1; 
-            const el = document.createElement('div');
-            el.className = 'absolute z-20 flex items-center justify-center whitespace-nowrap ';
-            el.style.bottom = '10vh';
-            el.style.left = '0px';
+        // === 修改後的生成與判定邏輯 ===
 
-            let obstacleData = { el: el, x: window.innerWidth, checked: false, type: 'word', hit: false };
-            if (isHeart) {
-                el.innerText = '💖'; el.className += ' obs-heart bg-white/70 border-pink-400 border-[0.6vh]';
-                obstacleData.type = 'heart'; obstacleData.isCorrect = true;
-            } else {
-                const target = wordList[Math.floor(Math.random() * wordList.length)];
-                const isCorrect = Math.random() > 0.5;
-                el.innerText = isCorrect ? target.word : (target.custom || target.word.slice(0,-1));
-                el.className += ' obs-word bg-white border-slate-800 text-slate-800 font-bold';
-                obstacleData.isCorrect = isCorrect;
-                obstacleData.meaning = target.meaning; // 儲存中文釋義
-                speak(target.word);
-            }
-            world.appendChild(el);
-            currentObstacle = obstacleData;
-        }
+function spawnObstacle() {
+    if (!isPlaying) return;
+    
+    // 1. 先徹底停止前一個語音，防止聲音累積
+    window.speechSynthesis.cancel(); 
+
+    const world = document.getElementById('game-world');
+    const isHeart = Math.random() < 0.1; 
+    const el = document.createElement('div');
+    el.className = 'absolute z-20 flex items-center justify-center whitespace-nowrap ';
+    el.style.bottom = '10vh';
+    el.style.left = '0px';
+
+    // 2. 初始化物件狀態，確保 checked 為 false
+    let obstacleData = { el: el, x: window.innerWidth, checked: false, type: 'word', hit: false };
+    
+    if (isHeart) {
+        el.innerText = '💖'; 
+        el.className += ' obs-heart bg-white/70 border-pink-400 border-[0.6vh]';
+        obstacleData.type = 'heart'; 
+        obstacleData.isCorrect = true;
+    } else {
+        const target = wordList[Math.floor(Math.random() * wordList.length)];
+        const isCorrect = Math.random() > 0.5;
+        el.innerText = isCorrect ? target.word : (target.custom || target.word.slice(0,-1));
+        el.className += ' obs-word bg-white border-slate-800 text-slate-800 font-bold';
+        obstacleData.isCorrect = isCorrect;
+        obstacleData.meaning = target.meaning || "Correct!";
+        
+        // 3. 畫面出現與聲音同步發出
+        speak(target.word);
+    }
+    
+    world.appendChild(el);
+    currentObstacle = obstacleData;
+}
 
         function speak(text) {
             window.speechSynthesis.cancel();
@@ -169,43 +182,50 @@
         }
 
         function gameLoop() {
-            if (!isPlaying) return;
-            if (keys.left && dinoX > 2) dinoX -= 0.7;
-            if (keys.right && dinoX < 45) dinoX += 0.7;
-            document.getElementById('dino').style.left = dinoX + '%';
+    if (!isPlaying) return;
 
-            if (currentObstacle) {
-                // 如果已經撞到了，就不再減少 X 座標，而是跟著畫面（或恐龍）移動一小段距離
-                if (!currentObstacle.hit) {
-                    currentObstacle.x -= currentSpeed;
-                } else {
-                    // 撞擊後慢速漂移感
-                    currentObstacle.x -= currentSpeed * 0.3;
-                }
-                
-                currentObstacle.el.style.transform = `translate3d(${currentObstacle.x}px, 0, 0)`;
+    // 處理恐龍移動
+    if (keys.left && dinoX > 2) dinoX -= 0.7;
+    if (keys.right && dinoX < 45) dinoX += 0.7;
+    document.getElementById('dino').style.left = dinoX + '%';
 
-                if (!currentObstacle.checked) {
-                    const dinoRect = document.getElementById('dino').getBoundingClientRect();
-                    const obsRect = currentObstacle.el.getBoundingClientRect();
-                    const isXOverlap = (dinoRect.right - 50 > obsRect.left) && (dinoRect.left + 50 < obsRect.right);
-                    const isYOverlap = dinoRect.bottom - 20 > obsRect.top;
+    if (currentObstacle) {
+        // 移動邏輯
+        if (!currentObstacle.hit) {
+            currentObstacle.x -= currentSpeed;
+        } else {
+            currentObstacle.x -= currentSpeed * 0.3;
+        }
+        
+        currentObstacle.el.style.transform = `translate3d(${currentObstacle.x}px, 0, 0)`;
 
-                    if (isXOverlap && isYOverlap) {
-                        handleCollision(currentObstacle);
-                        currentObstacle.checked = true;
-                    }
-                }
+        // 4. 碰撞判定：只在未判定過且物件在範圍內時執行
+        if (!currentObstacle.checked) {
+            const dinoRect = document.getElementById('dino').getBoundingClientRect();
+            const obsRect = currentObstacle.el.getBoundingClientRect();
+            
+            const isXOverlap = (dinoRect.right - 50 > obsRect.left) && (dinoRect.left + 50 < obsRect.right);
+            const isYOverlap = dinoRect.bottom - 20 > obsRect.top;
 
-                if (currentObstacle.x < -1000) {
-                    if (!currentObstacle.checked) handlePass(currentObstacle);
-                    currentObstacle.el.remove(); currentObstacle = null;
-                    setTimeout(spawnObstacle, 600);
-                }
+            if (isXOverlap && isYOverlap) {
+                currentObstacle.checked = true; // 立即鎖定判定
+                handleCollision(currentObstacle);
             }
-            animationFrameId = requestAnimationFrame(gameLoop);
         }
 
+        // 5. 移出畫面判定：確保移出夠遠才清除，並立即設為 null
+        if (currentObstacle.x < -1200) { 
+            if (!currentObstacle.checked) {
+                currentObstacle.checked = true;
+                handlePass(currentObstacle);
+            }
+            currentObstacle.el.remove();
+            currentObstacle = null; // 徹底清空，防止隱形碰撞
+            setTimeout(spawnObstacle, 600);
+        }
+    }
+    animationFrameId = requestAnimationFrame(gameLoop);
+}
         function handleCollision(obs) {
             if (obs.type === 'heart') {
                 obs.el.style.display = 'none';
