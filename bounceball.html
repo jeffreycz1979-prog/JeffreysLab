@@ -8,7 +8,6 @@
     <style>
         body, html { height: 100vh; overflow: hidden; margin: 0; background: #0f172a; font-family: 'Segoe UI', sans-serif; user-select: none; }
         
-        /* 賽博龐克風格背景 */
         .cyber-grid {
             background-color: #020617;
             background-image: 
@@ -18,51 +17,45 @@
             box-shadow: inset 0 0 100px rgba(0,0,0,0.9);
         }
 
-        .hp-bar-container { width: 200px; height: 20px; background: #334155; border-radius: 10px; overflow: hidden; border: 2px solid #000; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
-        .hp-bar { height: 100%; transition: width 0.3s ease-out; background: linear-gradient(90deg, #22c55e, #4ade80); }
+        /* 能量條樣式 */
+        .energy-bar-container { width: 100%; height: 24px; background: #334155; border-radius: 12px; overflow: hidden; border: 2px solid #000; box-shadow: 0 0 15px rgba(59,130,246,0.5); }
+        .energy-bar { height: 100%; transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); background: linear-gradient(90deg, #3b82f6, #60a5fa); }
 
         .shake { animation: shake 0.4s both; }
         @keyframes shake { 10%, 90% { transform: translate3d(-5px, 0, 0); } 40%, 60% { transform: translate3d(10px, 0, 0); } }
 
-        /* 🟢 巨型能量球樣式 */
+        /* 巨型能量球 */
         .orb {
-            position: absolute;
-            width: 140px; height: 140px; /* 放大球體 */
-            border-radius: 50%;
+            position: absolute; width: 140px; height: 140px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center; text-align: center;
-            font-weight: 900; font-size: 2.5rem; color: white; /* 放大字體 */
-            text-shadow: 0 3px 6px rgba(0,0,0,0.9);
+            font-weight: 900; font-size: 2.5rem; color: white; text-shadow: 0 3px 6px rgba(0,0,0,0.9);
             box-shadow: inset 0 0 25px rgba(255,255,255,0.6), 0 0 30px rgba(59,130,246,0.6);
             background: radial-gradient(circle at 30% 30%, #60a5fa, #1d4ed8);
-            border: 3px solid #93c5fd;
-            z-index: 20;
-            padding: 10px; word-break: break-all; leading-tight;
+            border: 3px solid #93c5fd; z-index: 20; padding: 10px; word-break: break-all; leading-tight;
         }
 
         .orb-catch { animation: catchPop 0.4s forwards; }
-        @keyframes catchPop { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); filter: brightness(2); } 100% { transform: scale(0); opacity: 0; } }
+        @keyframes catchPop { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); filter: brightness(2); background: #4ade80;} 100% { transform: scale(0); opacity: 0; } }
 
         .orb-miss { animation: missPop 0.4s forwards; }
         @keyframes missPop { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.2); background: red; box-shadow: 0 0 30px red; } 100% { transform: scale(0); opacity: 0; } }
 
-        /* 🟢 巨大化玩家接收器 (UFO 飛碟) */
+        /* UFO 飛碟 */
         .catcher {
-            position: absolute; bottom: 20px;
-            width: 240px; height: 50px; /* 加寬加大 */
-            background: linear-gradient(to bottom, #94a3b8, #475569);
-            border-radius: 50px 50px 15px 15px;
-            box-shadow: 0 -5px 25px rgba(56, 189, 248, 0.6), inset 0 5px 10px rgba(255,255,255,0.3);
-            border: 4px solid #cbd5e1;
+            position: absolute; bottom: 20px; width: 240px; height: 50px;
+            background: linear-gradient(to bottom, #94a3b8, #475569); border-radius: 50px 50px 15px 15px;
+            box-shadow: 0 -5px 25px rgba(56, 189, 248, 0.6), inset 0 5px 10px rgba(255,255,255,0.3); border: 4px solid #cbd5e1;
             z-index: 30; display: flex; justify-content: center;
         }
         .catcher::before {
-            content: ''; position: absolute; top: -30px;
-            width: 120px; height: 50px;
-            background: radial-gradient(ellipse at top, #bae6fd, #0ea5e9);
-            border-radius: 60px 60px 0 0;
-            opacity: 0.9; border: 3px solid #38bdf8;
-            box-shadow: 0 0 20px rgba(56,189,248,0.8);
+            content: ''; position: absolute; top: -30px; width: 120px; height: 50px;
+            background: radial-gradient(ellipse at top, #bae6fd, #0ea5e9); border-radius: 60px 60px 0 0;
+            opacity: 0.9; border: 3px solid #38bdf8; box-shadow: 0 0 20px rgba(56,189,248,0.8);
         }
+
+        /* 升級提示動畫 */
+        .toast-levelup { animation: floatUp 2s forwards ease-out; }
+        @keyframes floatUp { 0% { opacity: 0; transform: translate(-50%, 50px) scale(0.8); } 20% { opacity: 1; transform: translate(-50%, 0) scale(1.1); } 80% { opacity: 1; transform: translate(-50%, -20px) scale(1); } 100% { opacity: 0; transform: translate(-50%, -50px) scale(0.9); } }
     </style>
 </head>
 <body class="flex flex-col text-slate-100">
@@ -78,58 +71,58 @@
     <main class="flex-1 flex overflow-hidden">
         <section id="pane-edit" class="w-[30%] p-6 bg-slate-900 border-r border-slate-700 shadow-2xl flex flex-col gap-4 z-20">
             <h2 class="text-xl font-black border-l-4 border-blue-500 pl-3 text-white">能量球參數設定</h2>
-            <div class="text-xs text-blue-200 bg-blue-900/30 p-3 rounded-lg border border-blue-800">
-                <p class="font-bold mb-1">✍️ 輸入格式：</p>
-                <p>句子(含___或---) , 正解 , 錯項1 , 錯項2</p>
-            </div>
             <textarea id="word-input" class="flex-1 p-4 bg-slate-800 border border-slate-600 rounded-xl font-mono text-sm leading-relaxed outline-none focus:ring-2 focus:ring-blue-500 resize-none text-green-300 shadow-inner" 
                 placeholder="The cat is ___ the table., under, in, on&#10;She ___ playing tennis., is, are, am"></textarea>
-            <button onclick="saveAndStart()" class="bg-blue-600 font-bold text-white py-4 rounded-xl hover:bg-blue-500 transition-all shadow-lg active:scale-95 text-lg tracking-wide border border-blue-400">💾 儲存並發射能量球</button>
+            <button onclick="saveAndStart()" class="bg-blue-600 font-bold text-white py-4 rounded-xl hover:bg-blue-500 transition-all shadow-lg active:scale-95 text-lg">💾 儲存並發射</button>
         </section>
 
         <section id="pane-game" class="w-[70%] relative flex flex-col hidden overflow-hidden cyber-grid cursor-crosshair">
             
-            <div class="absolute top-4 inset-x-0 flex justify-between items-start px-8 z-40 pointer-events-none">
-                <div class="flex flex-col gap-1">
-                    <div class="text-xl font-black text-blue-400 tracking-wider">HULL INTEGRITY</div>
-                    <div class="hp-bar-container"><div id="hp-player" class="hp-bar" style="width: 100%;"></div></div>
+            <div class="absolute top-4 inset-x-0 flex justify-between items-start px-8 z-40 pointer-events-none w-full">
+                <div class="flex flex-col gap-1 w-1/4">
+                    <div class="text-xl font-black text-blue-400 tracking-wider">ENERGY: <span id="ui-energy-text" class="text-white">0/50</span></div>
+                    <div class="energy-bar-container"><div id="energy-bar" class="energy-bar" style="width: 0%;"></div></div>
                 </div>
-                <div class="flex flex-col items-center">
-                    <div class="text-sm font-bold text-slate-400 tracking-widest mb-1">TARGET SENTENCE</div>
-                    <div id="ui-sentence" class="bg-slate-900/80 border-2 border-blue-500 text-white px-8 py-3 rounded-2xl text-4xl font-black shadow-[0_0_20px_rgba(59,130,246,0.5)] backdrop-blur-md transition-colors duration-300">
+                <div class="flex flex-col items-center w-2/4">
+                    <div id="ui-timer" class="text-5xl font-black text-yellow-400 mb-2 drop-shadow-[0_0_15px_rgba(250,204,21,0.8)]">00:30</div>
+                    <div id="ui-sentence" class="bg-slate-900/90 border-2 border-blue-500 text-white px-8 py-3 rounded-2xl text-4xl font-black shadow-[0_0_20px_rgba(59,130,246,0.5)] backdrop-blur-md transition-colors duration-300 text-center">
                         Ready?
                     </div>
                 </div>
-                <div class="text-right">
-                    <div class="text-xl font-black text-yellow-400 tracking-wider">SCORE</div>
-                    <div id="ui-score" class="text-5xl font-black text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.8)]">0</div>
+                <div class="text-right w-1/4">
+                    <div class="text-xl font-black text-slate-400 tracking-wider">PHASE</div>
+                    <div id="ui-phase" class="text-5xl font-black text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.5)] mb-2">1</div>
                 </div>
             </div>
 
-            <div id="arena" class="flex-1 relative overflow-hidden mt-24 border-t border-blue-900/50">
+            <div id="arena" class="flex-1 relative overflow-hidden mt-32 border-t border-blue-900/50">
                 <div id="catcher" class="catcher" style="left: calc(50% - 120px);"></div>
             </div>
 
-            <div id="game-over-screen" class="absolute inset-0 bg-slate-950/90 hidden z-50 flex flex-col items-center justify-center text-white backdrop-blur-md">
-                <h1 class="text-8xl font-black mb-6 tracking-widest text-red-500 drop-shadow-[0_0_30px_rgba(239,68,68,0.8)]">SYSTEM FAILURE</h1>
-                <p class="text-2xl mb-10 text-slate-300">防護罩崩潰，最終收集能量：<span id="final-score" class="text-5xl text-yellow-400 font-black ml-2">0</span></p>
-                <button onclick="startGame()" class="bg-blue-600 text-white px-10 py-5 rounded-2xl text-2xl font-black hover:bg-blue-500 transition shadow-[0_0_30px_rgba(37,99,235,0.8)] hover:scale-105">🔄 重新啟動系統</button>
+            <div id="toast-container" class="absolute inset-0 pointer-events-none z-40"></div>
+
+            <div id="game-over-screen" class="absolute inset-0 bg-slate-950/95 hidden z-50 flex flex-col items-center justify-center text-white backdrop-blur-md">
+                <h1 class="text-8xl font-black mb-6 tracking-widest text-red-500 drop-shadow-[0_0_30px_rgba(239,68,68,0.8)]">TIME UP!</h1>
+                <p class="text-3xl mb-10 text-slate-300">最終抵達階段：PHASE <span id="final-phase" class="text-6xl text-yellow-400 font-black ml-2">1</span></p>
+                <button onclick="startGame()" class="bg-blue-600 text-white px-10 py-5 rounded-2xl text-2xl font-black hover:bg-blue-500 transition shadow-[0_0_30px_rgba(37,99,235,0.8)] hover:scale-105">🔄 重新啟動任務</button>
             </div>
         </section>
     </main>
 
     <script>
-        let questions = [], currentIdx = 0, score = 0, playerHp = 100;
-        let isPlaying = false, animationFrameId = null;
+        let questions = [], currentIdx = 0, isPlaying = false, animationFrameId = null;
         
+        // 生存模式變數
+        let energy = 0, targetEnergy = 50, phase = 1, timeLeft = 30;
+        let timerInterval = null;
+        let isSpawning = false; // 🛑 防彈幕鎖定開關
+        
+        // 物理引擎變數
         let orbs = []; 
-        const ORB_SIZE = 140; // 🟢 放大球體
-        const CATCHER_WIDTH = 240; // 🟢 加寬接球器
+        const ORB_SIZE = 140; 
+        const CATCHER_WIDTH = 240; 
         const CATCHER_HEIGHT = 50;
-        let catcherX = 0; 
-        let arenaWidth = 0, arenaHeight = 0;
-        let baseGravity = 1.0; // 🟢 大幅降低掉落速度
-
+        let catcherX = 0, arenaWidth = 0, arenaHeight = 0, baseGravity = 1.0;
         let keys = { left: false, right: false };
 
         window.onload = () => {
@@ -141,28 +134,18 @@
 
         function updateArenaSize() {
             const arena = document.getElementById('arena');
-            if(arena) {
-                arenaWidth = arena.clientWidth;
-                arenaHeight = arena.clientHeight;
-                if(catcherX === 0) catcherX = arenaWidth / 2;
-            }
+            if(arena) { arenaWidth = arena.clientWidth; arenaHeight = arena.clientHeight; if(catcherX === 0) catcherX = arenaWidth / 2; }
         }
 
         function switchMode(mode) {
             document.getElementById('pane-edit').classList.toggle('hidden', mode === 'game');
             document.getElementById('pane-game').classList.toggle('hidden', mode === 'edit');
             document.getElementById('pane-game').classList.toggle('w-full', mode === 'game');
-            if (mode === 'game' && !isPlaying) {
-                updateArenaSize();
-                startGame();
-            }
+            if (mode === 'game' && !isPlaying) { updateArenaSize(); startGame(); }
         }
 
         function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
+            for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [array[i], array[j]] = [array[j], array[i]]; }
             return array;
         }
 
@@ -187,168 +170,142 @@
 
         function startGame() {
             document.getElementById('game-over-screen').classList.add('hidden');
-            isPlaying = true; currentIdx = 0; score = 0; playerHp = 100;
+            isPlaying = true; currentIdx = 0; isSpawning = false;
             
-            orbs.forEach(orb => orb.el.remove());
-            orbs = [];
+            // 重置生存參數
+            energy = 0; targetEnergy = 50; phase = 1; timeLeft = 30; baseGravity = 1.0;
             
-            updateHPBar();
-            document.getElementById('ui-score').innerText = score;
+            orbs.forEach(orb => orb.el.remove()); orbs = [];
+            
+            updateUI();
             shuffleArray(questions);
-            
             cancelAnimationFrame(animationFrameId);
-            gameLoop(); 
+            clearInterval(timerInterval);
             
-            setTimeout(nextQuestion, 500);
+            // 啟動倒數計時器
+            timerInterval = setInterval(() => {
+                if(!isPlaying) return;
+                timeLeft--;
+                updateUI();
+                if(timeLeft <= 0) gameOver();
+            }, 1000);
+
+            gameLoop(); 
+            setTimeout(nextQuestion, 1000);
+        }
+
+        function gameOver() {
+            isPlaying = false;
+            clearInterval(timerInterval);
+            document.getElementById('final-phase').innerText = phase;
+            document.getElementById('game-over-screen').classList.remove('hidden');
+            speak("Time is up.");
         }
 
         function nextQuestion() {
             if (!isPlaying) return;
+            isSpawning = true; // 鎖定出題狀態
             
-            if (currentIdx >= questions.length) {
-                currentIdx = 0;
-                shuffleArray(questions);
-            }
+            if (currentIdx >= questions.length) { currentIdx = 0; shuffleArray(questions); }
 
             const q = questions[currentIdx];
             const qEl = document.getElementById('ui-sentence');
             const completeSentence = q.question.replace(/[-_]{2,}|\.{3,}/, q.correct);
             
-            // 🟢 聽力緩衝期：先顯示「發音中」的視覺提示
             qEl.innerText = "🔊 " + completeSentence;
             qEl.classList.add('text-yellow-400');
-            
-            // 慢速清晰朗讀
             speak(completeSentence);
             
-            // 🟢 等待 1.8 秒後，才恢復題目並讓球掉下來
+            // 語音緩衝期 1.5 秒
             setTimeout(() => {
                 if(!isPlaying) return;
                 qEl.innerText = q.question;
                 qEl.classList.remove('text-yellow-400');
                 spawnOrbs(q);
-            }, 1800);
+                isSpawning = false; // 解除鎖定，允許球開始掉落並判定
+            }, 1500);
         }
 
         function spawnOrbs(q) {
             const arena = document.getElementById('arena');
             const shuffledOptions = shuffleArray([...q.rawOptions]);
             
-            // 慢速增長機制 (極限速度限制)
-            baseGravity = Math.min(3.5, 1.2 + (score * 0.005)); 
+            baseGravity = Math.min(3.5, 1.0 + (phase * 0.15)); // 隨階段變快
 
             shuffledOptions.forEach((opt, i) => {
                 const el = document.createElement('div');
-                el.className = 'orb';
-                el.innerText = opt;
+                el.className = 'orb'; el.innerText = opt;
                 arena.appendChild(el);
 
-                const startX = (arenaWidth / 4) * (i + 1) - (ORB_SIZE / 2);
-                
                 orbs.push({
-                    el: el,
-                    text: opt,
-                    isCorrect: opt === q.correct,
-                    x: startX,
+                    el: el, text: opt, isCorrect: opt === q.correct,
+                    x: (arenaWidth / 4) * (i + 1) - (ORB_SIZE / 2),
                     y: -150 - (Math.random() * 80), 
-                    vx: (Math.random() - 0.5) * 3, // 橫向飄移
-                    vy: baseGravity + (Math.random() * 0.8), 
+                    vx: (Math.random() - 0.5) * 3, vy: baseGravity + (Math.random() * 0.8), 
                     active: true
                 });
             });
         }
 
-        // 🚀 核心物理與渲染引擎
         function gameLoop() {
             if (!isPlaying) return;
 
-            // UFO 移動 (調快操控手感)
             if (keys.left) catcherX -= 15;
             if (keys.right) catcherX += 15;
-            
             if (catcherX < CATCHER_WIDTH / 2) catcherX = CATCHER_WIDTH / 2;
             if (catcherX > arenaWidth - CATCHER_WIDTH / 2) catcherX = arenaWidth - CATCHER_WIDTH / 2;
-
-            const catcherEl = document.getElementById('catcher');
-            catcherEl.style.left = `${catcherX - CATCHER_WIDTH / 2}px`;
+            document.getElementById('catcher').style.left = `${catcherX - CATCHER_WIDTH / 2}px`;
 
             let activeCount = 0; 
 
-            // 🟢 處理球與球之間的碰撞 (Ball-to-Ball Collision)
+            // 球體互撞
             for (let i = 0; i < orbs.length; i++) {
                 if (!orbs[i].active) continue;
                 for (let j = i + 1; j < orbs.length; j++) {
                     if (!orbs[j].active) continue;
-                    
-                    let dx = orbs[i].x - orbs[j].x;
-                    let dy = orbs[i].y - orbs[j].y;
+                    let dx = orbs[i].x - orbs[j].x, dy = orbs[i].y - orbs[j].y;
                     let distance = Math.sqrt(dx * dx + dy * dy);
-                    
                     if (distance < ORB_SIZE) {
-                        // 碰撞發生！交換橫向速度，營造彈開的感覺
-                        let tempVx = orbs[i].vx;
-                        orbs[i].vx = orbs[j].vx;
-                        orbs[j].vx = tempVx;
-                        
-                        // 微調垂直速度，讓互撞後會稍微減速漂浮
-                        orbs[i].vy = baseGravity - 0.5;
-                        orbs[j].vy = baseGravity + 0.5;
-
-                        // 稍微推開避免黏在一起
+                        let tempVx = orbs[i].vx; orbs[i].vx = orbs[j].vx; orbs[j].vx = tempVx;
+                        orbs[i].vy = baseGravity - 0.5; orbs[j].vy = baseGravity + 0.5;
                         let overlap = ORB_SIZE - distance;
-                        orbs[i].x += (dx / distance) * (overlap / 2);
-                        orbs[j].x -= (dx / distance) * (overlap / 2);
+                        orbs[i].x += (dx / distance) * (overlap / 2); orbs[j].x -= (dx / distance) * (overlap / 2);
                     }
                 }
             }
 
-            // 處理球與牆壁、UFO的碰撞
+            // 牆壁與接球判定
             orbs.forEach(orb => {
                 if (!orb.active) return;
                 activeCount++;
 
-                orb.x += orb.vx;
-                orb.y += orb.vy;
+                orb.x += orb.vx; orb.y += orb.vy;
 
-                // 牆壁反彈
-                if (orb.x <= 0) {
-                    orb.x = 0;
-                    orb.vx *= -1; 
-                } else if (orb.x + ORB_SIZE >= arenaWidth) {
-                    orb.x = arenaWidth - ORB_SIZE;
-                    orb.vx *= -1;
-                }
+                if (orb.x <= 0) { orb.x = 0; orb.vx *= -1; } 
+                else if (orb.x + ORB_SIZE >= arenaWidth) { orb.x = arenaWidth - ORB_SIZE; orb.vx *= -1; }
 
-                // UFO 接球判定
                 const catcherTop = arenaHeight - CATCHER_HEIGHT - 20;
-                const ballBottom = orb.y + ORB_SIZE;
-                const ballCenterX = orb.x + ORB_SIZE / 2;
-
-                if (ballBottom >= catcherTop && orb.y < catcherTop + CATCHER_HEIGHT) {
-                    if (ballCenterX >= catcherX - CATCHER_WIDTH/2 && ballCenterX <= catcherX + CATCHER_WIDTH/2) {
-                        handleCatch(orb);
-                        orb.active = false;
+                if (orb.y + ORB_SIZE >= catcherTop && orb.y < catcherTop + CATCHER_HEIGHT) {
+                    if (orb.x + ORB_SIZE / 2 >= catcherX - CATCHER_WIDTH/2 && orb.x + ORB_SIZE / 2 <= catcherX + CATCHER_WIDTH/2) {
+                        handleCatch(orb); orb.active = false;
                     }
                 }
 
-                // 掉出螢幕底部
                 if (orb.active && orb.y > arenaHeight) {
-                    handleDrop(orb);
-                    orb.active = false;
+                    orb.el.remove(); orb.active = false; // 💡 漏接直接消失，無懲罰
                 }
 
-                if (orb.active) {
-                    orb.el.style.transform = `translate(${orb.x}px, ${orb.y}px)`;
-                }
+                if (orb.active) orb.el.style.transform = `translate(${orb.x}px, ${orb.y}px)`;
             });
 
-            if (activeCount === 0 && orbs.length > 0) {
+            // 🛑 防彈幕機制：確認場上無球且「沒有在出題中」才呼叫下一題
+            if (activeCount === 0 && orbs.length > 0 && !isSpawning) {
+                isSpawning = true; // 立即上鎖
                 setTimeout(() => {
-                    orbs.forEach(o => o.el.remove());
-                    orbs = [];
+                    orbs.forEach(o => o.el.remove()); orbs = [];
                     currentIdx++;
-                    if (playerHp > 0) nextQuestion();
-                }, 800); // 清空後稍微等待再出題
+                    if (isPlaying) nextQuestion();
+                }, 500); 
             }
 
             animationFrameId = requestAnimationFrame(gameLoop);
@@ -357,73 +314,67 @@
         function handleCatch(orb) {
             if (orb.isCorrect) {
                 orb.el.classList.add('orb-catch');
-                score += 10;
-                document.getElementById('ui-score').innerText = score;
+                energy += 10;
                 
                 const q = questions[currentIdx];
                 const completeText = q.question.replace(/[-_]{2,}|\.{3,}/, q.correct);
-                const qEl = document.getElementById('ui-sentence');
-                qEl.innerText = completeText;
-                qEl.classList.add('text-green-400');
+                document.getElementById('ui-sentence').innerText = completeText;
+                document.getElementById('ui-sentence').classList.add('text-green-400');
                 
-                speak(completeText); 
+                checkPhaseClear();
             } else {
                 orb.el.classList.add('orb-miss');
-                takeDamage("Wrong Catch!");
+                energy = Math.max(0, energy - 5); // 扣能量
+                
+                const pane = document.getElementById('pane-game');
+                pane.classList.add('shake');
+                pane.style.boxShadow = 'inset 0 0 100px rgba(239,68,68,0.8)';
+                setTimeout(() => { pane.classList.remove('shake'); pane.style.boxShadow = 'none'; }, 400);
+            }
+            updateUI();
+        }
+
+        function checkPhaseClear() {
+            if (energy >= targetEnergy) {
+                // 通關階段！
+                phase++;
+                energy = 0;
+                targetEnergy += 10; // 難度提升
+                timeLeft += 30; // 獎勵時間
+                
+                showToast(`PHASE ${phase} REACHED! TIME +30s`);
+                speak("Level Up!");
             }
         }
 
-        function handleDrop(orb) {
-            orb.el.remove();
-            if (orb.isCorrect) {
-                takeDamage("Missed it!");
-            }
-        }
-
-        function takeDamage(reason) {
-            playerHp -= 20; 
-            updateHPBar();
+        function updateUI() {
+            document.getElementById('ui-energy-text').innerText = `${energy}/${targetEnergy}`;
+            document.getElementById('energy-bar').style.width = `${(energy / targetEnergy) * 100}%`;
             
-            const pane = document.getElementById('pane-game');
-            pane.classList.add('shake');
-            pane.style.boxShadow = 'inset 0 0 100px rgba(239,68,68,0.8)';
+            const timerEl = document.getElementById('ui-timer');
+            timerEl.innerText = `00:${timeLeft.toString().padStart(2, '0')}`;
+            if (timeLeft <= 10) timerEl.classList.replace('text-yellow-400', 'text-red-500');
+            else timerEl.classList.replace('text-red-500', 'text-yellow-400');
             
-            speak(reason);
-
-            setTimeout(() => { 
-                pane.classList.remove('shake'); 
-                pane.style.boxShadow = 'inset 0 0 100px rgba(0,0,0,0.9)';
-            }, 500);
-
-            if (playerHp <= 0) {
-                isPlaying = false;
-                setTimeout(() => {
-                    document.getElementById('final-score').innerText = score;
-                    document.getElementById('game-over-screen').classList.remove('hidden');
-                }, 800);
-            }
+            document.getElementById('ui-phase').innerText = phase;
         }
 
-        function updateHPBar() {
-            const bar = document.getElementById('hp-player');
-            bar.style.width = Math.max(0, playerHp) + '%';
-            if (playerHp <= 30) {
-                bar.style.background = 'linear-gradient(90deg, #dc2626, #ef4444)'; 
-            } else {
-                bar.style.background = 'linear-gradient(90deg, #22c55e, #4ade80)';
-            }
+        function showToast(msg) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'absolute top-1/2 left-1/2 text-5xl font-black text-green-400 drop-shadow-[0_0_20px_rgba(74,222,128,0.8)] toast-levelup whitespace-nowrap';
+            toast.innerText = msg;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 2000);
         }
 
-        // 🟢 調慢語音速度
         function speak(text) {
             window.speechSynthesis.cancel();
             const msg = new SpeechSynthesisUtterance(text);
-            msg.lang = 'en-US'; 
-            msg.rate = 0.75; 
+            msg.lang = 'en-US'; msg.rate = 0.8; 
             window.speechSynthesis.speak(msg);
         }
 
-        // 控制輸入
         document.getElementById('arena').addEventListener('mousemove', (e) => {
             if (!isPlaying) return;
             const rect = document.getElementById('arena').getBoundingClientRect();
@@ -431,8 +382,7 @@
         });
         
         document.getElementById('arena').addEventListener('touchmove', (e) => {
-            if (!isPlaying) return;
-            e.preventDefault(); 
+            if (!isPlaying) return; e.preventDefault(); 
             const rect = document.getElementById('arena').getBoundingClientRect();
             catcherX = e.touches[0].clientX - rect.left;
         }, { passive: false });
@@ -442,12 +392,10 @@
             if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = true;
             if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = true;
         });
-        
         window.addEventListener('keyup', (e) => {
             if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = false;
             if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = false;
         });
-
     </script>
 </body>
 </html>
