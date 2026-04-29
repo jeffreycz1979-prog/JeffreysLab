@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NewCore Cloze Runner - Dynamic 3D</title>
+    <title>New Core SpaceShuttle</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body, html { height: 100vh; overflow: hidden; margin: 0; background: #020617; }
         .game-viewport { perspective: 1200px; perspective-origin: 50% 40%; }
         .track-container { transform-style: preserve-3d; transform: rotateX(25deg); }
         
-        /* 動態星空與網格路面 */
         .ground-texture {
             background: 
                 linear-gradient(90deg, transparent 49%, rgba(59, 130, 246, 0.2) 50%, transparent 51%),
@@ -20,40 +19,33 @@
         }
         @keyframes roadScroll { from { background-position: 0 0, 0 0; } to { background-position: 0 0, 0 160px; } }
 
-        /* 能量門動效：改由 JavaScript 動態控制時間 */
-        .gate-move { animation-name: gateForward; animation-timing-function: linear; animation-fill-mode: forwards; }
+        .gate-move { animation: gateForward 2.5s linear forwards; }
         @keyframes gateForward {
             0% { transform: translate3d(0, 0, -1500px) scale(0.1); opacity: 0; }
             20% { opacity: 1; }
             100% { transform: translate3d(0, 0, 600px) scale(2.5); opacity: 0; }
         }
 
-        /* 跑道感應區塊 (底部判定線) */
         .track-zone {
             position: absolute; bottom: 80px; width: 320px; height: 120px;
             background: rgba(255, 255, 255, 0.02); border-bottom: 6px solid rgba(255,255,255,0.2);
             transition: all 0.2s; transform: translateX(-50%);
         }
-        
-        /* 玩家站立時的藍色發光 */
         .zone-active { background: rgba(59, 130, 246, 0.3); border-bottom-color: #60a5fa; box-shadow: 0 0 40px rgba(59, 130, 246, 0.5); }
-        
-        /* 判定死線瞬間的紅色發光 */
         .zone-deadline { border-bottom-color: #ef4444 !important; box-shadow: 0 0 50px rgba(239, 68, 68, 0.9) !important; background: rgba(239, 68, 68, 0.2); }
 
         .shake { animation: shake 0.4s both; }
         @keyframes shake { 10%, 90% { transform: translate3d(-5px, 0, 0); } 40%, 60% { transform: translate3d(10px, 0, 0); } }
         .sky-night { background: linear-gradient(to bottom, #020617, #0f172a, #1e3a8a); }
         
-        /* 戰機推進器火焰 */
         .thruster { animation: flicker 0.1s infinite alternate; }
         @keyframes flicker { from { opacity: 0.8; transform: scaleY(0.9); } to { opacity: 1; transform: scaleY(1.2); } }
     </style>
 </head>
 <body class="flex flex-col">
 
-    <header class="h-12 bg-slate-950 text-white flex items-center justify-between px-4 z-50 border-b border-slate-800">
-        <div class="font-bold tracking-widest text-lg">NewCore Cloze Runner 🚀</div>
+    <header class="h-12 bg-slate-950 text-white flex items-center justify-between px-4 z-50 border-b border-slate-800 shadow-lg">
+        <div class="font-bold tracking-widest text-lg">New Core SpaceShuttle 🚀</div>
         <div class="flex gap-4 text-sm">
             <button onclick="switchMode('edit')" class="hover:text-blue-400 font-bold transition">👨‍🏫 老師編輯</button>
             <button onclick="switchMode('game')" class="hover:text-blue-400 font-bold transition">🎓 學生挑戰</button>
@@ -63,20 +55,15 @@
     <main class="flex-1 flex overflow-hidden">
         <section id="pane-edit" class="w-[30%] p-6 bg-slate-50 border-r shadow-2xl flex flex-col gap-4 z-20">
             <h2 class="text-xl font-black border-l-4 border-blue-600 pl-3 text-slate-800">手動題庫設定</h2>
-            <div class="text-xs text-slate-600 bg-blue-100 p-3 rounded-lg border border-blue-200">
-                <p class="font-bold mb-1">✍️ 輸入格式：</p>
-                <p>句子(含___) <span class="text-red-500 font-bold">,</span> 正解 <span class="text-red-500 font-bold">,</span> 錯項1 <span class="text-red-500 font-bold">,</span> 錯項2</p>
-            </div>
             <textarea id="cloze-input" class="flex-1 p-4 border border-slate-300 rounded-xl font-mono text-sm leading-relaxed outline-none focus:ring-2 focus:ring-blue-500 resize-none shadow-inner" 
-                placeholder="I ___ to school every day., go, goes, going&#10;Mary always brings ___ doll to school., her, his, an"></textarea>
-            <button onclick="saveAndStart()" class="bg-blue-600 font-bold text-white py-4 rounded-xl hover:bg-blue-700 transition-all shadow-lg active:scale-95 text-lg tracking-wide">💾 儲存並開始挑戰</button>
+                placeholder="I ___ to school every day., go, goes, going&#10;She ___ English now., is studying, study, studies"></textarea>
+            <button onclick="saveAndStart()" class="bg-blue-600 font-bold text-white py-4 rounded-xl hover:bg-blue-700 transition-all shadow-lg active:scale-95 text-lg">💾 儲存並開始</button>
         </section>
 
         <section id="pane-game" class="w-[70%] relative flex flex-col hidden overflow-hidden sky-night">
-            
             <div class="absolute top-6 inset-x-0 flex justify-center z-30 px-10">
                 <div class="bg-slate-900/60 backdrop-blur-xl border border-white/20 rounded-2xl p-6 w-full max-w-4xl shadow-2xl text-center text-white">
-                    <div id="ui-sentence" class="text-4xl font-black drop-shadow-lg tracking-wide">載入中...</div>
+                    <div id="ui-sentence" class="text-4xl font-black drop-shadow-lg tracking-wide">Ready?</div>
                     <div class="mt-4 flex justify-between items-center font-bold px-4">
                         <div class="text-xl">SCORE: <span id="ui-score" class="text-yellow-400 text-3xl ml-2">0</span></div>
                         <div class="text-xs bg-white/20 px-3 py-1 rounded-full" id="ui-speed">SPEED: 1.0x</div>
@@ -88,7 +75,6 @@
             <div class="flex-1 game-viewport relative">
                 <div id="game-stage" class="absolute inset-0 track-container">
                     <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[1800px] h-[3000px] ground-texture origin-bottom"></div>
-                    
                     <div id="zone-0" class="track-zone" style="left: calc(50% - 400px);"></div>
                     <div id="zone-1" class="track-zone" style="left: 50%;"></div>
                     <div id="zone-2" class="track-zone" style="left: calc(50% + 400px);"></div>
@@ -101,27 +87,21 @@
                             <path d="M11 17L12 21L13 17Z" class="text-yellow-300 thruster"/>
                         </svg>
                     </div>
-                    
                     <div id="gate-container" class="absolute inset-0"></div>
                 </div>
             </div>
 
-            <div id="game-over-screen" class="absolute inset-0 bg-slate-950/90 hidden z-50 flex flex-col items-center justify-center text-white backdrop-blur-sm">
-                <h1 class="text-7xl font-black mb-2 text-red-500 drop-shadow-[0_0_20px_rgba(239,68,68,0.8)] tracking-widest">MISSION FAILED</h1>
+            <div id="game-over-screen" class="absolute inset-0 bg-slate-950/90 hidden z-50 flex flex-col items-center justify-center text-white">
+                <h1 class="text-7xl font-black mb-2 text-red-500 tracking-widest">MISSION FAILED</h1>
                 <p class="text-3xl mb-10 text-slate-300">最終存活分數：<span id="final-score" class="font-black text-yellow-400 text-5xl ml-2">0</span></p>
-                <div class="flex gap-6">
-                    <button onclick="startGame()" class="bg-blue-600 text-white px-8 py-4 rounded-xl text-xl font-bold hover:bg-blue-500 transition shadow-[0_0_15px_rgba(37,99,235,0.6)] hover:scale-105">🔄 再挑戰一次</button>
-                    <button onclick="switchMode('edit')" class="bg-slate-700 text-white px-8 py-4 rounded-xl text-xl font-bold hover:bg-slate-600 transition hover:scale-105">✏️ 修改題庫</button>
-                </div>
+                <button onclick="startGame()" class="bg-blue-600 text-white px-8 py-4 rounded-xl text-xl font-bold hover:scale-105 transition">🔄 再挑戰一次</button>
             </div>
         </section>
     </main>
 
     <script>
         let questions = [], score = 0, lives = 3, currentIdx = 0, isPlaying = false;
-        let trackIdx = 1; 
-        const trackPos = [-400, 0, 400];
-        let activeGates = null;
+        let trackIdx = 1; const trackPos = [-400, 0, 400]; let activeGates = null;
 
         window.onload = () => {
             const saved = localStorage.getItem('cloze_runner_data');
@@ -136,7 +116,6 @@
             if (mode === 'game' && !isPlaying) startGame();
         }
 
-        // Fisher-Yates 完美洗牌演算法
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -150,21 +129,15 @@
             questions = raw.trim().split('\n').map(line => {
                 const firstComma = line.indexOf(',');
                 if (firstComma === -1) return null;
-
                 const question = line.substring(0, firstComma).trim();
                 const optionsRaw = line.substring(firstComma + 1).split(',').map(s => s.trim()).filter(s => s !== "");
-                
                 if (optionsRaw.length === 0) return null;
                 const correct = optionsRaw[0]; 
-                
                 let options = [...optionsRaw];
                 while(options.length < 3) options.push("???"); 
-                
-                // 儲存時「不洗牌」，留到遊戲中才即時洗牌
                 return { question, correct, rawOptions: options.slice(0,3) };
             }).filter(item => item !== null);
-
-            if(questions.length === 0) return alert('⚠️ 無法解析題庫！請確保「題目」與「正確答案」之間有用逗號分隔。');
+            if(questions.length === 0) return alert('⚠️ 請確認輸入格式！');
             localStorage.setItem('cloze_runner_data', raw);
             switchMode('game');
         }
@@ -179,12 +152,17 @@
         function nextQuestion() {
             if (currentIdx >= questions.length) {
                 currentIdx = 0;
-                shuffleArray(questions); // 無盡模式：重新洗牌
+                shuffleArray(questions);
             }
-            
             const q = questions[currentIdx];
+            
+            // 畫面上顯示帶空格的句子
             document.getElementById('ui-sentence').innerText = q.question;
-            speak(q.question.replace('___', '...'));
+            
+            // 重要：語音念出「正確且完整」的句子來引導學生
+            const completeSentence = q.question.replace('___', q.correct);
+            speak(completeSentence);
+            
             spawnGates(q);
         }
 
@@ -192,42 +170,26 @@
             const container = document.getElementById('gate-container');
             container.innerHTML = '';
             activeGates = [];
-
-            // 1. 即時洗牌：確保每次玩同一題，選項位置都不一樣
             const shuffledOptions = shuffleArray([...q.rawOptions]);
-
-            // 2. 動態變速系統：隨著分數變快，並加入忽快忽慢的波動
-            let baseSpeed = Math.max(1.2, 3.0 - (score * 0.015)); // 越玩越快，極限1.2秒
-            let fluctuation = (Math.random() * 0.4) - 0.2; // -0.2 ~ +0.2的隨機波動
-            let currentDuration = baseSpeed + fluctuation;
-            
-            // 更新 UI 速度顯示
+            let currentDuration = Math.max(1.2, 3.0 - (score * 0.015)) + (Math.random() * 0.4 - 0.2);
             document.getElementById('ui-speed').innerText = `SPEED: ${(3.0 / currentDuration).toFixed(1)}x`;
 
             shuffledOptions.forEach((opt, i) => {
                 const gate = document.createElement('div');
-                // 圓形字塊設定 (w-80 h-80 rounded-full)
                 gate.className = 'absolute bottom-[300px] left-1/2 -translate-x-1/2 w-80 h-80 gate-move flex items-center justify-center border-[8px] border-blue-400/40 bg-blue-900/50 rounded-full backdrop-blur-md z-10 shadow-[0_0_40px_rgba(59,130,246,0.3)]';
                 gate.style.marginLeft = trackPos[i] + 'px';
-                gate.style.animationDuration = currentDuration + 's'; // 套用動態速度
+                gate.style.animationDuration = currentDuration + 's';
                 gate.innerHTML = `<div class="text-white text-7xl font-black italic drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">${opt}</div>`;
-                
                 container.appendChild(gate);
                 activeGates.push({ option: opt, track: i });
             });
-
-            // 90% 動畫時間為「撞擊死線」
             setTimeout(() => { if(isPlaying) checkCollision(); }, currentDuration * 0.9 * 1000);
         }
 
         function checkCollision() {
             if (!isPlaying) return;
-            
-            // 紅色死線反饋：撞擊瞬間所有判定線發紅光
             document.querySelectorAll('.track-zone').forEach(z => z.classList.add('zone-deadline'));
-            setTimeout(() => {
-                document.querySelectorAll('.track-zone').forEach(z => z.classList.remove('zone-deadline'));
-            }, 300);
+            setTimeout(() => { document.querySelectorAll('.track-zone').forEach(z => z.classList.remove('zone-deadline')); }, 300);
 
             const hitGate = activeGates.find(g => g.track === trackIdx);
             const q = questions[currentIdx];
@@ -237,22 +199,15 @@
                 document.getElementById('ui-sentence').innerText = q.question.replace('___', q.correct);
                 document.getElementById('ui-sentence').classList.add('text-green-400');
                 speak(q.question.replace('___', q.correct));
-                setTimeout(() => document.getElementById('ui-sentence').classList.remove('text-green-400'), 1000);
+                setTimeout(() => { document.getElementById('ui-sentence').classList.remove('text-green-400'); }, 1000);
             } else {
                 lives--;
                 document.getElementById('pane-game').classList.add('shake');
-                setTimeout(() => document.getElementById('pane-game').classList.remove('shake'), 400);
+                setTimeout(() => { document.getElementById('pane-game').classList.remove('shake'); }, 400);
             }
-
             updateUI(); currentIdx++;
-            
-            if (lives > 0) {
-                setTimeout(nextQuestion, 1500); // 答完後休息 1.5 秒出下一題
-            } else { 
-                isPlaying = false; 
-                document.getElementById('final-score').innerText = score;
-                document.getElementById('game-over-screen').classList.remove('hidden');
-            }
+            if (lives > 0) setTimeout(nextQuestion, 1500);
+            else { isPlaying = false; document.getElementById('final-score').innerText = score; document.getElementById('game-over-screen').classList.remove('hidden'); }
         }
 
         function updateUI() {
