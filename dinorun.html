@@ -3,39 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NewCore Cloze Runner - Professional 3D</title>
+    <title>NewCore Cloze Runner - Final Fix</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body, html { height: 100vh; overflow: hidden; margin: 0; background: #020617; }
         .game-viewport { perspective: 1200px; perspective-origin: 50% 40%; }
         .track-container { transform-style: preserve-3d; transform: rotateX(25deg); }
-        
-        /* 動態路面 */
         .ground-texture {
             background: repeating-linear-gradient(0deg, transparent 0, transparent 40px, rgba(255,255,255,0.05) 42px);
             animation: roadScroll 0.5s linear infinite;
         }
         @keyframes roadScroll { from { background-position: 0 0; } to { background-position: 0 80px; } }
-
-        /* 能量門動效 */
         .gate-move { animation: gateForward 2.5s linear forwards; }
         @keyframes gateForward {
             0% { transform: translate3d(0, 0, -1500px) scale(0.1); opacity: 0; }
             20% { opacity: 1; }
             100% { transform: translate3d(0, 0, 600px) scale(2.5); opacity: 0; }
         }
-
-        /* 跑道感應區塊 */
         .track-zone {
             position: absolute; bottom: 80px; width: 320px; height: 100px;
             background: rgba(255, 255, 255, 0.05); border: 2px solid rgba(255,255,255,0.1);
             transition: all 0.2s; transform: translateX(-50%);
         }
         .zone-active { background: rgba(59, 130, 246, 0.4); border-color: #60a5fa; box-shadow: 0 0 30px #3b82f6; }
-        
-        /* 恐龍背影旋轉 */
         .dino-backview { transform: scaleX(1) rotateY(180deg); }
-
         .shake { animation: shake 0.4s both; }
         @keyframes shake { 10%, 90% { transform: translate3d(-5px, 0, 0); } 40%, 60% { transform: translate3d(10px, 0, 0); } }
         .sky-night { background: linear-gradient(to bottom, #020617, #1e1b4b, #312e81); }
@@ -44,7 +35,7 @@
 <body class="flex flex-col">
 
     <header class="h-12 bg-slate-950 text-white flex items-center justify-between px-4 z-50">
-        <div class="font-bold tracking-widest">NewCore Cloze Runner 🏃‍♂️</div>
+        <div class="font-bold tracking-widest text-lg">NewCore Cloze Runner 🏃‍♂️</div>
         <div class="flex gap-4 text-sm">
             <button onclick="switchMode('edit')" class="hover:text-blue-400 font-bold transition">👨‍🏫 老師編輯</button>
             <button onclick="switchMode('game')" class="hover:text-blue-400 font-bold transition">🎓 學生挑戰</button>
@@ -54,6 +45,7 @@
     <main class="flex-1 flex overflow-hidden">
         <section id="pane-edit" class="w-[30%] p-5 bg-white border-r shadow-2xl flex flex-col gap-4 z-20">
             <h2 class="text-lg font-bold border-l-4 border-blue-600 pl-3 text-slate-800">手動題庫設定</h2>
+            <p class="text-xs text-gray-500 bg-gray-50 p-2 rounded">格式：句子(含___), 正解, 錯項1, 錯項2</p>
             <textarea id="cloze-input" class="flex-1 p-3 border rounded font-mono text-sm leading-relaxed outline-none" 
                 placeholder="I ___ to school every day., go, goes, going"></textarea>
             <button onclick="saveAndStart()" class="bg-blue-600 font-bold text-white py-3 rounded-lg hover:bg-blue-800 transition-all shadow-lg active:scale-95">💾 儲存並開始</button>
@@ -73,13 +65,10 @@
             <div class="flex-1 game-viewport relative">
                 <div id="game-stage" class="absolute inset-0 track-container">
                     <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[1800px] h-[3000px] ground-texture origin-bottom"></div>
-                    
                     <div id="zone-0" class="track-zone" style="left: calc(50% - 400px);"></div>
                     <div id="zone-1" class="track-zone" style="left: 50%;"></div>
                     <div id="zone-2" class="track-zone" style="left: calc(50% + 400px);"></div>
-                    
                     <div id="runner" class="absolute bottom-[80px] left-1/2 -translate-x-1/2 text-8xl transition-all duration-150 z-40 dino-backview" style="margin-left: 0px;">🦖</div>
-                    
                     <div id="gate-container" class="absolute inset-0"></div>
                 </div>
             </div>
@@ -105,21 +94,27 @@
             if (mode === 'game') startGame();
         }
 
+        // 優化後的解析邏輯
         function saveAndStart() {
             const raw = document.getElementById('cloze-input').value;
             questions = raw.trim().split('\n').map(line => {
+                // 使用逗號分割，並過濾多餘空格
                 const parts = line.split(',').map(s => s.trim());
                 if (parts.length < 2) return null;
-                const question = parts[0];
-                const correct = parts[1];
-                // 智慧補足選項，防止 ??? 出現
+                
+                const question = parts[0]; // 句子
+                const correct = parts[1];  // 第一個是正確答案
+                
+                // 處理選項：將所有選項(從index 1開始)放入陣列並洗牌
                 let options = parts.slice(1);
+                // 智慧補足：如果只有1或2個選項，自動生成錯誤項
                 while(options.length < 3) options.push(options[0] + "ed"); 
+                
                 options = options.slice(0,3).sort(() => Math.random() - 0.5);
                 return { question, correct, options };
             }).filter(item => item !== null);
 
-            if(questions.length === 0) return alert('格式錯誤！');
+            if(questions.length === 0) return alert('格式錯誤，請確認使用逗號分隔！');
             localStorage.setItem('cloze_runner_data', raw);
             switchMode('game');
         }
@@ -149,6 +144,7 @@
                 const gate = document.createElement('div');
                 gate.className = 'absolute bottom-[300px] left-1/2 -translate-x-1/2 w-72 h-96 gate-move flex items-center justify-center border-[8px] border-white/20 bg-white/10 rounded-3xl backdrop-blur-md z-10';
                 gate.style.marginLeft = trackPos[i] + 'px';
+                // 確保文字獨立顯示在能量門內
                 gate.innerHTML = `<div class="text-white text-7xl font-black italic drop-shadow-2xl">${opt}</div>`;
                 container.appendChild(gate);
                 activeGates.push({ option: opt, track: i });
@@ -185,7 +181,8 @@
 
         function updateZoneColor() {
             [0, 1, 2].forEach(i => {
-                document.getElementById(`zone-${i}`).classList.toggle('zone-active', i === trackIdx);
+                const zone = document.getElementById(`zone-${i}`);
+                if (zone) zone.classList.toggle('zone-active', i === trackIdx);
             });
         }
 
@@ -201,7 +198,7 @@
             if ((e.code === 'ArrowLeft' || e.code === 'KeyA') && trackIdx > 0) trackIdx--;
             if ((e.code === 'ArrowRight' || e.code === 'KeyD') && trackIdx < 2) trackIdx++;
             document.getElementById('runner').style.marginLeft = trackPos[trackIdx] + 'px';
-            updateZoneColor(); // 同步更新感應區顏色
+            updateZoneColor();
         });
     </script>
 </body>
