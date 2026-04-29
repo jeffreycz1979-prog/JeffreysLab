@@ -100,8 +100,90 @@
 
         </section>
     </main>
+    <style>
+    /* 增加發光的判定線 */
+    .hit-zone {
+        position: absolute;
+        bottom: 100px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 1000px;
+        height: 20px;
+        background: linear-gradient(to bottom, transparent, rgba(34, 197, 94, 0.5), transparent);
+        border-top: 2px solid rgba(255, 255, 255, 0.4);
+        z-index: 5;
+    }
+    
+    /* 強度強化：確保三條跑道視覺清晰 */
+    .track-line {
+        position: absolute;
+        width: 4px;
+        height: 2000px;
+        background: rgba(255,255,255,0.2);
+        top: 0;
+    }
 
-    <script>
+    /* 能量門動畫優化：增加由遠而近的縮放 */
+    @keyframes gateForward {
+        0% { transform: translate3d(0, 0, -1200px) scale(0.2); opacity: 0; }
+        20% { opacity: 1; }
+        90% { opacity: 1; }
+        100% { transform: translate3d(0, 0, 400px) scale(1.5); opacity: 0; }
+    }
+</style>
+
+<div id="game-stage" class="absolute inset-0 track-container">
+    <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[1200px] h-[2000px] ground-texture"></div>
+    
+    <div class="track-line" style="left: calc(50% - 175px);"></div>
+    <div class="track-line" style="left: calc(50% + 175px);"></div>
+    
+    <div class="hit-zone"></div>
+
+    <div id="runner" class="absolute bottom-[100px] left-1/2 -translate-x-1/2 text-8xl transition-all duration-150 z-40" style="transform: translate3d(0,0,0);">🦖</div>
+    
+    <div id="gate-container" class="absolute inset-0"></div>
+</div>
+     <script>
+    function spawnGates(q) {
+        const container = document.getElementById('gate-container');
+        container.innerHTML = '';
+        activeGates = [];
+
+        // 確保三道都有東西，如果老師只給兩個選項，系統自動補一個
+        const displayOptions = [...q.options];
+        while (displayOptions.length < 3) displayOptions.push("???");
+
+        displayOptions.forEach((opt, i) => {
+            const gate = document.createElement('div');
+            // 跑道座標位移調整
+            const offset = [-350, 0, 350][i];
+            
+            gate.className = 'absolute bottom-[300px] left-1/2 -translate-x-1/2 w-64 h-80 gate-move flex items-center justify-center border-[8px] border-white/60 bg-blue-600/40 rounded-3xl backdrop-blur-md z-10';
+            gate.style.marginLeft = offset + 'px';
+            gate.innerHTML = `<div class="text-white text-6xl font-black">${opt}</div>`;
+            
+            container.appendChild(gate);
+            activeGates.push({ el: gate, option: opt, track: i });
+        });
+
+        // 判定時間與動畫同步
+        setTimeout(() => {
+            if(isPlaying) checkCollision();
+        }, 2250); // 動畫約在 2.25秒 到達角色位置
+    }
+
+    // 更新鍵盤監聽，提升反應速度
+    window.addEventListener('keydown', (e) => {
+        if (!isPlaying) return;
+        if ((e.code === 'ArrowLeft' || e.code === 'KeyA') && trackIdx > 0) trackIdx--;
+        if ((e.code === 'ArrowRight' || e.code === 'KeyD') && trackIdx < 2) trackIdx++;
+        
+        // 更新角色 X 位置
+        const runner = document.getElementById('runner');
+        runner.style.marginLeft = [-350, 0, 350][trackIdx] + 'px';
+    });
+  
         let questions = [], score = 0, lives = 3, currentIdx = 0, isPlaying = false;
         let trackIdx = 1; // 0:左, 1:中, 2:右
         const trackPos = [-350, 0, 350]; // 對應 X 軸位移
@@ -152,26 +234,7 @@
             spawnGates(q);
         }
 
-        function spawnGates(q) {
-            const container = document.getElementById('gate-container');
-            container.innerHTML = '';
-            activeGates = [];
-
-            q.options.forEach((opt, i) => {
-                const gate = document.createElement('div');
-                gate.className = 'absolute bottom-[300px] left-1/2 -translate-x-1/2 w-64 h-80 gate-move flex flex-col items-center justify-center border-[6px] border-white/50 bg-blue-500/30 rounded-3xl backdrop-blur-sm z-10';
-                gate.style.marginLeft = trackPos[i] + 'px';
-                gate.innerHTML = `<div class="text-white text-5xl font-black drop-shadow-md">${opt}</div>`;
-                
-                container.appendChild(gate);
-                activeGates.push({ el: gate, option: opt, track: i, hit: false });
-            });
-
-            // 模擬撞擊判定
-            setTimeout(() => checkCollision(), 2200);
-        }
-
-        function checkCollision() {
+         function checkCollision() {
             if (!isPlaying) return;
             const hitGate = activeGates.find(g => g.track === trackIdx);
             const q = questions[currentIdx];
