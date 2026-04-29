@@ -3,39 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NewCore Cloze Runner - Final Fix</title>
+    <title>NewCore Cloze Runner - Endless 3D</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body, html { height: 100vh; overflow: hidden; margin: 0; background: #020617; }
         .game-viewport { perspective: 1200px; perspective-origin: 50% 40%; }
         .track-container { transform-style: preserve-3d; transform: rotateX(25deg); }
+        
+        /* 動態星空與網格路面 */
         .ground-texture {
-            background: repeating-linear-gradient(0deg, transparent 0, transparent 40px, rgba(255,255,255,0.05) 42px);
-            animation: roadScroll 0.5s linear infinite;
+            background: 
+                linear-gradient(90deg, transparent 49%, rgba(59, 130, 246, 0.2) 50%, transparent 51%),
+                repeating-linear-gradient(0deg, transparent 0, transparent 40px, rgba(59, 130, 246, 0.1) 42px);
+            background-size: 33.33% 100%, 100% 80px;
+            animation: roadScroll 0.4s linear infinite;
         }
-        @keyframes roadScroll { from { background-position: 0 0; } to { background-position: 0 80px; } }
+        @keyframes roadScroll { from { background-position: 0 0, 0 0; } to { background-position: 0 0, 0 160px; } }
+
+        /* 能量門動效 */
         .gate-move { animation: gateForward 2.5s linear forwards; }
         @keyframes gateForward {
             0% { transform: translate3d(0, 0, -1500px) scale(0.1); opacity: 0; }
             20% { opacity: 1; }
             100% { transform: translate3d(0, 0, 600px) scale(2.5); opacity: 0; }
         }
+
+        /* 跑道感應區塊 */
         .track-zone {
-            position: absolute; bottom: 80px; width: 320px; height: 100px;
-            background: rgba(255, 255, 255, 0.05); border: 2px solid rgba(255,255,255,0.1);
+            position: absolute; bottom: 80px; width: 320px; height: 120px;
+            background: rgba(255, 255, 255, 0.02); border-bottom: 4px solid rgba(255,255,255,0.1);
             transition: all 0.2s; transform: translateX(-50%);
         }
-        .zone-active { background: rgba(59, 130, 246, 0.4); border-color: #60a5fa; box-shadow: 0 0 30px #3b82f6; }
-        .dino-backview { transform: scaleX(1) rotateY(180deg); }
+        .zone-active { background: rgba(59, 130, 246, 0.3); border-color: #60a5fa; box-shadow: 0 0 40px rgba(59, 130, 246, 0.5); }
+        
         .shake { animation: shake 0.4s both; }
         @keyframes shake { 10%, 90% { transform: translate3d(-5px, 0, 0); } 40%, 60% { transform: translate3d(10px, 0, 0); } }
-        .sky-night { background: linear-gradient(to bottom, #020617, #1e1b4b, #312e81); }
+        .sky-night { background: linear-gradient(to bottom, #020617, #0f172a, #1e3a8a); }
+        
+        /* 戰機推進器火焰 */
+        .thruster { animation: flicker 0.1s infinite alternate; }
+        @keyframes flicker { from { opacity: 0.8; transform: scaleY(0.9); } to { opacity: 1; transform: scaleY(1.2); } }
     </style>
 </head>
 <body class="flex flex-col">
 
-    <header class="h-12 bg-slate-950 text-white flex items-center justify-between px-4 z-50">
-        <div class="font-bold tracking-widest text-lg">NewCore Cloze Runner 🏃‍♂️</div>
+    <header class="h-12 bg-slate-950 text-white flex items-center justify-between px-4 z-50 border-b border-slate-800">
+        <div class="font-bold tracking-widest text-lg">NewCore Cloze Runner 🚀</div>
         <div class="flex gap-4 text-sm">
             <button onclick="switchMode('edit')" class="hover:text-blue-400 font-bold transition">👨‍🏫 老師編輯</button>
             <button onclick="switchMode('game')" class="hover:text-blue-400 font-bold transition">🎓 學生挑戰</button>
@@ -43,21 +56,25 @@
     </header>
 
     <main class="flex-1 flex overflow-hidden">
-        <section id="pane-edit" class="w-[30%] p-5 bg-white border-r shadow-2xl flex flex-col gap-4 z-20">
-            <h2 class="text-lg font-bold border-l-4 border-blue-600 pl-3 text-slate-800">手動題庫設定</h2>
-            <p class="text-xs text-gray-500 bg-gray-50 p-2 rounded">格式：句子(含___), 正解, 錯項1, 錯項2</p>
-            <textarea id="cloze-input" class="flex-1 p-3 border rounded font-mono text-sm leading-relaxed outline-none" 
-                placeholder="I ___ to school every day., go, goes, going"></textarea>
-            <button onclick="saveAndStart()" class="bg-blue-600 font-bold text-white py-3 rounded-lg hover:bg-blue-800 transition-all shadow-lg active:scale-95">💾 儲存並開始</button>
+        <section id="pane-edit" class="w-[30%] p-6 bg-slate-50 border-r shadow-2xl flex flex-col gap-4 z-20">
+            <h2 class="text-xl font-black border-l-4 border-blue-600 pl-3 text-slate-800">手動題庫設定</h2>
+            <div class="text-xs text-slate-600 bg-blue-100 p-3 rounded-lg border border-blue-200">
+                <p class="font-bold mb-1">✍️ 輸入格式：</p>
+                <p>句子(含___) <span class="text-red-500 font-bold">,</span> 正解 <span class="text-red-500 font-bold">,</span> 錯項1 <span class="text-red-500 font-bold">,</span> 錯項2</p>
+            </div>
+            <textarea id="cloze-input" class="flex-1 p-4 border border-slate-300 rounded-xl font-mono text-sm leading-relaxed outline-none focus:ring-2 focus:ring-blue-500 resize-none shadow-inner" 
+                placeholder="I ___ to school every day., go, goes, going&#10;Mary always brings ___ doll to school., her, his, an"></textarea>
+            <button onclick="saveAndStart()" class="bg-blue-600 font-bold text-white py-4 rounded-xl hover:bg-blue-700 transition-all shadow-lg active:scale-95 text-lg tracking-wide">💾 儲存並開始無盡挑戰</button>
         </section>
 
         <section id="pane-game" class="w-[70%] relative flex flex-col hidden overflow-hidden sky-night">
+            
             <div class="absolute top-6 inset-x-0 flex justify-center z-30 px-10">
-                <div class="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 w-full max-w-4xl shadow-2xl text-center text-white">
-                    <div id="ui-sentence" class="text-3xl font-black drop-shadow-lg tracking-wide">載入中...</div>
-                    <div class="mt-2 flex justify-between items-center font-bold">
-                        <div>SCORE: <span id="ui-score" class="text-yellow-400 text-2xl">0</span></div>
-                        <div id="ui-hearts" class="text-2xl text-red-500">❤️❤️❤️</div>
+                <div class="bg-slate-900/60 backdrop-blur-xl border border-white/20 rounded-2xl p-6 w-full max-w-4xl shadow-2xl text-center text-white">
+                    <div id="ui-sentence" class="text-4xl font-black drop-shadow-lg tracking-wide">載入中...</div>
+                    <div class="mt-4 flex justify-between items-center font-bold px-4">
+                        <div class="text-xl">SCORE: <span id="ui-score" class="text-yellow-400 text-3xl ml-2">0</span></div>
+                        <div id="ui-hearts" class="text-3xl text-red-500 drop-shadow-md">❤️❤️❤️</div>
                     </div>
                 </div>
             </div>
@@ -65,11 +82,30 @@
             <div class="flex-1 game-viewport relative">
                 <div id="game-stage" class="absolute inset-0 track-container">
                     <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[1800px] h-[3000px] ground-texture origin-bottom"></div>
+                    
                     <div id="zone-0" class="track-zone" style="left: calc(50% - 400px);"></div>
                     <div id="zone-1" class="track-zone" style="left: 50%;"></div>
                     <div id="zone-2" class="track-zone" style="left: calc(50% + 400px);"></div>
-                    <div id="runner" class="absolute bottom-[80px] left-1/2 -translate-x-1/2 text-8xl transition-all duration-150 z-40 dino-backview" style="margin-left: 0px;">🦖</div>
+                    
+                    <div id="runner" class="absolute bottom-[100px] left-1/2 -translate-x-1/2 transition-all duration-150 z-40" style="margin-left: 0px;">
+                        <svg viewBox="0 0 24 24" fill="currentColor" class="w-32 h-32 text-slate-200 drop-shadow-[0_10px_10px_rgba(0,0,0,0.8)]">
+                            <path d="M12 2L4 20L12 16L20 20L12 2Z" class="text-blue-400"/>
+                            <path d="M12 2L12 16L20 20L12 2Z" class="text-blue-600"/>
+                            <path d="M10 17L12 23L14 17Z" class="text-orange-500 thruster"/>
+                            <path d="M11 17L12 21L13 17Z" class="text-yellow-300 thruster"/>
+                        </svg>
+                    </div>
+                    
                     <div id="gate-container" class="absolute inset-0"></div>
+                </div>
+            </div>
+
+            <div id="game-over-screen" class="absolute inset-0 bg-slate-950/90 hidden z-50 flex flex-col items-center justify-center text-white backdrop-blur-sm">
+                <h1 class="text-7xl font-black mb-2 text-red-500 drop-shadow-[0_0_20px_rgba(239,68,68,0.8)] tracking-widest">MISSION FAILED</h1>
+                <p class="text-3xl mb-10 text-slate-300">最終存活分數：<span id="final-score" class="font-black text-yellow-400 text-5xl ml-2">0</span></p>
+                <div class="flex gap-6">
+                    <button onclick="startGame()" class="bg-blue-600 text-white px-8 py-4 rounded-xl text-xl font-bold hover:bg-blue-500 transition shadow-[0_0_15px_rgba(37,99,235,0.6)] hover:scale-105">🔄 再挑戰一次</button>
+                    <button onclick="switchMode('edit')" class="bg-slate-700 text-white px-8 py-4 rounded-xl text-xl font-bold hover:bg-slate-600 transition hover:scale-105">✏️ 修改題庫</button>
                 </div>
             </div>
         </section>
@@ -91,47 +127,55 @@
             document.getElementById('pane-edit').classList.toggle('hidden', mode === 'game');
             document.getElementById('pane-game').classList.toggle('hidden', mode === 'edit');
             document.getElementById('pane-game').classList.toggle('w-full', mode === 'game');
-            if (mode === 'game') startGame();
+            if (mode === 'game' && !isPlaying) startGame();
         }
 
-        // 優化後的解析邏輯
+        // 🧠 智慧容錯解析邏輯
         function saveAndStart() {
             const raw = document.getElementById('cloze-input').value;
             questions = raw.trim().split('\n').map(line => {
-                // 使用逗號分割，並過濾多餘空格
-                const parts = line.split(',').map(s => s.trim());
-                if (parts.length < 2) return null;
+                // 找到第一個逗號作為題目與答案的分界點
+                const firstComma = line.indexOf(',');
+                if (firstComma === -1) return null; // 完全沒有逗號則跳過
+
+                const question = line.substring(0, firstComma).trim();
+                const optionsRaw = line.substring(firstComma + 1).split(',').map(s => s.trim()).filter(s => s !== "");
                 
-                const question = parts[0]; // 句子
-                const correct = parts[1];  // 第一個是正確答案
+                if (optionsRaw.length === 0) return null;
+                const correct = optionsRaw[0]; // 第一個設定為正解
                 
-                // 處理選項：將所有選項(從index 1開始)放入陣列並洗牌
-                let options = parts.slice(1);
-                // 智慧補足：如果只有1或2個選項，自動生成錯誤項
-                while(options.length < 3) options.push(options[0] + "ed"); 
+                let options = [...optionsRaw];
+                // 智慧補足：如果選項不到3個，用假字串補齊，防止破圖
+                while(options.length < 3) options.push("???"); 
                 
+                // 取前三個選項並打亂
                 options = options.slice(0,3).sort(() => Math.random() - 0.5);
                 return { question, correct, options };
             }).filter(item => item !== null);
 
-            if(questions.length === 0) return alert('格式錯誤，請確認使用逗號分隔！');
+            if(questions.length === 0) return alert('⚠️ 無法解析題庫！請確保「題目」與「正確答案」之間有用逗號分隔。');
             localStorage.setItem('cloze_runner_data', raw);
             switchMode('game');
         }
 
         function startGame() {
+            document.getElementById('game-over-screen').classList.add('hidden');
             score = 0; lives = 3; currentIdx = 0; isPlaying = true;
+            // 每次開始都先洗牌題庫
+            questions.sort(() => Math.random() - 0.5);
             updateUI(); updateZoneColor(); nextQuestion();
         }
 
         function nextQuestion() {
+            // ♾️ 無盡模式：如果題目用完了，就重新洗牌從頭開始
             if (currentIdx >= questions.length) {
-                isPlaying = false; alert('挑戰結束！總分：' + score);
-                return switchMode('edit');
+                currentIdx = 0;
+                questions.sort(() => Math.random() - 0.5);
             }
+            
             const q = questions[currentIdx];
             document.getElementById('ui-sentence').innerText = q.question;
-            speak(q.question.replace('___', '...'));
+            speak(q.question.replace('___', '...')); // 零成本語音
             spawnGates(q);
         }
 
@@ -142,10 +186,9 @@
 
             q.options.forEach((opt, i) => {
                 const gate = document.createElement('div');
-                gate.className = 'absolute bottom-[300px] left-1/2 -translate-x-1/2 w-72 h-96 gate-move flex items-center justify-center border-[8px] border-white/20 bg-white/10 rounded-3xl backdrop-blur-md z-10';
+                gate.className = 'absolute bottom-[300px] left-1/2 -translate-x-1/2 w-72 h-96 gate-move flex items-center justify-center border-[6px] border-blue-400/40 bg-blue-900/40 rounded-3xl backdrop-blur-md z-10 shadow-[0_0_30px_rgba(59,130,246,0.2)]';
                 gate.style.marginLeft = trackPos[i] + 'px';
-                // 確保文字獨立顯示在能量門內
-                gate.innerHTML = `<div class="text-white text-7xl font-black italic drop-shadow-2xl">${opt}</div>`;
+                gate.innerHTML = `<div class="text-white text-7xl font-black italic drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">${opt}</div>`;
                 container.appendChild(gate);
                 activeGates.push({ option: opt, track: i });
             });
@@ -170,8 +213,15 @@
             }
 
             updateUI(); currentIdx++;
-            if (lives > 0) setTimeout(nextQuestion, 2000);
-            else { isPlaying = false; alert('遊戲結束！'); switchMode('edit'); }
+            
+            if (lives > 0) {
+                setTimeout(nextQuestion, 2000);
+            } else { 
+                // 💀 遊戲結束邏輯
+                isPlaying = false; 
+                document.getElementById('final-score').innerText = score;
+                document.getElementById('game-over-screen').classList.remove('hidden');
+            }
         }
 
         function updateUI() {
