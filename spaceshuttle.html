@@ -55,8 +55,12 @@
     <main class="flex-1 flex overflow-hidden">
         <section id="pane-edit" class="w-[30%] p-6 bg-slate-50 border-r shadow-2xl flex flex-col gap-4 z-20">
             <h2 class="text-xl font-black border-l-4 border-blue-600 pl-3 text-slate-800">手動題庫設定</h2>
+            <div class="text-xs text-slate-600 bg-blue-100 p-3 rounded-lg border border-blue-200">
+                <p class="font-bold mb-1">✍️ 輸入格式：</p>
+                <p>句子(含---或___) <span class="text-red-500 font-bold">,</span> 正解 <span class="text-red-500 font-bold">,</span> 錯項1 <span class="text-red-500 font-bold">,</span> 錯項2</p>
+            </div>
             <textarea id="cloze-input" class="flex-1 p-4 border border-slate-300 rounded-xl font-mono text-sm leading-relaxed outline-none focus:ring-2 focus:ring-blue-500 resize-none shadow-inner" 
-                placeholder="I ___ to school every day., go, goes, going&#10;She ___ English now., is studying, study, studies"></textarea>
+                placeholder="I --- to school every day., go, goes, going&#10;She ___ English now., is studying, study, studies"></textarea>
             <button onclick="saveAndStart()" class="bg-blue-600 font-bold text-white py-4 rounded-xl hover:bg-blue-700 transition-all shadow-lg active:scale-95 text-lg">💾 儲存並開始</button>
         </section>
 
@@ -156,11 +160,11 @@
             }
             const q = questions[currentIdx];
             
-            // 畫面上顯示帶空格的句子
+            // 畫面上顯示原始題目
             document.getElementById('ui-sentence').innerText = q.question;
             
-            // 重要：語音念出「正確且完整」的句子來引導學生
-            const completeSentence = q.question.replace('___', q.correct);
+            // 💡 智慧辨識空格：不管是 --, ---, __, ___, 或是 ... 都能精準替換！
+            const completeSentence = q.question.replace(/[-_]{2,}|\.{3,}/, q.correct);
             speak(completeSentence);
             
             spawnGates(q);
@@ -196,9 +200,13 @@
 
             if (hitGate && hitGate.option === q.correct) {
                 score += 10;
-                document.getElementById('ui-sentence').innerText = q.question.replace('___', q.correct);
+                
+                // 💡 撞擊成功時的智慧替換
+                const completeText = q.question.replace(/[-_]{2,}|\.{3,}/, q.correct);
+                document.getElementById('ui-sentence').innerText = completeText;
                 document.getElementById('ui-sentence').classList.add('text-green-400');
-                speak(q.question.replace('___', q.correct));
+                
+                speak(completeText);
                 setTimeout(() => { document.getElementById('ui-sentence').classList.remove('text-green-400'); }, 1000);
             } else {
                 lives--;
