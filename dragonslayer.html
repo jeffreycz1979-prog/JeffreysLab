@@ -8,9 +8,11 @@
     <style>
         body, html { height: 100vh; overflow: hidden; margin: 0; background: #0f172a; font-family: 'Segoe UI', sans-serif; }
         
+        /* 戰場背景 (可被 JS 動態修改以營造蓄力效果) */
         .battleground {
             background: radial-gradient(circle at center, #1e293b 0%, #020617 100%);
             box-shadow: inset 0 0 100px rgba(0,0,0,0.8);
+            transition: background 0.5s ease;
         }
 
         .hp-bar-container { width: 100%; height: 28px; background: #334155; border-radius: 14px; overflow: hidden; border: 3px solid #000; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
@@ -19,33 +21,45 @@
         .hp-boss { background: linear-gradient(90deg, #ef4444, #f87171); }
 
         .shake { animation: shake 0.4s both; }
-        .shake-heavy { animation: shakeHeavy 0.6s both; }
+        .shake-heavy { animation: shakeHeavy 0.8s both; }
         @keyframes shake { 10%, 90% { transform: translate3d(-5px, 0, 0); } 40%, 60% { transform: translate3d(10px, 0, 0); } }
-        @keyframes shakeHeavy { 10%, 90% { transform: translate3d(-15px, 10px, 0) rotate(-2deg); } 40%, 60% { transform: translate3d(20px, -15px, 0) rotate(3deg); } }
+        @keyframes shakeHeavy { 10%, 90% { transform: translate3d(-15px, 15px, 0) rotate(-2deg); } 40%, 60% { transform: translate3d(20px, -15px, 0) rotate(3deg); } }
         
         .attack-pulse { animation: pulseRed 0.5s; }
         @keyframes pulseRed { 0% { filter: drop-shadow(0 0 0px red); transform: scaleX(-1) scale(1); } 50% { filter: drop-shadow(0 0 50px red); transform: scaleX(-1) scale(1.1); } 100% { filter: drop-shadow(0 0 0px red); transform: scaleX(-1) scale(1); } }
 
-        /* 巨大火球 */
+        /* 🔥 純 CSS 等離子能量球 (取代歪斜的 Emoji) */
         .fireball { position: absolute; transition: all linear; z-index: 20; }
-        .fireball-pulse { animation: firePulse 0.5s infinite alternate; }
-        @keyframes firePulse { from { filter: drop-shadow(0 0 20px #ef4444); transform: scale(0.95); } to { filter: drop-shadow(0 0 60px #f59e0b); transform: scale(1.05); } }
+        .plasma-ball {
+            width: 140px; height: 140px; border-radius: 50%;
+            background: radial-gradient(circle, #ffffff 10%, #fde047 30%, #f97316 60%, #ef4444 100%);
+            box-shadow: 0 0 40px #ef4444, 0 0 80px #f97316, inset 0 0 20px #fff;
+            animation: plasmaPulse 0.3s infinite alternate;
+        }
+        @keyframes plasmaPulse { 
+            from { transform: scale(0.95); filter: drop-shadow(0 0 30px #ef4444); } 
+            to { transform: scale(1.05); filter: drop-shadow(0 0 60px #eab308); } 
+        }
 
-        /* 一般魔法攻擊 */
+        /* 普攻光束 */
         .magic-beam {
             position: absolute; top: 45%; left: 15%;
-            width: 0; height: 20px; background: cyan;
+            width: 0; height: 25px; background: cyan;
             box-shadow: 0 0 20px cyan, 0 0 40px blue;
             border-radius: 10px; z-index: 15; transition: width 0.2s ease-out;
         }
 
-        /* 終極大招光束 */
+        /* 終極光束 */
         .ultimate-beam {
             position: absolute; top: 40%; left: 15%;
-            width: 0; height: 100px; background: #fde047;
-            box-shadow: 0 0 40px #eab308, 0 0 80px #ef4444, 0 0 120px #f97316;
-            border-radius: 50px; z-index: 25; transition: width 0.3s ease-in;
+            width: 0; height: 120px; background: #ffffff;
+            box-shadow: 0 0 40px #fff, 0 0 80px #fde047, 0 0 150px #ef4444;
+            border-radius: 60px; z-index: 25; transition: width 0.3s ease-in;
         }
+
+        /* ⚡ 閃電白光特效 */
+        .thunder-flash { animation: flash 0.8s ease-out forwards; }
+        @keyframes flash { 0% { background: rgba(255,255,255,1); } 20% { background: rgba(253,224,71,0.8); } 100% { background: transparent; } }
 
         .magic-btn { transition: all 0.2s; }
         .magic-btn:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(59, 130, 246, 0.6); border-color: #60a5fa; }
@@ -78,8 +92,10 @@
             <button onclick="saveAndStart()" class="bg-blue-600 font-bold text-white py-4 rounded-xl hover:bg-blue-500 transition-all shadow-lg active:scale-95 text-lg tracking-wide border border-blue-400">💾 儲存並挑戰 Boss</button>
         </section>
 
-        <section id="pane-game" class="w-[70%] relative flex flex-col hidden overflow-hidden battleground">
+        <section id="pane-game" class="w-[70%] relative flex flex-col hidden overflow-hidden battleground" id="battleground">
             
+            <div id="flash-overlay" class="absolute inset-0 pointer-events-none z-50 opacity-0"></div>
+
             <div class="absolute top-4 inset-x-0 flex justify-between items-start px-10 z-30">
                 <div class="w-1/3 flex flex-col gap-2">
                     <div class="flex justify-between items-end">
@@ -108,18 +124,18 @@
                 <div id="magic-beam" class="magic-beam hidden"></div>
                 <div id="ultimate-beam" class="ultimate-beam hidden"></div>
 
-                <div id="fireball-container" class="fireball hidden flex items-center gap-6">
-                    <div id="ui-question" class="bg-slate-900/90 border-2 border-red-500 text-white px-8 py-5 rounded-2xl text-4xl font-black shadow-[0_0_40px_rgba(239,68,68,0.8)] backdrop-blur-md whitespace-nowrap">
+                <div id="fireball-container" class="fireball hidden flex items-center gap-8">
+                    <div id="ui-question" class="bg-slate-900/90 border-2 border-red-500 text-white px-8 py-5 rounded-3xl text-4xl font-black shadow-[0_0_50px_rgba(239,68,68,0.8)] backdrop-blur-md whitespace-nowrap">
                         Ready?
                     </div>
-                    <div class="text-[10rem] drop-shadow-[0_0_40px_red] fireball-pulse">☄️</div>
+                    <div class="plasma-ball"></div>
                 </div>
             </div>
 
             <div id="options-panel" class="absolute bottom-10 inset-x-0 flex justify-center gap-8 px-10 z-30 opacity-0 transition-opacity duration-300 pointer-events-none">
                 </div>
 
-            <div id="game-over-screen" class="absolute inset-0 bg-slate-950/90 hidden z-50 flex flex-col items-center justify-center text-white backdrop-blur-md">
+            <div id="game-over-screen" class="absolute inset-0 bg-slate-950/95 hidden z-50 flex flex-col items-center justify-center text-white backdrop-blur-lg">
                 <h1 id="result-title" class="text-8xl font-black mb-6 tracking-widest drop-shadow-[0_0_20px_rgba(255,255,255,0.5)]">VICTORY</h1>
                 <button onclick="startGame()" class="bg-blue-600 text-white px-10 py-5 rounded-2xl text-2xl font-black hover:bg-blue-500 transition shadow-[0_0_30px_rgba(37,99,235,0.8)] hover:scale-105">🔄 再次挑戰</button>
             </div>
@@ -132,7 +148,6 @@
         let fireballTimer = null; 
         let currentCorrectAnswer = "";
 
-        // 傷害設定：玩家被摸到扣 20 (容錯 5 次)，普攻扣 15，大招扣 40 (Boss 總血量 100)
         const DMG_PLAYER_TAKES = 20;
         const DMG_NORMAL_ATK = 15;
         const DMG_ULTIMATE_ATK = 40;
@@ -192,7 +207,6 @@
             if (bossHp <= 0) return endGame(true); 
             if (playerHp <= 0) return endGame(false); 
             
-            // ♾️ 無盡死鬥模式：題目沒了就洗牌重來，直到有人血量歸零！
             if (currentIdx >= questions.length) {
                 currentIdx = 0;
                 shuffleArray(questions);
@@ -220,7 +234,6 @@
             qText.innerText = q.question;
             qText.className = 'bg-slate-900/90 border-4 border-red-500 text-white px-8 py-5 rounded-3xl text-5xl font-bold shadow-[0_0_50px_rgba(239,68,68,0.9)] backdrop-blur-md whitespace-nowrap';
             
-            // 語音引導：智慧判斷空格並朗讀
             speak(q.question.replace(/[-_]{2,}|\.{3,}/, q.correct));
 
             fireball.style.transition = 'none';
@@ -229,7 +242,6 @@
             fireball.classList.remove('hidden');
             panel.classList.remove('opacity-0', 'pointer-events-none');
 
-            // 調整火球飛行時間
             const flightTime = 4000; 
             setTimeout(() => {
                 fireball.style.transition = `right ${flightTime}ms linear, top ${flightTime}ms linear`;
@@ -255,7 +267,6 @@
             fireball.style.top = currentTop;
 
             if (selectedOpt === currentCorrectAnswer) {
-                // ✅ 答對邏輯
                 btnElement.classList.replace('border-slate-600', 'border-green-400');
                 btnElement.classList.replace('bg-slate-800', 'bg-green-900');
                 
@@ -266,21 +277,17 @@
                 combo++;
                 updateComboUI();
 
-                // 🔥 判斷是否發動大招
                 if (combo >= 3) {
-                    setTimeout(() => shootUltimateBeam(), 400);
-                    combo = 0; // 大招發動後重置
+                    combo = 0; 
+                    setTimeout(() => shootCinematicUltimate(), 500); // 呼叫全新電影級大招
                 } else {
                     setTimeout(() => shootMagicBeam(), 400);
                 }
 
             } else {
-                // ❌ 答錯邏輯
                 btnElement.classList.replace('border-slate-600', 'border-red-500');
                 btnElement.classList.replace('bg-slate-800', 'bg-red-900');
-                combo = 0;
-                updateComboUI();
-                takeDamage();
+                combo = 0; updateComboUI(); takeDamage();
                 
                 setTimeout(() => { fireball.classList.add('hidden'); currentIdx++; nextTurn(); }, 1000);
             }
@@ -289,9 +296,7 @@
         function handleTimeout() {
             if (!isPlaying) return;
             document.getElementById('options-panel').classList.add('opacity-0', 'pointer-events-none');
-            combo = 0; updateComboUI();
-            takeDamage();
-            
+            combo = 0; updateComboUI(); takeDamage();
             setTimeout(() => { document.getElementById('fireball-container').classList.add('hidden'); currentIdx++; nextTurn(); }, 1000);
         }
 
@@ -312,7 +317,6 @@
             if(playerHp <= 0) setTimeout(() => endGame(false), 500);
         }
 
-        // 普攻 (15 傷害)
         function shootMagicBeam() {
             const beam = document.getElementById('magic-beam');
             const fireball = document.getElementById('fireball-container');
@@ -334,35 +338,77 @@
             }, 250); 
         }
 
-        // 🔥 終極大招 (40 傷害 + 劇烈震動)
-        function shootUltimateBeam() {
-            const beam = document.getElementById('ultimate-beam');
-            const fireball = document.getElementById('fireball-container');
+        // 🎬 史詩級電影大招展演 (Cinematic Ultimate)
+        function shootCinematicUltimate() {
             const pane = document.getElementById('pane-game');
-            beam.classList.remove('hidden');
+            const boss = document.getElementById('boss');
+            const fireball = document.getElementById('fireball-container');
             
-            speak("Ultimate Power!"); // 大招音效輔助
+            speak("Ultimate Power!"); 
             
-            setTimeout(() => { beam.style.width = '70%'; }, 50);
+            // 階段一：戰場變暗，法師蓄力
+            pane.style.background = 'radial-gradient(circle at center, #451a03 0%, #020617 100%)';
+            
+            // 階段二：多角度小型追蹤彈連發 (延遲 0.8 秒開始)
             setTimeout(() => {
-                fireball.classList.add('hidden'); 
-                beam.classList.add('hidden'); beam.style.width = '0';
+                for(let i=0; i<6; i++) {
+                    setTimeout(() => {
+                        createMiniLaser(15 + Math.random()*20, 30 + Math.random()*30);
+                        boss.classList.add('shake');
+                        setTimeout(() => boss.classList.remove('shake'), 150);
+                    }, i * 200); // 每 0.2 秒發射一發
+                }
+            }, 800);
+
+            // 階段三：毀滅巨型光束 + 閃電 + 劇烈震動 (延遲 2.5 秒)
+            setTimeout(() => {
+                const mainBeam = document.getElementById('ultimate-beam');
+                mainBeam.classList.remove('hidden');
+                setTimeout(() => { mainBeam.style.width = '70%'; }, 50);
+
+                // 觸發閃電白光
+                const flash = document.getElementById('flash-overlay');
+                flash.classList.remove('opacity-0');
+                flash.classList.add('thunder-flash');
+                setTimeout(() => {
+                    flash.classList.remove('thunder-flash');
+                    flash.classList.add('opacity-0');
+                }, 800);
+
+                // 觸發全螢幕劇震
+                pane.classList.add('shake-heavy');
+                fireball.classList.add('hidden'); // 火球完全蒸發
                 
                 bossHp -= DMG_ULTIMATE_ATK; updateHPBar();
-                
-                // 大招造成全螢幕劇烈震動
-                pane.classList.add('shake-heavy');
-                pane.style.background = 'radial-gradient(circle at center, #7f1d1d 0%, #020617 100%)';
-                
-                setTimeout(() => { 
-                    pane.classList.remove('shake-heavy'); 
-                    pane.style.background = 'radial-gradient(circle at center, #1e293b 0%, #020617 100%)';
-                }, 600);
+            }, 2500);
+
+            // 階段四：收招與結算 (延遲 4.5 秒)
+            setTimeout(() => {
+                document.getElementById('ultimate-beam').classList.add('hidden');
+                document.getElementById('ultimate-beam').style.width = '0';
+                pane.classList.remove('shake-heavy');
+                pane.style.background = 'radial-gradient(circle at center, #1e293b 0%, #020617 100%)'; // 恢復原狀
 
                 currentIdx++;
                 if(bossHp <= 0) setTimeout(() => endGame(true), 800);
-                else setTimeout(nextTurn, 1200); 
-            }, 300); 
+                else setTimeout(nextTurn, 1500); // 讓玩家喘口氣再進下一題
+            }, 4500); 
+        }
+
+        // 動態生成小型雷射
+        function createMiniLaser(topOffset, angle) {
+            const pane = document.getElementById('pane-game');
+            const laser = document.createElement('div');
+            laser.className = 'absolute w-0 h-3 bg-yellow-300 rounded-full z-20 shadow-[0_0_20px_#eab308]';
+            laser.style.top = (45 + (Math.random()*10 - 5)) + '%'; // 隨機法師周圍高度
+            laser.style.left = '18%';
+            laser.style.transition = 'width 0.2s ease-in, transform 0.2s';
+            laser.style.transform = `rotate(${Math.random()*15 - 7}deg)`; // 隨機小角度散射
+            
+            pane.appendChild(laser);
+            
+            setTimeout(() => { laser.style.width = '65%'; }, 50);
+            setTimeout(() => { laser.remove(); }, 250);
         }
 
         function updateHPBar() {
@@ -383,7 +429,6 @@
                 ui.classList.replace('text-yellow-400', 'text-slate-400');
             }
 
-            // 滿 2 Combo 時亮起大招預熱警示
             if (combo === 2) {
                 alert.classList.remove('hidden');
                 document.getElementById('vs-text').classList.add('hidden');
