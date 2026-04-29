@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NewCore Dino Dash - Spelling Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body, html { height: 100vh; overflow: hidden; margin: 0; }
+        .game-canvas { background: #f7f7f7; border-bottom: 2px solid #333; }
+        /* 震動特效 */
+        .shake { animation: shake 0.5s; }
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex flex-col i18n-zh">
+
+    <header class="h-12 bg-slate-800 text-white flex items-center justify-between px-4">
+        <div class="font-bold">NewCore Dino Dash 🦖</div>
+        <div class="flex gap-4 text-sm">
+            <button onclick="switchMode('edit')" class="hover:text-blue-400">👨‍🏫 老師編輯</button>
+            <button onclick="switchMode('game')" class="hover:text-blue-400">🎓 學生挑戰</button>
+        </div>
+    </header>
+
+    <main class="flex-1 flex overflow-hidden">
+        <section id="pane-edit" class="w-[30%] p-4 bg-white border-r flex flex-col gap-4">
+            <h2 class="font-bold border-l-4 border-blue-500 pl-2">單字清單編輯</h2>
+            <p class="text-xs text-gray-500">格式：單字,中文,自訂錯字(選填)</p>
+            <textarea id="word-input" class="flex-1 p-2 border rounded font-mono text-sm" placeholder="apple,蘋果&#10;banana,香蕉,bananna"></textarea>
+            <button onclick="saveAndStart()" class="bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition">儲存並開始遊戲</button>
+        </section>
+
+        <section id="pane-game" class="w-[70%] relative bg-white flex flex-col">
+            <div class="p-2 flex justify-between items-center bg-gray-50 border-b">
+                <div class="text-xl font-black text-blue-600">SCORE: <span id="ui-score">0</span></div>
+                <div class="text-sm text-gray-500">空白鍵或點擊畫面跳躍 (避開錯字，撞擊對字)</div>
+            </div>
+            
+            <div id="game-container" class="flex-1 relative overflow-hidden cursor-pointer" onclick="handleInput()">
+                <div id="dino" class="absolute bottom-10 left-10 w-12 h-12 bg-slate-700 rounded-lg flex items-center justify-center text-white text-2xl transition-all duration-300">🦖</div>
+                
+                <div id="ground" class="absolute bottom-10 left-0 w-full h-1 bg-gray-400"></div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 核心資料狀態
+        let wordList = [];
+        let score = 0;
+        let isPlaying = false;
+        let isJumping = false;
+        let gameLoop = null;
+        let currentObstacle = null;
+        let gameSpeed = 5;
+
+        // 初始化：載入暫存資料
+        window.onload = () => {
+            const saved = localStorage.getItem('dino_word_list');
+            if (saved) document.getElementById('word-input').value = JSON.parse(saved).raw;
+            switchMode('edit');
+        };
+
+        // 模式切換
+        function switchMode(mode) {
+            document.getElementById('pane-edit').classList.toggle('hidden', mode === 'game');
+            if (mode === 'game' && !isPlaying) startGame();
+        }
+
+        // 解析與儲存
+        function saveAndStart() {
+            const raw = document.getElementById('word-input').value;
+            const lines = raw.trim().split('\n');
+            wordList = lines.map(line => {
+                const [w, m, c] = line.split(',');
+                return { word: w?.trim(), meaning: m?.trim(), custom: c?.trim() };
+            }).filter(item => item.word);
+
+            localStorage.setItem('dino_word_list', JSON.stringify({ raw, wordList }));
+            alert('題庫載入成功！共 ' + wordList.length + ' 題');
+            switchMode('game');
+        }
+
+        // 遊戲核心迴圈
+        function startGame() {
+            if (wordList.length === 0) return alert('請先輸入單字');
+            isPlaying = true;
+            score = 0;
+            updateScore(0);
+            spawnObstacle();
+            if (gameLoop) clearInterval(gameLoop);
+            gameLoop = setInterval(updateGame, 20);
+        }
+
+        function spawnObstacle() {
+            if (!isPlaying) return;
+            const target = wordList[Math.floor(Math.random() * wordList.length)];
+            const isCorrect = Math.random() > 0.5;
+            
+            let displayText = isCorrect ? target.word : (target.custom || generateTypo(target.word));
+            
+            // 建立障礙物 DOM
+            const el = document.createElement('div');
+            el.className = 'absolute bottom-10 right-[-100px] bg-white border-2 border-slate-800 px-4 py-1 rounded shadow-md font-bold text-lg whitespace-nowrap transition-none';
+            el.innerText = displayText;
+            document.getElementById('game-container').appendChild(el);
+
+            currentObstacle = {
+                el: el,
+                x: document.getElementById('game-container').offsetWidth,
+                isCorrect: isCorrect,
+                word: target.word,
+                checked: false
+            };
+
+            // 觸發原生語音朗讀 (零成本)
+            speak(target.word);
+        }
+
+        // 錯字生成引擎
+        function generateTypo(word) {
+            if (word.length <= 2) return word + 'z';
+            const type = Math.floor(Math.random() * 2);
+            if (type === 0) return word.slice(0, -1); // 漏字
+            return word[1] + word[0] + word.slice(2); // 反轉
+        }
+
+        function speak(text) {
+            const msg = new SpeechSynthesisUtterance(text);
+            msg.lang = 'en-US';
+            msg.rate = 0.8;
+            window.speechSynthesis.speak(msg);
+        }
+
+        // 更新位置與碰撞偵測
+        function updateGame() {
+            if (!currentObstacle) return;
+
+            currentObstacle.x -= gameSpeed;
+            currentObstacle.el.style.left = currentObstacle.x + 'px';
+
+            // 碰撞區域判定 (Dino x: 40~88, Obstacle x < 100)
+            if (!currentObstacle.checked && currentObstacle.x < 100 && currentObstacle.x > 40) {
+                if (!isJumping) {
+                    handleResult(currentObstacle.isCorrect ? 'SUCCESS' : 'FAIL');
+                    currentObstacle.checked = true;
+                }
+            }
+
+            // 移出畫面
+            if (currentObstacle.x < -150) {
+                if (!currentObstacle.checked) {
+                    // 成功跳過的判定
+                    handleResult(currentObstacle.isCorrect ? 'FAIL' : 'SUCCESS');
+                }
+                currentObstacle.el.remove();
+                currentObstacle = null;
+                setTimeout(spawnObstacle, 1000);
+            }
+        }
+
+        function handleResult(status) {
+            if (status === 'SUCCESS') {
+                updateScore(10);
+            } else {
+                updateScore(-5);
+                document.getElementById('game-container').classList.add('shake');
+                setTimeout(() => document.getElementById('game-container').classList.remove('shake'), 500);
+                if (window.navigator.vibrate) window.navigator.vibrate(200); // 震動提示
+            }
+        }
+
+        function updateScore(val) {
+            score += val;
+            document.getElementById('ui-score').innerText = score;
+        }
+
+        // 輸入控制 (跳躍)
+        function handleInput() {
+            if (isJumping || !isPlaying) return;
+            isJumping = true;
+            const dino = document.getElementById('dino');
+            dino.style.bottom = '120px';
+            setTimeout(() => {
+                dino.style.bottom = '40px';
+                setTimeout(() => { isJumping = false; }, 300);
+            }, 500);
+        }
+
+        // 監聽空白鍵
+        window.addEventListener('keydown', (e) => { if (e.code === 'Space') handleInput(); });
+
+    </script>
+</body>
+</html>
