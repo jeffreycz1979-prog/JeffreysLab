@@ -80,7 +80,7 @@
             
             <div class="absolute top-4 inset-x-0 flex justify-between items-start px-8 z-40 pointer-events-none w-full">
                 <div class="flex flex-col gap-1 w-1/4">
-                    <div class="text-xl font-black text-blue-400 tracking-wider">ENERGY: <span id="ui-energy-text" class="text-white">0/50</span></div>
+                    <div class="text-xl font-black text-blue-400 tracking-wider">ENERGY: <span id="ui-energy-text" class="text-white">0/30</span></div>
                     <div class="energy-bar-container"><div id="energy-bar" class="energy-bar" style="width: 0%;"></div></div>
                 </div>
                 <div class="flex flex-col items-center w-2/4">
@@ -112,10 +112,10 @@
     <script>
         let questions = [], currentIdx = 0, isPlaying = false, animationFrameId = null;
         
-        // 生存模式變數
-        let energy = 0, targetEnergy = 50, phase = 1, timeLeft = 30;
+        // 生存模式變數 (初始目標降為 30)
+        let energy = 0, targetEnergy = 30, phase = 1, timeLeft = 30;
         let timerInterval = null;
-        let isSpawning = false; // 🛑 防彈幕鎖定開關
+        let isSpawning = false; 
         
         // 物理引擎變數
         let orbs = []; 
@@ -173,7 +173,7 @@
             isPlaying = true; currentIdx = 0; isSpawning = false;
             
             // 重置生存參數
-            energy = 0; targetEnergy = 50; phase = 1; timeLeft = 30; baseGravity = 1.0;
+            energy = 0; targetEnergy = 30; phase = 1; timeLeft = 30; baseGravity = 1.0;
             
             orbs.forEach(orb => orb.el.remove()); orbs = [];
             
@@ -204,7 +204,7 @@
 
         function nextQuestion() {
             if (!isPlaying) return;
-            isSpawning = true; // 鎖定出題狀態
+            isSpawning = true; 
             
             if (currentIdx >= questions.length) { currentIdx = 0; shuffleArray(questions); }
 
@@ -222,7 +222,7 @@
                 qEl.innerText = q.question;
                 qEl.classList.remove('text-yellow-400');
                 spawnOrbs(q);
-                isSpawning = false; // 解除鎖定，允許球開始掉落並判定
+                isSpawning = false; 
             }, 1500);
         }
 
@@ -230,7 +230,8 @@
             const arena = document.getElementById('arena');
             const shuffledOptions = shuffleArray([...q.rawOptions]);
             
-            baseGravity = Math.min(3.5, 1.0 + (phase * 0.15)); // 隨階段變快
+            // 球的掉落速度會隨著 Phase 增加，讓高階段的 30 秒能塞入更多題目
+            baseGravity = Math.min(4.5, 1.0 + (phase * 0.2)); 
 
             shuffledOptions.forEach((opt, i) => {
                 const el = document.createElement('div');
@@ -292,15 +293,14 @@
                 }
 
                 if (orb.active && orb.y > arenaHeight) {
-                    orb.el.remove(); orb.active = false; // 💡 漏接直接消失，無懲罰
+                    orb.el.remove(); orb.active = false;
                 }
 
                 if (orb.active) orb.el.style.transform = `translate(${orb.x}px, ${orb.y}px)`;
             });
 
-            // 🛑 防彈幕機制：確認場上無球且「沒有在出題中」才呼叫下一題
             if (activeCount === 0 && orbs.length > 0 && !isSpawning) {
-                isSpawning = true; // 立即上鎖
+                isSpawning = true; 
                 setTimeout(() => {
                     orbs.forEach(o => o.el.remove()); orbs = [];
                     currentIdx++;
@@ -324,7 +324,7 @@
                 checkPhaseClear();
             } else {
                 orb.el.classList.add('orb-miss');
-                energy = Math.max(0, energy - 5); // 扣能量
+                energy = Math.max(0, energy - 5); 
                 
                 const pane = document.getElementById('pane-game');
                 pane.classList.add('shake');
@@ -336,11 +336,10 @@
 
         function checkPhaseClear() {
             if (energy >= targetEnergy) {
-                // 通關階段！
                 phase++;
                 energy = 0;
-                targetEnergy += 10; // 難度提升
-                timeLeft += 30; // 獎勵時間
+                targetEnergy += 10; // 下一階段目標能量提高 10 點
+                timeLeft += 30; // 成功達標補血 30 秒
                 
                 showToast(`PHASE ${phase} REACHED! TIME +30s`);
                 speak("Level Up!");
