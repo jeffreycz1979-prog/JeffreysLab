@@ -2,187 +2,168 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>NewCore Dino Dash 2.1</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NewCore Dino Dash - Spelling Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body, html { height: 100vh; overflow: hidden; margin: 0; }
-        .no-scroll { height: 100vh; display: flex; flex-direction: column; }
-        /* 恐龍與字塊基礎樣式 */
-        #dino { transition: bottom 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .obstacle { position: absolute; white-space: nowrap; transition: none; }
+        .game-canvas { background: #f7f7f7; border-bottom: 2px solid #333; }
+        /* 震動特效 */
         .shake { animation: shake 0.5s; }
         @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
         }
     </style>
 </head>
-<body class="bg-gray-100 no-scroll">
+<body class="bg-gray-100 flex flex-col i18n-zh">
 
-    <header class="h-12 bg-slate-800 text-white flex items-center justify-between px-4 z-50">
+    <header class="h-12 bg-slate-800 text-white flex items-center justify-between px-4">
         <div class="font-bold">NewCore Dino Dash 🦖</div>
         <div class="flex gap-4 text-sm">
-            <button onclick="switchMode('edit')" class="hover:bg-slate-700 px-3 py-1 rounded">👨‍🏫 編輯模式</button>
-            <button onclick="switchMode('game')" class="bg-blue-600 px-3 py-1 rounded">🎓 挑戰模式</button>
+            <button onclick="switchMode('edit')" class="hover:text-blue-400">👨‍🏫 老師編輯</button>
+            <button onclick="switchMode('game')" class="hover:text-blue-400">🎓 學生挑戰</button>
         </div>
     </header>
 
     <main class="flex-1 flex overflow-hidden">
-        <!-- A. 編輯模式 (30%) -->
-        <section id="pane-edit" class="w-[30%] p-4 bg-white border-r flex flex-col gap-3">
-            <h2 class="font-bold border-l-4 border-blue-500 pl-2">字彙清單</h2>
-            <textarea id="word-input" class="flex-1 p-3 border rounded font-mono text-sm leading-relaxed" 
-                placeholder="apple,蘋果&#10;beautiful,美麗,beatiful"></textarea>
-            <button onclick="saveAndStart()" class="bg-blue-600 text-white py-3 rounded-xl font-bold shadow-lg active:scale-95 transition">儲存並開始</button>
+        <section id="pane-edit" class="w-[30%] p-4 bg-white border-r flex flex-col gap-4">
+            <h2 class="font-bold border-l-4 border-blue-500 pl-2">單字清單編輯</h2>
+            <p class="text-xs text-gray-500">格式：單字,中文,自訂錯字(選填)</p>
+            <textarea id="word-input" class="flex-1 p-2 border rounded font-mono text-sm" placeholder="apple,蘋果&#10;banana,香蕉,bananna"></textarea>
+            <button onclick="saveAndStart()" class="bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition">儲存並開始遊戲</button>
         </section>
 
-        <!-- B. 數位挑戰模式 (70%)[cite: 2] -->
-        <section id="pane-game" class="w-[70%] relative bg-white flex flex-col hidden">
-            <div class="p-4 flex justify-between items-center bg-gray-50 border-b">
-                <div class="text-2xl font-black text-blue-600">SCORE: <span id="ui-score">0</span></div>
-                <div class="text-sm font-medium text-gray-400">SPACE / CLICK TO JUMP</div>
+        <section id="pane-game" class="w-[70%] relative bg-white flex flex-col">
+            <div class="p-2 flex justify-between items-center bg-gray-50 border-b">
+                <div class="text-xl font-black text-blue-600">SCORE: <span id="ui-score">0</span></div>
+                <div class="text-sm text-gray-500">空白鍵或點擊畫面跳躍 (避開錯字，撞擊對字)</div>
             </div>
             
-            <div id="game-container" class="flex-1 relative overflow-hidden bg-slate-50" onclick="handleJump()">
-                <!-- 地面 -->
-                <div class="absolute bottom-[40px] left-0 w-full h-1 bg-slate-300"></div>
-                <!-- 恐龍 -->
-                <div id="dino" class="absolute bottom-[40px] left-10 w-12 h-12 bg-slate-700 rounded-lg flex items-center justify-center text-3xl shadow-md z-30">🦖</div>
+            <div id="game-container" class="flex-1 relative overflow-hidden cursor-pointer" onclick="handleInput()">
+                <div id="dino" class="absolute bottom-10 left-10 w-12 h-12 bg-slate-700 rounded-lg flex items-center justify-center text-white text-2xl transition-all duration-300">🦖</div>
+                
+                <div id="ground" class="absolute bottom-10 left-0 w-full h-1 bg-gray-400"></div>
             </div>
         </section>
     </main>
 
     <script>
+        // 核心資料狀態
         let wordList = [];
         let score = 0;
         let isPlaying = false;
         let isJumping = false;
-        let currentObstacle = null;
         let gameLoop = null;
-        let gameSpeed = 6;
+        let currentObstacle = null;
+        let gameSpeed = 5;
 
+        // 初始化：載入暫存資料
+        window.onload = () => {
+            const saved = localStorage.getItem('dino_word_list');
+            if (saved) document.getElementById('word-input').value = JSON.parse(saved).raw;
+            switchMode('edit');
+        };
+
+        // 模式切換
         function switchMode(mode) {
-            document.getElementById('pane-edit').style.display = (mode === 'edit' ? 'flex' : 'none');
-            document.getElementById('pane-game').classList.toggle('hidden', mode === 'edit');
-            if (mode === 'game') startGame();
-            else stopGame();
+            document.getElementById('pane-edit').classList.toggle('hidden', mode === 'game');
+            if (mode === 'game' && !isPlaying) startGame();
         }
 
+        // 解析與儲存
         function saveAndStart() {
             const raw = document.getElementById('word-input').value;
-            wordList = raw.trim().split('\n').map(line => {
-                const parts = line.split(',');
-                return { word: parts[0]?.trim(), meaning: parts[1]?.trim(), custom: parts[2]?.trim() };
+            const lines = raw.trim().split('\n');
+            wordList = lines.map(line => {
+                const [w, m, c] = line.split(',');
+                return { word: w?.trim(), meaning: m?.trim(), custom: c?.trim() };
             }).filter(item => item.word);
-            
-            localStorage.setItem('dino_words', raw);
-            if (wordList.length > 0) switchMode('game');
+
+            localStorage.setItem('dino_word_list', JSON.stringify({ raw, wordList }));
+            alert('題庫載入成功！共 ' + wordList.length + ' 題');
+            switchMode('game');
         }
 
+        // 遊戲核心迴圈
         function startGame() {
+            if (wordList.length === 0) return alert('請先輸入單字');
             isPlaying = true;
             score = 0;
             updateScore(0);
-            if (gameLoop) clearInterval(gameLoop);
-            gameLoop = setInterval(gameUpdate, 1000/60); // 60FPS
             spawnObstacle();
+            if (gameLoop) clearInterval(gameLoop);
+            gameLoop = setInterval(updateGame, 20);
         }
 
-        function stopGame() {
-            isPlaying = false;
-            clearInterval(gameLoop);
-            if (currentObstacle) currentObstacle.el.remove();
-            currentObstacle = null;
+        function spawnObstacle() {
+            if (!isPlaying) return;
+            const target = wordList[Math.floor(Math.random() * wordList.length)];
+            const isCorrect = Math.random() > 0.5;
+            
+            let displayText = isCorrect ? target.word : (target.custom || generateTypo(target.word));
+            
+            // 建立障礙物 DOM
+            const el = document.createElement('div');
+            el.className = 'absolute bottom-10 right-[-100px] bg-white border-2 border-slate-800 px-4 py-1 rounded shadow-md font-bold text-lg whitespace-nowrap transition-none';
+            el.innerText = displayText;
+            document.getElementById('game-container').appendChild(el);
+
+            currentObstacle = {
+                el: el,
+                x: document.getElementById('game-container').offsetWidth,
+                isCorrect: isCorrect,
+                word: target.word,
+                checked: false
+            };
+
+            // 觸發原生語音朗讀 (零成本)
+            speak(target.word);
         }
 
-        // 語音靈敏度優化[cite: 2]
+        // 錯字生成引擎
+        function generateTypo(word) {
+            if (word.length <= 2) return word + 'z';
+            const type = Math.floor(Math.random() * 2);
+            if (type === 0) return word.slice(0, -1); // 漏字
+            return word[1] + word[0] + word.slice(2); // 反轉
+        }
+
         function speak(text) {
-            window.speechSynthesis.cancel();
             const msg = new SpeechSynthesisUtterance(text);
             msg.lang = 'en-US';
-            msg.rate = 1.0;
+            msg.rate = 0.8;
             window.speechSynthesis.speak(msg);
         }
 
-        // 核心修復：確保字塊定位在容器內部右方
-        function spawnObstacle() {
-            if (!isPlaying) return;
-            const container = document.getElementById('game-container');
-            const target = wordList[Math.floor(Math.random() * wordList.length)];
-            const isCorrect = Math.random() > 0.5;
-            let text = isCorrect ? target.word : (target.custom || target.word.slice(0,-1));
-
-            const el = document.createElement('div');
-            el.className = 'obstacle bg-white border-2 border-slate-800 px-4 py-1 rounded shadow-lg font-bold text-lg z-20';
-            el.innerText = text;
-            
-            // 重要：初始位置放在容器寬度的右方
-            const startX = container.offsetWidth;
-            el.style.left = startX + 'px';
-            el.style.bottom = '40px';
-            container.appendChild(el);
-
-            currentObstacle = { el, x: startX, isCorrect, checked: false };
-            speak(target.word);
-            
-            // 隨機生成愛心挑戰[cite: 2]
-            if (Math.random() > 0.6) spawnHeart();
-        }
-
-        function spawnHeart() {
-            const container = document.getElementById('game-container');
-            const heart = document.createElement('div');
-            const isHigh = Math.random() > 0.5;
-            heart.className = 'absolute text-2xl z-10';
-            heart.innerText = '❤️';
-            let hX = container.offsetWidth;
-            let hY = isHigh ? 160 : 60;
-            heart.style.left = hX + 'px';
-            heart.style.bottom = hY + 'px';
-            container.appendChild(heart);
-
-            let hInt = setInterval(() => {
-                if (!isPlaying) { clearInterval(hInt); heart.remove(); return; }
-                hX -= (gameSpeed + 1);
-                heart.style.left = hX + 'px';
-
-                // 愛心碰撞偵測[cite: 2]
-                const d = document.getElementById('dino').getBoundingClientRect();
-                const h = heart.getBoundingClientRect();
-                if (d.left < h.right && d.right > h.left && d.top < h.bottom && d.bottom > h.top) {
-                    updateScore(5);
-                    clearInterval(hInt);
-                    heart.remove();
-                }
-                if (hX < -50) { clearInterval(hInt); heart.remove(); }
-            }, 20);
-        }
-
-        function gameUpdate() {
+        // 更新位置與碰撞偵測
+        function updateGame() {
             if (!currentObstacle) return;
 
             currentObstacle.x -= gameSpeed;
             currentObstacle.el.style.left = currentObstacle.x + 'px';
 
-            // 判斷碰撞範圍 (Dino 在 left 40px, 寬 48px)
-            if (!currentObstacle.checked && currentObstacle.x < 88 && currentObstacle.x > 40) {
-                const dinoBottom = parseInt(window.getComputedStyle(document.getElementById('dino')).bottom);
-                if (dinoBottom < 60) { // 沒跳起來
+            // 碰撞區域判定 (Dino x: 40~88, Obstacle x < 100)
+            if (!currentObstacle.checked && currentObstacle.x < 100 && currentObstacle.x > 40) {
+                if (!isJumping) {
                     handleResult(currentObstacle.isCorrect ? 'SUCCESS' : 'FAIL');
                     currentObstacle.checked = true;
-                    currentObstacle.el.style.opacity = '0.3';
                 }
             }
 
-            // 移出螢幕判定
-            if (currentObstacle.x < -200) {
+            // 移出畫面
+            if (currentObstacle.x < -150) {
                 if (!currentObstacle.checked) {
+                    // 成功跳過的判定
                     handleResult(currentObstacle.isCorrect ? 'FAIL' : 'SUCCESS');
                 }
                 currentObstacle.el.remove();
                 currentObstacle = null;
-                setTimeout(spawnObstacle, 1200); // 1.2秒後出下一題
+                setTimeout(spawnObstacle, 1000);
             }
         }
 
@@ -190,29 +171,33 @@
             if (status === 'SUCCESS') {
                 updateScore(10);
             } else {
-                updateScore(-5); // 計分機制：失誤扣5分[cite: 2]
-                document.getElementById('game-game').classList.add('shake');
-                setTimeout(()=>document.getElementById('game-game').classList.remove('shake'), 500);
+                updateScore(-5);
+                document.getElementById('game-container').classList.add('shake');
+                setTimeout(() => document.getElementById('game-container').classList.remove('shake'), 500);
+                if (window.navigator.vibrate) window.navigator.vibrate(200); // 震動提示
             }
         }
 
-        function updateScore(v) {
-            score += v;
+        function updateScore(val) {
+            score += val;
             document.getElementById('ui-score').innerText = score;
         }
 
-        function handleJump() {
+        // 輸入控制 (跳躍)
+        function handleInput() {
             if (isJumping || !isPlaying) return;
             isJumping = true;
             const dino = document.getElementById('dino');
-            dino.style.bottom = '160px';
+            dino.style.bottom = '120px';
             setTimeout(() => {
                 dino.style.bottom = '40px';
-                setTimeout(() => isJumping = false, 300);
-            }, 450);
+                setTimeout(() => { isJumping = false; }, 300);
+            }, 500);
         }
 
-        window.addEventListener('keydown', e => { if (e.code === 'Space') handleJump(); });
+        // 監聽空白鍵
+        window.addEventListener('keydown', (e) => { if (e.code === 'Space') handleInput(); });
+
     </script>
 </body>
 </html>
