@@ -2,202 +2,348 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NewCore Dino Dash - Spelling Edition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NewCore Dino Dash 3.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body, html { height: 100vh; overflow: hidden; margin: 0; }
-        .game-canvas { background: #f7f7f7; border-bottom: 2px solid #333; }
-        /* 震動特效 */
-        .shake { animation: shake 0.5s; }
-        @keyframes shake {
-            0% { transform: translate(1px, 1px) rotate(0deg); }
-            10% { transform: translate(-1px, -2px) rotate(-1deg); }
-            20% { transform: translate(-3px, 0px) rotate(1deg); }
-            30% { transform: translate(3px, 2px) rotate(0deg); }
-            40% { transform: translate(1px, -1px) rotate(1deg); }
-            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+        :root {
+            /* 預設白天主題 */
+            --sky-top: #a1c4fd; --sky-bottom: #c2e9fb;
+            --mountain: #4ade80;
+            --ground-1: #65a30d; --ground-2: #84cc16;
+            --text-color: #1e293b;
         }
+        body, html { height: 100vh; overflow: hidden; margin: 0; touch-action: none; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .no-scroll { height: 100vh; display: flex; flex-direction: column; }
+        
+        /* 動態場景變色過渡 */
+        #game-bg { transition: background 2s ease; background: linear-gradient(to bottom, var(--sky-top), var(--sky-bottom)); }
+        .mountain { border-bottom-color: var(--mountain) !important; transition: border-color 2s ease; }
+        .ground-stripe { background: repeating-linear-gradient(45deg, var(--ground-1), var(--ground-1) 40px, var(--ground-2) 40px, var(--ground-2) 80px); transition: background 2s ease; }
+        
+        /* 恐龍與字塊尺寸設定 (30vh 與 20vh) */
+        #dino { 
+            height: 30vh; width: 30vh; 
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="80" x="10" font-size="80" transform="scale(-1, 1) translate(-100, 0)">🦖</text></svg>');
+            background-size: contain; background-repeat: no-slash; background-position: center;
+            filter: drop-shadow(5px 10px 5px rgba(0,0,0,0.2));
+            z-index: 50; 
+        }
+        .obstacle { 
+            height: 20vh; min-width: 15vw; 
+            background: white; color: var(--text-color);
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 1rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            font-size: 5vh; font-weight: 900; z-index: 40; border: 4px solid #333;
+        }
+
+        /* 浮動中文字特效 */
+        .float-text { animation: floatUp 1s ease-out forwards; position: absolute; font-weight: bold; font-size: 3vh; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.5); z-index: 60; pointer-events: none; }
+        @keyframes floatUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-100px) scale(1.5); opacity: 0; } }
+        
+        /* 雲朵動畫 */
+        .cloud { background: white; border-radius: 50px; position: absolute; opacity: 0.8; }
+        
+        .shake { animation: shake 0.4s; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
     </style>
 </head>
-<body class="bg-gray-100 flex flex-col i18n-zh">
+<body class="bg-slate-900 no-scroll select-none">
 
-    <header class="h-12 bg-slate-800 text-white flex items-center justify-between px-4">
-        <div class="font-bold">NewCore Dino Dash 🦖</div>
-        <div class="flex gap-4 text-sm">
+    <!-- 頂部導航 (符合 NewCore 規範) -->
+    <header class="h-12 bg-slate-900 text-white flex items-center justify-between px-4 z-[100] shadow-md">
+        <div class="flex items-center gap-2">
+            <span class="font-bold tracking-widest text-sm">NewCore Dino Dash 🦖</span>
+            <span id="level-badge" class="bg-blue-600 px-2 py-0.5 rounded text-xs">LV.1 暖身</span>
+        </div>
+        <div class="flex gap-2 text-xs">
             <button onclick="switchMode('edit')" class="hover:text-blue-400">👨‍🏫 老師編輯</button>
             <button onclick="switchMode('game')" class="hover:text-blue-400">🎓 學生挑戰</button>
         </div>
     </header>
 
     <main class="flex-1 flex overflow-hidden">
-        <section id="pane-edit" class="w-[30%] p-4 bg-white border-r flex flex-col gap-4">
-            <h2 class="font-bold border-l-4 border-blue-500 pl-2">單字清單編輯</h2>
-            <p class="text-xs text-gray-500">格式：單字,中文,自訂錯字(選填)</p>
-            <textarea id="word-input" class="flex-1 p-2 border rounded font-mono text-sm" placeholder="apple,蘋果&#10;banana,香蕉,bananna"></textarea>
-            <button onclick="saveAndStart()" class="bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition">儲存並開始遊戲</button>
+        <!-- 編輯區 -->
+        <section id="pane-edit" class="w-1/3 p-4 bg-white flex flex-col gap-2 z-[100]">
+            <h2 class="font-bold border-l-4 border-blue-500 pl-2">單字題庫 (單字,中文,自訂錯字)</h2>
+            <textarea id="word-input" class="flex-1 p-2 border rounded font-mono text-sm bg-slate-50" placeholder="banana,香蕉,banan&#10;apple,蘋果,aple"></textarea>
+            <button onclick="saveAndStart()" class="bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700">儲存並開始</button>
         </section>
 
-        <section id="pane-game" class="w-[70%] relative bg-white flex flex-col">
-            <div class="p-2 flex justify-between items-center bg-gray-50 border-b">
-                <div class="text-xl font-black text-blue-600">SCORE: <span id="ui-score">0</span></div>
-                <div class="text-sm text-gray-500">空白鍵或點擊畫面跳躍 (避開錯字，撞擊對字)</div>
+        <!-- 遊戲區 -->
+        <section id="pane-game" class="flex-1 relative flex flex-col hidden">
+            <div id="game-bg" class="absolute inset-0 z-0 overflow-hidden">
+                <!-- 裝飾：山脈與雲朵 (JS動態生成) -->
+                <div id="mountains" class="absolute bottom-[10vh] left-0 w-full h-[15vh] flex"></div>
             </div>
-            
-            <div id="game-container" class="flex-1 relative overflow-hidden cursor-pointer" onclick="handleInput()">
-                <div id="dino" class="absolute bottom-10 left-10 w-12 h-12 bg-slate-700 rounded-lg flex items-center justify-center text-white text-2xl transition-all duration-300">🦖</div>
-                
-                <div id="ground" class="absolute bottom-10 left-0 w-full h-1 bg-gray-400"></div>
+
+            <!-- UI 介面層 -->
+            <div class="absolute top-4 left-6 right-6 flex justify-between items-start z-[100]">
+                <div class="text-[5vh] font-black text-white drop-shadow-md">SCORE: <span id="ui-score">0</span></div>
+                <div id="ui-hearts" class="text-[4vh] drop-shadow-md tracking-widest">❤️❤️❤️</div>
+            </div>
+
+            <!-- 觸控按鈕 (截圖中的左右按鈕) -->
+            <button class="absolute left-4 top-1/2 -translate-y-1/2 w-14 h-14 bg-white/50 rounded-full flex items-center justify-center text-2xl z-[100] shadow" onpointerdown="keys['ArrowLeft']=true" onpointerup="keys['ArrowLeft']=false">❮</button>
+            <button class="absolute right-4 top-1/2 -translate-y-1/2 w-14 h-14 bg-white/50 rounded-full flex items-center justify-center text-2xl z-[100] shadow" onpointerdown="keys['ArrowRight']=true" onpointerup="keys['ArrowRight']=false">❯</button>
+
+            <!-- 遊戲互動區 -->
+            <div id="game-area" class="flex-1 relative z-10" onpointerdown="handleJump()">
+                <div class="ground-stripe absolute bottom-0 left-0 w-full h-[10vh]"></div>
+                <!-- 恐龍 -->
+                <div id="dino" class="absolute bottom-[10vh]"></div>
             </div>
         </section>
     </main>
 
     <script>
-        // 核心資料狀態
+        // 核心狀態
         let wordList = [];
-        let score = 0;
+        let score = 0, hearts = 3, level = 1;
         let isPlaying = false;
-        let isJumping = false;
         let gameLoop = null;
+        let speed = 8;
+        
+        // 物理與位置狀態
         let currentObstacle = null;
-        let gameSpeed = 5;
+        let dino = { x: 50, y: 0, vy: 0, w: 0, h: 0 };
+        const gravity = 1.2, jumpForce = 22;
+        let keys = { 'ArrowLeft': false, 'ArrowRight': false, 'Space': false };
 
-        // 初始化：載入暫存資料
+        // 系統初始化
         window.onload = () => {
-            const saved = localStorage.getItem('dino_word_list');
-            if (saved) document.getElementById('word-input').value = JSON.parse(saved).raw;
+            const saved = localStorage.getItem('nc_dino_words');
+            if (saved) document.getElementById('word-input').value = saved;
+            generateScenery();
             switchMode('edit');
         };
 
-        // 模式切換
         function switchMode(mode) {
-            document.getElementById('pane-edit').classList.toggle('hidden', mode === 'game');
-            if (mode === 'game' && !isPlaying) startGame();
+            document.getElementById('pane-edit').style.display = (mode === 'edit' ? 'flex' : 'none');
+            document.getElementById('pane-game').style.display = (mode === 'game' ? 'flex' : 'none');
+            if (mode === 'game') startGame(); else stopGame();
         }
 
-        // 解析與儲存
         function saveAndStart() {
-            const raw = document.getElementById('word-input').value;
-            const lines = raw.trim().split('\n');
-            wordList = lines.map(line => {
-                const [w, m, c] = line.split(',');
-                return { word: w?.trim(), meaning: m?.trim(), custom: c?.trim() };
-            }).filter(item => item.word);
-
-            localStorage.setItem('dino_word_list', JSON.stringify({ raw, wordList }));
-            alert('題庫載入成功！共 ' + wordList.length + ' 題');
+            const raw = document.getElementById('word-input').value.trim();
+            if (!raw) return alert("請輸入單字");
+            wordList = raw.split('\n').map(l => {
+                const p = l.split(',');
+                return { w: p[0]?.trim(), m: p[1]?.trim(), t: p[2]?.trim() };
+            }).filter(x => x.w);
+            localStorage.setItem('nc_dino_words', raw);
             switchMode('game');
         }
 
-        // 遊戲核心迴圈
-        function startGame() {
-            if (wordList.length === 0) return alert('請先輸入單字');
-            isPlaying = true;
-            score = 0;
-            updateScore(0);
-            spawnObstacle();
-            if (gameLoop) clearInterval(gameLoop);
-            gameLoop = setInterval(updateGame, 20);
-        }
-
-        function spawnObstacle() {
-            if (!isPlaying) return;
-            const target = wordList[Math.floor(Math.random() * wordList.length)];
-            const isCorrect = Math.random() > 0.5;
-            
-            let displayText = isCorrect ? target.word : (target.custom || generateTypo(target.word));
-            
-            // 建立障礙物 DOM
-            const el = document.createElement('div');
-            el.className = 'absolute bottom-10 right-[-100px] bg-white border-2 border-slate-800 px-4 py-1 rounded shadow-md font-bold text-lg whitespace-nowrap transition-none';
-            el.innerText = displayText;
-            document.getElementById('game-container').appendChild(el);
-
-            currentObstacle = {
-                el: el,
-                x: document.getElementById('game-container').offsetWidth,
-                isCorrect: isCorrect,
-                word: target.word,
-                checked: false
-            };
-
-            // 觸發原生語音朗讀 (零成本)
-            speak(target.word);
-        }
-
-        // 錯字生成引擎
-        function generateTypo(word) {
-            if (word.length <= 2) return word + 'z';
-            const type = Math.floor(Math.random() * 2);
-            if (type === 0) return word.slice(0, -1); // 漏字
-            return word[1] + word[0] + word.slice(2); // 反轉
-        }
-
+        // 語音引擎 (高靈敏)
         function speak(text) {
+            window.speechSynthesis.cancel();
             const msg = new SpeechSynthesisUtterance(text);
-            msg.lang = 'en-US';
-            msg.rate = 0.8;
+            msg.lang = 'en-US'; msg.rate = 1.0;
             window.speechSynthesis.speak(msg);
         }
 
-        // 更新位置與碰撞偵測
-        function updateGame() {
-            if (!currentObstacle) return;
-
-            currentObstacle.x -= gameSpeed;
-            currentObstacle.el.style.left = currentObstacle.x + 'px';
-
-            // 碰撞區域判定 (Dino x: 40~88, Obstacle x < 100)
-            if (!currentObstacle.checked && currentObstacle.x < 100 && currentObstacle.x > 40) {
-                if (!isJumping) {
-                    handleResult(currentObstacle.isCorrect ? 'SUCCESS' : 'FAIL');
-                    currentObstacle.checked = true;
-                }
-            }
-
-            // 移出畫面
-            if (currentObstacle.x < -150) {
-                if (!currentObstacle.checked) {
-                    // 成功跳過的判定
-                    handleResult(currentObstacle.isCorrect ? 'FAIL' : 'SUCCESS');
-                }
-                currentObstacle.el.remove();
-                currentObstacle = null;
-                setTimeout(spawnObstacle, 1000);
-            }
+        // 遊戲控制
+        function startGame() {
+            isPlaying = true; score = 0; hearts = 3; level = 1; speed = 8;
+            dino.x = 50; dino.y = 0;
+            updateUI(); updateTheme();
+            
+            const area = document.getElementById('game-area');
+            if(currentObstacle) currentObstacle.el.remove();
+            currentObstacle = null;
+            
+            if (gameLoop) cancelAnimationFrame(gameLoop);
+            gameLoop = requestAnimationFrame(frame);
+            setTimeout(spawnObstacle, 500);
         }
 
-        function handleResult(status) {
-            if (status === 'SUCCESS') {
-                updateScore(10);
+        function stopGame() { isPlaying = false; }
+
+        // 字塊生成 (前方出現，約 2/3 恐龍高)
+        function spawnObstacle() {
+            if (!isPlaying) return;
+            const target = wordList[Math.floor(Math.random() * wordList.length)];
+            const isCorrect = Math.random() > 0.5; // 50% 真正解
+            const displayText = isCorrect ? target.w : (target.t || target.w.slice(0, -1));
+
+            const el = document.createElement('div');
+            el.className = 'obstacle absolute';
+            el.innerText = displayText;
+            
+            // 從最右側邊緣生成
+            const startX = document.getElementById('game-area').offsetWidth;
+            el.style.left = startX + 'px';
+            el.style.bottom = '10vh';
+            document.getElementById('game-area').appendChild(el);
+
+            currentObstacle = { el, x: startX, isCorrect, targetObj: target, checked: false };
+            speak(target.w);
+        }
+
+        // 遊戲主迴圈
+        function frame() {
+            if (!isPlaying) return;
+            const containerW = document.getElementById('game-area').offsetWidth;
+            
+            // 1. 恐龍左右移動 (限制在左半部 0 ~ 50%)
+            if (keys['ArrowLeft']) dino.x = Math.max(0, dino.x - 8);
+            if (keys['ArrowRight']) dino.x = Math.min(containerW / 2, dino.x + 8);
+
+            // 2. 恐龍跳躍物理
+            dino.y += dino.vy;
+            if (dino.y > 0) {
+                dino.vy -= gravity;
             } else {
-                updateScore(-5);
-                document.getElementById('game-container').classList.add('shake');
-                setTimeout(() => document.getElementById('game-container').classList.remove('shake'), 500);
-                if (window.navigator.vibrate) window.navigator.vibrate(200); // 震動提示
+                dino.y = 0;
+                dino.vy = 0;
+            }
+
+            // 更新恐龍 DOM 位置
+            const dinoEl = document.getElementById('dino');
+            dinoEl.style.left = dino.x + 'px';
+            dinoEl.style.bottom = `calc(10vh + ${dino.y}px)`;
+
+            // 3. 字塊移動與碰撞
+            if (currentObstacle) {
+                currentObstacle.x -= speed;
+                currentObstacle.el.style.left = currentObstacle.x + 'px';
+
+                const dRect = dinoEl.getBoundingClientRect();
+                const oRect = currentObstacle.el.getBoundingClientRect();
+
+                // 碰撞判定 (縮小恐龍判定框以防邊角誤判)
+                const isHit = !(
+                    dRect.right - 20 < oRect.left || 
+                    dRect.left + 20 > oRect.right || 
+                    dRect.bottom - 20 < oRect.top || 
+                    dRect.top + 20 > oRect.bottom
+                );
+
+                if (!currentObstacle.checked && isHit) {
+                    currentObstacle.checked = true;
+                    if (currentObstacle.isCorrect) {
+                        // 撞到正解：加分 + 顯示中文
+                        score += 15;
+                        showFloatingText(currentObstacle.targetObj.m, dRect.left, dRect.top);
+                        currentObstacle.el.style.background = '#4ade80';
+                        currentObstacle.el.style.color = '#fff';
+                    } else {
+                        // 撞到錯字：扣血
+                        takeDamage();
+                        currentObstacle.el.style.background = '#ef4444';
+                    }
+                    setTimeout(() => removeObstacle(), 150);
+                } 
+                else if (!currentObstacle.checked && currentObstacle.x < -300) {
+                    // 移出畫面 (閃避成功或漏接)
+                    currentObstacle.checked = true;
+                    if (currentObstacle.isCorrect) {
+                        takeDamage(); // 漏掉正解 -> 扣血
+                    } else {
+                        score += 10; // 成功閃過錯字 -> 加分
+                    }
+                    removeObstacle();
+                }
+            }
+
+            // 升級機制
+            checkLevelUp();
+            updateUI();
+            
+            if (hearts > 0) gameLoop = requestAnimationFrame(frame);
+            else gameOver();
+        }
+
+        function removeObstacle() {
+            if (currentObstacle) currentObstacle.el.remove();
+            currentObstacle = null;
+            if (hearts > 0) setTimeout(spawnObstacle, 500 + Math.random() * 800);
+        }
+
+        function takeDamage() {
+            hearts--;
+            document.getElementById('pane-game').classList.add('shake');
+            setTimeout(() => document.getElementById('pane-game').classList.remove('shake'), 400);
+            if (window.navigator.vibrate) window.navigator.vibrate([200, 100, 200]);
+        }
+
+        function showFloatingText(text, x, y) {
+            const el = document.createElement('div');
+            el.className = 'float-text';
+            el.innerText = text;
+            el.style.left = x + 'px';
+            el.style.top = y + 'px';
+            document.getElementById('pane-game').appendChild(el);
+            setTimeout(() => el.remove(), 1000);
+        }
+
+        function updateUI() {
+            document.getElementById('ui-score').innerText = score;
+            document.getElementById('ui-hearts').innerText = '❤️'.repeat(hearts) + '🖤'.repeat(3 - hearts);
+        }
+
+        function checkLevelUp() {
+            if (score > 100 && level === 1) { level = 2; speed = 11; updateTheme(); }
+            if (score > 250 && level === 2) { level = 3; speed = 15; updateTheme(); }
+        }
+
+        // 日夜場景切換
+        function updateTheme() {
+            const root = document.documentElement;
+            const badge = document.getElementById('level-badge');
+            if (level === 1) {
+                badge.innerText = "LV.1 白天"; badge.className = "bg-blue-500 px-2 rounded text-xs";
+                root.style.setProperty('--sky-top', '#a1c4fd'); root.style.setProperty('--sky-bottom', '#c2e9fb');
+                root.style.setProperty('--mountain', '#4ade80');
+            } else if (level === 2) {
+                badge.innerText = "LV.2 黃昏"; badge.className = "bg-orange-500 px-2 rounded text-xs";
+                root.style.setProperty('--sky-top', '#f6d365'); root.style.setProperty('--sky-bottom', '#fda085');
+                root.style.setProperty('--mountain', '#d97706');
+                root.style.setProperty('--ground-1', '#b45309'); root.style.setProperty('--ground-2', '#92400e');
+            } else {
+                badge.innerText = "LV.3 夜晚"; badge.className = "bg-indigo-700 px-2 rounded text-xs";
+                root.style.setProperty('--sky-top', '#1e1b4b'); root.style.setProperty('--sky-bottom', '#312e81');
+                root.style.setProperty('--mountain', '#3730a3');
+                root.style.setProperty('--ground-1', '#064e3b'); root.style.setProperty('--ground-2', '#022c22');
             }
         }
 
-        function updateScore(val) {
-            score += val;
-            document.getElementById('ui-score').innerText = score;
-        }
-
-        // 輸入控制 (跳躍)
-        function handleInput() {
-            if (isJumping || !isPlaying) return;
-            isJumping = true;
-            const dino = document.getElementById('dino');
-            dino.style.bottom = '120px';
+        function gameOver() {
+            isPlaying = false;
             setTimeout(() => {
-                dino.style.bottom = '40px';
-                setTimeout(() => { isJumping = false; }, 300);
+                alert(`Game Over!\nFinal Score: ${score}`);
+                switchMode('edit');
             }, 500);
         }
 
-        // 監聽空白鍵
-        window.addEventListener('keydown', (e) => { if (e.code === 'Space') handleInput(); });
+        // 輸入監聽 (跳躍與移動)
+        function handleJump() {
+            if (dino.y === 0 && isPlaying) dino.vy = jumpForce;
+        }
+        window.addEventListener('keydown', e => { 
+            if (keys.hasOwnProperty(e.code)) keys[e.code] = true; 
+            if (e.code === 'Space' || e.code === 'ArrowUp') handleJump();
+        });
+        window.addEventListener('keyup', e => { 
+            if (keys.hasOwnProperty(e.code)) keys[e.code] = false; 
+        });
 
+        // 裝飾生成器 (生成背景山脈)
+        function generateScenery() {
+            const m = document.getElementById('mountains');
+            m.innerHTML = '';
+            for(let i=0; i<15; i++) {
+                const tri = document.createElement('div');
+                tri.className = 'mountain';
+                tri.style.width = '0'; tri.style.height = '0';
+                tri.style.borderLeft = '5vw solid transparent';
+                tri.style.borderRight = '5vw solid transparent';
+                tri.style.borderBottom = '15vh solid var(--mountain)';
+                tri.style.marginRight = '-2vw';
+                m.appendChild(tri);
+            }
+        }
     </script>
 </body>
 </html>
