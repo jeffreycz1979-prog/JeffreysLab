@@ -140,47 +140,132 @@
 function spawnObstacle() {
     if (!isPlaying) return;
     
-    // 1. 先徹底停止前一個語音，防止聲音累積
-    window.speechSynthesis.cancel(); 
+    const target = wordList[Math.floor(Math.random() * wordList.length)];
+    const isCorrect = Math.random() > 0.5;
+    let displayText = isCorrect ? target.word : (target.custom || generateTypo(target.word));
+    
+    // 1. 先觸發語音（讓聲音與字塊出現同步）
+    speak(target.word);
 
-    const world = document.getElementById('game-world');
-    const isHeart = Math.random() < 0.1; 
+    // 2. 建立字塊 DOM
     const el = document.createElement('div');
-    el.className = 'absolute z-20 flex items-center justify-center whitespace-nowrap ';
-    el.style.bottom = '10vh';
-    el.style.left = '0px';
+    el.className = 'absolute border-2 border-slate-800 bg-white px-4 py-1 rounded shadow-lg font-bold text-lg whitespace-nowrap z-20';
+    el.style.bottom = '40px'; // 固定在地面高度
+    el.style.right = '-200px'; // 確保從螢幕右方（前方）出現
+    el.innerText = displayText;
+    
+    document.getElementById('game-container').appendChild(el);
 
-    // 2. 初始化物件狀態，確保 checked 為 false
-    let obstacleData = { el: el, x: window.innerWidth, checked: false, type: 'word', hit: false };
-    
-    if (isHeart) {
-        el.innerText = '💖'; 
-        el.className += ' obs-heart bg-white/70 border-pink-400 border-[0.6vh]';
-        obstacleData.type = 'heart'; 
-        obstacleData.isCorrect = true;
-    } else {
-        const target = wordList[Math.floor(Math.random() * wordList.length)];
-        const isCorrect = Math.random() > 0.5;
-        el.innerText = isCorrect ? target.word : (target.custom || target.word.slice(0,-1));
-        el.className += ' obs-word bg-white border-slate-800 text-slate-800 font-bold';
-        obstacleData.isCorrect = isCorrect;
-        obstacleData.meaning = target.meaning || "Correct!";
-        
-        // 3. 畫面出現與聲音同步發出
-        speak(target.word);
-    }
-    
-    world.appendChild(el);
-    currentObstacle = obstacleData;
+    currentObstacle = {
+        el: el,
+        x: document.getElementById('game-container').offsetWidth,
+        isCorrect: isCorrect,
+        checked: false
+    };
+
+    // 3. 同步生成隨機愛心 (道具機制)
+    spawnHeart();
 }
-
         function speak(text) {
-            window.speechSynthesis.cancel();
-            const msg = new SpeechSynthesisUtterance(text);
-            msg.lang = 'en-US'; msg.rate = 0.8;
-            window.speechSynthesis.speak(msg);
+    // 立即取消前一個發音，增加靈敏度
+    window.speechSynthesis.cancel(); 
+    const msg = new SpeechSynthesisUtterance(text);
+    msg.lang = 'en-US';
+    msg.rate = 1.0; // 調回標準語速，增加挑戰感
+    msg.volume = 1.0;
+    window.speechSynthesis.speak(msg);
+}
+function spawnHeart() {
+    const gameContainer = document.getElementById('game-container');
+    const heart = document.createElement('div');
+    
+    // 隨機高度：50% 機率在地板，50% 機率在高空（必須跳躍）
+    const isHigh = Math.random() > 0.5;
+    const bottomPos = isHigh ? '150px' : '50px';
+    
+    heart.className = 'absolute text-2xl z-10 transition-none select-none';
+    heart.innerHTML = '❤️';
+    heart.style.bottom = bottomPos;
+    heart.style.right = '-50px';
+    gameContainer.appendChild(heart);
+
+    let heartX = gameContainer.offsetWidth;
+    
+    // 愛心的獨立動畫迴圈
+    let heartInterval = setInterval(() => {
+        if (!isPlaying) { clearInterval(heartInterval); heart.remove(); return; }
+        
+        heartX -= (gameSpeed + 1); // 愛心稍微跑快一點點
+        heart.style.left = heartX + 'px';
+
+        // 碰撞偵測 (愛心)
+        const dino = document.getElementById('dino');
+        const dinoRect = dino.getBoundingClientRect();
+        const heartRect = heart.getBoundingClientRect();
+
+        if (
+            dinoRect.left < heartRect.right &&
+            dinoRect.right > heartRect.left &&
+            dinoRect.top < heartRect.bottom &&
+            dinoRect.bottom > heartRect.top
+        ) {
+            updateScore(5); // 吃到愛心加 5 分
+            createParticleEffect(heartRect.left, heartRect.top); // 加分特效
+            clearInterval(heartInterval);
+            heart.remove();
         }
 
+        if (heartX < -50) {
+            clearInterval(heartInterval);
+            heart.remove();
+        }
+    }, 20);
+}
+        function updateGame() {
+    if (!currentObstacle) return;
+
+    const containerWidth = document.getElementById('game-container').offsetWidth;
+    
+    // 更新座標
+    currentObstacle.x -= gameSpeed;
+    currentObstacle.el.style.left = currentObstacle.x + 'px';
+
+    // 碰撞偵測 (字塊)[cite: 1]
+    // 修正：恐龍位置在 left: 40px，寬度約 48px
+    if (!currentObstacle.checked && currentObstacle.x < 88 && currentObstacle.x > 40) {
+        const dino = document.getElementById('dino');
+        const isDinoJumping = parseInt(window.getComputedStyle(dino).bottom) > 60;
+
+        if (!isDinoJumping) {
+            // 撞擊判定
+            handleResult(currentObstacle.isCorrect ? 'SUCCESS' : 'FAIL');
+            currentObstacle.checked = true;
+            currentObstacle.el.style.opacity = '0.3'; // 撞到後變透明表示已處理
+        }
+    }
+
+    // 移除過期字塊並生成下一個
+    if (currentObstacle.x < -200) {
+        if (!currentObstacle.checked) {
+            // 閃避判定 (如果沒撞到且順利通過)
+            handleResult(currentObstacle.isCorrect ? 'FAIL' : 'SUCCESS');
+        }
+        currentObstacle.el.remove();
+        currentObstacle = null;
+        
+        // 隨機間隔 1~2 秒生成下一個，避免節奏太死板
+        setTimeout(spawnObstacle, 1000 + Math.random() * 1000);
+    }
+}
+function createParticleEffect(x, y) {
+    const p = document.createElement('div');
+    p.className = 'absolute text-blue-500 font-bold animate-bounce z-30';
+    p.innerText = '+5';
+    p.style.left = x + 'px';
+    p.style.top = y + 'px';
+    document.getElementById('game-container').appendChild(p);
+    setTimeout(() => p.remove(), 800);
+}
         function gameLoop() {
     if (!isPlaying) return;
 
