@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NewCore 月排課｜補習班排課神器</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Noto+Sans+TC:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #09090f;
+  --bg2: #0f0f1a;
+  --card: #13131f;
+  --card2: #1a1a2e;
+  --border: rgba(120,120,200,0.12);
+  --accent: #6C63FF;
+  --accent2: #a78bfa;
+  --cyan: #22d3ee;
+  --green: #4ade80;
+  --orange: #fb923c;
+  --pink: #f472b6;
+  --yellow: #facc15;
+  --text: #f0f0ff;
+  --text-muted: rgba(200,200,240,0.45);
+  --text-mid: rgba(200,200,240,0.7);
+  --glow: rgba(108,99,255,0.25);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Noto Sans TC', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+}
+
+/* ─── NAV ─── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1.1rem 3rem;
+  background: rgba(9,9,15,0.85);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+}
+.nav-logo {
+  font-family: 'Syne', sans-serif;
+  font-size: 1rem; font-weight: 800;
+  color: var(--text); text-decoration: none;
+  display: flex; align-items: center; gap: 0.5rem;
+}
+.nav-logo .rocket { font-size: 1.1rem; }
+.nav-logo .accent { color: var(--accent2); }
+.nav-links { display: flex; align-items: center; gap: 2rem; }
+.nav-links a {
+  font-size: 0.82rem; color: var(--text-muted);
+  text-decoration: none; transition: color 0.2s;
+  letter-spacing: 0.03em;
+}
+.nav-links a:hover { color: var(--text); }
+.nav-cta {
+  background: var(--accent);
+  color: white !important;
+  padding: 0.5rem 1.2rem;
+  border-radius: 8px;
+  font-weight: 600 !important;
+  font-size: 0.82rem !important;
+  transition: background 0.2s, transform 0.2s !important;
+}
+.nav-cta:hover { background: var(--accent2) !important; transform: translateY(-1px); }
+
+/* ─── HERO ─── */
+.hero {
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 8rem 2rem 5rem;
+  position: relative;
+  text-align: center;
+  overflow: hidden;
+}
+.hero-bg {
+  position: absolute; inset: 0; z-index: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(108,99,255,0.18) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 40% at 20% 80%, rgba(34,211,238,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 40% at 80% 70%, rgba(167,139,250,0.08) 0%, transparent 60%);
+}
+.hero-grid {
+  position: absolute; inset: 0; z-index: 0;
+  background-image:
+    linear-gradient(rgba(108,99,255,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(108,99,255,0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+.hero-content { position: relative; z-index: 1; max-width: 800px; }
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.68rem; letter-spacing: 0.15em; text-transform: uppercase;
+  background: rgba(108,99,255,0.15);
+  border: 1px solid rgba(108,99,255,0.3);
+  color: var(--accent2);
+  padding: 0.4rem 1rem; border-radius: 100px;
+  margin-bottom: 2rem;
+  animation: fadeUp 0.6s ease both;
+}
+.badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
+
+.hero-title {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(3rem, 7vw, 5.5rem);
+  font-weight: 800;
+  line-height: 1.0;
+  letter-spacing: -0.04em;
+  margin-bottom: 1.5rem;
+  animation: fadeUp 0.6s 0.1s ease both;
+}
+.hero-title .line1 { display: block; }
+.hero-title .accent-word {
+  background: linear-gradient(135deg, var(--accent), var(--cyan));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.hero-title .accent-word2 {
+  background: linear-gradient(135deg, var(--accent2), var(--pink));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+
+.hero-sub {
+  font-size: 1.05rem; color: var(--text-mid);
+  line-height: 1.75; max-width: 580px; margin: 0 auto 2.5rem;
+  font-weight: 300;
+  animation: fadeUp 0.6s 0.2s ease both;
+}
+
+.hero-actions {
+  display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;
+  animation: fadeUp 0.6s 0.3s ease both;
+}
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  background: var(--accent);
+  color: white; font-weight: 700; font-size: 0.95rem;
+  padding: 0.9rem 2rem; border-radius: 10px;
+  text-decoration: none; transition: all 0.25s;
+  box-shadow: 0 0 32px rgba(108,99,255,0.35);
+}
+.btn-primary:hover { background: var(--accent2); transform: translateY(-2px); box-shadow: 0 0 48px rgba(108,99,255,0.5); }
+.btn-secondary {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  color: var(--text-mid); font-weight: 500; font-size: 0.95rem;
+  padding: 0.9rem 2rem; border-radius: 10px;
+  text-decoration: none; transition: all 0.25s;
+}
+.btn-secondary:hover { background: rgba(255,255,255,0.09); border-color: rgba(120,120,200,0.3); color: var(--text); }
+
+/* hero stats strip */
+.hero-stats {
+  display: flex; gap: 0; margin-top: 5rem;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 16px; overflow: hidden;
+  animation: fadeUp 0.6s 0.4s ease both;
+  max-width: 680px; width: 100%;
+}
+.h-stat {
+  flex: 1; padding: 1.5rem 1rem; text-align: center;
+  border-right: 1px solid var(--border);
+}
+.h-stat:last-child { border-right: none; }
+.h-stat-num {
+  font-family: 'Syne', sans-serif;
+  font-size: 2rem; font-weight: 800;
+  display: block; margin-bottom: 0.25rem;
+}
+.h-stat-num.c1 { color: var(--accent2); }
+.h-stat-num.c2 { color: var(--cyan); }
+.h-stat-num.c3 { color: var(--green); }
+.h-stat-num.c4 { color: var(--yellow); }
+.h-stat-label { font-size: 0.72rem; color: var(--text-muted); letter-spacing: 0.05em; }
+
+@keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:none} }
+
+/* ─── SECTION WRAPPER ─── */
+section { max-width: 1200px; margin: 0 auto; padding: 6rem 2rem; }
+.section-tag {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--accent2); margin-bottom: 1rem; display: block;
+}
+.section-title {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 800; letter-spacing: -0.03em;
+  line-height: 1.1; margin-bottom: 1.2rem;
+}
+.section-sub {
+  font-size: 0.95rem; color: var(--text-muted);
+  line-height: 1.7; max-width: 520px; font-weight: 300;
+}
+
+/* ─── FEATURES GRID ─── */
+.features-intro { text-align: center; margin-bottom: 4rem; }
+.features-intro .section-sub { margin: 0 auto; }
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+.feat-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 2rem;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+.feat-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0; transition: opacity 0.3s;
+}
+.feat-card:hover { border-color: rgba(108,99,255,0.3); transform: translateY(-4px); box-shadow: 0 12px 48px rgba(0,0,0,0.3); }
+.feat-card:hover::before { opacity: 1; }
+.feat-card.wide { grid-column: span 2; }
+.feat-card.tall { grid-row: span 2; }
+
+.feat-icon {
+  width: 48px; height: 48px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem; margin-bottom: 1.25rem;
+}
+.fi-purple { background: rgba(108,99,255,0.15); }
+.fi-cyan { background: rgba(34,211,238,0.12); }
+.fi-green { background: rgba(74,222,128,0.12); }
+.fi-orange { background: rgba(251,146,60,0.12); }
+.fi-pink { background: rgba(244,114,182,0.12); }
+.fi-yellow { background: rgba(250,204,21,0.12); }
+
+.feat-label {
+  font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--accent2);
+  margin-bottom: 0.6rem; display: block;
+}
+.feat-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.15rem; font-weight: 700;
+  margin-bottom: 0.75rem; line-height: 1.2;
+}
+.feat-desc {
+  font-size: 0.855rem; color: var(--text-muted);
+  line-height: 1.7;
+}
+
+/* mock calendar inside card */
+.mini-calendar {
+  margin-top: 1.5rem;
+  background: var(--bg2);
+  border-radius: 12px;
+  padding: 1rem;
+  border: 1px solid var(--border);
+}
+.mini-cal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+.mini-cal-title { font-family: 'Syne', sans-serif; font-size: 0.82rem; font-weight: 700; }
+.mini-cal-count { font-size: 0.68rem; color: var(--accent2); background: rgba(108,99,255,0.15); padding: 0.2rem 0.6rem; border-radius: 100px; }
+.mini-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+.mini-day-label { text-align: center; font-size: 0.6rem; color: var(--text-muted); padding: 0.25rem 0; font-family: 'Space Mono', monospace; }
+.mini-day { min-height: 36px; border-radius: 6px; padding: 3px; position: relative; }
+.mini-day.has-class { background: rgba(108,99,255,0.1); border: 1px solid rgba(108,99,255,0.2); }
+.mini-class-dot { height: 4px; border-radius: 2px; margin-bottom: 2px; }
+.d-purple { background: #6C63FF; }
+.d-green { background: #4ade80; }
+.d-cyan { background: #22d3ee; }
+.d-orange { background: #fb923c; }
+.mini-day-num { font-size: 0.6rem; color: var(--text-muted); text-align: right; }
+
+/* stats card */
+.stats-visual {
+  display: flex; flex-direction: column; gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+.stat-row { display: flex; align-items: center; gap: 0.75rem; }
+.stat-name { font-size: 0.78rem; color: var(--text-mid); width: 64px; flex-shrink: 0; font-family: 'Space Mono', monospace; }
+.stat-bar-wrap { flex: 1; background: var(--bg2); border-radius: 100px; height: 8px; overflow: hidden; }
+.stat-bar { height: 100%; border-radius: 100px; }
+.stat-val { font-size: 0.75rem; font-weight: 700; width: 40px; text-align: right; flex-shrink: 0; }
+
+/* report card visual */
+.report-preview {
+  margin-top: 1.5rem;
+  background: white;
+  border-radius: 10px;
+  padding: 1rem 1.2rem;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.rp-header { background: #1a5c1a; border-radius: 6px; padding: 0.6rem 0.8rem; margin-bottom: 0.75rem; }
+.rp-header-title { font-size: 0.78rem; font-weight: 700; color: white; }
+.rp-header-sub { font-size: 0.62rem; color: rgba(255,255,255,0.7); }
+.rp-row { display: flex; gap: 0.5rem; margin-bottom: 0.35rem; }
+.rp-cell { flex: 1; height: 20px; border-radius: 3px; }
+.rp-col1 { background: #dbeafe; }
+.rp-col2 { background: #dcfce7; flex: 1.8; }
+.rp-col3 { background: #fef3c7; }
+
+/* ─── FEATURE TABS SECTION ─── */
+.tabs-section { padding: 0 2rem 6rem; max-width: 1200px; margin: 0 auto; }
+.tabs-header { display: flex; gap: 0; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 0.4rem; margin-bottom: 3rem; }
+.tab-btn {
+  flex: 1; padding: 0.75rem 1rem;
+  background: none; border: none; border-radius: 8px;
+  color: var(--text-muted); font-family: 'Noto Sans TC', sans-serif;
+  font-size: 0.82rem; cursor: pointer; transition: all 0.2s;
+  display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+}
+.tab-btn:hover { color: var(--text-mid); }
+.tab-btn.active { background: var(--card2); color: var(--text); font-weight: 600; }
+.tab-pane { display: none; }
+.tab-pane.active { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center; }
+.tab-content-left { }
+.tab-content-left h3 { font-family: 'Syne', sans-serif; font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 1rem; line-height: 1.2; }
+.tab-content-left p { font-size: 0.9rem; color: var(--text-muted); line-height: 1.75; margin-bottom: 1.5rem; }
+.feature-list { list-style: none; display: flex; flex-direction: column; gap: 0.7rem; }
+.feature-list li { display: flex; align-items: flex-start; gap: 0.75rem; font-size: 0.875rem; color: var(--text-mid); line-height: 1.5; }
+.feature-list li::before { content: '✓'; color: var(--green); font-weight: 700; flex-shrink: 0; margin-top: 0.05rem; }
+.tab-visual {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  overflow: hidden;
+  aspect-ratio: 4/3;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+.tv-inner { padding: 1.5rem; width: 100%; }
+
+/* ─── WORKFLOW ─── */
+.workflow-section { padding: 0 2rem 6rem; max-width: 1100px; margin: 0 auto; }
+.workflow-steps {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem; margin-top: 3.5rem; position: relative;
+}
+.workflow-steps::before {
+  content: '';
+  position: absolute; top: 28px; left: calc(12.5% + 20px); right: calc(12.5% + 20px);
+  height: 1px; background: linear-gradient(90deg, var(--accent), var(--cyan));
+  z-index: 0;
+}
+.step-card { text-align: center; position: relative; z-index: 1; }
+.step-num {
+  width: 56px; height: 56px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 800;
+  color: white; margin: 0 auto 1.25rem;
+  box-shadow: 0 0 24px var(--glow);
+}
+.step-title { font-family: 'Syne', sans-serif; font-size: 0.95rem; font-weight: 700; margin-bottom: 0.5rem; }
+.step-desc { font-size: 0.8rem; color: var(--text-muted); line-height: 1.6; }
+
+/* ─── PRICING ─── */
+.pricing-section { padding: 0 2rem 6rem; max-width: 1100px; margin: 0 auto; text-align: center; }
+.pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-top: 3.5rem; text-align: left; }
+.price-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 20px; padding: 2rem; position: relative;
+  transition: all 0.3s;
+}
+.price-card:hover { transform: translateY(-4px); border-color: rgba(108,99,255,0.25); }
+.price-card.featured {
+  background: linear-gradient(135deg, rgba(108,99,255,0.12), rgba(167,139,250,0.08));
+  border-color: rgba(108,99,255,0.4);
+  box-shadow: 0 0 60px rgba(108,99,255,0.12);
+}
+.price-badge {
+  position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: white; font-size: 0.68rem; font-weight: 700;
+  padding: 0.3rem 0.9rem; border-radius: 100px; white-space: nowrap;
+  letter-spacing: 0.05em;
+}
+.price-plan { font-family: 'Space Mono', monospace; font-size: 0.68rem; color: var(--text-muted); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 0.75rem; }
+.price-name { font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 800; margin-bottom: 1rem; }
+.price-main { display: flex; align-items: baseline; gap: 0.3rem; margin-bottom: 0.4rem; }
+.price-currency { font-size: 0.9rem; color: var(--text-muted); }
+.price-num { font-family: 'Syne', sans-serif; font-size: 2.5rem; font-weight: 800; }
+.price-period { font-size: 0.8rem; color: var(--text-muted); }
+.price-note { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 1.5rem; }
+.price-divider { height: 1px; background: var(--border); margin-bottom: 1.5rem; }
+.price-features { list-style: none; display: flex; flex-direction: column; gap: 0.65rem; margin-bottom: 1.75rem; }
+.price-features li { display: flex; align-items: center; gap: 0.6rem; font-size: 0.845rem; color: var(--text-mid); }
+.price-features li .ck { color: var(--green); font-size: 0.7rem; }
+.price-features li .na { color: var(--text-muted); opacity: 0.4; font-size: 0.7rem; }
+.price-btn {
+  display: block; text-align: center;
+  padding: 0.8rem; border-radius: 10px;
+  font-weight: 700; font-size: 0.88rem;
+  text-decoration: none; transition: all 0.2s;
+}
+.pb-ghost { background: rgba(255,255,255,0.05); color: var(--text-mid); border: 1px solid var(--border); }
+.pb-ghost:hover { background: rgba(255,255,255,0.09); }
+.pb-primary { background: var(--accent); color: white; box-shadow: 0 4px 20px rgba(108,99,255,0.3); }
+.pb-primary:hover { background: var(--accent2); transform: translateY(-1px); }
+
+/* ─── CTA STRIP ─── */
+.cta-strip {
+  background: linear-gradient(135deg, rgba(108,99,255,0.15), rgba(34,211,238,0.08));
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 5rem 2rem; text-align: center;
+}
+.cta-strip h2 {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 800; letter-spacing: -0.03em;
+  margin-bottom: 1rem; line-height: 1.15;
+}
+.cta-strip h2 .hl { color: var(--accent2); }
+.cta-strip p { color: var(--text-muted); margin-bottom: 2.5rem; font-size: 0.95rem; }
+.cta-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+/* ─── FOOTER ─── */
+footer {
+  padding: 2.5rem 3rem;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 1rem;
+  border-top: 1px solid var(--border);
+}
+.footer-logo { font-family: 'Syne', sans-serif; font-size: 0.95rem; font-weight: 800; }
+.footer-logo span { color: var(--accent2); }
+footer p { font-size: 0.75rem; color: var(--text-muted); }
+.footer-links { display: flex; gap: 1.5rem; }
+.footer-links a { font-size: 0.75rem; color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
+.footer-links a:hover { color: var(--accent2); }
+
+/* ─── BATCH UPDATE MOCKUP ─── */
+.batch-mockup {
+  margin-top: 1.5rem;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  font-size: 0.72rem;
+}
+.batch-toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.6rem 0.9rem;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255,255,255,0.03);
+}
+.batch-toolbar-label { color: var(--text-muted); font-family: 'Space Mono', monospace; font-size: 0.62rem; letter-spacing: 0.08em; }
+.batch-btn-green {
+  background: #4ade80; color: #0a1a0a;
+  font-size: 0.62rem; font-weight: 700;
+  padding: 0.25rem 0.65rem; border-radius: 6px;
+}
+.batch-list { padding: 0.5rem 0; }
+.batch-item {
+  display: flex; align-items: center; gap: 0.6rem;
+  padding: 0.35rem 0.9rem;
+  transition: background 0.15s;
+}
+.batch-item.checked { background: rgba(108,99,255,0.08); }
+.batch-checkbox {
+  width: 13px; height: 13px; border-radius: 3px; flex-shrink: 0;
+  border: 1.5px solid rgba(120,120,200,0.35);
+}
+.batch-checkbox.on { background: var(--accent); border-color: var(--accent); display: flex; align-items: center; justify-content: center; }
+.batch-checkbox.on::after { content: '✓'; font-size: 8px; color: white; }
+.batch-class-name { color: var(--text-mid); flex: 1; }
+.batch-log {
+  padding: 0.5rem 0.9rem;
+  border-top: 1px solid var(--border);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--green);
+}
+
+/* ─── SCHEDULE SETTING MOCKUP ─── */
+.schedule-mockup {
+  margin-top: 1.5rem;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  font-size: 0.72rem;
+}
+.sch-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.6rem 0.9rem;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255,255,255,0.03);
+}
+.sch-header-label { color: var(--text-muted); font-family: 'Space Mono', monospace; font-size: 0.62rem; letter-spacing: 0.08em; }
+.sch-btn-add { background: var(--green); color: #0a1a0a; font-size: 0.62rem; font-weight: 700; padding: 0.25rem 0.65rem; border-radius: 6px; }
+.sch-table { width: 100%; border-collapse: collapse; }
+.sch-table th {
+  padding: 0.4rem 0.6rem;
+  text-align: left; font-size: 0.6rem;
+  color: var(--text-muted); font-weight: 500;
+  background: rgba(255,255,255,0.02);
+  border-bottom: 1px solid var(--border);
+}
+.sch-table td {
+  padding: 0.4rem 0.6rem;
+  border-bottom: 1px solid rgba(120,120,200,0.06);
+  color: var(--text-mid);
+  font-size: 0.68rem;
+}
+.sch-table tr:last-child td { border-bottom: none; }
+.sch-badge {
+  display: inline-block;
+  font-size: 0.58rem; padding: 0.1rem 0.4rem;
+  border-radius: 4px; font-weight: 700;
+  background: rgba(34,211,238,0.15); color: var(--cyan);
+}
+.sch-days { display: flex; gap: 2px; }
+.sch-day {
+  width: 14px; height: 14px; border-radius: 3px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.52rem; font-weight: 700;
+}
+.sch-day.on { background: var(--accent); color: white; }
+.sch-day.off { background: rgba(255,255,255,0.06); color: var(--text-muted); }
+.sch-edit { color: var(--yellow); font-size: 0.7rem; cursor: pointer; }
+.sch-del { color: var(--pink); font-size: 0.7rem; cursor: pointer; margin-left: 4px; }
+
+/* ─── SCROLL REVEAL ─── */
+.reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.65s, transform 0.65s; }
+.reveal.visible { opacity: 1; transform: none; }
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 900px) {
+  nav { padding: 1rem 1.5rem; }
+  .nav-links { display: none; }
+  .hero { padding: 7rem 1.5rem 4rem; }
+  .hero-stats { flex-direction: column; }
+  .h-stat { border-right: none; border-bottom: 1px solid var(--border); }
+  .h-stat:last-child { border-bottom: none; }
+  section, .tabs-section, .workflow-section, .pricing-section { padding-left: 1.5rem; padding-right: 1.5rem; }
+  .features-grid { grid-template-columns: 1fr; }
+  .feat-card.wide { grid-column: span 1; }
+  .feat-card.tall { grid-row: span 1; }
+  .tab-pane.active { grid-template-columns: 1fr; }
+  .tab-visual { aspect-ratio: 16/9; }
+  .workflow-steps { grid-template-columns: 1fr 1fr; }
+  .workflow-steps::before { display: none; }
+  .pricing-grid { grid-template-columns: 1fr; }
+  footer { flex-direction: column; text-align: center; padding: 2rem 1.5rem; }
+  .tabs-header { flex-wrap: wrap; }
+  .tab-btn { font-size: 0.75rem; padding: 0.6rem 0.5rem; }
+}
+@media (max-width: 600px) {
+  .hero-title { font-size: 2.6rem; }
+  .hero-actions { flex-direction: column; align-items: center; }
+  .btn-primary, .btn-secondary { width: 100%; justify-content: center; }
+  .workflow-steps { grid-template-columns: 1fr; }
+  .cta-btns { flex-direction: column; align-items: center; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/" class="nav-logo">
+    <span class="rocket">🚀</span> New<span class="accent">Core</span>
+  </a>
+  <div class="nav-links">
+    <a href="#features">功能特色</a>
+    <a href="#workflow">使用流程</a>
+    <a href="#pricing">方案定價</a>
+    <a href="https://line.me/ti/p/~@593fbons" target="_blank">LINE 聯繫</a>
+    <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/" class="nav-cta">升級進階方案 →</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-content">
+    <div class="hero-badge">
+      <span class="badge-dot"></span>
+      NewCore Scheduling System · 2026
+    </div>
+    <h1 class="hero-title">
+      <span class="line1">補習班排課</span>
+      <span class="accent-word">從此不再</span><span class="accent-word2">頭痛</span>
+    </h1>
+    <p class="hero-sub">
+      月曆視圖、時數統計、月報自動生成——<br>
+      一個系統管理全補習班的排課與老師薪資，讓行政工作變得簡單又透明。
+    </p>
+    <div class="hero-actions">
+      <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/" class="btn-primary">🚀 了解 NewCore 進階方案</a>
+      <a href="#features" class="btn-secondary">了解功能特色 ↓</a>
+    </div>
+    <div class="hero-stats">
+      <div class="h-stat"><span class="h-stat-num c1">5</span><span class="h-stat-label">核心功能模組</span></div>
+      <div class="h-stat"><span class="h-stat-num c2">自動</span><span class="h-stat-label">時數統計計算</span></div>
+      <div class="h-stat"><span class="h-stat-num c3">一鍵</span><span class="h-stat-label">月報發送老師</span></div>
+      <div class="h-stat"><span class="h-stat-num c4">零</span><span class="h-stat-label">安裝需求</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES GRID -->
+<section id="features">
+  <div class="features-intro reveal">
+    <span class="section-tag">✦ Core Features</span>
+    <h2 class="section-title">五大模組，完整解決<br>排課行政痛點</h2>
+    <p class="section-sub">從每月排課到老師時數薪資，NewCore 月排課把過去要花一整天的行政作業，壓縮到幾分鐘完成。</p>
+  </div>
+
+  <div class="features-grid reveal" style="margin-top: 3rem;">
+
+    <!-- 月曆視圖 - WIDE -->
+    <div class="feat-card wide">
+      <div class="feat-icon fi-purple">📅</div>
+      <span class="feat-label">月曆視圖</span>
+      <div class="feat-name">一眼看清整月課表</div>
+      <p class="feat-desc">每位老師的上課班級、Lead/Assist 角色一目了然。按老師篩選、按班級查詢，點擊課堂即可快速刪除或調整。</p>
+      <div class="mini-calendar">
+        <div class="mini-cal-header">
+          <span class="mini-cal-title">2026 年 5 月</span>
+          <span class="mini-cal-count">38 堂課</span>
+        </div>
+        <div class="mini-cal-grid">
+          <div class="mini-day-label">日</div><div class="mini-day-label">一</div><div class="mini-day-label">二</div><div class="mini-day-label">三</div><div class="mini-day-label">四</div><div class="mini-day-label">五</div><div class="mini-day-label">六</div>
+          <div class="mini-day"></div>
+          <div class="mini-day"></div>
+          <div class="mini-day"></div>
+          <div class="mini-day"></div>
+          <div class="mini-day"></div>
+          <div class="mini-day"><div class="mini-day-num">1</div></div>
+          <div class="mini-day"><div class="mini-day-num">2</div></div>
+          <div class="mini-day"><div class="mini-day-num">3</div></div>
+          <div class="mini-day has-class"><div class="mini-class-dot d-purple"></div><div class="mini-day-num">4</div></div>
+          <div class="mini-day has-class"><div class="mini-class-dot d-green"></div><div class="mini-day-num">5</div></div>
+          <div class="mini-day has-class"><div class="mini-class-dot d-cyan"></div><div class="mini-class-dot d-orange"></div><div class="mini-day-num">6</div></div>
+          <div class="mini-day has-class"><div class="mini-class-dot d-purple"></div><div class="mini-day-num">7</div></div>
+          <div class="mini-day has-class"><div class="mini-class-dot d-green"></div><div class="mini-class-dot d-cyan"></div><div class="mini-day-num">8</div></div>
+          <div class="mini-day has-class"><div class="mini-class-dot d-orange"></div><div class="mini-day-num">9</div></div>
+          <div class="mini-day"><div class="mini-day-num">10</div></div>
+          <div class="mini-day has-class"><div class="mini-class-dot d-purple"></div><div class="mini-day-num">11</div></div>
+          <div class="mini-day has-class"><div class="mini-class-dot d-green"></div><div class="mini-day-num">12</div></div>
+          <div class="mini-day has-class"><div class="mini-class-dot d-cyan"></div><div class="mini-class-dot d-orange"></div><div class="mini-day-num">13</div></div>
+          <div class="mini-day has-class"><div class="mini-class-dot d-purple"></div><div class="mini-day-num">14</div></div>
+          <div class="mini-day has-class"><div class="mini-class-dot d-green"></div><div class="mini-class-dot d-cyan"></div><div class="mini-day-num">15</div></div>
+          <div class="mini-day has-class"><div class="mini-class-dot d-orange"></div><div class="mini-day-num">16</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 時數統計 -->
+    <div class="feat-card">
+      <div class="feat-icon fi-cyan">📊</div>
+      <span class="feat-label">時數統計</span>
+      <div class="feat-name">全體老師時數自動彙整</div>
+      <p class="feat-desc">一鍵生成每位老師的主教、助教、代課時數，精確到班級明細，薪資計算不再靠手工。</p>
+      <div class="stats-visual">
+        <div class="stat-row">
+          <span class="stat-name">Iris</span>
+          <div class="stat-bar-wrap"><div class="stat-bar" style="width:96%;background:linear-gradient(90deg,#6C63FF,#a78bfa)"></div></div>
+          <span class="stat-val" style="color:#a78bfa">96h</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-name">Jeffrey</span>
+          <div class="stat-bar-wrap"><div class="stat-bar" style="width:79%;background:linear-gradient(90deg,#22d3ee,#67e8f9)"></div></div>
+          <span class="stat-val" style="color:#22d3ee">76h</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-name">Annie</span>
+          <div class="stat-bar-wrap"><div class="stat-bar" style="width:67%;background:linear-gradient(90deg,#4ade80,#86efac)"></div></div>
+          <span class="stat-val" style="color:#4ade80">64h</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-name">Sandy</span>
+          <div class="stat-bar-wrap"><div class="stat-bar" style="width:67%;background:linear-gradient(90deg,#fb923c,#fdba74)"></div></div>
+          <span class="stat-val" style="color:#fb923c">64h</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-name">Robert</span>
+          <div class="stat-bar-wrap"><div class="stat-bar" style="width:63%;background:linear-gradient(90deg,#f472b6,#f9a8d4)"></div></div>
+          <span class="stat-val" style="color:#f472b6">60h</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 月報預覽 -->
+    <div class="feat-card">
+      <div class="feat-icon fi-green">📩</div>
+      <span class="feat-label">月報預覽</span>
+      <div class="feat-name">一鍵生成月報發送老師</div>
+      <p class="feat-desc">系統自動生成本月授課進度 Email，列出每堂課的日期、班級與授課進度，一鍵發送給指定老師。</p>
+      <div class="report-preview">
+        <div class="rp-header">
+          <div class="rp-header-title">🐦 5月份 授課課程進度提醒</div>
+          <div class="rp-header-sub">Monthly Progress - Jeffrey</div>
+        </div>
+        <div style="font-size:0.65rem;color:#333;margin-bottom:0.5rem;">Dear Jeffrey，以下是您本月的教學進度全覽表：</div>
+        <div class="rp-row"><div class="rp-cell rp-col1"></div><div class="rp-cell rp-col2"></div><div class="rp-cell rp-col3"></div></div>
+        <div class="rp-row"><div class="rp-cell rp-col1"></div><div class="rp-cell rp-col2" style="background:#dcfce7"></div><div class="rp-cell rp-col3"></div></div>
+        <div class="rp-row"><div class="rp-cell rp-col1"></div><div class="rp-cell rp-col2" style="background:#fef9c3"></div><div class="rp-cell rp-col3"></div></div>
+        <div class="rp-row"><div class="rp-cell rp-col1"></div><div class="rp-cell rp-col2" style="background:#ede9fe"></div><div class="rp-cell rp-col3"></div></div>
+      </div>
+    </div>
+
+    <!-- 班級更新 -->
+    <div class="feat-card">
+      <div class="feat-icon fi-orange">🔄</div>
+      <span class="feat-label">班級更新</span>
+      <div class="feat-name">批次更新選中班級進度</div>
+      <p class="feat-desc">從班級清單勾選要更新的班級，系統自動同步最新授課堂次與單元進度，省去逐班手動維護的麻煩。</p>
+      <div class="batch-mockup">
+        <div class="batch-toolbar">
+          <span class="batch-toolbar-label">班級清單 · 5月</span>
+          <span class="batch-btn-green">✦ 更新選中班級</span>
+        </div>
+        <div class="batch-list">
+          <div class="batch-item checked">
+            <div class="batch-checkbox on"></div>
+            <span class="batch-class-name">114-2 ESL04</span>
+          </div>
+          <div class="batch-item checked">
+            <div class="batch-checkbox on"></div>
+            <span class="batch-class-name">114-2 THP10</span>
+          </div>
+          <div class="batch-item">
+            <div class="batch-checkbox"></div>
+            <span class="batch-class-name">DC5/THC9</span>
+          </div>
+          <div class="batch-item checked">
+            <div class="batch-checkbox on"></div>
+            <span class="batch-class-name">ESL4 Science</span>
+          </div>
+          <div class="batch-item">
+            <div class="batch-checkbox"></div>
+            <span class="batch-class-name">THP10 LA</span>
+          </div>
+        </div>
+        <div class="batch-log">✓ 已更新 3 個班級進度…</div>
+      </div>
+    </div>
+
+    <!-- 排課設定 -->
+    <div class="feat-card">
+      <div class="feat-icon fi-yellow">⚙️</div>
+      <span class="feat-label">排課設定</span>
+      <div class="feat-name">彈性設定固定 / 臨時課</div>
+      <p class="feat-desc">每個班級可設定類型（固定 / 臨時）、主教、助教、每週時數、上課週期、生效日與結束日，精細掌控每一堂課。</p>
+      <div class="schedule-mockup">
+        <div class="sch-header">
+          <span class="sch-header-label">排課設定</span>
+          <span class="sch-btn-add">+ 新增設定</span>
+        </div>
+        <table class="sch-table">
+          <tr>
+            <th>班級名稱</th><th>類型</th><th>主教</th><th>助教</th><th>上課週期</th><th>操作</th>
+          </tr>
+          <tr>
+            <td>114-2 ESL04</td>
+            <td><span class="sch-badge">固定</span></td>
+            <td>Jeffrey</td><td>—</td>
+            <td><div class="sch-days">
+              <div class="sch-day off">一</div><div class="sch-day off">二</div><div class="sch-day off">三</div><div class="sch-day off">四</div><div class="sch-day on">五</div><div class="sch-day off">六</div>
+            </div></td>
+            <td><span class="sch-edit">✎</span><span class="sch-del">✕</span></td>
+          </tr>
+          <tr>
+            <td>ESL4 Science</td>
+            <td><span class="sch-badge">固定</span></td>
+            <td>Robert</td><td>Jeffrey</td>
+            <td><div class="sch-days">
+              <div class="sch-day off">一</div><div class="sch-day off">二</div><div class="sch-day off">三</div><div class="sch-day on">四</div><div class="sch-day off">五</div><div class="sch-day off">六</div>
+            </div></td>
+            <td><span class="sch-edit">✎</span><span class="sch-del">✕</span></td>
+          </tr>
+          <tr>
+            <td>DC5/THC9</td>
+            <td><span class="sch-badge">固定</span></td>
+            <td>Jeffrey</td><td>—</td>
+            <td><div class="sch-days">
+              <div class="sch-day off">一</div><div class="sch-day off">二</div><div class="sch-day on">三</div><div class="sch-day off">四</div><div class="sch-day off">五</div><div class="sch-day off">六</div>
+            </div></td>
+            <td><span class="sch-edit">✎</span><span class="sch-del">✕</span></td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- WORKFLOW -->
+<div class="workflow-section reveal" id="workflow">
+  <div style="text-align:center; margin-bottom:0">
+    <span class="section-tag">✦ How It Works</span>
+    <h2 class="section-title">四步驟上手，<br>今天就開始用</h2>
+  </div>
+  <div class="workflow-steps">
+    <div class="step-card">
+      <div class="step-num">1</div>
+      <div class="step-title">設定排課規則</div>
+      <p class="step-desc">在「排課設定」新增每個班級的老師、時數、上課週期與起訖日期。</p>
+    </div>
+    <div class="step-card">
+      <div class="step-num">2</div>
+      <div class="step-title">查看月曆總覽</div>
+      <p class="step-desc">月曆視圖自動顯示每位老師整月的課堂分佈，Lead / Assist 用顏色區分。</p>
+    </div>
+    <div class="step-card">
+      <div class="step-num">3</div>
+      <div class="step-title">一鍵生成時數</div>
+      <p class="step-desc">時數統計頁點「生成統計」，自動計算每位老師本月主教、助教、代課時數。</p>
+    </div>
+    <div class="step-card">
+      <div class="step-num">4</div>
+      <div class="step-title">發送月報 Email</div>
+      <p class="step-desc">選擇老師與月份，預覽月報後一鍵寄送，老師自動收到本月授課進度總覽。</p>
+    </div>
+  </div>
+</div>
+
+<!-- PRICING -->
+<div class="pricing-section reveal" id="pricing">
+  <span class="section-tag">✦ Pricing</span>
+  <h2 class="section-title">搭配 NewCore 教務系統，<br>解鎖完整排課功能</h2>
+  <p class="section-sub" style="margin: 0 auto; max-width:520px;">月排課系統須搭配 NewCore 教務系統使用。依照您目前的方案，選擇最適合的加購組合。</p>
+  <div class="pricing-grid" style="grid-template-columns: repeat(2, 1fr); max-width: 780px; margin: 3.5rem auto 0;">
+
+    <div class="price-card featured">
+      <div class="price-badge">🔗 搭配 Standard 方案</div>
+      <div class="price-plan">Standard Add-on</div>
+      <div class="price-name">標準加購</div>
+      <div class="price-main">
+        <span class="price-currency">NT$</span>
+        <span class="price-num">99</span>
+        <span class="price-period">/ 月</span>
+      </div>
+      <div class="price-note">需搭配 NewCore Standard 方案（NT$99/月）使用</div>
+      <div class="price-divider"></div>
+      <ul class="price-features">
+        <li><span class="ck">✓</span> 月曆視圖（全體老師）</li>
+        <li><span class="ck">✓</span> 排課設定（無上限）</li>
+        <li><span class="ck">✓</span> 完整時數統計明細</li>
+        <li><span class="ck">✓</span> 月報 Email 一鍵發送</li>
+        <li><span class="ck">✓</span> 班級進度批次更新</li>
+        <li><span class="na">✗</span> <span style="opacity:0.4">跨分校整合報表</span></li>
+      </ul>
+      <a href="https://line.me/ti/p/~@593fbons" target="_blank" class="price-btn pb-primary">聯繫加購</a>
+    </div>
+
+    <div class="price-card">
+      <div class="price-plan">Pro Bundle</div>
+      <div class="price-name">進階搭配方案</div>
+      <div class="price-main" style="align-items:center;">
+        <span style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:var(--accent2);">洽詢</span>
+        <span class="price-period" style="margin-left:0.5rem;">客製定價</span>
+      </div>
+      <div class="price-note">搭配 NewCore Pro 進階方案，整合教務 ＋ 排課全功能</div>
+      <div class="price-divider"></div>
+      <ul class="price-features">
+        <li><span class="ck">✓</span> Standard 加購全部功能</li>
+        <li><span class="ck">✓</span> 跨分校時數整合報表</li>
+        <li><span class="ck">✓</span> 與 NewCore Pro 深度整合</li>
+        <li><span class="ck">✓</span> 優先技術支援與功能更新</li>
+        <li><span class="ck">✓</span> 客製化欄位與匯出格式</li>
+        <li><span class="ck">✓</span> 專屬 onboarding 設定協助</li>
+      </ul>
+      <a href="https://line.me/ti/p/~@593fbons" target="_blank" class="price-btn pb-ghost">聯繫洽詢</a>
+    </div>
+
+  </div>
+  <p style="text-align:center;margin-top:2rem;font-size:0.8rem;color:var(--text-muted);">
+    尚未使用 NewCore 教務系統？
+    <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/" style="color:var(--accent2);text-decoration:none;">了解 NewCore 方案 →</a>
+  </p>
+</div>
+
+<!-- CTA STRIP -->
+<div class="cta-strip reveal">
+  <h2>讓月排課成為你的<br><span class="hl">競爭優勢</span></h2>
+  <p>升級 NewCore 進階方案，解鎖月排課完整功能，讓補習班行政效率全面提升。</p>
+  <div class="cta-btns">
+    <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/" class="btn-primary">🚀 了解 NewCore 進階方案</a>
+    <a href="https://line.me/ti/p/~@593fbons" target="_blank" class="btn-secondary">💬 LINE 聯繫 Jeffrey</a>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-logo">New<span>Core</span> · 月排課系統</div>
+  <p>© 2026 Jeffrey's Lab. 專為補習班老師設計。</p>
+  <div class="footer-links">
+    <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/">NewCore 首頁</a>
+    <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/tools.html">工具包</a>
+    <a href="https://line.me/ti/p/~@593fbons" target="_blank">LINE 聯繫</a>
+  </div>
+</footer>
+
+<script>
+// Scroll reveal
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.08 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// Tabs
+const tabs = document.querySelectorAll('.tab-btn');
+const panes = document.querySelectorAll('.tab-pane');
+tabs.forEach(btn => {
+  btn.addEventListener('click', () => {
+    tabs.forEach(b => b.classList.remove('active'));
+    panes.forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+  });
+});
+
+// Stagger cards on load
+window.addEventListener('load', () => {
+  document.querySelectorAll('.feat-card').forEach((el, i) => {
+    el.style.transitionDelay = (i * 0.06) + 's';
+  });
+  document.querySelectorAll('.step-card').forEach((el, i) => {
+    el.style.transitionDelay = (i * 0.1) + 's';
+  });
+  document.querySelectorAll('.price-card').forEach((el, i) => {
+    el.style.transitionDelay = (i * 0.1) + 's';
+  });
+});
+</script>
+</body>
+</html>
