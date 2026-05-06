@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NewCore 續讀分析｜學生回收率追蹤系統</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Noto+Sans+TC:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0c080f;
+  --bg2: #130e18;
+  --card: #1a1020;
+  --card2: #211528;
+  --border: rgba(244,114,182,0.12);
+  --accent: #ec4899;
+  --accent2: #f472b6;
+  --accent3: #fb7bb8;
+  --rose: #fda4af;
+  --purple: #c084fc;
+  --cyan: #22d3ee;
+  --green: #4ade80;
+  --orange: #fb923c;
+  --yellow: #fbbf24;
+  --text: #fdf2f8;
+  --text-muted: rgba(253,242,248,0.4);
+  --text-mid: rgba(253,242,248,0.68);
+  --glow: rgba(236,72,153,0.22);
+  --glow2: rgba(244,114,182,0.15);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Noto Sans TC', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+}
+
+/* ─── NAV ─── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1.1rem 3rem;
+  background: rgba(12,8,15,0.88);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+}
+.nav-logo {
+  font-family: 'Syne', sans-serif;
+  font-size: 1rem; font-weight: 800;
+  color: var(--text); text-decoration: none;
+  display: flex; align-items: center; gap: 0.5rem;
+}
+.nav-logo .accent { color: var(--accent2); }
+.nav-links { display: flex; align-items: center; gap: 2rem; }
+.nav-links a {
+  font-size: 0.82rem; color: var(--text-muted);
+  text-decoration: none; transition: color 0.2s;
+}
+.nav-links a:hover { color: var(--text); }
+.nav-cta {
+  background: var(--accent);
+  color: white !important; padding: 0.5rem 1.2rem;
+  border-radius: 8px; font-weight: 600 !important;
+  font-size: 0.82rem !important;
+  transition: background 0.2s, transform 0.2s !important;
+}
+.nav-cta:hover { background: var(--accent2) !important; transform: translateY(-1px); }
+
+/* ─── HERO ─── */
+.hero {
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 8rem 2rem 5rem;
+  position: relative; text-align: center; overflow: hidden;
+}
+.hero-bg {
+  position: absolute; inset: 0; z-index: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(236,72,153,0.14) 0%, transparent 65%),
+    radial-gradient(ellipse 40% 40% at 15% 75%, rgba(192,132,252,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 40% at 85% 65%, rgba(244,114,182,0.07) 0%, transparent 60%);
+}
+.hero-grid {
+  position: absolute; inset: 0; z-index: 0;
+  background-image:
+    linear-gradient(rgba(236,72,153,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(236,72,153,0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+.hero-content { position: relative; z-index: 1; max-width: 820px; }
+
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.68rem; letter-spacing: 0.15em; text-transform: uppercase;
+  background: rgba(236,72,153,0.12);
+  border: 1px solid rgba(236,72,153,0.28);
+  color: var(--accent2); padding: 0.4rem 1rem; border-radius: 100px;
+  margin-bottom: 2rem; animation: fadeUp 0.6s ease both;
+}
+.badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
+
+.hero-title {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(2.8rem, 7vw, 5.2rem);
+  font-weight: 800; line-height: 1.0;
+  letter-spacing: -0.04em; margin-bottom: 1.5rem;
+  animation: fadeUp 0.6s 0.1s ease both;
+}
+.hero-title .g1 {
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.hero-title .g2 {
+  background: linear-gradient(135deg, var(--accent2), var(--rose));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+
+.hero-sub {
+  font-size: 1.05rem; color: var(--text-mid);
+  line-height: 1.75; max-width: 600px; margin: 0 auto 2.5rem;
+  font-weight: 300; animation: fadeUp 0.6s 0.2s ease both;
+}
+
+.hero-actions {
+  display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;
+  animation: fadeUp 0.6s 0.3s ease both;
+}
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  background: var(--accent); color: white;
+  font-weight: 700; font-size: 0.95rem;
+  padding: 0.9rem 2rem; border-radius: 10px;
+  text-decoration: none; transition: all 0.25s;
+  box-shadow: 0 0 32px rgba(236,72,153,0.3);
+}
+.btn-primary:hover { background: var(--accent2); transform: translateY(-2px); box-shadow: 0 0 48px rgba(236,72,153,0.45); }
+.btn-secondary {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  color: var(--text-mid); font-weight: 500; font-size: 0.95rem;
+  padding: 0.9rem 2rem; border-radius: 10px;
+  text-decoration: none; transition: all 0.25s;
+}
+.btn-secondary:hover { background: rgba(255,255,255,0.09); border-color: rgba(244,114,182,0.3); color: var(--text); }
+
+/* hero stats */
+.hero-stats {
+  display: flex; gap: 0; margin-top: 5rem;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 16px; overflow: hidden;
+  animation: fadeUp 0.6s 0.4s ease both;
+  max-width: 700px; width: 100%;
+}
+.h-stat { flex: 1; padding: 1.5rem 1rem; text-align: center; border-right: 1px solid var(--border); }
+.h-stat:last-child { border-right: none; }
+.h-stat-num {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.9rem; font-weight: 800; display: block; margin-bottom: 0.25rem;
+}
+.c1 { color: var(--accent2); } .c2 { color: var(--purple); } .c3 { color: var(--rose); } .c4 { color: var(--yellow); }
+.h-stat-label { font-size: 0.72rem; color: var(--text-muted); letter-spacing: 0.05em; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:none} }
+
+/* ─── SECTIONS ─── */
+section { max-width: 1200px; margin: 0 auto; padding: 6rem 2rem; }
+.section-tag {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--accent2); margin-bottom: 1rem; display: block;
+}
+.section-title {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 800; letter-spacing: -0.03em;
+  line-height: 1.1; margin-bottom: 1.2rem;
+}
+.section-sub {
+  font-size: 0.95rem; color: var(--text-muted);
+  line-height: 1.7; font-weight: 300;
+}
+
+/* ─── FEATURES GRID ─── */
+.features-intro { text-align: center; margin-bottom: 3.5rem; }
+.features-intro .section-sub { max-width: 520px; margin: 0 auto; }
+
+.features-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem;
+}
+.feat-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 20px; padding: 2rem;
+  transition: all 0.3s; position: relative; overflow: hidden;
+  display: flex; flex-direction: column;
+}
+.feat-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0; transition: opacity 0.3s;
+}
+.feat-card:hover { border-color: rgba(236,72,153,0.3); transform: translateY(-4px); box-shadow: 0 12px 48px rgba(0,0,0,0.3); }
+.feat-card:hover::before { opacity: 1; }
+.feat-card.wide { grid-column: span 2; }
+
+.feat-icon {
+  width: 48px; height: 48px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem; margin-bottom: 1.25rem; flex-shrink: 0;
+}
+.fi-pink   { background: rgba(236,72,153,0.15); }
+.fi-purple { background: rgba(192,132,252,0.12); }
+.fi-rose   { background: rgba(253,164,175,0.12); }
+.fi-yellow { background: rgba(251,191,36,0.12); }
+.fi-cyan   { background: rgba(34,211,238,0.12); }
+.fi-orange { background: rgba(251,146,60,0.12); }
+
+.feat-label {
+  font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--accent2);
+  margin-bottom: 0.6rem; display: block;
+}
+.feat-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.1rem; font-weight: 700; margin-bottom: 0.75rem; line-height: 1.2;
+}
+.feat-desc { font-size: 0.855rem; color: var(--text-muted); line-height: 1.7; flex: 1; }
+
+/* ── KPI MOCKUP ── */
+.kpi-mockup {
+  margin-top: 1.5rem;
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.6rem;
+}
+.kpi-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 0.75rem 0.9rem;
+}
+.kpi-label { font-size: 0.6rem; color: var(--text-muted); margin-bottom: 0.3rem; }
+.kpi-val {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.5rem; font-weight: 800;
+}
+.kpi-sub { font-size: 0.58rem; color: var(--text-muted); margin-top: 0.15rem; }
+.kv-pink { color: var(--accent2); }
+.kv-red  { color: #f87171; }
+.kv-yellow { color: var(--yellow); }
+.kv-green { color: var(--green); }
+.kpi-top { grid-column: span 2; background: rgba(236,72,153,0.08); border-color: rgba(236,72,153,0.2); }
+
+/* ── TEACHER CARD MOCKUP ── */
+.teacher-mockup {
+  margin-top: 1.5rem;
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.6rem;
+}
+.tc-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 0.75rem 0.9rem;
+}
+.tc-name { font-size: 0.78rem; font-weight: 700; color: var(--text-mid); margin-bottom: 0.3rem; }
+.tc-rate { font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 800; }
+.tc-detail { font-size: 0.6rem; color: var(--text-muted); margin-top: 0.2rem; }
+.tr-good { color: var(--accent2); }
+.tr-warn { color: #f87171; }
+
+/* ── DONUT MOCKUP ── */
+.donut-mockup {
+  margin-top: 1.5rem;
+  display: flex; align-items: center; gap: 1.2rem;
+}
+.donut-svg-wrap { flex-shrink: 0; }
+.donut-legend { display: flex; flex-direction: column; gap: 0.45rem; flex: 1; }
+.dl-row { display: flex; align-items: center; gap: 0.5rem; font-size: 0.68rem; color: var(--text-mid); }
+.dl-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.dl-pct { margin-left: auto; font-weight: 700; font-size: 0.65rem; color: var(--text-muted); }
+
+/* ── CLASSES MOCKUP ── */
+.classes-mockup {
+  margin-top: 1.5rem;
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 12px; overflow: hidden;
+}
+.cm-header {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.55rem 0.9rem;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255,255,255,0.02);
+}
+.cm-search {
+  flex: 1; height: 22px; border-radius: 5px;
+  background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+  font-size: 0.6rem; color: var(--text-muted); padding: 0 0.5rem;
+  display: flex; align-items: center;
+}
+.cm-filter {
+  font-size: 0.6rem; color: var(--text-muted);
+  background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+  border-radius: 5px; padding: 0.2rem 0.5rem;
+}
+.cm-table { width: 100%; border-collapse: collapse; }
+.cm-table th {
+  padding: 0.35rem 0.7rem; text-align: left;
+  font-size: 0.58rem; color: var(--text-muted); font-weight: 500;
+  background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border);
+}
+.cm-table td {
+  padding: 0.35rem 0.7rem; font-size: 0.65rem; color: var(--text-mid);
+  border-bottom: 1px solid rgba(244,114,182,0.05);
+}
+.cm-table tr:last-child td { border-bottom: none; }
+.cm-badge {
+  display: inline-block; font-size: 0.55rem; padding: 0.1rem 0.35rem;
+  border-radius: 4px; font-weight: 700;
+  background: rgba(34,211,238,0.12); color: var(--cyan);
+}
+.cm-rate-good { color: var(--accent2); font-weight: 700; }
+.cm-rate-warn { color: #f87171; font-weight: 700; }
+.cm-status-ok { color: var(--green); font-size: 0.6rem; }
+
+/* ── ALERT MOCKUP ── */
+.alert-mockup {
+  margin-top: 1.5rem;
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.6rem;
+}
+.alert-card {
+  background: rgba(248,113,113,0.06);
+  border: 1px solid rgba(248,113,113,0.2);
+  border-radius: 10px; padding: 0.75rem 0.9rem;
+}
+.alert-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.4rem; }
+.alert-name { font-size: 0.72rem; font-weight: 700; color: var(--text-mid); display: flex; align-items: center; gap: 0.3rem; }
+.alert-name::before { content: '⚠'; font-size: 0.6rem; color: var(--yellow); }
+.alert-rate { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 800; color: #f87171; }
+.alert-detail { font-size: 0.6rem; color: var(--text-muted); line-height: 1.5; }
+
+/* ─── WORKFLOW ─── */
+.workflow-wrap { padding: 0 2rem 6rem; max-width: 1100px; margin: 0 auto; }
+.workflow-steps {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem; margin-top: 3.5rem; position: relative;
+}
+.workflow-steps::before {
+  content: ''; position: absolute; top: 28px;
+  left: calc(12.5% + 20px); right: calc(12.5% + 20px);
+  height: 1px; background: linear-gradient(90deg, var(--accent), var(--purple));
+  z-index: 0;
+}
+.step-card { text-align: center; position: relative; z-index: 1; }
+.step-num {
+  width: 56px; height: 56px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 800;
+  color: white; margin: 0 auto 1.25rem;
+  box-shadow: 0 0 24px var(--glow);
+}
+.step-title { font-family: 'Syne', sans-serif; font-size: 0.95rem; font-weight: 700; margin-bottom: 0.5rem; }
+.step-desc { font-size: 0.8rem; color: var(--text-muted); line-height: 1.6; }
+
+/* ─── PRICING ─── */
+.pricing-wrap { padding: 0 2rem 6rem; max-width: 1100px; margin: 0 auto; text-align: center; }
+.pricing-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem; margin: 3.5rem auto 0; max-width: 780px; text-align: left;
+}
+.price-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 20px; padding: 2rem; position: relative; transition: all 0.3s;
+}
+.price-card:hover { transform: translateY(-4px); border-color: rgba(236,72,153,0.3); }
+.price-card.featured {
+  background: linear-gradient(135deg, rgba(236,72,153,0.1), rgba(192,132,252,0.07));
+  border-color: rgba(236,72,153,0.35);
+  box-shadow: 0 0 60px rgba(236,72,153,0.1);
+}
+.price-badge {
+  position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  color: white; font-size: 0.68rem; font-weight: 700;
+  padding: 0.3rem 0.9rem; border-radius: 100px; white-space: nowrap;
+}
+.price-plan { font-family: 'Space Mono', monospace; font-size: 0.68rem; color: var(--text-muted); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 0.75rem; }
+.price-name { font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 800; margin-bottom: 1rem; }
+.price-main { display: flex; align-items: baseline; gap: 0.3rem; margin-bottom: 0.4rem; }
+.price-currency { font-size: 0.9rem; color: var(--text-muted); }
+.price-num { font-family: 'Syne', sans-serif; font-size: 2.5rem; font-weight: 800; color: var(--accent2); }
+.price-period { font-size: 0.8rem; color: var(--text-muted); }
+.price-note { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 1.5rem; }
+.price-divider { height: 1px; background: var(--border); margin-bottom: 1.5rem; }
+.price-features { list-style: none; display: flex; flex-direction: column; gap: 0.65rem; margin-bottom: 1.75rem; }
+.price-features li { display: flex; align-items: center; gap: 0.6rem; font-size: 0.845rem; color: var(--text-mid); }
+.price-features li .ck { color: var(--green); font-size: 0.7rem; }
+.price-features li .na { color: var(--text-muted); opacity: 0.4; font-size: 0.7rem; }
+.price-btn {
+  display: block; text-align: center; padding: 0.8rem; border-radius: 10px;
+  font-weight: 700; font-size: 0.88rem; text-decoration: none; transition: all 0.2s;
+}
+.pb-ghost { background: rgba(255,255,255,0.05); color: var(--text-mid); border: 1px solid var(--border); }
+.pb-ghost:hover { background: rgba(255,255,255,0.09); }
+.pb-primary { background: var(--accent); color: white; box-shadow: 0 4px 20px rgba(236,72,153,0.28); }
+.pb-primary:hover { background: var(--accent2); transform: translateY(-1px); }
+
+/* ─── CTA STRIP ─── */
+.cta-strip {
+  background: linear-gradient(135deg, rgba(236,72,153,0.12), rgba(192,132,252,0.07));
+  border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  padding: 5rem 2rem; text-align: center;
+}
+.cta-strip h2 {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 800; letter-spacing: -0.03em;
+  margin-bottom: 1rem; line-height: 1.15;
+}
+.cta-strip h2 .hl { color: var(--accent2); }
+.cta-strip p { color: var(--text-muted); margin-bottom: 2.5rem; font-size: 0.95rem; }
+.cta-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+/* ─── FOOTER ─── */
+footer {
+  padding: 2.5rem 3rem;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 1rem;
+  border-top: 1px solid var(--border);
+}
+.footer-logo { font-family: 'Syne', sans-serif; font-size: 0.95rem; font-weight: 800; }
+.footer-logo span { color: var(--accent2); }
+footer p { font-size: 0.75rem; color: var(--text-muted); }
+.footer-links { display: flex; gap: 1.5rem; }
+.footer-links a { font-size: 0.75rem; color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
+.footer-links a:hover { color: var(--accent2); }
+
+/* ─── REVEAL ─── */
+.reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.65s, transform 0.65s; }
+.reveal.visible { opacity: 1; transform: none; }
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 900px) {
+  nav { padding: 1rem 1.5rem; }
+  .nav-links { display: none; }
+  .hero { padding: 7rem 1.5rem 4rem; }
+  .hero-stats { flex-direction: column; }
+  .h-stat { border-right: none; border-bottom: 1px solid var(--border); }
+  .h-stat:last-child { border-bottom: none; }
+  section, .workflow-wrap, .pricing-wrap { padding-left: 1.5rem; padding-right: 1.5rem; }
+  .features-grid { grid-template-columns: 1fr; }
+  .feat-card.wide { grid-column: span 1; }
+  .workflow-steps { grid-template-columns: 1fr 1fr; }
+  .workflow-steps::before { display: none; }
+  .pricing-grid { grid-template-columns: 1fr; max-width: 100%; }
+  footer { flex-direction: column; text-align: center; padding: 2rem 1.5rem; }
+  .kpi-mockup, .teacher-mockup, .alert-mockup { grid-template-columns: 1fr; }
+  .kpi-top { grid-column: span 1; }
+}
+@media (max-width: 600px) {
+  .hero-title { font-size: 2.4rem; }
+  .hero-actions { flex-direction: column; align-items: center; }
+  .btn-primary, .btn-secondary { width: 100%; justify-content: center; }
+  .workflow-steps { grid-template-columns: 1fr; }
+  .cta-btns { flex-direction: column; align-items: center; }
+  .donut-mockup { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/" class="nav-logo">
+    💗 New<span class="accent">Core</span>
+  </a>
+  <div class="nav-links">
+    <a href="#features">功能特色</a>
+    <a href="#workflow">使用流程</a>
+    <a href="#pricing">方案定價</a>
+    <a href="https://line.me/ti/p/~@593fbons" target="_blank">LINE 聯繫</a>
+    <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/" class="nav-cta">升級進階方案 →</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-content">
+    <div class="hero-badge">
+      <span class="badge-dot"></span>
+      NewCore Retention · 學生回收率追蹤系統
+    </div>
+    <h1 class="hero-title">
+      <span class="g1">每個離開的學生</span><br>
+      都值得<span class="g2">被記錄</span>
+    </h1>
+    <p class="hero-sub">
+      以學期為單位追蹤各班續讀率、流失原因、老師績效。<br>
+      不只知道「走了多少人」，更能看懂「為什麼走」——<br>
+      讓每一個數字都成為改善教學品質的依據。
+    </p>
+    <div class="hero-actions">
+      <a href="https://jeffreycz1979-prog.github.io/NewCore-Retention/" target="_blank" class="btn-primary">📊 查看系統 Demo</a>
+      <a href="#features" class="btn-secondary">了解功能特色 ↓</a>
+    </div>
+    <div class="hero-stats">
+      <div class="h-stat"><span class="h-stat-num c1">4</span><span class="h-stat-label">核心功能頁籤</span></div>
+      <div class="h-stat"><span class="h-stat-num c2">跨季</span><span class="h-stat-label">學期歸檔比較</span></div>
+      <div class="h-stat"><span class="h-stat-num c3">老師</span><span class="h-stat-label">個人績效追蹤</span></div>
+      <div class="h-stat"><span class="h-stat-num c4">零</span><span class="h-stat-label">安裝需求</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="features-intro reveal">
+    <span class="section-tag">✦ Core Features</span>
+    <h2 class="section-title">四大模組，全面掌握<br>學生流動脈絡</h2>
+    <p class="section-sub">從總覽儀表板到個別老師歷史，NewCore 續讀系統把分散在各處的資訊，整合成一套可行動的管理工具。</p>
+  </div>
+
+  <div class="features-grid reveal" style="margin-top: 3rem;">
+
+    <!-- 總覽儀表板 - WIDE -->
+    <div class="feat-card wide">
+      <div class="feat-icon fi-pink">📊</div>
+      <span class="feat-label">總覽儀表板</span>
+      <div class="feat-name">一眼看清本季健康狀況</div>
+      <p class="feat-desc">全校回收率、需關懷班級數、總班數、流失人數四個 KPI 卡片即時呈現。體系回收率長條圖一次比較 THC / KW / IA / HK 各體系表現，圓餅圖解析流失原因分佈。</p>
+      <div class="kpi-mockup">
+        <div class="kpi-card kpi-top">
+          <div class="kpi-label">114-2 整體回收率</div>
+          <div class="kpi-val kv-pink">85.4%</div>
+          <div class="kpi-sub">336 人中 287 人回收</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">需關懷班級</div>
+          <div class="kpi-val kv-red">9</div>
+          <div class="kpi-sub">回收率低於 80%</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">總班級數</div>
+          <div class="kpi-val kv-yellow">25</div>
+          <div class="kpi-sub">114-2 學期</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">流失人數</div>
+          <div class="kpi-val kv-red">49</div>
+          <div class="kpi-sub">本季累計</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 流失原因圓餅圖 -->
+    <div class="feat-card">
+      <div class="feat-icon fi-rose">🥧</div>
+      <span class="feat-label">流失原因分析</span>
+      <div class="feat-name">流失原因視覺化分析</div>
+      <p class="feat-desc">每筆流失記錄都對應一個原因標籤（升國中、學期倦怠、家教、搬家、程度不符…），系統自動統計並繪製互動圓餅圖，讓決策有所依據。</p>
+      <div class="donut-mockup">
+        <div class="donut-svg-wrap">
+          <svg width="90" height="90" viewBox="0 0 90 90">
+            <circle cx="45" cy="45" r="35" fill="none" stroke="#1a1020" stroke-width="18"/>
+            <!-- segments approximate from screenshot -->
+            <circle cx="45" cy="45" r="35" fill="none" stroke="#f472b6" stroke-width="18"
+              stroke-dasharray="44 176" stroke-dashoffset="0" transform="rotate(-90 45 45)"/>
+            <circle cx="45" cy="45" r="35" fill="none" stroke="#c084fc" stroke-width="18"
+              stroke-dasharray="35 176" stroke-dashoffset="-44" transform="rotate(-90 45 45)"/>
+            <circle cx="45" cy="45" r="35" fill="none" stroke="#fb923c" stroke-width="18"
+              stroke-dasharray="28 176" stroke-dashoffset="-79" transform="rotate(-90 45 45)"/>
+            <circle cx="45" cy="45" r="35" fill="none" stroke="#22d3ee" stroke-width="18"
+              stroke-dasharray="22 176" stroke-dashoffset="-107" transform="rotate(-90 45 45)"/>
+            <circle cx="45" cy="45" r="35" fill="none" stroke="#4ade80" stroke-width="18"
+              stroke-dasharray="18 176" stroke-dashoffset="-129" transform="rotate(-90 45 45)"/>
+            <circle cx="45" cy="45" r="35" fill="none" stroke="#fbbf24" stroke-width="18"
+              stroke-dasharray="29 176" stroke-dashoffset="-147" transform="rotate(-90 45 45)"/>
+            <text x="45" y="49" text-anchor="middle" font-size="9" fill="rgba(253,242,248,0.6)" font-family="Syne,sans-serif" font-weight="700">49人</text>
+          </svg>
+        </div>
+        <div class="donut-legend">
+          <div class="dl-row"><div class="dl-dot" style="background:#f472b6"></div>升國中（小六）<span class="dl-pct">25%</span></div>
+          <div class="dl-row"><div class="dl-dot" style="background:#c084fc"></div>國中課業繁忙<span class="dl-pct">20%</span></div>
+          <div class="dl-row"><div class="dl-dot" style="background:#fb923c"></div>學期倦怠<span class="dl-pct">16%</span></div>
+          <div class="dl-row"><div class="dl-dot" style="background:#22d3ee"></div>時間衝突<span class="dl-pct">12%</span></div>
+          <div class="dl-row"><div class="dl-dot" style="background:#4ade80"></div>家教<span class="dl-pct">10%</span></div>
+          <div class="dl-row"><div class="dl-dot" style="background:#fbbf24"></div>其他<span class="dl-pct">17%</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 班級列表 -->
+    <div class="feat-card wide">
+      <div class="feat-icon fi-purple">📋</div>
+      <span class="feat-label">班級管理</span>
+      <div class="feat-name">全班回收率一覽、篩選體系與老師</div>
+      <p class="feat-desc">班級列表顯示每班的體系、中外師、結束日、人數、流失數與回收率，支援按體系 / 老師 / 狀態篩選，回收率低於門檻自動標紅警示。</p>
+      <div class="classes-mockup">
+        <div class="cm-header">
+          <div class="cm-search" style="font-size:0.6rem;color:rgba(253,242,248,0.25);">搜尋班級名稱…</div>
+          <div class="cm-filter">所有體系 ▾</div>
+          <div class="cm-filter">所有老師 ▾</div>
+          <div class="cm-filter">所有狀態 ▾</div>
+        </div>
+        <table class="cm-table">
+          <tr><th>班級名稱</th><th>體系</th><th>中師</th><th>外師</th><th>人數</th><th>流失</th><th>回收率</th><th>狀態</th></tr>
+          <tr>
+            <td>DC7/THC4</td>
+            <td><span class="cm-badge">THC</span></td>
+            <td>Yvonne</td><td>Sandy</td><td>12</td><td>0</td>
+            <td class="cm-rate-good">100%</td>
+            <td class="cm-status-ok">✅ 正常</td>
+          </tr>
+          <tr>
+            <td>DC5/THC9</td>
+            <td><span class="cm-badge">THC</span></td>
+            <td>Jeffrey</td><td>Sandy</td><td>7</td><td>0</td>
+            <td class="cm-rate-good">100%</td>
+            <td class="cm-status-ok">✅ 正常</td>
+          </tr>
+          <tr>
+            <td>IIA2/IA5</td>
+            <td><span class="cm-badge" style="background:rgba(192,132,252,0.15);color:#c084fc;">IA</span></td>
+            <td>David</td><td>Pawel</td><td>8</td><td>0</td>
+            <td class="cm-rate-good">100%</td>
+            <td class="cm-status-ok">✅ 正常</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- 老師績效 -->
+    <div class="feat-card">
+      <div class="feat-icon fi-yellow">👩‍🏫</div>
+      <span class="feat-label">老師績效</span>
+      <div class="feat-name">老師個人回收率與跨季歷史</div>
+      <p class="feat-desc">每位老師的當季回收率、帶班數、流失人數一目了然，並可追溯歷史學期表現，找出長期趨勢或需要支援的老師。</p>
+      <div class="teacher-mockup">
+        <div class="tc-card">
+          <div class="tc-name">Annie</div>
+          <div class="tc-rate tr-good">96.6%</div>
+          <div class="tc-detail">當季帶班：3 班</div>
+        </div>
+        <div class="tc-card">
+          <div class="tc-name">Iris</div>
+          <div class="tc-rate tr-good">92.1%</div>
+          <div class="tc-detail">當季帶班：6 班</div>
+        </div>
+        <div class="tc-card">
+          <div class="tc-name">David</div>
+          <div class="tc-rate tr-warn">72.7%</div>
+          <div class="tc-detail">當季帶班：1 班</div>
+        </div>
+        <div class="tc-card">
+          <div class="tc-name">Grace</div>
+          <div class="tc-rate tr-warn">55.6%</div>
+          <div class="tc-detail">當季帶班：3 班</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 需關懷班級 -->
+    <div class="feat-card">
+      <div class="feat-icon fi-orange">⚠️</div>
+      <span class="feat-label">需關懷班級</span>
+      <div class="feat-name">低回收率班級即時預警</div>
+      <p class="feat-desc">回收率低於 80% 的班級自動標記，卡片顯示中外師、原班人數、流失人數，讓主管第一時間掌握需要介入的班級。</p>
+      <div class="alert-mockup">
+        <div class="alert-card">
+          <div class="alert-header">
+            <div class="alert-name">DC7/THC3</div>
+            <div class="alert-rate">77.8%</div>
+          </div>
+          <div class="alert-detail">中師：Yvonne ／ 外師：Sandy<br>原班 18 人 ／ 流失 <span style="color:#f87171;font-weight:700;">4 人</span></div>
+        </div>
+        <div class="alert-card">
+          <div class="alert-header">
+            <div class="alert-name">DI1/THC5</div>
+            <div class="alert-rate">58.3%</div>
+          </div>
+          <div class="alert-detail">中師：Grace ／ 外師：Pawel<br>原班 12 人 ／ 流失 <span style="color:#f87171;font-weight:700;">5 人</span></div>
+        </div>
+        <div class="alert-card">
+          <div class="alert-header">
+            <div class="alert-name">IIA1/IA2</div>
+            <div class="alert-rate">61.5%</div>
+          </div>
+          <div class="alert-detail">中師：Dory ／ 外師：Sandy<br>原班 13 人 ／ 流失 <span style="color:#f87171;font-weight:700;">5 人</span></div>
+        </div>
+        <div class="alert-card">
+          <div class="alert-header">
+            <div class="alert-name">hg3/hk3</div>
+            <div class="alert-rate">0%</div>
+          </div>
+          <div class="alert-detail">中師：Iris ／ 外師：Pawel<br>原班 3 人 ／ 流失 <span style="color:#f87171;font-weight:700;">3 人</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 跨學期比較 -->
+    <div class="feat-card">
+      <div class="feat-icon fi-cyan">📈</div>
+      <span class="feat-label">跨學期比較</span>
+      <div class="feat-name">學期歸檔 · 跨季趨勢對比</div>
+      <p class="feat-desc">每學期結束自動歸檔，保留完整班級快照與流失記錄。總覽頁可勾選多個學期，折線圖追蹤回收率趨勢，長條圖比較各季流失人數與總人數。</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- WORKFLOW -->
+<div class="workflow-wrap reveal" id="workflow">
+  <div style="text-align:center; margin-bottom:0">
+    <span class="section-tag">✦ How It Works</span>
+    <h2 class="section-title">四步驟建立<br>你的續讀追蹤系統</h2>
+  </div>
+  <div class="workflow-steps">
+    <div class="step-card">
+      <div class="step-num">1</div>
+      <div class="step-title">設定當前學期</div>
+      <p class="step-desc">系統依結束日自動判定學期（民國年制），或手動設定 CURRENT_TERM 開始追蹤。</p>
+    </div>
+    <div class="step-card">
+      <div class="step-num">2</div>
+      <div class="step-title">同步 v2 教務資料</div>
+      <p class="step-desc">一鍵從 NewCore 教務系統同步班級、老師、人數，不需手動輸入班級資訊。</p>
+    </div>
+    <div class="step-card">
+      <div class="step-num">3</div>
+      <div class="step-title">記錄流失學生</div>
+      <p class="step-desc">在流失頁輸入學生姓名、班級、流失原因與備註，中外師欄位自動帶入。</p>
+    </div>
+    <div class="step-card">
+      <div class="step-num">4</div>
+      <div class="step-title">換季歸檔開新局</div>
+      <p class="step-desc">學期結束時一鍵歸檔，舊資料自動備份，新學期乾淨開始，跨季比較隨時可查。</p>
+    </div>
+  </div>
+</div>
+
+<!-- PRICING -->
+<div class="pricing-wrap reveal" id="pricing">
+  <span class="section-tag">✦ Pricing</span>
+  <h2 class="section-title">搭配 NewCore 教務系統，<br>解鎖完整續讀追蹤</h2>
+  <p class="section-sub" style="max-width:520px; margin: 0 auto;">續讀分析系統須搭配 NewCore 教務系統使用。依照您目前的方案，選擇最適合的加購組合。</p>
+
+  <div class="pricing-grid">
+
+    <div class="price-card featured">
+      <div class="price-badge">🔗 搭配 Standard 方案</div>
+      <div class="price-plan">Standard Add-on</div>
+      <div class="price-name">標準加購</div>
+      <div class="price-main">
+        <span class="price-currency">NT$</span>
+        <span class="price-num">99</span>
+        <span class="price-period">/ 月</span>
+      </div>
+      <div class="price-note">需搭配 NewCore Standard 方案（NT$99/月）使用</div>
+      <div class="price-divider"></div>
+      <ul class="price-features">
+        <li><span class="ck">✓</span> 總覽儀表板（KPI + 體系回收率 + 圓餅圖）</li>
+        <li><span class="ck">✓</span> 班級回收率列表與篩選</li>
+        <li><span class="ck">✓</span> 流失記錄新增 / 刪除 / 篩選</li>
+        <li><span class="ck">✓</span> 老師個人回收率統計</li>
+        <li><span class="ck">✓</span> 學期歸檔（無限學期）</li>
+        <li><span class="na">✗</span> <span style="opacity:0.4">跨補習班多租戶支援</span></li>
+      </ul>
+      <a href="https://line.me/ti/p/~@593fbons" target="_blank" class="price-btn pb-primary">聯繫加購</a>
+    </div>
+
+    <div class="price-card">
+      <div class="price-plan">Pro Bundle</div>
+      <div class="price-name">進階搭配方案</div>
+      <div class="price-main" style="align-items:center;">
+        <span style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:var(--accent2);">洽詢</span>
+        <span class="price-period" style="margin-left:0.5rem;">客製定價</span>
+      </div>
+      <div class="price-note">搭配 NewCore Pro 進階方案，整合教務 ＋ 續讀全功能</div>
+      <div class="price-divider"></div>
+      <ul class="price-features">
+        <li><span class="ck">✓</span> Standard 加購全部功能</li>
+        <li><span class="ck">✓</span> 跨補習班多租戶支援</li>
+        <li><span class="ck">✓</span> 老師歷史跨季深度分析</li>
+        <li><span class="ck">✓</span> 與 NewCore Pro 深度整合</li>
+        <li><span class="ck">✓</span> 客製化流失原因標籤</li>
+        <li><span class="ck">✓</span> 優先技術支援與功能更新</li>
+      </ul>
+      <a href="https://line.me/ti/p/~@593fbons" target="_blank" class="price-btn pb-ghost">聯繫洽詢</a>
+    </div>
+
+  </div>
+  <p style="text-align:center;margin-top:2rem;font-size:0.8rem;color:var(--text-muted);">
+    尚未使用 NewCore 教務系統？
+    <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/" style="color:var(--accent2);text-decoration:none;">了解 NewCore 方案 →</a>
+  </p>
+</div>
+
+<!-- CTA STRIP -->
+<div class="cta-strip reveal">
+  <h2>掌握每一個數字，<br><span class="hl">讓學生留得更久</span></h2>
+  <p>升級 NewCore 進階方案，將續讀分析系統納入你的補習班管理工具箱。</p>
+  <div class="cta-btns">
+    <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/" class="btn-primary">🚀 了解 NewCore 進階方案</a>
+    <a href="https://line.me/ti/p/~@593fbons" target="_blank" class="btn-secondary">💬 LINE 聯繫 Jeffrey</a>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-logo">New<span>Core</span> · 續讀分析系統</div>
+  <p>© 2026 Jeffrey's Lab. 專為補習班老師設計。</p>
+  <div class="footer-links">
+    <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/">NewCore 首頁</a>
+    <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/tools.html">工具包</a>
+    <a href="https://jeffreycz1979-prog.github.io/newcore-scedule/schedule_guide.html">月排課</a>
+    <a href="https://line.me/ti/p/~@593fbons" target="_blank">LINE 聯繫</a>
+  </div>
+</footer>
+
+<script>
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      e.target.querySelectorAll('.feat-card, .step-card, .price-card').forEach((el, i) => {
+        el.style.transitionDelay = (i * 0.07) + 's';
+      });
+    }
+  });
+}, { threshold: 0.08 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
