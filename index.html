@@ -38,7 +38,7 @@
   nav {
     position: fixed; top: 0; left: 0; right: 0; z-index: 100;
     display: flex; align-items: center; justify-content: space-between;
-    padding: 1.2rem 4rem;
+    padding: 0.9rem 2rem;
     background: rgba(26,58,26,0.85);
     backdrop-filter: blur(16px);
     border-bottom: 1px solid var(--border);
@@ -53,8 +53,8 @@
   .nav-logo span { color: var(--white); font-weight: 400; }
 
   .nav-links {
-    display: flex; gap: 2.5rem; list-style: none;
-    font-size: 0.9rem; font-weight: 500;
+    display: flex; gap: 1.2rem; list-style: none;
+    font-size: 0.78rem; font-weight: 500;
   }
   .nav-links a {
     color: rgba(248,250,248,0.7);
@@ -380,6 +380,25 @@
   }
   .tool-desc { font-size: 0.85rem; color: rgba(248,250,248,0.45); line-height: 1.6; }
 
+  /* ── tool card extras (from Jeffrey's Lab) ── */
+  .tool-icon-wrap { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; margin-bottom: 1.25rem; flex-shrink: 0; }
+  .icon-bg-green { background: #E6F4EA; } .icon-bg-mint { background: #E0F7F6; } .icon-bg-purple { background: #EDE9FF; }
+  .icon-bg-orange { background: #FFF0E6; } .icon-bg-pink { background: #FFE8F2; } .icon-bg-yellow { background: #F5FFD6; }
+  .icon-bg-dark { background: rgba(204,255,0,0.15); } .icon-bg-red { background: #FFE8E8; }
+  .tool-tag { display: inline-block; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: rgba(248,250,248,0.5); padding: 0.2rem 0.65rem; border-radius: 100px; margin-bottom: 0.75rem; align-self: flex-start; }
+  .tool-footer { margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.07); display: flex; align-items: center; justify-content: space-between; }
+  .tool-badge { font-size: 0.7rem; font-weight: 600; display: flex; align-items: center; gap: 0.3rem; }
+  .tool-badge::before { content: '●'; font-size: 0.4rem; animation: pulse 2s infinite; }
+  .tool-badge.free { color: #6fcf6f; } .tool-badge.premium { color: var(--orange); } .tool-badge.ai { color: var(--purple); }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .tool-card.featured-tool { grid-column: span 2; background: rgba(26,58,26,0.9); border-color: rgba(204,255,0,0.2); }
+  .tool-card.featured-tool .tool-desc { color: rgba(248,250,248,0.55); }
+  .tool-card.featured-tool .tool-tag { background: rgba(204,255,0,0.1); color: var(--yellow); border-color: rgba(204,255,0,0.2); }
+  .tool-category-label { font-family: 'Syne', sans-serif; font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(248,250,248,0.35); margin-bottom: 1.25rem; margin-top: 2.5rem; display: flex; align-items: center; gap: 1rem; }
+  .tool-category-label::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.07); }
+  .tool-card { display: flex; flex-direction: column; }
+  .tools-grid-full { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+
   /* ── DEMO CTA ── */
   .demo-section {
     background: linear-gradient(135deg, #0d1f0d, #1a3a1a);
@@ -586,10 +605,11 @@
     .nav-links { display: none; }
     section { padding: 4rem 1.5rem; }
     .hero { padding: 7rem 1.5rem 3rem; }
-    .pain-grid, .tools-grid, .pricing-grid { grid-template-columns: 1fr; }
+    .pain-grid, .tools-grid, .tools-grid-full, .pricing-grid { grid-template-columns: 1fr; }
     .features-header { grid-template-columns: 1fr; gap: 1.5rem; }
     .features-grid { grid-template-columns: 1fr; }
     .feature-card.highlight { grid-column: span 1; }
+    .tool-card.featured-tool { grid-column: span 1; }
     .hero-stats { gap: 2rem; flex-wrap: wrap; }
     footer { flex-direction: column; text-align: center; }
   }
@@ -743,27 +763,213 @@
 <section class="tools-section reveal" id="tools">
   <div class="section-label">教學工具 Teaching Tools</div>
   <h2 class="section-title">讓課堂活起來</h2>
-  <p class="section-sub">Jeffrey's Lab 教學工具包，讓老師輕鬆製作互動教材，讓學生愛上學習。<br>免費註冊後即可使用所有教學工具。</p>
+  <p class="section-sub">Jeffrey's Lab 教學工具包，讓老師輕鬆製作互動教材，讓學生愛上學習。<br>免費註冊後即可使用全部 22+ 套工具。</p>
 
-  <div class="tools-grid" style="margin-top:2rem;">
-    <div class="tool-card">
-      <div class="tool-chip chip-green">課堂互動</div>
-      <div class="tool-name">🎰 教學工具包</div>
-      <div class="tool-desc">分數紀錄器、獎勵樂透大富翁、重組單字遊戲，讓課堂充滿活力與競爭感。</div>
+  <!-- 教務管理 -->
+  <div class="tool-category-label">📋 教務管理 School Administration</div>
+  <div class="tools-grid-full">
+    <div class="tool-card featured-tool">
+      <div class="tool-icon-wrap icon-bg-dark">🎙️</div>
+      <div class="tool-tag">核心系統 · AI 驅動</div>
+      <div class="tool-name">NewCore 教務系統｜語音點名 · 成績管理</div>
+      <div class="tool-desc">整合語音點名（Gemini AI 辨識）、出缺席總表、智慧成績單、考試成績輸入。一套系統解決補習班完整教務需求，支援 PDF 成績單與 Email 自動發送。</div>
+      <div class="tool-footer"><span class="tool-badge premium">● 需授權使用</span></div>
     </div>
     <div class="tool-card">
-      <div class="tool-chip chip-mint">字彙練習</div>
-      <div class="tool-name">🃏 閃示卡工具</div>
-      <div class="tool-desc">自訂字彙庫、AI 生成圖片、配對練習。支援多模式練習，讓單字記憶更有效率。</div>
-    </div>
-    <div class="tool-card">
-      <div class="tool-chip chip-purple">AI 出題</div>
-      <div class="tool-name">🔍 找字遊戲 / 克漏字</div>
-      <div class="tool-desc">輸入單字即自動生成找字方格或 AI 克漏字考卷，一鍵列印，省去備課時間。</div>
+      <div class="tool-icon-wrap icon-bg-green">🏗️</div>
+      <div class="tool-tag">教務管理</div>
+      <div class="tool-name">NewCore 建班系統</div>
+      <div class="tool-desc">設定班級名稱、課程規格、上課日、授課老師，自動計算總堂次與預計結束日期，生成完整課程表。</div>
+      <div class="tool-footer"><span class="tool-badge premium">● Standard / Pro 方案</span></div>
     </div>
   </div>
-  <div style="margin-top:2rem;text-align:center;">
-    <a href="#apply" class="btn-primary" style="display:inline-flex;align-items:center;gap:0.5rem;font-size:0.9rem;padding:0.7rem 1.5rem;">📋 申請試用，解鎖所有工具 →</a>
+
+  <!-- 課堂互動 -->
+  <div class="tool-category-label">🎮 課堂互動 Classroom Engagement</div>
+  <div class="tools-grid-full">
+    <div class="tool-card">
+      <div class="tool-icon-wrap icon-bg-orange">🎰</div>
+      <div class="tool-tag">課堂互動</div>
+      <div class="tool-name">獎勵樂透大富翁</div>
+      <div class="tool-desc">大富翁格式的獎勵抽籤系統，擲骰子或隨機選格，給學生驚喜感。支援加分、扣分、神秘獎勵等多種格子設定。</div>
+      <div class="tool-footer"><span class="tool-badge free">● 免費使用</span></div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-icon-wrap icon-bg-mint">🎯</div>
+      <div class="tool-tag">課堂互動</div>
+      <div class="tool-name">分數紀錄器</div>
+      <div class="tool-desc">個人或分組計分，支援動物頭像、即時排行榜。點擊學生名字即可加分或扣分，分數傳送整合教務系統。</div>
+      <div class="tool-footer"><span class="tool-badge free">● 免費使用</span></div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-icon-wrap icon-bg-pink">⏱️</div>
+      <div class="tool-tag">課堂互動 · 多組計時</div>
+      <div class="tool-name">多組計時器</div>
+      <div class="tool-desc">倒數＋正數雙模式，最多 10 組同時進行。全螢幕投影、角落浮動、視覺警示、音效、隨機點名，一頁搞定所有計時需求。</div>
+      <div class="tool-footer"><span class="tool-badge free">● 免費使用</span></div>
+    </div>
+  </div>
+
+  <!-- 字彙練習 -->
+  <div class="tool-category-label">📚 字彙練習 Vocabulary Practice</div>
+  <div class="tools-grid-full">
+    <div class="tool-card">
+      <div class="tool-icon-wrap icon-bg-purple">🃏</div>
+      <div class="tool-tag">字彙練習 · AI 圖片 · 語音</div>
+      <div class="tool-name">閃示卡 ＋ 配對記憶遊戲</div>
+      <div class="tool-desc">自訂字彙庫，Gemini AI 自動生成配圖閃示卡。點擊卡片自動朗讀英文發音，幫助學生建立字音連結。支援閃示卡練習、測驗模式，以及翻牌配對遊戲，支援計時與分數。</div>
+      <div class="tool-footer"><span class="tool-badge ai">● AI 驅動 · 語音輸出</span></div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-icon-wrap icon-bg-yellow">🔤</div>
+      <div class="tool-tag">字彙練習</div>
+      <div class="tool-name">重組單字遊戲</div>
+      <div class="tool-desc">打亂字母讓學生重組，支援點擊、拖拉等互動模式。答對即時反饋，可連結分數紀錄器，自動傳送答題分數至教務系統。</div>
+      <div class="tool-footer"><span class="tool-badge free">● 免費使用</span></div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-icon-wrap icon-bg-mint">🔀</div>
+      <div class="tool-tag">字彙練習 · 句型訓練</div>
+      <div class="tool-name">重組句子遊戲</div>
+      <div class="tool-desc">將句子打散成單字卡，學生點選重組成正確語序。支援中文提示翻譯、練習與測驗雙模式，適合句型練習與文法課使用。</div>
+      <div class="tool-footer"><span class="tool-badge free">● 免費使用</span></div>
+    </div>
+  </div>
+
+  <!-- 單字防禦戰 -->
+  <div class="tool-category-label">🛡️ 單字防禦戰 Word Defense Games</div>
+  <div class="tools-grid-full">
+    <div class="tool-card">
+      <div class="tool-icon-wrap icon-bg-red">🚀</div>
+      <div class="tool-tag">字彙遊戲 · 選擇挑戰</div>
+      <div class="tool-name">單字防禦戰 Classic</div>
+      <div class="tool-desc">輸入必考單字，系統自動生成多選題，限時內選出正確拼法擊退敵人。支援 Easy／Normal／Hard 三種速度，可開啟 AI 拼字陷阱模式。</div>
+      <div class="tool-footer"><span class="tool-badge free">● 免費使用</span></div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-icon-wrap icon-bg-orange">⌨️</div>
+      <div class="tool-tag">字彙遊戲 · 打字挑戰</div>
+      <div class="tool-name">單字防禦戰 Stack</div>
+      <div class="tool-desc">輸入「單字：中文」，看到中文提示就要即時打字拼出正確英文。堆疊拼字玩法，可設定 30／60／120 秒計時，三種難度＋計分。</div>
+      <div class="tool-footer"><span class="tool-badge free">● 免費使用</span></div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-icon-wrap icon-bg-pink">🥁</div>
+      <div class="tool-tag">字彙遊戲 · 節奏打字</div>
+      <div class="tool-name">單字防禦戰 Rhythm</div>
+      <div class="tool-desc">Rhythm Master 節奏打字終極版——字母從畫面落下，在判定區精準點擊正確字母來拼出單字。結合音樂節奏感與打字挑戰，支援計時與三段難度。</div>
+      <div class="tool-footer"><span class="tool-badge free">● 免費使用</span></div>
+    </div>
+  </div>
+
+  <!-- 教學小遊戲 -->
+  <div class="tool-category-label">🕹️ 教學小遊戲 Learning Mini-Games</div>
+  <div class="tools-grid-full">
+    <div class="tool-card">
+      <div class="tool-icon-wrap icon-bg-mint">🚀</div>
+      <div class="tool-tag">字彙遊戲 · 太空主題</div>
+      <div class="tool-name">New Core SpaceShuttle</div>
+      <div class="tool-desc">太空梭主題的英語學習小遊戲，在宇宙中收集正確答案、閃躲障礙，邊玩邊複習單字。適合課堂暖身或下課前的獎勵時間。</div>
+      <div class="tool-footer"><span class="tool-badge free">● 免費使用</span></div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-icon-wrap icon-bg-yellow">🦕</div>
+      <div class="tool-tag">字彙遊戲 · 跑酷闖關</div>
+      <div class="tool-name">Dino Dash — Meaning Pop</div>
+      <div class="tool-desc">恐龍跑酷風格！看到單字彈出時，選出正確中文意思就能讓恐龍跳躍過關。結合字義記憶與反應訓練，節奏緊湊刺激。</div>
+      <div class="tool-footer"><span class="tool-badge free">● 免費使用</span></div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-icon-wrap icon-bg-red">🧙‍♂️</div>
+      <div class="tool-tag">文法練習 · 角色扮演</div>
+      <div class="tool-name">Grammar Fighter 文法鬥士</div>
+      <div class="tool-desc">化身魔法師對抗惡龍！每答對一道文法題就能對龍施放魔法攻擊，答錯則受到反擊。RPG 格鬥風格讓文法練習不再無聊。</div>
+      <div class="tool-footer"><span class="tool-badge free">● 免費使用</span></div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-icon-wrap icon-bg-purple">🛸</div>
+      <div class="tool-tag">字彙遊戲 · 反應訓練</div>
+      <div class="tool-name">Word Catcher — 單字捕手</div>
+      <div class="tool-desc">單字從天而降，用彈板接住正確答案、躲開錯誤選項。融合打磚塊玩法與字彙練習，計時計分，適合個人或班級競賽。</div>
+      <div class="tool-footer"><span class="tool-badge free">● 免費使用</span></div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-icon-wrap icon-bg-orange">👾</div>
+      <div class="tool-tag">字彙遊戲 · 射擊闖關</div>
+      <div class="tool-name">Space Shooter — 太空射手</div>
+      <div class="tool-desc">太空射擊遊戲結合單字測驗，瞄準並擊落帶有正確答案的外星敵人。多關卡設計、難度漸進，讓學生在緊張的戰鬥中強化字彙記憶。</div>
+      <div class="tool-footer"><span class="tool-badge free">● 免費使用</span></div>
+    </div>
+  </div>
+
+  <!-- AI 出題 -->
+  <div class="tool-category-label">🤖 AI 出題 AI-Generated Worksheets</div>
+  <div class="tools-grid-full">
+    <div class="tool-card">
+      <div class="tool-icon-wrap icon-bg-green">🔍</div>
+      <div class="tool-tag">AI 出題 · 可列印</div>
+      <div class="tool-name">找字遊戲產生器</div>
+      <div class="tool-desc">輸入測驗單字，自動生成找字方格考卷。支援一頁兩份排版，一鍵列印，省去備課時間。</div>
+      <div class="tool-footer"><span class="tool-badge free">● 免費使用</span></div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-icon-wrap icon-bg-purple">🧩</div>
+      <div class="tool-tag">AI 出題 · Gemini · 可列印</div>
+      <div class="tool-name">AI 定義配對挑戰</div>
+      <div class="tool-desc">輸入字彙清單，Gemini AI 依難度（A1–C1）自動生成英文定義，支援雙語模式。數位挑戰直接在課堂互動作答，也可一鍵列印成 A4 紙本。</div>
+      <div class="tool-footer"><span class="tool-badge ai">● AI 驅動</span></div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-icon-wrap icon-bg-mint">✏️</div>
+      <div class="tool-tag">AI 出題 · Gemini · 可列印</div>
+      <div class="tool-name">AI 克漏字挑戰</div>
+      <div class="tool-desc">同一介面切換至克漏字模式，AI 依字彙自動生成情境例句，學生在空格填入正確單字。支援數位互動作答與 A4 列印。</div>
+      <div class="tool-footer"><span class="tool-badge ai">● AI 驅動</span></div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-icon-wrap icon-bg-yellow">🔎</div>
+      <div class="tool-tag">AI 出題 · Gemini · 可列印</div>
+      <div class="tool-name">AI 文法改錯訓練</div>
+      <div class="tool-desc">輸入出題指令，Gemini AI 自動生成含錯誤的英文句子，學生在數位挑戰模式中找出並改正錯誤，也可列印成 A4 兩頁紙本考卷。</div>
+      <div class="tool-footer"><span class="tool-badge ai">● AI 驅動</span></div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-icon-wrap icon-bg-orange">📝</div>
+      <div class="tool-tag">AI 出題 · CEFR · 可列印</div>
+      <div class="tool-name">AI 智慧出題系統</div>
+      <div class="tool-desc">拍照上傳課本或輸入指令，Gemini AI 依 CEFR 難度自動生成選擇題、書寫題與配合題（含圖片）。支援語音朗讀聽力練習、手動編輯題目，列印學生試卷與解答卷，或切換數位互動作答模式。</div>
+      <div class="tool-footer"><span class="tool-badge ai">● AI 驅動 · 試卷列印</span></div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-icon-wrap icon-bg-mint">🔠</div>
+      <div class="tool-tag">字彙練習 · AI 提示語 · 可列印</div>
+      <div class="tool-name">填字遊戲產生器</div>
+      <div class="tool-desc">輸入單字清單，系統自動交叉排版生成填字格。可手動填寫提示語，或一鍵讓 Gemini AI 自動生成。支援數位作答（即時檢查答案）與 A4 列印兩種模式。</div>
+      <div class="tool-footer"><span class="tool-badge ai">● AI 提示語 · 自動排版</span></div>
+    </div>
+  </div>
+
+  <!-- 視覺教學 -->
+  <div class="tool-category-label">🖼️ 視覺教學 Visual Learning</div>
+  <div class="tools-grid-full">
+    <div class="tool-card">
+      <div class="tool-icon-wrap icon-bg-mint">🧩</div>
+      <div class="tool-tag">視覺教學 · 互動搶答</div>
+      <div class="tool-name">視覺圖卡偵探｜拼圖模式</div>
+      <div class="tool-desc">上傳圖片或連結線上圖庫，系統將圖片切割成 2×2、3×3 或 4×4 拼圖，逐塊揭示讓學生搶答。適合暖身活動、課間轉換或複習遊戲。</div>
+      <div class="tool-footer"><span class="tool-badge ai">● AI 生圖 · 免費圖庫</span></div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-icon-wrap icon-bg-purple">🔍</div>
+      <div class="tool-tag">視覺教學 · 互動搶答</div>
+      <div class="tool-name">視覺圖卡偵探｜馬賽克模式</div>
+      <div class="tool-desc">同一工具切換至馬賽克模式，圖片從高度像素化逐漸變清晰，越早答對得分越高。內建 Pixabay、Pexels、Freepik 免費圖庫推薦。</div>
+      <div class="tool-footer"><span class="tool-badge ai">● AI 生圖 · 免費圖庫</span></div>
+    </div>
+  </div>
+
+  <div style="margin-top:2.5rem;text-align:center;">
+    <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/tools.html" target="_blank" class="btn-primary" style="display:inline-flex;align-items:center;gap:0.5rem;font-size:0.9rem;padding:0.7rem 1.5rem;">🧪 前往 Jeffrey's Lab 使用所有工具 →</a>
   </div>
 </section>
 
