@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>安親接車管理系統｜接車點名神器</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,700;12..96,800&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:#0A0A0F;
+  --ink2:#3D3D4E;
+  --muted:#8B8BA3;
+  --border:#E4E4EF;
+  --surface:#F7F7FC;
+  --white:#FFFFFF;
+  --accent:#2563EB;
+  --accent2:#16A34A;
+  --accent3:#D97706;
+  --danger:#DC2626;
+  --glow:rgba(37,99,235,.12);
+  --r:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Noto Sans TC',sans-serif;
+  background:var(--white);color:var(--ink);
+  line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ─── NAV ─── */
+nav{
+  position:sticky;top:0;z-index:100;
+  background:rgba(255,255,255,.88);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+  padding:0 5vw;
+  display:flex;align-items:center;justify-content:space-between;
+  height:58px;
+}
+.nav-logo{
+  font-family:'Bricolage Grotesque',sans-serif;
+  font-weight:800;font-size:17px;color:var(--ink);
+  text-decoration:none;letter-spacing:-.3px;
+  display:flex;align-items:center;gap:7px;
+}
+.nav-logo span{color:var(--accent)}
+.nav-links{display:flex;align-items:center;gap:2px}
+.nav-links a{
+  font-size:13px;font-weight:500;color:var(--ink2);
+  text-decoration:none;padding:6px 12px;border-radius:8px;
+  transition:background .15s,color .15s;white-space:nowrap;
+}
+.nav-links a:hover{background:var(--surface);color:var(--ink)}
+.nav-links .nav-cta{
+  background:var(--accent);color:#fff;
+  margin-left:6px;padding:7px 16px;
+  font-weight:700;letter-spacing:-.2px;
+}
+.nav-links .nav-cta:hover{background:#1D4ED8;color:#fff}
+
+/* ─── HERO ─── */
+.hero{
+  padding:96px 5vw 80px;
+  text-align:center;
+  position:relative;overflow:hidden;
+}
+.hero::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 80% 60% at 50% -10%,rgba(37,99,235,.08),transparent 65%);
+  pointer-events:none;
+}
+.hero-eyebrow{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:12px;font-weight:700;letter-spacing:.8px;
+  text-transform:uppercase;color:var(--accent);
+  background:rgba(37,99,235,.08);
+  padding:5px 14px;border-radius:20px;margin-bottom:24px;
+}
+.hero h1{
+  font-family:'Bricolage Grotesque',sans-serif;
+  font-size:clamp(36px,7vw,72px);
+  font-weight:800;line-height:1.08;
+  letter-spacing:-2px;
+  margin-bottom:20px;
+}
+.hero h1 em{
+  font-style:normal;
+  background:linear-gradient(135deg,var(--accent),#60A5FA);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.hero-sub{
+  font-size:clamp(15px,2vw,19px);
+  color:var(--ink2);max-width:580px;margin:0 auto 36px;
+  line-height:1.75;
+}
+.hero-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:52px}
+.btn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:13px 26px;border-radius:10px;
+  font-size:15px;font-weight:700;text-decoration:none;
+  transition:transform .15s,box-shadow .15s;
+  cursor:pointer;border:none;
+}
+.btn:hover{transform:translateY(-2px)}
+.btn-primary{background:var(--accent);color:#fff;box-shadow:0 4px 20px rgba(37,99,235,.3)}
+.btn-primary:hover{box-shadow:0 8px 28px rgba(37,99,235,.4)}
+.btn-ghost{background:var(--surface);color:var(--ink);border:1.5px solid var(--border)}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ─── STATS STRIP ─── */
+.stats{
+  display:flex;justify-content:center;gap:0;
+  border:1px solid var(--border);border-radius:var(--r);
+  overflow:hidden;max-width:640px;margin:0 auto;
+  background:var(--white);box-shadow:0 2px 12px rgba(0,0,0,.05);
+}
+.stat-item{
+  flex:1;padding:18px 12px;text-align:center;
+  border-right:1px solid var(--border);
+}
+.stat-item:last-child{border-right:none}
+.stat-num{
+  font-family:'Bricolage Grotesque',sans-serif;
+  font-size:26px;font-weight:800;color:var(--accent);line-height:1;
+  margin-bottom:4px;
+}
+.stat-lbl{font-size:11px;color:var(--muted);font-weight:500;letter-spacing:.3px}
+
+/* ─── SECTION SHARED ─── */
+section{padding:80px 5vw}
+.section-tag{
+  font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;
+  color:var(--muted);margin-bottom:12px;
+}
+.section-tag::before{content:'✦  '}
+.section-h{
+  font-family:'Bricolage Grotesque',sans-serif;
+  font-size:clamp(28px,5vw,48px);
+  font-weight:800;line-height:1.1;letter-spacing:-1.5px;
+  margin-bottom:16px;
+}
+.section-sub{font-size:16px;color:var(--ink2);max-width:540px;line-height:1.75}
+.center{text-align:center}
+.center .section-sub{margin:0 auto}
+
+/* ─── FEATURES GRID ─── */
+#features{background:var(--surface)}
+.features-intro{max-width:600px;margin:0 auto 56px;text-align:center}
+.features-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(290px,1fr));
+  gap:20px;max-width:1000px;margin:0 auto;
+}
+.feat-card{
+  background:var(--white);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  padding:28px;
+  transition:transform .2s,box-shadow .2s,border-color .2s;
+  position:relative;overflow:hidden;
+}
+.feat-card::after{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at top left,var(--glow),transparent 60%);
+  opacity:0;transition:opacity .3s;
+  pointer-events:none;
+}
+.feat-card:hover{
+  transform:translateY(-4px);
+  box-shadow:0 12px 40px rgba(0,0,0,.09);
+  border-color:rgba(37,99,235,.25);
+}
+.feat-card:hover::after{opacity:1}
+.feat-ico{
+  font-size:32px;margin-bottom:16px;
+  display:block;line-height:1;
+}
+.feat-title{
+  font-family:'Bricolage Grotesque',sans-serif;
+  font-size:18px;font-weight:700;margin-bottom:10px;letter-spacing:-.3px;
+}
+.feat-desc{font-size:14px;color:var(--ink2);line-height:1.75}
+
+/* ─── DEMO MOCKUP ─── */
+#demo{background:var(--white)}
+.demo-wrap{
+  max-width:900px;margin:0 auto;
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:28px;align-items:start;
+}
+@media(max-width:660px){.demo-wrap{grid-template-columns:1fr}}
+.demo-phone{
+  background:var(--ink);border-radius:28px;
+  padding:14px 10px;
+  box-shadow:0 24px 64px rgba(0,0,0,.22);
+  position:relative;
+}
+.demo-phone::before{
+  content:'';display:block;width:70px;height:5px;
+  background:rgba(255,255,255,.15);border-radius:3px;
+  margin:0 auto 10px;
+}
+.phone-screen{
+  background:#F8FAFC;border-radius:18px;overflow:hidden;
+  font-size:11px;
+}
+.ph-header{
+  background:#2563EB;color:#fff;
+  padding:10px 12px;
+  font-weight:700;font-size:13px;
+}
+.ph-header p{font-size:10px;opacity:.8;margin-top:2px}
+.ph-banner{
+  background:#EFF6FF;border-left:3px solid #2563EB;
+  margin:8px;border-radius:0 6px 6px 0;
+  padding:7px 10px;font-size:10px;color:#1D4ED8;line-height:1.6;
+}
+.ph-grade{
+  padding:5px 10px;font-size:9px;font-weight:700;
+  letter-spacing:.5px;color:#fff;margin-top:4px;
+}
+.ph-grade.low{background:#059669}
+.ph-grade.mid{background:#D97706}
+.ph-card{
+  background:#fff;border-radius:8px;margin:4px 8px;
+  box-shadow:0 1px 3px rgba(0,0,0,.07);
+  border-left:4px solid #E5E7EB;padding:8px 10px;
+  display:flex;align-items:center;gap:8px;
+}
+.ph-card.chk{border-left-color:#16A34A;background:#F0FDF4}
+.ph-seq{
+  width:20px;height:20px;border-radius:50%;
+  background:#F3F4F6;display:flex;align-items:center;
+  justify-content:center;font-size:9px;font-weight:700;
+  color:#6B7280;flex-shrink:0;
+}
+.ph-name{font-weight:700;font-size:12px;line-height:1.2;flex:1}
+.ph-meta{font-size:9px;color:#6B7280;margin-top:1px}
+.ph-badges{display:flex;gap:3px}
+.pb{padding:1px 5px;border-radius:6px;font-size:8px;font-weight:700}
+.pb-aq{background:#DBEAFE;color:#1D4ED8}
+.pb-ws{background:#FEF3C7;color:#B45309}
+.ph-actions{display:flex;gap:4px;flex-shrink:0}
+.ph-btn{
+  width:26px;height:26px;border-radius:6px;
+  border:1px solid #E5E7EB;background:#fff;
+  display:flex;align-items:center;justify-content:center;font-size:11px;
+}
+.ph-btn.chk{background:#16A34A;border-color:#16A34A;color:#fff;font-weight:700}
+.ph-nav{
+  background:#fff;border-top:1px solid #E5E7EB;
+  display:flex;padding:6px 0 10px;margin-top:6px;
+}
+.ph-nav-btn{
+  flex:1;text-align:center;font-size:8px;color:#6B7280;
+}
+.ph-nav-btn.active{color:#2563EB}
+.ph-nav-ico{font-size:16px;display:block;margin-bottom:1px}
+.ph-nb{padding:8px;font-size:8px;background:#FFFBEB;border-left:3px solid #F59E0B;margin:4px 8px 8px;border-radius:0 6px 6px 0}
+.ph-spacer{height:6px}
+
+.demo-info{padding-top:8px}
+.demo-info h3{
+  font-family:'Bricolage Grotesque',sans-serif;
+  font-size:28px;font-weight:800;letter-spacing:-1px;margin-bottom:16px;
+}
+.demo-point{
+  display:flex;gap:12px;align-items:flex-start;
+  margin-bottom:18px;
+}
+.demo-dot{
+  width:28px;height:28px;border-radius:50%;
+  background:var(--glow);border:1.5px solid rgba(37,99,235,.2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;flex-shrink:0;margin-top:1px;
+}
+.demo-point-text h4{
+  font-size:15px;font-weight:700;margin-bottom:3px;
+}
+.demo-point-text p{font-size:13px;color:var(--ink2);line-height:1.65}
+
+/* ─── TABLE PREVIEW ─── */
+#table-preview{background:var(--surface)}
+.table-preview-wrap{
+  max-width:900px;margin:40px auto 0;
+  border:1px solid var(--border);border-radius:var(--r);
+  overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.07);
+}
+.tpw-header{
+  background:var(--ink);color:#fff;
+  padding:14px 20px;display:flex;align-items:center;justify-content:space-between;
+}
+.tpw-title{font-family:'Bricolage Grotesque',sans-serif;font-size:15px;font-weight:700}
+.tpw-ctrl{display:flex;gap:8px}
+.ctrl-pill{
+  padding:4px 12px;border-radius:6px;font-size:11px;font-weight:600;
+  background:rgba(255,255,255,.12);color:rgba(255,255,255,.8);cursor:default;
+}
+.tpw-table{overflow-x:auto;background:#fff}
+table.pt{
+  border-collapse:collapse;font-size:10px;white-space:nowrap;width:100%;
+}
+table.pt th,table.pt td{
+  border:1px solid #CBD5E1;text-align:center;padding:5px 6px;
+}
+table.pt th{background:#1E3A8A;color:#fff;font-weight:600;font-size:9px}
+.wk-a{border-left:2px solid #93C5FD!important;background:#EFF6FF}
+.wk-b{border-left:2px solid #6EE7B7!important;background:#F0FDF4}
+.wk-hd-a{background:#1E40AF!important}
+.wk-hd-b{background:#065F46!important}
+.cell-am{background:#fff}
+.cell-pm{background:#FEF08A}
+.cell-no{background:#374151;color:#9CA3AF;font-size:8px}
+.cell-holiday{background:#FCA5A5;color:#7F1D1D;font-size:8px;font-weight:700}
+.th-h{background:#DC2626!important;color:#fff!important}
+.cell-chk{color:#16A34A;font-weight:900;font-size:13px}
+.cell-abs{color:#DC2626;font-weight:900;font-size:13px}
+.gr-row td{background:#1E3A8A;color:#fff;font-weight:700;font-size:9px;text-align:left;padding-left:8px}
+.name-col{text-align:left!important;padding-left:6px;font-weight:600;min-width:48px}
+.type-badge{padding:1px 4px;border-radius:3px;font-size:7px;font-weight:700}
+.tb-aq{background:#DBEAFE;color:#1D4ED8}
+.tb-ws{background:#FEF3C7;color:#B45309}
+.tpw-legend{
+  padding:10px 16px;background:#fff;border-top:1px solid var(--border);
+  display:flex;gap:12px;flex-wrap:wrap;font-size:11px;align-items:center;
+}
+.leg{display:flex;align-items:center;gap:4px}
+.leg-box{width:14px;height:14px;border-radius:3px;border:1px solid var(--border)}
+
+/* ─── HOW IT WORKS ─── */
+#workflow{background:var(--white)}
+.steps{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:24px;max-width:860px;margin:48px auto 0;
+}
+.step{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r);padding:28px 24px;
+  position:relative;
+}
+.step-num{
+  font-family:'Bricolage Grotesque',sans-serif;
+  font-size:48px;font-weight:800;color:rgba(37,99,235,.12);
+  line-height:1;margin-bottom:12px;
+}
+.step-title{
+  font-family:'Bricolage Grotesque',sans-serif;
+  font-size:17px;font-weight:700;margin-bottom:8px;
+}
+.step-desc{font-size:13px;color:var(--ink2);line-height:1.7}
+
+/* ─── PRICING ─── */
+#pricing{background:var(--surface)}
+.pricing-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:20px;max-width:800px;margin:48px auto 0;
+}
+.price-card{
+  background:var(--white);border:1px solid var(--border);
+  border-radius:var(--r);padding:32px 28px;
+}
+.price-card.featured{
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px rgba(37,99,235,.08),0 8px 32px rgba(37,99,235,.12);
+}
+.price-badge{
+  display:inline-block;padding:3px 10px;border-radius:8px;
+  font-size:11px;font-weight:700;margin-bottom:14px;
+}
+.pb-primary{background:rgba(37,99,235,.1);color:var(--accent)}
+.pb-green{background:rgba(22,163,74,.1);color:var(--accent2)}
+.price-name{
+  font-family:'Bricolage Grotesque',sans-serif;
+  font-size:22px;font-weight:800;margin-bottom:4px;
+}
+.price-amt{
+  font-family:'Bricolage Grotesque',sans-serif;
+  font-size:36px;font-weight:800;margin:16px 0;
+  letter-spacing:-1px;
+}
+.price-amt span{font-size:16px;font-weight:500;color:var(--muted);letter-spacing:0}
+.price-desc{font-size:13px;color:var(--muted);margin-bottom:20px}
+.price-list{list-style:none;margin-bottom:28px}
+.price-list li{
+  font-size:13px;color:var(--ink2);
+  padding:5px 0;display:flex;gap:8px;align-items:flex-start;
+}
+.price-list li::before{content:'✓';color:var(--accent2);font-weight:700;flex-shrink:0}
+.price-list li.no::before{content:'✗';color:var(--muted)}
+.price-list li.no{color:var(--muted)}
+.price-note{
+  font-size:12px;color:var(--muted);margin-top:24px;text-align:center;
+}
+.price-note a{color:var(--accent);text-decoration:none}
+
+/* ─── CTA ─── */
+.cta-section{
+  padding:96px 5vw;text-align:center;
+  background:var(--ink);color:#fff;
+}
+.cta-section h2{
+  font-family:'Bricolage Grotesque',sans-serif;
+  font-size:clamp(28px,5vw,52px);
+  font-weight:800;letter-spacing:-2px;margin-bottom:16px;
+}
+.cta-section p{
+  color:rgba(255,255,255,.65);
+  font-size:16px;max-width:480px;margin:0 auto 36px;
+}
+.cta-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.btn-white{background:#fff;color:var(--ink)}
+.btn-white:hover{background:#F1F5F9}
+.btn-outline-w{border:1.5px solid rgba(255,255,255,.25);color:rgba(255,255,255,.8);background:transparent}
+.btn-outline-w:hover{border-color:#fff;color:#fff}
+
+/* ─── FOOTER ─── */
+footer{
+  background:var(--ink);border-top:1px solid rgba(255,255,255,.08);
+  padding:28px 5vw;
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:12px;
+}
+.footer-logo{
+  font-family:'Bricolage Grotesque',sans-serif;
+  font-weight:800;color:rgba(255,255,255,.6);font-size:14px;
+}
+.footer-links{display:flex;gap:20px;flex-wrap:wrap}
+.footer-links a{
+  font-size:13px;color:rgba(255,255,255,.4);
+  text-decoration:none;transition:color .15s;
+}
+.footer-links a:hover{color:rgba(255,255,255,.8)}
+.footer-copy{font-size:11px;color:rgba(255,255,255,.25);width:100%;margin-top:6px}
+
+/* ─── SCROLL REVEAL ─── */
+.reveal{
+  opacity:0;transform:translateY(22px);
+  transition:opacity .55s ease,transform .55s ease;
+}
+.reveal.visible{opacity:1;transform:none}
+
+@media(max-width:640px){
+  nav{padding:0 16px}
+  .nav-links a:not(.nav-cta){display:none}
+  section{padding:60px 16px}
+  .hero{padding:72px 16px 56px}
+  footer{padding:24px 16px}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ NAV ═══ -->
+<nav>
+  <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/" class="nav-logo">
+    🚀 <span>Jeffrey</span>'s Lab
+  </a>
+  <div class="nav-links">
+    <a href="#features">功能特色</a>
+    <a href="#demo">操作示範</a>
+    <a href="#workflow">使用流程</a>
+    <a href="#pricing">方案定價</a>
+    <a href="https://line.me/ti/p/~@593fbons">LINE 聯繫</a>
+    <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/" class="nav-cta">回首頁 →</a>
+  </div>
+</nav>
+
+<!-- ═══ HERO ═══ -->
+<section class="hero">
+  <div class="hero-eyebrow">安親接車管理系統 · Pickup Management</div>
+  <h1>接車點名<br><em>從此不再混亂</em></h1>
+  <p class="hero-sub">
+    手機一鍵點名、月份總表一覽、假日自動屏蔽——<br>
+    讓安親班老師從接車行政中解脫，每天節省大量時間。
+  </p>
+  <div class="hero-btns">
+    <a href="https://line.me/ti/p/~@593fbons" class="btn btn-primary">💬 LINE 聯繫取得系統</a>
+    <a href="#features" class="btn btn-ghost">了解功能特色 ↓</a>
+  </div>
+  <div class="stats">
+    <div class="stat-item">
+      <div class="stat-num">3</div>
+      <div class="stat-lbl">核心頁面</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">零</div>
+      <div class="stat-lbl">安裝需求</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">即時</div>
+      <div class="stat-lbl">雲端同步</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">手機</div>
+      <div class="stat-lbl">優化操作</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FEATURES ═══ -->
+<section id="features">
+  <div class="features-intro reveal">
+    <div class="section-tag">Core Features</div>
+    <h2 class="section-h">三大模組，完整解決<br>接車行政痛點</h2>
+    <p class="section-sub">從每日點名到月份彙整，安親接車管理系統把老師過去手工的接車作業，全部數位化到手機上。</p>
+  </div>
+  <div class="features-grid">
+    <div class="feat-card reveal">
+      <span class="feat-ico">📋</span>
+      <div class="feat-title">今日接車點名</div>
+      <p class="feat-desc">依年級、接送時間自動分組。一鍵標記接到 ✓ 或請假 ✗，支援備註與電話撥打，學校篩選快速定位。</p>
+    </div>
+    <div class="feat-card reveal">
+      <span class="feat-ico">📅</span>
+      <div class="feat-title">月份接車總表</div>
+      <p class="feat-desc">整月接送狀況一張表呈現。上午接駛白色、下午接駛黃色、不接灰黑，奇偶週交替著色，一眼識別。</p>
+    </div>
+    <div class="feat-card reveal">
+      <span class="feat-ico">👥</span>
+      <div class="feat-title">學生資料管理</div>
+      <p class="feat-desc">新增、編輯、刪除學生，設定安親 / 外生類型、接送天數與自訂時間。學校篩選、姓名搜尋即時過濾。</p>
+    </div>
+    <div class="feat-card reveal">
+      <span class="feat-ico">⚡</span>
+      <div class="feat-title">臨時加接</div>
+      <p class="feat-desc">從名單選現有學生臨時換時間接送，或直接輸入名單外學生姓名。臨時記錄同步到月份總表，不漏接。</p>
+    </div>
+    <div class="feat-card reveal">
+      <span class="feat-ico">📞</span>
+      <div class="feat-title">一鍵撥打電話</div>
+      <p class="feat-desc">點擊電話圖示即彈出家長號碼，點「撥打」直接打電話，免複製貼上。支援媽媽和爸爸兩組號碼。</p>
+    </div>
+    <div class="feat-card reveal">
+      <span class="feat-ico">🗓️</span>
+      <div class="feat-title">假日自動屏蔽</div>
+      <p class="feat-desc">預載 2026 台灣國定假日，假日當天自動顯示提示，不顯示學生清單。可手動新增補課日或特殊假日。</p>
+    </div>
+    <div class="feat-card reveal">
+      <span class="feat-ico">📆</span>
+      <div class="feat-title">日期跨日切換</div>
+      <p class="feat-desc">不只看今天，左右切換日期可查閱任意日期的點名記錄，方便補記或回溯確認接送情況。</p>
+    </div>
+    <div class="feat-card reveal">
+      <span class="feat-ico">⚙️</span>
+      <div class="feat-title">自訂接送時間</div>
+      <p class="feat-desc">每位學生可單獨設定週一到週五的接送時間（午間 / 下午 / 不接），靈活處理社團日或特殊安排。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ DEMO ═══ -->
+<section id="demo">
+  <div class="section-tag center reveal">How It Looks</div>
+  <h2 class="section-h center reveal" style="margin-bottom:48px">手機操作，<em style="font-style:normal">流暢直覺</em></h2>
+  <div class="demo-wrap">
+
+    <!-- Phone mockup -->
+    <div class="demo-phone reveal">
+      <div class="phone-screen">
+        <div class="ph-header">
+          📋 接車點名
+          <p>2026年5月8日（五）</p>
+        </div>
+        <div class="ph-banner">
+          <b>接車時間</b>　低年級：12:00接　中年級：12:00接　高年級：16:00接
+        </div>
+        <div class="ph-grade low">低年級（1-2年級）・12:00 接</div>
+        <div class="ph-card chk">
+          <div class="ph-seq">1</div>
+          <div style="flex:1">
+            <div class="ph-name">王于庭 <span style="font-size:9px;font-weight:400;color:#6B7280">Tina</span></div>
+            <div class="ph-meta" style="display:flex;gap:3px;margin-top:2px">
+              <span>202班</span>
+              <span class="pb pb-aq">安親</span>
+            </div>
+          </div>
+          <div class="ph-actions">
+            <div class="ph-btn chk">✓</div>
+            <div class="ph-btn">✗</div>
+            <div class="ph-btn">💬</div>
+            <div class="ph-btn">📞</div>
+          </div>
+        </div>
+        <div class="ph-grade mid">中年級（3-4年級）・12:00 接</div>
+        <div class="ph-card">
+          <div class="ph-seq">2</div>
+          <div style="flex:1">
+            <div class="ph-name">洪可恩 <span style="font-size:9px;font-weight:400;color:#6B7280">Ariel</span></div>
+            <div class="ph-meta" style="display:flex;gap:3px;margin-top:2px">
+              <span>301班</span>
+              <span class="pb pb-aq">安親</span>
+            </div>
+          </div>
+          <div class="ph-actions">
+            <div class="ph-btn">✓</div>
+            <div class="ph-btn">✗</div>
+            <div class="ph-btn">💬</div>
+            <div class="ph-btn">📞</div>
+          </div>
+        </div>
+        <div class="ph-card">
+          <div class="ph-seq">3</div>
+          <div style="flex:1">
+            <div class="ph-name">呂庭瑀 <span style="font-size:9px;font-weight:400;color:#6B7280">Lisa</span></div>
+            <div class="ph-meta" style="display:flex;gap:3px;margin-top:2px">
+              <span>302班</span>
+              <span class="pb pb-ws">外生</span>
+            </div>
+          </div>
+          <div class="ph-actions">
+            <div class="ph-btn">✓</div>
+            <div class="ph-btn">✗</div>
+            <div class="ph-btn">💬</div>
+            <div class="ph-btn">📞</div>
+          </div>
+        </div>
+        <div class="ph-nb">📝 備註：今日早退，3:30接</div>
+        <div class="ph-spacer"></div>
+        <div class="ph-nav">
+          <div class="ph-nav-btn active"><span class="ph-nav-ico">📋</span>今日點名</div>
+          <div class="ph-nav-btn"><span class="ph-nav-ico">📅</span>接車總表</div>
+          <div class="ph-nav-btn"><span class="ph-nav-ico">👥</span>學生管理</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Info points -->
+    <div class="demo-info reveal">
+      <h3>手機點名，<br>三秒搞定一個學生</h3>
+      <div class="demo-point">
+        <div class="demo-dot">✓</div>
+        <div class="demo-point-text">
+          <h4>精簡卡片，一行顯示所有資訊</h4>
+          <p>姓名、英文名、班級、安親/外生身份全部橫排，不需要上下滑動就能看完。</p>
+        </div>
+      </div>
+      <div class="demo-point">
+        <div class="demo-dot">📞</div>
+        <div class="demo-point-text">
+          <h4>電話一鍵撥打</h4>
+          <p>點📞彈出家長電話，點「撥打」直接撥號，號碼完整顯示不會被自動截斷。</p>
+        </div>
+      </div>
+      <div class="demo-point">
+        <div class="demo-dot">⚡</div>
+        <div class="demo-point-text">
+          <h4>臨時加接超彈性</h4>
+          <p>從名單選「換時間接送」的學生，或直接輸入名單外學生姓名，都即時存入記錄。</p>
+        </div>
+      </div>
+      <div class="demo-point">
+        <div class="demo-dot">📅</div>
+        <div class="demo-point-text">
+          <h4>跨日查閱，不怕漏記</h4>
+          <p>左右切換日期可查閱任意日的點名，補記或核對都方便。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ TABLE PREVIEW ═══ -->
+<section id="table-preview">
+  <div class="section-tag center reveal">Monthly Table</div>
+  <h2 class="section-h center reveal">月份總表，<em style="font-style:normal">整月一覽無遺</em></h2>
+  <p class="section-sub center reveal" style="margin:0 auto 12px">白色＝午間接、黃色＝下午接、灰黑＝不接，奇偶週交替著色，假日紅色醒目標記。</p>
+
+  <div class="table-preview-wrap reveal">
+    <div class="tpw-header">
+      <div class="tpw-title">📅 接車總表　2026年5月</div>
+      <div class="tpw-ctrl">
+        <span class="ctrl-pill">🏫 雙永國小</span>
+        <span class="ctrl-pill">🖨 列印</span>
+      </div>
+    </div>
+    <div class="tpw-table">
+      <table class="pt">
+        <thead>
+          <tr>
+            <th>No</th><th class="name-col">姓名</th><th>英文</th><th>班</th><th>類型</th><th>電話</th>
+            <th class="th-h" colspan="1">5/1<br><span style="font-size:7px">假</span></th>
+            <th class="wk-hd-a">5/4</th><th class="wk-hd-a">5/5</th><th class="wk-hd-a">5/6</th><th class="wk-hd-a">5/7</th><th class="wk-hd-a">5/8</th>
+            <th class="wk-hd-b">5/11</th><th class="wk-hd-b">5/12</th><th class="wk-hd-b">5/13</th><th class="wk-hd-b">5/14</th><th class="wk-hd-b">5/15</th>
+          </tr>
+          <tr>
+            <th></th><th></th><th></th><th></th><th></th><th></th>
+            <th class="th-h" style="font-size:7px">勞動節</th>
+            <th class="wk-hd-a" style="font-size:8px;font-weight:400">一</th>
+            <th class="wk-hd-a" style="font-size:8px;font-weight:400">二</th>
+            <th class="wk-hd-a" style="font-size:8px;font-weight:400">三</th>
+            <th class="wk-hd-a" style="font-size:8px;font-weight:400">四</th>
+            <th class="wk-hd-a" style="font-size:8px;font-weight:400">五</th>
+            <th class="wk-hd-b" style="font-size:8px;font-weight:400">一</th>
+            <th class="wk-hd-b" style="font-size:8px;font-weight:400">二</th>
+            <th class="wk-hd-b" style="font-size:8px;font-weight:400">三</th>
+            <th class="wk-hd-b" style="font-size:8px;font-weight:400">四</th>
+            <th class="wk-hd-b" style="font-size:8px;font-weight:400">五</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="gr-row"><td colspan="17">低年級（1-2年級）</td></tr>
+          <tr>
+            <td>1</td><td class="name-col">王于庭</td><td>Tina</td><td>202</td>
+            <td><span class="type-badge tb-aq">安親</span></td><td style="font-size:8px">0923456789</td>
+            <td class="cell-holiday">假</td>
+            <td class="cell-am wk-a"></td><td class="cell-pm wk-a"></td><td class="cell-am wk-a"></td><td class="cell-am wk-a"></td><td class="cell-am wk-a"><span class="cell-chk">✓</span></td>
+            <td class="cell-am wk-b"></td><td class="cell-pm wk-b"></td><td class="cell-am wk-b"></td><td class="cell-am wk-b"></td><td class="cell-am wk-b"></td>
+          </tr>
+          <tr class="gr-row"><td colspan="17">中年級（3-4年級）</td></tr>
+          <tr>
+            <td>2</td><td class="name-col">洪可恩</td><td>Ariel</td><td>301</td>
+            <td><span class="type-badge tb-aq">安親</span></td><td style="font-size:8px">1111111111</td>
+            <td class="cell-holiday">假</td>
+            <td class="cell-pm wk-a"></td><td class="cell-pm wk-a"></td><td class="cell-am wk-a"></td><td class="cell-pm wk-a"></td><td class="cell-am wk-a"><span class="cell-chk">✓</span></td>
+            <td class="cell-pm wk-b"></td><td class="cell-pm wk-b"></td><td class="cell-am wk-b"></td><td class="cell-pm wk-b"></td><td class="cell-am wk-b"></td>
+          </tr>
+          <tr>
+            <td>3</td><td class="name-col" style="color:#B45309">呂庭瑀</td><td>Lisa</td><td>302</td>
+            <td><span class="type-badge tb-ws">外生</span></td><td style="font-size:8px">6666666666</td>
+            <td class="cell-holiday">假</td>
+            <td class="cell-no wk-a">－</td><td class="cell-pm wk-a"></td><td class="cell-no wk-a">－</td><td class="cell-pm wk-a"></td><td class="cell-am wk-a"><span class="cell-chk">✓</span></td>
+            <td class="cell-no wk-b">－</td><td class="cell-pm wk-b"></td><td class="cell-no wk-b">－</td><td class="cell-pm wk-b"></td><td class="cell-am wk-b"><span class="cell-abs">✕</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="tpw-legend">
+      <span class="leg"><span class="leg-box" style="background:#fff"></span>12:00 午間接</span>
+      <span class="leg"><span class="leg-box" style="background:#FEF08A"></span>16:00 下午接</span>
+      <span class="leg"><span class="leg-box" style="background:#374151"></span>不接</span>
+      <span class="leg"><span class="leg-box" style="background:#FCA5A5"></span>假日</span>
+      <span class="leg"><span class="leg-box" style="background:#EFF6FF;border-left:3px solid #93C5FD"></span>奇週</span>
+      <span class="leg"><span class="leg-box" style="background:#F0FDF4;border-left:3px solid #6EE7B7"></span>偶週</span>
+      <span class="leg" style="color:#16A34A;font-weight:700">✓ 接到</span>
+      <span class="leg" style="color:#DC2626;font-weight:700">✕ 請假</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ WORKFLOW ═══ -->
+<section id="workflow">
+  <div class="section-tag center reveal">How It Works</div>
+  <h2 class="section-h center reveal">四步驟上手，<br>今天就開始用</h2>
+  <div class="steps">
+    <div class="step reveal">
+      <div class="step-num">01</div>
+      <div class="step-title">設定學生名單</div>
+      <p class="step-desc">在「學生管理」新增每位學生的姓名、年級、班級、聯絡電話，設定安親或外生類型與接送天數。</p>
+    </div>
+    <div class="step reveal">
+      <div class="step-num">02</div>
+      <div class="step-title">設定假日</div>
+      <p class="step-desc">前往「接車總表」的假日面板，確認國定假日清單並新增補課日或特殊假日。</p>
+    </div>
+    <div class="step reveal">
+      <div class="step-num">03</div>
+      <div class="step-title">每日手機點名</div>
+      <p class="step-desc">開啟今日點名頁，按學校篩選，依序點擊 ✓ 接到或 ✗ 請假，臨時加接直接輸入名字。</p>
+    </div>
+    <div class="step reveal">
+      <div class="step-num">04</div>
+      <div class="step-title">月底查閱總表</div>
+      <p class="step-desc">選擇月份產生接車總表，點擊格子可補錄或修改，支援列印留存紙本備份。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ PRICING ═══ -->
+<section id="pricing">
+  <div class="section-tag center reveal">Pricing</div>
+  <h2 class="section-h center reveal">搭配 NewCore，<br>解鎖完整功能</h2>
+  <div class="pricing-grid">
+    <div class="price-card reveal">
+      <div class="price-badge pb-green">基本功能</div>
+      <div class="price-name">免費試用</div>
+      <div class="price-amt">$0<span> / 月</span></div>
+      <p class="price-desc">取得系統檔案，自行設定 Google Sheet 後即可使用</p>
+      <ul class="price-list">
+        <li>今日接車點名（手機優化）</li>
+        <li>學生資料新增 / 編輯 / 刪除</li>
+        <li>月份接車總表</li>
+        <li>假日管理面板</li>
+        <li>臨時加接功能</li>
+        <li class="no">技術支援與客製化</li>
+        <li class="no">遠端協助設定</li>
+      </ul>
+      <a href="https://line.me/ti/p/~@593fbons" class="btn btn-ghost" style="width:100%;justify-content:center">💬 LINE 取得系統</a>
+    </div>
+    <div class="price-card featured reveal">
+      <div class="price-badge pb-primary">推薦方案</div>
+      <div class="price-name">搭配 NewCore 方案</div>
+      <div class="price-amt">洽詢<span> 客製定價</span></div>
+      <p class="price-desc">整合教務系統 + 接車管理，一站式解決補習班行政</p>
+      <ul class="price-list">
+        <li>免費版所有功能</li>
+        <li>遠端協助初始設定</li>
+        <li>客製化學校 / 班級結構</li>
+        <li>整合 NewCore 學生名單</li>
+        <li>優先技術支援</li>
+        <li>持續功能更新</li>
+      </ul>
+      <a href="https://line.me/ti/p/~@593fbons" class="btn btn-primary" style="width:100%;justify-content:center">🚀 聯繫 Jeffrey 洽詢</a>
+    </div>
+  </div>
+  <p class="price-note" style="text-align:center;margin-top:28px;font-size:13px;color:var(--muted)">
+    尚未使用 NewCore 教務系統？<a href="https://jeffreycz1979-prog.github.io/JeffreysLab/">了解 NewCore 方案 →</a>
+  </p>
+</section>
+
+<!-- ═══ CTA ═══ -->
+<section class="cta-section">
+  <h2>讓接車點名成為<br>你的競爭優勢</h2>
+  <p>數位化接車管理，讓家長放心、老師省心，每天節省大量行政時間。</p>
+  <div class="cta-btns">
+    <a href="https://line.me/ti/p/~@593fbons" class="btn btn-white">💬 LINE 聯繫 Jeffrey</a>
+    <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/" class="btn btn-outline-w">🚀 了解 NewCore 進階方案</a>
+  </div>
+</section>
+
+<!-- ═══ FOOTER ═══ -->
+<footer>
+  <div class="footer-logo">Jeffrey's Lab · 安親接車管理系統</div>
+  <div class="footer-links">
+    <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/">NewCore 首頁</a>
+    <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/schedule_guide.html">月排課系統</a>
+    <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/tools.html">工具包</a>
+    <a href="https://line.me/ti/p/~@593fbons">LINE 聯繫</a>
+  </div>
+  <div class="footer-copy">© 2026 Jeffrey's Lab. 專為安親班老師設計。</div>
+</footer>
+
+<script>
+// Scroll reveal
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if(e.isIntersecting){ e.target.classList.add('visible'); }
+  });
+}, { threshold: 0.12 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
