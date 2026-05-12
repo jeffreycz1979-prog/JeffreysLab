@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NewCore Word Defense: Rhythm Master 終極版</title>
+    <title>NewCore Word Defense: Rhythm Master 語音增強版</title>
     <style>
         :root { --neon-blue: #00f3ff; --neon-purple: #bc13fe; --neon-red: #ff0055; --bg: #050510; }
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--bg); color: white; font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif; overflow: hidden; }
@@ -11,7 +11,6 @@
         #game-screen { position: relative; width: 100%; max-width: 500px; height: 100%; margin: 0 auto; background: rgba(255,255,255,0.02); border-left: 2px solid #333; border-right: 2px solid #333; }
         .track { position: absolute; top: 0; width: 25%; height: 100%; border-right: 1px solid rgba(255,255,255,0.05); box-sizing: border-box; }
         
-        /* 判定區域 - 視覺強化 */
         #judgment-line { 
             position: absolute; bottom: 120px; width: 100%; height: 90px; 
             background: rgba(0, 243, 255, 0.05); border-top: 3px solid var(--neon-blue); border-bottom: 3px solid var(--neon-blue); 
@@ -22,7 +21,6 @@
         #judgment-line.hit { background: rgba(0, 255, 0, 0.4); border-color: #00ff00; }
         #judgment-line.miss { background: rgba(255, 0, 0, 0.4); border-color: #ff0000; }
 
-        /* 字母泡泡 - 大尺寸設計 */
         .note { 
             position: absolute; width: 85%; left: 7.5%; height: 85px; 
             display: flex; align-items: center; justify-content: center; 
@@ -30,9 +28,9 @@
             cursor: pointer; user-select: none; z-index: 20;
             background: rgba(255, 255, 255, 0.1);
             transition: transform 0.05s;
+            touch-action: none;
         }
 
-        /* 提示區域 */
         #target-display { 
             position: absolute; bottom: 0; width: 100%; height: 110px;
             background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -40,10 +38,8 @@
         }
         #chn-hint { font-size: 20px; color: #aaa; margin-bottom: 5px; }
 
-        /* 儀表板 */
         #score-info { position: absolute; top: 10px; width: 100%; display: flex; justify-content: space-around; font-size: 20px; font-weight: bold; z-index: 50; pointer-events: none; }
         
-        /* 設定畫面 */
         #setup { position: absolute; inset: 0; background: var(--bg); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
         textarea { width: 90%; max-width: 450px; height: 120px; background: #000; color: var(--neon-blue); border: 1px solid #444; padding: 15px; margin: 15px 0; font-size: 16px; border-radius: 8px; }
         .config-row { display: flex; gap: 15px; margin-bottom: 25px; }
@@ -55,7 +51,7 @@
 
     <div id="setup">
         <h1 style="color:var(--neon-blue); margin-bottom: 0;">NewCore Word Defense</h1>
-        <p style="color:#888;">Rhythm Master 終極版</p>
+        <p style="color:#888;">Rhythm Master (語音/範圍強化版)</p>
         
         <p style="margin-top: 20px;">請輸入「單字:中文」，用逗號分隔：</p>
         <textarea id="word-input">APPLE:蘋果, BANANA:香蕉, CAT:小貓, DOG:小狗, ELEPHANT:大象</textarea>
@@ -64,9 +60,9 @@
             <div>
                 <label>難度：</label>
                 <select id="difficulty">
-                    <option value="1.2">Easy (入門)</option>
+                    <option value="1.2">Easy (慢速)</option>
                     <option value="2.0" selected>Normal (標準)</option>
-                    <option value="3.5">Hard (挑戰)</option>
+                    <option value="3.5">Hard (快速)</option>
                 </select>
             </div>
             <div>
@@ -94,10 +90,10 @@
         <div class="track" style="left:50%"></div>
         <div class="track" style="left:75%"></div>
 
-        <div id="judgment-line">判定區：請在此點擊字母</div>
+        <div id="judgment-line">判定區</div>
         
         <div id="target-display">
-            <div id="chn-hint">載入中...</div>
+            <div id="chn-hint">READY?</div>
             <div id="eng-slots">_ _ _ _ _</div>
         </div>
     </div>
@@ -114,7 +110,18 @@
         let baseSpeed = 2;
         let spawnTimer, gameTimer, loopId;
 
+        const synth = window.speechSynthesis;
         const colors = ['#00f3ff', '#bc13fe', '#ff00ff', '#4dff00', '#ff8800'];
+
+        function speak(text) {
+            if (!synth) return;
+            // 先停止正在說的話，避免重疊或卡住
+            synth.cancel();
+            const utter = new SpeechSynthesisUtterance(text);
+            utter.lang = 'en-US';
+            utter.rate = 1.0;
+            synth.speak(utter);
+        }
 
         function startGame() {
             const input = document.getElementById('word-input').value;
@@ -126,22 +133,17 @@
                 };
             }).filter(obj => obj.eng.length > 0);
 
-            if (words.length === 0) { alert("請輸入單字清單！"); return; }
+            if (words.length === 0) { alert("請輸入單字！"); return; }
 
-            // 初始化設定
             baseSpeed = parseFloat(document.getElementById('difficulty').value);
             timeLeft = parseInt(document.getElementById('game-timer').value);
-            score = 0;
-            life = 3;
-            notes = [];
-            gameActive = true;
+            score = 0; life = 3; notes = []; gameActive = true;
 
             document.getElementById('setup').style.display = 'none';
             
             nextWord();
             updateHUD();
             
-            // 啟動迴圈與計時器
             loopId = requestAnimationFrame(gameLoop);
             
             gameTimer = setInterval(() => {
@@ -150,7 +152,8 @@
                 if (timeLeft <= 0) gameOver("時間到！");
             }, 1000);
 
-            let spawnFreq = 1400 / (baseSpeed * 0.6);
+            // 增加生成頻率
+            let spawnFreq = 1100 / (baseSpeed * 0.7);
             spawnTimer = setInterval(() => {
                 if (gameActive) spawnNote();
             }, spawnFreq);
@@ -161,6 +164,9 @@
             currentIdx = 0;
             document.getElementById('chn-hint').innerText = `[ ${currentWordData.chn} ]`;
             updateSlots();
+            
+            // 關鍵：延遲一點點發音，確保遊戲邏輯已切換
+            setTimeout(() => speak(currentWordData.eng), 100);
         }
 
         function updateSlots() {
@@ -172,7 +178,6 @@
         }
 
         function spawnNote() {
-            // 提高當前需要字母的出現率 (60%)
             const isCorrect = Math.random() > 0.4;
             const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
             const letter = isCorrect ? currentWordData.eng[currentIdx] : alphabet[Math.floor(Math.random() * 26)];
@@ -189,9 +194,12 @@
             
             const noteObj = { el: noteEl, y: -100, letter: letter };
 
-            // 觸發判定
-            noteEl.onmousedown = (e) => { e.preventDefault(); judge(noteObj); };
-            noteEl.ontouchstart = (e) => { e.preventDefault(); judge(noteObj); };
+            const handleAction = (e) => {
+                e.preventDefault();
+                judge(noteObj);
+            };
+            noteEl.addEventListener('mousedown', handleAction);
+            noteEl.addEventListener('touchstart', handleAction, {passive: false});
             
             document.querySelectorAll('.track')[trackIdx].appendChild(noteEl);
             notes.push(noteObj);
@@ -200,21 +208,27 @@
         function judge(obj) {
             if (!gameActive) return;
 
-            const lineTop = window.innerHeight - 210; // 判定線頂
-            const lineBottom = window.innerHeight - 120; // 判定線底
-            const centerY = obj.y + 42;
+            const rect = obj.el.getBoundingClientRect();
+            const containerRect = document.getElementById('game-screen').getBoundingClientRect();
+            const centerY = rect.top + (rect.height / 2);
+            
+            // 判定線區域 (以螢幕高度計算)
+            const lineTop = containerRect.bottom - 210;
+            const lineBottom = containerRect.bottom - 120;
 
             const inZone = (centerY >= lineTop && centerY <= lineBottom);
 
             if (inZone && obj.letter === currentWordData.eng[currentIdx]) {
+                speak(obj.letter); // 唸出字母
                 score += 20;
                 currentIdx++;
                 flashLine('hit');
                 if (currentIdx >= currentWordData.eng.length) {
                     score += 50;
-                    setTimeout(nextWord, 300);
+                    setTimeout(nextWord, 400);
+                } else {
+                    updateSlots();
                 }
-                updateSlots();
             } else {
                 life--;
                 flashLine('miss');
@@ -232,15 +246,15 @@
         function gameLoop() {
             if (!gameActive) return;
             
-            let currentSpeed = baseSpeed + (score / 1500); // 隨分數微幅加速
+            let currentSpeed = baseSpeed + (score / 2000);
 
             for (let i = notes.length - 1; i >= 0; i--) {
                 let n = notes[i];
                 n.y += currentSpeed;
                 n.el.style.top = n.y + 'px';
 
-                // 沒接住正確字母的處罰
-                if (n.y > window.innerHeight - 120) {
+                // 漏接判定
+                if (n.y > window.innerHeight - 100) {
                     if (n.letter === currentWordData.eng[currentIdx]) {
                         life--;
                         flashLine('miss');
@@ -250,7 +264,7 @@
                 }
             }
             
-            if (life <= 0) gameOver("生命值耗盡！");
+            if (life <= 0) gameOver("GAME OVER");
             else loopId = requestAnimationFrame(gameLoop);
         }
 
@@ -270,7 +284,8 @@
             clearInterval(spawnTimer);
             clearInterval(gameTimer);
             cancelAnimationFrame(loopId);
-            alert(`${msg}\n最終得分: ${score}`);
+            speak("Game Over");
+            alert(`${msg}\nFinal Score: ${score}`);
             location.reload();
         }
     </script>
