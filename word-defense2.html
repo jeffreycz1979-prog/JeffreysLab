@@ -3,13 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NewCore Word Defense: 堆疊拼字戰 順序修正版</title>
+    <title>NewCore Word Defense: 堆疊拼字戰 (語音與頻率優化版)</title>
     <style>
         :root { --neon-blue: #00f3ff; --neon-purple: #bc13fe; --neon-red: #ff0055; --bg: #050510; }
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--bg); color: white; font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif; overflow: hidden; display: flex; flex-direction: column; align-items: center; }
         
+        /* 遊戲舞台 */
         #game-container { position: relative; width: 100%; max-width: 500px; height: 100%; border: 4px solid #333; background: rgba(255,255,255,0.02); overflow: hidden; }
         
+        /* 字母泡泡 */
         .bubble { 
             position: absolute; width: 140px; height: 140px; 
             display: flex; align-items: center; justify-content: center; 
@@ -22,6 +24,7 @@
         }
         .bubble:active { transform: scale(0.9); }
 
+        /* 下方提示區 */
         #hint-panel { 
             position: absolute; bottom: 0; width: 100%; background: #000; 
             border-top: 3px solid var(--neon-blue); padding: 20px 0; z-index: 100;
@@ -30,14 +33,17 @@
         #chn-hint { font-size: 22px; color: #aaa; margin-bottom: 10px; font-weight: bold; }
         #eng-slots { font-size: 32px; color: var(--neon-blue); letter-spacing: 5px; font-weight: bold; }
 
+        /* HUD 儀表板 */
         #hud { position: absolute; top: 15px; width: 100%; display: flex; justify-content: space-around; font-size: 22px; font-weight: bold; z-index: 80; pointer-events: none; text-shadow: 0 0 10px #000; }
         
+        /* 設定畫面 */
         #setup { position: absolute; inset: 0; background: var(--bg); z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
         textarea { width: 90%; max-width: 450px; height: 120px; background: #000; color: var(--neon-blue); border: 1px solid #444; padding: 15px; margin: 15px 0; font-size: 18px; border-radius: 8px; }
         .config-group { display: flex; gap: 20px; margin-bottom: 30px; }
         select { padding: 12px; background: #000; color: white; border: 1px solid var(--neon-blue); font-size: 18px; border-radius: 5px; }
         button { padding: 18px 60px; background: var(--neon-blue); border: none; font-weight: bold; font-size: 24px; border-radius: 10px; cursor: pointer; color: #000; box-shadow: 0 0 25px var(--neon-blue); }
 
+        /* 震動特效 */
         @keyframes shake {
             0% { transform: translate(1px, 1px) rotate(0deg); }
             20% { transform: translate(-3px, 0px) rotate(-1deg); }
@@ -50,7 +56,7 @@
 
     <div id="setup">
         <h1 style="color:var(--neon-blue); font-size: 36px; margin-bottom: 10px;">NewCore Word Defense</h1>
-        <p style="color:#888;">堆疊拼字防禦戰 (順序強化版)</p>
+        <p style="color:#888;">堆疊拼字戰 (發音與優化版)</p>
         
         <p style="margin-top: 20px;">輸入「單字:中文」，用逗號分隔：</p>
         <textarea id="word-input">APPLE:蘋果, BANANA:香蕉, CAT:小貓, DOG:小狗, ELEPHANT:大象</textarea>
@@ -102,7 +108,24 @@
         let baseSpeed = 2;
         let spawnTimer, gameTimer, loopId;
 
+        // 語音合成實例
+        const synth = window.speechSynthesis;
+
         const colors = ['#00f3ff', '#bc13fe', '#ff00ff', '#4dff00', '#ff8800'];
+
+        // 初始化：預先加載語音（部分瀏覽器需要）
+        if ('speechSynthesis' in window) {
+            speechSynthesis.getVoices();
+        }
+
+        // 核心朗讀函數
+        function speak(text) {
+            if (!('speechSynthesis' in window) || synth.speaking) return;
+            const utter = new SpeechSynthesisUtterance(text);
+            utter.lang = 'en-US'; // 設定為美式英語
+            utter.rate = 1.2;     // 語速略快
+            synth.speak(utter);
+        }
 
         function startGame() {
             const input = document.getElementById('word-input').value;
@@ -133,7 +156,8 @@
                 if (timeLeft <= 0) gameOver("挑戰結束！時間到！");
             }, 1000);
 
-            let spawnFreq = 1500 / (baseSpeed * 0.6);
+            // 優化產生頻率：比原本快 15%，並且隨難度調整
+            let spawnFreq = 1200 / (baseSpeed * 0.7); 
             spawnTimer = setInterval(() => {
                 if (gameActive) spawnBubble();
             }, spawnFreq);
@@ -143,6 +167,10 @@
             currentWordData = words[Math.floor(Math.random() * words.length)];
             currentIdx = 0;
             document.getElementById('chn-hint').innerText = currentWordData.chn ? `[ ${currentWordData.chn} ]` : "-";
+            
+            // 修正：更換單字時朗讀發音
+            speak(currentWordData.eng);
+            
             updateSlots();
         }
 
@@ -158,19 +186,27 @@
             const container = document.getElementById('game-container');
             const bubbleEl = document.createElement('div');
             
-            // 隨機決定產生的字母：50%機率產生當前需要的正確字母，50%隨機字母
-            const isCorrect = Math.random() > 0.5;
+            // 隨機決定產生的字母：提高了正確字母的機率到 60%
+            const isCorrect = Math.random() > 0.4;
             const letter = isCorrect ? currentWordData.eng[currentIdx] : "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[Math.floor(Math.random()*26)];
             
             const color = colors[Math.floor(Math.random() * colors.length)];
             bubbleEl.className = 'bubble';
             bubbleEl.innerText = letter;
+            
+            // 視覺設定
             bubbleEl.style.borderColor = color;
             bubbleEl.style.boxShadow = `0 0 20px ${color}`;
             bubbleEl.style.color = "#fff";
             
-            const maxX = Math.min(window.innerWidth, 500) - 150;
-            bubbleEl.style.left = Math.random() * maxX + 5 + 'px';
+            // 修正優化：X 位置生成範圍與寬度優化
+            // 容器最大寬度為 500px，泡泡寬 140px
+            // 確保球能在 0 ~ (500-140) 的範圍內隨機生成
+            const containerWidth = Math.min(window.innerWidth, 500);
+            const maxX = containerWidth - 150; // 考慮到 5px 的 border
+            
+            const randomX = Math.random() * maxX + 5; 
+            bubbleEl.style.left = randomX + 'px';
             bubbleEl.style.top = '-150px';
             
             const obj = { 
@@ -180,11 +216,12 @@
                 speed: baseSpeed + (Math.random() * 0.5) 
             };
 
+            // 點擊事件
             const handlePress = (e) => {
                 e.preventDefault();
                 checkHit(obj);
             };
-            bubbleEl.addEventListener('touchstart', handlePress);
+            bubbleEl.addEventListener('touchstart', handlePress, {passive: false});
             bubbleEl.addEventListener('mousedown', handlePress);
 
             container.appendChild(bubbleEl);
@@ -194,24 +231,25 @@
         function checkHit(obj) {
             if (!gameActive) return;
 
-            // 關鍵修正：點擊時才檢查是否符合當前順序的字母
             const targetLetter = currentWordData.eng[currentIdx];
 
             if (obj.letter === targetLetter) {
-                // 點對順序了
+                // 點對了
+                // 修正：點擊時讀出該字母
+                speak(obj.letter);
+                
                 score += 20;
                 currentIdx++;
                 obj.el.style.backgroundColor = "rgba(0, 255, 0, 0.4)";
                 
                 if (currentIdx === currentWordData.eng.length) {
                     score += 50;
-                    // 全部拼完，短暫延遲後換下一個字
                     setTimeout(nextWord, 300);
                 } else {
                     updateSlots();
                 }
             } else {
-                // 點錯字母或順序不對
+                // 點錯了
                 life--;
                 score = Math.max(0, score - 5);
                 triggerEffect('shake');
@@ -270,6 +308,8 @@
             clearInterval(gameTimer);
             cancelAnimationFrame(loopId);
             alert(`${msg}\n最終得分: ${score}`);
+            // 清除可能還在隊列中的語音
+            synth.cancel();
             location.reload();
         }
     </script>
