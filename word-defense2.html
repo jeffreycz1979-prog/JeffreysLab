@@ -3,15 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NewCore Word Defense: 堆疊拼字戰 終極版</title>
+    <title>NewCore Word Defense: 堆疊拼字戰 順序修正版</title>
     <style>
         :root { --neon-blue: #00f3ff; --neon-purple: #bc13fe; --neon-red: #ff0055; --bg: #050510; }
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--bg); color: white; font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif; overflow: hidden; display: flex; flex-direction: column; align-items: center; }
         
-        /* 遊戲舞台 */
         #game-container { position: relative; width: 100%; max-width: 500px; height: 100%; border: 4px solid #333; background: rgba(255,255,255,0.02); overflow: hidden; }
         
-        /* 字母泡泡 - 依照您的要求加大一倍且防止斷字 */
         .bubble { 
             position: absolute; width: 140px; height: 140px; 
             display: flex; align-items: center; justify-content: center; 
@@ -24,7 +22,6 @@
         }
         .bubble:active { transform: scale(0.9); }
 
-        /* 下方提示區 */
         #hint-panel { 
             position: absolute; bottom: 0; width: 100%; background: #000; 
             border-top: 3px solid var(--neon-blue); padding: 20px 0; z-index: 100;
@@ -33,17 +30,14 @@
         #chn-hint { font-size: 22px; color: #aaa; margin-bottom: 10px; font-weight: bold; }
         #eng-slots { font-size: 32px; color: var(--neon-blue); letter-spacing: 5px; font-weight: bold; }
 
-        /* HUD 儀表板 */
         #hud { position: absolute; top: 15px; width: 100%; display: flex; justify-content: space-around; font-size: 22px; font-weight: bold; z-index: 80; pointer-events: none; text-shadow: 0 0 10px #000; }
         
-        /* 設定畫面 */
         #setup { position: absolute; inset: 0; background: var(--bg); z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
         textarea { width: 90%; max-width: 450px; height: 120px; background: #000; color: var(--neon-blue); border: 1px solid #444; padding: 15px; margin: 15px 0; font-size: 18px; border-radius: 8px; }
         .config-group { display: flex; gap: 20px; margin-bottom: 30px; }
         select { padding: 12px; background: #000; color: white; border: 1px solid var(--neon-blue); font-size: 18px; border-radius: 5px; }
         button { padding: 18px 60px; background: var(--neon-blue); border: none; font-weight: bold; font-size: 24px; border-radius: 10px; cursor: pointer; color: #000; box-shadow: 0 0 25px var(--neon-blue); }
 
-        /* 震動特效 */
         @keyframes shake {
             0% { transform: translate(1px, 1px) rotate(0deg); }
             20% { transform: translate(-3px, 0px) rotate(-1deg); }
@@ -56,7 +50,7 @@
 
     <div id="setup">
         <h1 style="color:var(--neon-blue); font-size: 36px; margin-bottom: 10px;">NewCore Word Defense</h1>
-        <p style="color:#888;">堆疊拼字防禦戰</p>
+        <p style="color:#888;">堆疊拼字防禦戰 (順序強化版)</p>
         
         <p style="margin-top: 20px;">輸入「單字:中文」，用逗號分隔：</p>
         <textarea id="word-input">APPLE:蘋果, BANANA:香蕉, CAT:小貓, DOG:小狗, ELEPHANT:大象</textarea>
@@ -131,7 +125,6 @@
             nextWord();
             updateHUD();
             
-            // 啟動迴圈與計時器
             loopId = requestAnimationFrame(gameLoop);
             
             gameTimer = setInterval(() => {
@@ -140,7 +133,6 @@
                 if (timeLeft <= 0) gameOver("挑戰結束！時間到！");
             }, 1000);
 
-            // 產生速度隨難度調整
             let spawnFreq = 1500 / (baseSpeed * 0.6);
             spawnTimer = setInterval(() => {
                 if (gameActive) spawnBubble();
@@ -166,20 +158,17 @@
             const container = document.getElementById('game-container');
             const bubbleEl = document.createElement('div');
             
-            // 決定內容：提高正確字機率
-            const isCorrect = Math.random() > 0.4;
+            // 隨機決定產生的字母：50%機率產生當前需要的正確字母，50%隨機字母
+            const isCorrect = Math.random() > 0.5;
             const letter = isCorrect ? currentWordData.eng[currentIdx] : "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[Math.floor(Math.random()*26)];
             
             const color = colors[Math.floor(Math.random() * colors.length)];
             bubbleEl.className = 'bubble';
             bubbleEl.innerText = letter;
-            
-            // 視覺設定：隨機顏色，不代表正確性
             bubbleEl.style.borderColor = color;
             bubbleEl.style.boxShadow = `0 0 20px ${color}`;
             bubbleEl.style.color = "#fff";
             
-            // 隨機 X 位置 (考慮球寬度 140px)
             const maxX = Math.min(window.innerWidth, 500) - 150;
             bubbleEl.style.left = Math.random() * maxX + 5 + 'px';
             bubbleEl.style.top = '-150px';
@@ -188,11 +177,9 @@
                 el: bubbleEl, 
                 y: -150, 
                 letter: letter, 
-                isTarget: (letter === currentWordData.eng[currentIdx]),
                 speed: baseSpeed + (Math.random() * 0.5) 
             };
 
-            // 靈敏點擊事件
             const handlePress = (e) => {
                 e.preventDefault();
                 checkHit(obj);
@@ -207,18 +194,24 @@
         function checkHit(obj) {
             if (!gameActive) return;
 
-            if (obj.isTarget) {
-                // 點對了
+            // 關鍵修正：點擊時才檢查是否符合當前順序的字母
+            const targetLetter = currentWordData.eng[currentIdx];
+
+            if (obj.letter === targetLetter) {
+                // 點對順序了
                 score += 20;
                 currentIdx++;
                 obj.el.style.backgroundColor = "rgba(0, 255, 0, 0.4)";
+                
                 if (currentIdx === currentWordData.eng.length) {
                     score += 50;
+                    // 全部拼完，短暫延遲後換下一個字
                     setTimeout(nextWord, 300);
+                } else {
+                    updateSlots();
                 }
-                updateSlots();
             } else {
-                // 點錯了
+                // 點錯字母或順序不對
                 life--;
                 score = Math.max(0, score - 5);
                 triggerEffect('shake');
@@ -245,9 +238,9 @@
                 b.y += currentSpeed;
                 b.el.style.top = b.y + 'px';
 
-                // 漏接處罰：如果是正確字母沒點到，要扣分或扣血
+                // 漏接處罰：如果是當前「正確順序」的字母沒點到，扣血
                 if (b.y > window.innerHeight - 150) {
-                    if (b.isTarget) {
+                    if (b.letter === currentWordData.eng[currentIdx]) {
                         life--;
                         triggerEffect('shake');
                         updateHUD();
