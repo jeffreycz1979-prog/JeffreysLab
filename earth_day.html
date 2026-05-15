@@ -1,0 +1,486 @@
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --green-deep:#1e4d2b;--green-mid:#2d7a45;--green-light:#4aab67;
+  --green-pale:#e8f5ed;--green-faint:#f2faf5;
+  --bark:#6b3a1f;--bark-light:#a05c30;
+  --cream:#fdfaf5;--cream2:#f7f2e8;
+  --gold:#c8901a;--gold-light:#f5d98a;
+  --text-dark:#1a2e1f;--text-mid:#3d5c45;--text-muted:#7a9a82;
+  --red:#c0392b;--red-pale:#fdecea;
+  --shadow:0 2px 12px rgba(30,77,43,0.10);
+  --shadow-lg:0 6px 28px rgba(30,77,43,0.15);
+  --radius:14px;--radius-sm:10px;
+}
+body{font-family:'Nunito',var(--font-sans),sans-serif;background:transparent;color:var(--text-dark);}
+.app{padding:1.25rem 0 2rem;max-width:640px;margin:0 auto;}
+
+.top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;gap:0.75rem;}
+.chips{display:flex;gap:6px;flex-wrap:wrap;}
+.chip{font-size:12px;font-weight:700;padding:5px 14px;border-radius:99px;border:1.5px solid #c8dece;color:var(--text-muted);background:var(--cream);cursor:default;letter-spacing:0.01em;transition:all 0.2s;}
+.chip.active{background:var(--green-deep);border-color:var(--green-deep);color:#fff;}
+.chip.done-chip{background:var(--gold);border-color:var(--gold);color:#fff;}
+.reset-btn{font-size:12px;font-weight:700;padding:6px 14px;border-radius:99px;border:1.5px solid #c8dece;color:var(--text-mid);background:var(--cream);cursor:pointer;white-space:nowrap;transition:all 0.2s;}
+.reset-btn:hover{background:var(--green-pale);border-color:var(--green-mid);}
+
+.forest-bar{background:linear-gradient(135deg,#e8f5ed 0%,#f2faf5 100%);border-radius:var(--radius);border:1.5px solid #c8dece;padding:1rem 1.25rem 0.9rem;margin-bottom:1rem;position:relative;overflow:hidden;}
+.forest-bar::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%234aab67' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");pointer-events:none;}
+.forest-label{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.5rem;}
+.trees-wrap{display:flex;align-items:flex-end;gap:4px;min-height:52px;flex-wrap:wrap;}
+.tree{display:flex;flex-direction:column;align-items:center;animation:treeGrow 0.55s cubic-bezier(0.34,1.56,0.64,1) forwards;transform-origin:bottom;}
+@keyframes treeGrow{from{transform:scaleY(0) scaleX(0.6);opacity:0;}to{transform:scaleY(1) scaleX(1);opacity:1;}}
+.tree.celebrate{animation:treeBounce 0.45s ease;}
+@keyframes treeBounce{0%,100%{transform:scaleY(1);}40%{transform:scaleY(1.18) scaleX(0.88);}70%{transform:scaleY(0.95);}}
+
+.prog-row{display:flex;align-items:center;gap:0.75rem;margin-bottom:1.25rem;}
+.prog-track{flex:1;height:8px;background:#ddeee4;border-radius:99px;overflow:hidden;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--green-mid),var(--green-light));border-radius:99px;transition:width 0.45s cubic-bezier(0.34,1.2,0.64,1);}
+.prog-txt{font-size:12px;font-weight:700;color:var(--text-muted);white-space:nowrap;}
+
+.card-area{perspective:900px;margin-bottom:1.1rem;}
+.flashcard{width:100%;min-height:220px;position:relative;transform-style:preserve-3d;transition:transform 0.5s ease;cursor:pointer;}
+.flashcard.flipped{transform:rotateY(180deg);}
+.card-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:var(--radius);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.75rem 2rem;}
+.card-front{background:var(--cream);border:1.5px solid #d4e8da;box-shadow:var(--shadow-lg);}
+.card-back{transform:rotateY(180deg);background:var(--green-faint);border:1.5px solid #bcdec7;box-shadow:var(--shadow-lg);}
+.card-emoji{font-size:50px;margin-bottom:0.6rem;line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.1));}
+.card-word{font-size:30px;font-weight:800;color:var(--green-deep);margin-bottom:0.15rem;letter-spacing:-0.01em;}
+.card-pos{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.45rem;background:var(--green-pale);padding:2px 10px;border-radius:99px;}
+.card-zh{font-size:22px;font-weight:700;color:var(--green-mid);margin-bottom:0.5rem;}
+.card-sentence{font-size:14px;color:var(--text-mid);text-align:center;line-height:1.7;font-weight:600;}
+.card-hint{font-size:11px;color:var(--text-muted);margin-top:0.75rem;font-weight:600;}
+.speak-btn{margin-top:0.7rem;font-size:11px;font-weight:700;padding:5px 14px;border-radius:99px;border:1.5px solid #c8dece;background:white;color:var(--green-mid);cursor:pointer;transition:all 0.2s;}
+.speak-btn:hover{background:var(--green-pale);border-color:var(--green-mid);}
+
+.nav-row{display:flex;gap:0.75rem;justify-content:center;margin-bottom:0.75rem;}
+.nav-row button,.unlock-btn,.check-btn,button{
+  font-family:'Nunito',var(--font-sans),sans-serif;
+  font-weight:700;font-size:13px;padding:9px 22px;
+  border-radius:99px;border:1.5px solid #c8dece;
+  background:var(--cream);color:var(--green-deep);
+  cursor:pointer;transition:all 0.2s;
+}
+button:hover{background:var(--green-pale);border-color:var(--green-mid);}
+button:active{transform:scale(0.97);}
+button:disabled{opacity:0.35;cursor:default;}
+.btn-primary{background:var(--green-deep)!important;border-color:var(--green-deep)!important;color:#fff!important;}
+.btn-primary:hover{background:var(--green-mid)!important;}
+.unlock-btn{display:none;width:100%;margin-top:0.5rem;}
+
+.timer-bar{display:flex;align-items:center;gap:0.75rem;background:var(--cream2);border:1.5px solid #d4e8da;border-radius:var(--radius-sm);padding:0.65rem 1rem;margin-bottom:1rem;}
+.timer-display{font-size:22px;font-weight:800;color:var(--green-deep);min-width:56px;letter-spacing:0.02em;}
+.timer-display.warning{color:var(--gold);}
+.timer-display.danger{color:var(--red);}
+.timer-label{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;flex:1;}
+.timer-toggle{font-size:11px!important;padding:4px 12px!important;border-radius:99px!important;}
+.timer-controls{display:flex;gap:6px;align-items:center;}
+.timer-input{width:52px;font-size:13px;font-weight:700;font-family:'Nunito',sans-serif;border:1.5px solid #c8dece;border-radius:8px;padding:4px 8px;background:white;color:var(--green-deep);text-align:center;}
+.timer-input:focus{outline:none;border-color:var(--green-mid);}
+
+.section-title{font-size:13px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.75rem;}
+
+.match-wrap{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:1.1rem;align-items:start;}
+.match-col{display:flex;flex-direction:column;gap:0.45rem;}
+.match-item{
+  padding:0.7rem 1rem;border-radius:var(--radius-sm);
+  border:1.5px solid #d4e8da;background:var(--cream);
+  cursor:pointer;font-size:13px;font-weight:700;
+  color:var(--text-dark);text-align:center;
+  transition:all 0.18s;user-select:none;
+  box-shadow:0 1px 4px rgba(30,77,43,0.06);
+}
+.match-item:hover{border-color:var(--green-light);background:var(--green-pale);transform:translateY(-1px);box-shadow:0 3px 10px rgba(30,77,43,0.12);}
+.match-item.selected{border-color:var(--green-mid);background:var(--green-pale);color:var(--green-deep);box-shadow:0 0 0 3px rgba(45,122,69,0.15);}
+.match-item.correct{background:#e8f5ed;border-color:var(--green-mid);color:var(--green-deep);pointer-events:none;animation:popIn 0.35s ease;}
+.match-item.wrong{background:var(--red-pale);border-color:var(--red);color:var(--red);animation:shake 0.35s ease;}
+@keyframes popIn{0%{transform:scale(0.88);}55%{transform:scale(1.07);}100%{transform:scale(1);}}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
+
+.fill-list{display:flex;flex-direction:column;gap:0.65rem;margin-bottom:1rem;}
+.fill-item{
+  background:var(--cream);border:1.5px solid #d4e8da;
+  border-radius:var(--radius-sm);padding:0.85rem 1.1rem;
+  font-size:14px;font-weight:600;color:var(--text-dark);
+  line-height:1.75;box-shadow:0 1px 4px rgba(30,77,43,0.06);
+}
+.fill-item input{
+  border:none;border-bottom:2px solid #bcdec7;background:transparent;
+  font-size:14px;font-weight:700;font-family:'Nunito',sans-serif;
+  color:var(--text-dark);width:110px;outline:none;padding:0 3px;
+  transition:border-color 0.2s;
+}
+.fill-item input:focus{border-color:var(--green-mid);}
+.fill-item input.correct{border-color:var(--green-mid);color:var(--green-deep);}
+.fill-item input.wrong{border-color:var(--red);color:var(--red);}
+.fill-hint{font-size:11px;font-weight:700;color:var(--text-muted);margin-top:4px;letter-spacing:0.01em;}
+.fill-score-bar{text-align:center;font-size:13px;font-weight:700;color:var(--text-mid);margin-bottom:0.75rem;min-height:22px;}
+.check-btn{width:100%;margin-bottom:0.5rem;}
+.btn-row{display:flex;gap:0.5rem;margin-top:0.5rem;}
+.btn-row button{flex:1;}
+
+.done-card{text-align:center;padding:2.5rem 1.5rem;background:linear-gradient(135deg,#e8f5ed,#f2faf5);border-radius:var(--radius);border:1.5px solid #bcdec7;box-shadow:var(--shadow-lg);}
+.done-emoji{font-size:44px;margin-bottom:0.75rem;}
+.done-score{font-size:52px;font-weight:800;color:var(--green-deep);line-height:1;}
+.done-label{font-size:15px;font-weight:700;color:var(--text-mid);margin-top:0.5rem;line-height:1.5;}
+.done-actions{display:flex;gap:0.75rem;justify-content:center;margin-top:1.75rem;flex-wrap:wrap;}
+</style>
+
+<h2 class="sr-only">Earth Day English vocabulary app: flashcards, matching game, and fill-in-the-blank with speech and sound effects</h2>
+
+<div class="app">
+  <div class="top-bar">
+    <div class="chips">
+      <span class="chip active" id="chip0">🌱 Flashcards</span>
+      <span class="chip" id="chip1">🎯 Match</span>
+      <span class="chip" id="chip2">✏️ Fill in</span>
+      <span class="chip done-chip" id="chip3" style="display:none">🌳 Done!</span>
+    </div>
+    <button class="reset-btn" onclick="resetAll()">↺ Reset</button>
+  </div>
+
+  <div class="forest-bar">
+    <div class="forest-label">Your Earth Day forest</div>
+    <div class="trees-wrap" id="trees"></div>
+  </div>
+
+  <div class="prog-row" id="progRow">
+    <div class="prog-track"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+    <span class="prog-txt" id="progTxt">0 / 10</span>
+  </div>
+
+  <!-- FLASHCARD PHASE -->
+  <div id="phaseFlash">
+    <div class="card-area">
+      <div class="flashcard" id="flashcard" onclick="flipCard()">
+        <div class="card-face card-front">
+          <div class="card-emoji" id="cEmoji">🌍</div>
+          <div class="card-word" id="cWord">earth</div>
+          <div class="card-pos" id="cPos">noun</div>
+          <div class="card-hint">Tap card to see Chinese</div>
+          <button class="speak-btn" onclick="event.stopPropagation();speakWord()">🔊 Listen</button>
+        </div>
+        <div class="card-face card-back">
+          <div class="card-emoji" id="cEmojiB">🌍</div>
+          <div class="card-word" id="cWordB">earth</div>
+          <div class="card-zh" id="cZh">地球</div>
+          <div class="card-sentence" id="cSent">We live on the earth.</div>
+          <button class="speak-btn" onclick="event.stopPropagation();speakSentence()">🔊 Full sentence</button>
+        </div>
+      </div>
+    </div>
+    <div class="nav-row">
+      <button id="btnPrev" onclick="prevCard()">← Back</button>
+      <button id="btnNext" onclick="nextCard()">Next →</button>
+    </div>
+    <button class="unlock-btn btn-primary" id="btnMatch" onclick="goMatch()">Start Matching Game →</button>
+  </div>
+
+  <!-- MATCH PHASE -->
+  <div id="phaseMatch" style="display:none;">
+    <div class="timer-bar" id="matchTimerBar">
+      <div>
+        <div class="timer-label">Timer</div>
+        <div class="timer-display" id="matchTimerDisplay">0:00</div>
+      </div>
+      <div style="flex:1"></div>
+      <div class="timer-controls">
+        <button class="timer-toggle" id="matchModeBtn" onclick="toggleTimerMode('match')">⏱ Count up</button>
+        <input class="timer-input" type="number" id="matchLimitInput" value="60" min="10" max="999" style="display:none;" title="Countdown seconds">
+        <span id="matchLimitLabel" style="display:none;font-size:11px;font-weight:700;color:var(--text-muted);">sec</span>
+        <button onclick="resetTimer('match')">↺</button>
+      </div>
+    </div>
+    <div class="section-title">Match each word to its meaning</div>
+    <div class="match-wrap">
+      <div class="match-col" id="colLeft"></div>
+      <div class="match-col" id="colRight"></div>
+    </div>
+  </div>
+
+  <!-- FILL PHASE -->
+  <div id="phaseFill" style="display:none;">
+    <div class="timer-bar" id="fillTimerBar">
+      <div>
+        <div class="timer-label">Timer</div>
+        <div class="timer-display" id="fillTimerDisplay">0:00</div>
+      </div>
+      <div style="flex:1"></div>
+      <div class="timer-controls">
+        <button class="timer-toggle" id="fillModeBtn" onclick="toggleTimerMode('fill')">⏱ Count up</button>
+        <input class="timer-input" type="number" id="fillLimitInput" value="90" min="10" max="999" style="display:none;" title="Countdown seconds">
+        <span id="fillLimitLabel" style="display:none;font-size:11px;font-weight:700;color:var(--text-muted);">sec</span>
+        <button onclick="resetTimer('fill')">↺</button>
+      </div>
+    </div>
+    <div class="section-title">Fill in the blank</div>
+    <div class="fill-list" id="fillList"></div>
+    <div class="fill-score-bar" id="fillScore"></div>
+    <button class="check-btn btn-primary" onclick="checkFill()">Check answers ✓</button>
+    <div class="btn-row">
+      <button onclick="goFill()">↺ Try again</button>
+      <button onclick="goMatch()">← Back to matching</button>
+    </div>
+  </div>
+
+  <!-- DONE PHASE -->
+  <div id="phaseDone" style="display:none;">
+    <div class="done-card">
+      <div class="done-emoji">🌍🌳🌿</div>
+      <div class="done-score" id="doneScore">100%</div>
+      <div class="done-label" id="doneLabel">Amazing! You grew a whole forest!<br>Great work protecting the earth! 🌱</div>
+      <div class="done-actions">
+        <button class="btn-primary" onclick="resetAll()">↺ Start over</button>
+        <button onclick="goMatch()">Practice matching again</button>
+        <button onclick="goFill()">Practice fill-in again</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const VOCAB=[
+  {word:'earth',zh:'地球',pos:'noun',emoji:'🌍',sentence:'We live on the earth.'},
+  {word:'recycle',zh:'回收',pos:'verb',emoji:'♻️',sentence:'Please recycle your bottles and cans.'},
+  {word:'reuse',zh:'重複使用',pos:'verb',emoji:'🔄',sentence:'We can reuse shopping bags every day.'},
+  {word:'reduce',zh:'減少',pos:'verb',emoji:'⬇️',sentence:'Let\'s reduce the amount of trash we make.'},
+  {word:'planet',zh:'星球',pos:'noun',emoji:'🪐',sentence:'Earth is the only planet we call home.'},
+  {word:'forest',zh:'森林',pos:'noun',emoji:'🌲',sentence:'Many animals live in the forest.'},
+  {word:'ocean',zh:'海洋',pos:'noun',emoji:'🌊',sentence:'The ocean is home to millions of fish.'},
+  {word:'pollution',zh:'污染',pos:'noun',emoji:'🏭',sentence:'Pollution makes the air and water dirty.'},
+  {word:'clean',zh:'乾淨的',pos:'adj',emoji:'✨',sentence:'We want to keep our earth clean.'},
+  {word:'protect',zh:'保護',pos:'verb',emoji:'🛡️',sentence:'We must protect the earth for the future.'},
+];
+const FILLS=[
+  {t:'Please _____ your bottles and cans.',a:'recycle',h:'recycle / protect / reduce'},
+  {t:'The _____ is home to many fish and animals.',a:'ocean',h:'forest / ocean / planet'},
+  {t:'We should _____ the amount of trash we make.',a:'reduce',h:'reduce / reuse / clean'},
+  {t:'We must _____ the earth for the future.',a:'protect',h:'protect / recycle / reuse'},
+  {t:'Earth is the only _____ we call home.',a:'planet',h:'forest / planet / ocean'},
+  {t:'Many animals live in the _____.',a:'forest',h:'forest / ocean / earth'},
+  {t:'We can _____ shopping bags to reduce waste.',a:'reuse',h:'reuse / recycle / protect'},
+  {t:'_____ makes the air and water dirty.',a:'pollution',h:'pollution / forest / planet'},
+  {t:'We want to keep our earth _____.',a:'clean',h:'clean / reuse / reduce'},
+  {t:'We live on the _____ and must take care of it.',a:'earth',h:'earth / ocean / forest'},
+];
+
+let cur=0,learned=new Set();
+let lSel=null,rSel=null,matched=[];
+let timers={match:{mode:'up',val:0,limit:60,iv:null},fill:{mode:'up',val:0,limit:90,iv:null}};
+
+const AudioCtx=window.AudioContext||window.webkitAudioContext;
+let actx=null;
+function getCtx(){if(!actx)try{actx=new AudioCtx();}catch(e){}return actx;}
+function beep(f,d,type,g,delay){
+  try{const c=getCtx();if(!c)return;const o=c.createOscillator(),gn=c.createGain();o.connect(gn);gn.connect(c.destination);o.frequency.value=f;o.type=type||'sine';gn.gain.setValueAtTime(0,c.currentTime+(delay||0));gn.gain.linearRampToValueAtTime(g||0.15,c.currentTime+(delay||0)+0.01);gn.gain.exponentialRampToValueAtTime(0.001,c.currentTime+(delay||0)+d);o.start(c.currentTime+(delay||0));o.stop(c.currentTime+(delay||0)+d+0.06);}catch(e){}
+}
+function playCorrect(){beep(523,0.1,'sine',0.13);beep(659,0.1,'sine',0.13,0.1);beep(784,0.15,'sine',0.13,0.2);}
+function playWrong(){beep(200,0.22,'sawtooth',0.1);}
+function playUnlock(){[523,587,659,698,784,880,1047].forEach((f,i)=>beep(f,0.09,'sine',0.12,i*0.07));}
+function playFlip(){beep(900,0.05,'sine',0.07);}
+
+function speak(txt,rate){
+  if(!window.speechSynthesis)return;
+  window.speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(txt);
+  u.lang='en-US';u.rate=rate||0.85;u.pitch=1.05;
+  window.speechSynthesis.speak(u);
+}
+function speakWord(){speak(VOCAB[cur].word,0.78);}
+function speakSentence(){speak(VOCAB[cur].sentence,0.82);}
+
+function makeTree(i){
+  const hs=[36,40,34,42,36,40,34,42,36,40];const h=hs[i%10];const w=Math.round(h*0.62);
+  const cols=['#1e4d2b','#2d7a45','#27500A','#3B6D11','#173404'];const c=cols[i%5];
+  return `<div class="tree" style="animation-delay:${i*0.04}s" id="tr${i}"><svg width="${w}" height="${h}" viewBox="0 0 24 34"><polygon points="12,1 22,18 16,18 20,26 4,26 8,18 2,18" fill="${c}"/><rect x="10" y="26" width="4" height="8" fill="#6b3a1f"/></svg></div>`;
+}
+function renderForest(){
+  const w=document.getElementById('trees');w.innerHTML='';
+  learned.forEach(i=>w.innerHTML+=makeTree(i));
+}
+function updateProg(){
+  const p=Math.round(learned.size/VOCAB.length*100);
+  document.getElementById('progFill').style.width=p+'%';
+  document.getElementById('progTxt').textContent=learned.size+' / '+VOCAB.length;
+}
+function setChips(n){
+  ['chip0','chip1','chip2'].forEach((id,i)=>{document.getElementById(id).classList.toggle('active',i===n);});
+  document.getElementById('chip3').style.display=n===3?'':'none';
+}
+
+function showCard(i){
+  cur=i;
+  document.getElementById('flashcard').classList.remove('flipped');
+  const v=VOCAB[i];
+  ['cEmoji','cEmojiB'].forEach(id=>document.getElementById(id).textContent=v.emoji);
+  ['cWord','cWordB'].forEach(id=>document.getElementById(id).textContent=v.word);
+  document.getElementById('cPos').textContent=v.pos;
+  document.getElementById('cZh').textContent=v.zh;
+  document.getElementById('cSent').textContent=v.sentence;
+  learned.add(i);renderForest();updateProg();
+  document.getElementById('btnPrev').disabled=i===0;
+  const all=learned.size===VOCAB.length;
+  document.getElementById('btnNext').style.display=all?'none':'';
+  document.getElementById('btnMatch').style.display=all?'block':'none';
+  setTimeout(()=>speak(v.word,0.78),180);
+}
+function flipCard(){
+  const fc=document.getElementById('flashcard');
+  const nf=!fc.classList.contains('flipped');
+  fc.classList.toggle('flipped',nf);playFlip();
+  if(nf)setTimeout(()=>speak(VOCAB[cur].sentence,0.82),320);
+}
+function nextCard(){if(cur<VOCAB.length-1)showCard(cur+1);}
+function prevCard(){if(cur>0)showCard(cur-1);}
+
+function fmtTime(s){const m=Math.floor(Math.abs(s)/60);const sec=Math.abs(s)%60;return (s<0?'-':'')+m+':'+(sec<10?'0':'')+sec;}
+
+function startTimer(key){
+  stopTimer(key);
+  const t=timers[key];
+  if(t.mode==='up'){t.val=0;}
+  else{t.val=t.limit;}
+  renderTimer(key);
+  t.iv=setInterval(()=>{
+    if(t.mode==='up'){t.val++;}
+    else{t.val--;if(t.val<0)t.val=0;}
+    renderTimer(key);
+  },1000);
+}
+function stopTimer(key){clearInterval(timers[key].iv);timers[key].iv=null;}
+function resetTimer(key){stopTimer(key);timers[key].val=timers[key].mode==='up'?0:timers[key].limit;renderTimer(key);startTimer(key);}
+function renderTimer(key){
+  const t=timers[key];const el=document.getElementById(key+'TimerDisplay');
+  el.textContent=fmtTime(t.val);
+  el.className='timer-display';
+  if(t.mode==='down'){
+    if(t.val<=10)el.classList.add('danger');
+    else if(t.val<=20)el.classList.add('warning');
+  }
+}
+function toggleTimerMode(key){
+  const t=timers[key];
+  t.mode=t.mode==='up'?'down':'up';
+  const btn=document.getElementById(key+'ModeBtn');
+  const inp=document.getElementById(key+'LimitInput');
+  const lbl=document.getElementById(key+'LimitLabel');
+  if(t.mode==='down'){
+    btn.textContent='⏳ Countdown';
+    inp.style.display='';lbl.style.display='';
+    t.limit=parseInt(inp.value)||60;
+  } else {
+    btn.textContent='⏱ Count up';
+    inp.style.display='none';lbl.style.display='none';
+  }
+  resetTimer(key);
+}
+
+function shuffle(a){return[...a].sort(()=>Math.random()-0.5);}
+let leftItems=[],rightItems=[];
+
+function goMatch(){
+  stopTimer('match');stopTimer('fill');
+  ['phaseFlash','phaseFill','phaseDone'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('phaseMatch').style.display='';
+  document.getElementById('progRow').style.display='none';
+  setChips(1);buildMatch();startTimer('match');
+}
+function buildMatch(){
+  matched=[];lSel=null;rSel=null;
+  leftItems=shuffle(VOCAB.map((v,i)=>({...v,idx:i})));
+  rightItems=shuffle(VOCAB.map((v,i)=>({...v,idx:i})));
+  renderMatch();
+}
+function renderMatch(){
+  const lc=document.getElementById('colLeft'),rc=document.getElementById('colRight');
+  lc.innerHTML='';rc.innerHTML='';
+  leftItems.forEach(v=>{
+    const el=document.createElement('div');
+    el.className='match-item'+(matched.includes(v.idx)?' correct':'');
+    el.textContent=matched.includes(v.idx)?'✓ '+v.word:v.word;
+    el.dataset.idx=v.idx;
+    if(!matched.includes(v.idx))el.onclick=()=>selectM('L',v.idx,el);
+    lc.appendChild(el);
+  });
+  rightItems.forEach(v=>{
+    const el=document.createElement('div');
+    el.className='match-item'+(matched.includes(v.idx)?' correct':'');
+    el.textContent=matched.includes(v.idx)?'✓ '+v.zh:v.zh;
+    el.dataset.idx=v.idx;
+    if(!matched.includes(v.idx))el.onclick=()=>selectM('R',v.idx,el);
+    rc.appendChild(el);
+  });
+}
+function selectM(side,idx,el){
+  if(matched.includes(idx))return;
+  if(side==='L'){if(lSel)lSel.el.classList.remove('selected');lSel={idx,el};el.classList.add('selected');speak(VOCAB[idx].word,0.78);}
+  else{if(rSel)rSel.el.classList.remove('selected');rSel={idx,el};el.classList.add('selected');}
+  if(lSel&&rSel){
+    if(lSel.idx===rSel.idx){
+      lSel.el.classList.remove('selected');lSel.el.classList.add('correct');lSel.el.textContent='✓ '+VOCAB[lSel.idx].word;
+      rSel.el.classList.remove('selected');rSel.el.classList.add('correct');rSel.el.textContent='✓ '+VOCAB[rSel.idx].zh;
+      lSel.el.onclick=null;rSel.el.onclick=null;
+      matched.push(lSel.idx);playCorrect();lSel=null;rSel=null;
+      if(matched.length===VOCAB.length){stopTimer('match');setTimeout(goFill,600);}
+    } else {
+      const le=lSel.el,re=rSel.el;
+      le.classList.add('wrong');re.classList.add('wrong');playWrong();
+      setTimeout(()=>{le.classList.remove('wrong','selected');re.classList.remove('wrong','selected');lSel=null;rSel=null;},500);
+    }
+  }
+}
+
+function goFill(){
+  stopTimer('fill');
+  ['phaseFlash','phaseMatch','phaseDone'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('phaseFill').style.display='';
+  document.getElementById('progRow').style.display='none';
+  setChips(2);buildFill();startTimer('fill');
+}
+function buildFill(){
+  document.getElementById('fillScore').textContent='';
+  const list=document.getElementById('fillList');list.innerHTML='';
+  FILLS.forEach((q,i)=>{
+    const parts=q.t.split('_____');
+    const d=document.createElement('div');d.className='fill-item';
+    d.innerHTML=parts[0]+`<input type="text" id="fi${i}" placeholder="?" autocomplete="off" autocorrect="off" spellcheck="false">`+parts[1]+`<div class="fill-hint">${q.h}</div>`;
+    list.appendChild(d);
+  });
+}
+function checkFill(){
+  let score=0;
+  FILLS.forEach((q,i)=>{
+    const inp=document.getElementById('fi'+i);
+    inp.classList.remove('correct','wrong');
+    if(inp.value.trim().toLowerCase()===q.a){inp.classList.add('correct');score++;}
+    else inp.classList.add('wrong');
+  });
+  if(score===FILLS.length){
+    document.getElementById('fillScore').textContent='Perfect! All correct! 🎉';
+    playUnlock();stopTimer('fill');setTimeout(goDone,700);
+  } else {
+    document.getElementById('fillScore').textContent=score+' / '+FILLS.length+' correct — keep trying!';
+    playWrong();
+  }
+}
+function goDone(){
+  ['phaseFlash','phaseMatch','phaseFill'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('phaseDone').style.display='';
+  setChips(3);
+  document.querySelectorAll('.tree').forEach(t=>t.classList.add('celebrate'));
+}
+function resetAll(){
+  stopTimer('match');stopTimer('fill');
+  cur=0;learned=new Set();matched=[];lSel=null;rSel=null;
+  ['phaseMatch','phaseFill','phaseDone'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('phaseFlash').style.display='';
+  document.getElementById('progRow').style.display='';
+  setChips(0);renderForest();updateProg();showCard(0);
+}
+
+document.getElementById('matchLimitInput').oninput=function(){timers.match.limit=parseInt(this.value)||60;};
+document.getElementById('fillLimitInput').oninput=function(){timers.fill.limit=parseInt(this.value)||90;};
+
+showCard(0);
+</script>
