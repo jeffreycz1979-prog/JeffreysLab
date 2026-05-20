@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>課室安靜挑戰 🎱</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Noto+Sans+TC:wght@400;700;900&display=swap');
+
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#0a0a14;--panel:rgba(255,255,255,0.07);--border:rgba(255,255,255,0.13);
+  --accent:#7c6fff;--green:#4ade80;--yellow:#facc15;--red:#f87171;
+  --text:#f0f0ff;--muted:rgba(240,240,255,0.45);
+}
+body{background:var(--bg);color:var(--text);font-family:'Nunito','Noto Sans TC',sans-serif;height:100vh;overflow:hidden;display:flex;flex-direction:column;}
+
+#topbar{display:flex;align-items:center;gap:14px;padding:10px 18px;background:rgba(10,10,20,0.92);border-bottom:1px solid var(--border);flex-shrink:0;z-index:20;flex-wrap:wrap;}
+#title{font-size:1.05rem;font-weight:900;white-space:nowrap;}
+#title span{color:var(--accent);}
+#status-pill{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--border);border-radius:99px;padding:5px 14px;font-size:0.9rem;font-weight:700;}
+#fill-wrap{flex:1;max-width:240px;height:12px;background:rgba(255,255,255,0.1);border-radius:99px;overflow:hidden;}
+#fill-bar{height:100%;width:0%;border-radius:99px;background:var(--green);transition:width 0.15s,background 0.3s;}
+#fill-pct{font-size:0.78rem;color:var(--muted);white-space:nowrap;}
+#silent-badge{display:flex;flex-direction:column;align-items:center;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:4px 13px;min-width:84px;}
+#silent-lbl{font-size:0.58rem;color:var(--muted);letter-spacing:1px;text-transform:uppercase;}
+#silent-val{font-size:1.35rem;font-weight:900;font-variant-numeric:tabular-nums;line-height:1.2;color:var(--green);transition:color 0.3s;}
+#silent-goal{font-size:0.58rem;color:var(--muted);}
+.btn{padding:7px 18px;border-radius:99px;border:none;font-family:inherit;font-size:0.85rem;font-weight:700;cursor:pointer;transition:transform 0.1s,opacity 0.2s;}
+.btn:hover{transform:scale(1.05);}
+#start-btn{background:var(--accent);color:#fff;}
+#start-btn.active{background:#ef4444;}
+#picker-btn{background:rgba(255,255,255,0.1);color:var(--text);border:1px solid var(--border);}
+.ctrl{display:flex;align-items:center;gap:7px;font-size:0.76rem;color:var(--muted);}
+input[type=range]{-webkit-appearance:none;width:85px;height:6px;border-radius:99px;background:rgba(255,255,255,0.15);outline:none;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);cursor:pointer;}
+select.ctrl-sel{background:var(--panel);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:3px 7px;font-size:0.76rem;font-family:inherit;cursor:pointer;}
+select.ctrl-sel option{background:#1e1b4b;}
+
+#canvas-wrap{flex:1;position:relative;overflow:hidden;}
+canvas{display:block;width:100%;height:100%;}
+
+.overlay{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.35s;}
+.overlay.show{opacity:1;pointer-events:all;}
+.overlay-bg{position:absolute;inset:0;background:rgba(0,0,0,0.65);backdrop-filter:blur(8px);}
+.card{position:relative;border-radius:28px;padding:36px 52px;text-align:center;animation:popIn 0.4s cubic-bezier(.34,1.56,.64,1) both;}
+@keyframes popIn{from{transform:scale(0.6);opacity:0;}to{transform:scale(1);opacity:1;}}
+#fail-overlay .card{background:linear-gradient(135deg,#2d0a0a,#1a0000);border:2px solid var(--red);box-shadow:0 0 80px rgba(248,113,113,0.35);}
+#fail-emoji{font-size:3.2rem;margin-bottom:6px;}
+#fail-title{font-size:1.9rem;font-weight:900;color:var(--red);}
+#fail-sub{font-size:0.9rem;color:var(--muted);margin-top:6px;}
+#reward-overlay .card{background:linear-gradient(135deg,#0a1f0d,#05110a);border:2px solid var(--green);box-shadow:0 0 80px rgba(74,222,128,0.3);}
+#reward-emoji{font-size:3.2rem;margin-bottom:6px;}
+#reward-title{font-size:1.9rem;font-weight:900;color:var(--green);}
+#reward-sub{font-size:0.9rem;color:var(--muted);margin-top:6px;}
+.overlay-btns{display:flex;gap:12px;justify-content:center;margin-top:22px;}
+.o-btn{padding:9px 26px;border-radius:99px;border:none;font-family:inherit;font-size:0.95rem;font-weight:700;cursor:pointer;}
+.o-btn.primary{background:var(--accent);color:#fff;}
+.o-btn.secondary{background:rgba(255,255,255,0.1);color:var(--text);}
+.o-btn:hover{opacity:0.85;}
+
+#alert-flash{position:fixed;inset:0;pointer-events:none;z-index:40;opacity:0;background:rgba(248,113,113,0.2);transition:opacity 0.1s;}
+#alert-flash.flash{opacity:1;}
+
+#picker-panel{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.3s;}
+#picker-panel.show{opacity:1;pointer-events:all;}
+#picker-bg{position:absolute;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(10px);}
+#picker-card{position:relative;background:#12122a;border:1px solid var(--border);border-radius:24px;padding:26px;width:min(500px,92vw);max-height:88vh;overflow-y:auto;display:flex;flex-direction:column;gap:14px;}
+#picker-card h2{font-size:1.15rem;font-weight:900;}
+#picker-card h2 span{color:var(--accent);}
+#names-area{width:100%;height:110px;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:inherit;font-size:0.88rem;padding:10px;resize:vertical;outline:none;}
+#names-area:focus{border-color:var(--accent);}
+#pick-result{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:16px;padding:18px;text-align:center;min-height:88px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;}
+#pick-name{font-size:1.9rem;font-weight:900;color:var(--accent);letter-spacing:-0.5px;transition:all 0.12s;min-height:2.2rem;}
+#pick-sub{font-size:0.76rem;color:var(--muted);}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+#pick-history{display:flex;flex-wrap:wrap;gap:6px;min-height:22px;}
+.chip{background:rgba(124,111,255,0.18);border:1px solid rgba(124,111,255,0.3);border-radius:99px;padding:2px 11px;font-size:0.76rem;color:var(--accent);}
+#confetti-canvas{position:absolute;inset:0;width:100%;height:100%;border-radius:24px;pointer-events:none;}
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <div id="title">🎱 <span>課室安靜挑戰</span></div>
+  <div id="status-pill"><span id="status-icon">⚪</span><span id="status-text">等待開始</span></div>
+  <div id="fill-wrap"><div id="fill-bar"></div></div>
+  <span id="fill-pct">0%</span>
+  <div id="silent-badge">
+    <div id="silent-lbl">安靜計時</div>
+    <div id="silent-val">0:00</div>
+    <div id="silent-goal">目標 <span id="goal-disp">10</span>s</div>
+  </div>
+  <div class="ctrl"><label>靈敏</label><input type="range" id="sens" min="0.5" max="5" step="0.1" value="2"></div>
+  <div class="ctrl">
+    <label>目標</label>
+    <select class="ctrl-sel" id="goal-sel">
+      <option value="5">5秒</option>
+      <option value="10" selected>10秒</option>
+      <option value="15">15秒</option>
+      <option value="20">20秒</option>
+      <option value="30">30秒</option>
+    </select>
+  </div>
+  <button class="btn" id="picker-btn">🎲 抽學生</button>
+  <button class="btn" id="start-btn">🎙 開始</button>
+</div>
+
+<div id="canvas-wrap"><canvas id="c"></canvas></div>
+<div id="alert-flash"></div>
+
+<div class="overlay" id="fail-overlay">
+  <div class="overlay-bg"></div>
+  <div class="card">
+    <div id="fail-emoji">🌋</div>
+    <div id="fail-title">太吵了，失敗！</div>
+    <div id="fail-sub">球填滿畫面了，大家要更安靜！</div>
+    <div class="overlay-btns"><button class="o-btn primary" id="fail-retry">🔄 再試一次</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="reward-overlay">
+  <div class="overlay-bg"></div>
+  <div class="card">
+    <div id="reward-emoji">🏆</div>
+    <div id="reward-title">太棒了！</div>
+    <div id="reward-sub">全班保持安靜 <span id="reward-secs">10</span> 秒，獲得獎勵！</div>
+    <div class="overlay-btns"><button class="o-btn primary" id="reward-cont">🎉 繼續挑戰</button></div>
+  </div>
+</div>
+
+<div id="picker-panel">
+  <div id="picker-bg"></div>
+  <div id="picker-card">
+    <canvas id="confetti-canvas"></canvas>
+    <h2>🎲 隨機學生選取器</h2>
+    <div>
+      <div style="font-size:0.76rem;color:var(--muted);margin-bottom:6px;">學生名單（每行一個名字）</div>
+      <textarea id="names-area" placeholder="小明&#10;小華&#10;小美&#10;Jason&#10;Amy"></textarea>
+    </div>
+    <div id="pick-result">
+      <div id="pick-name">—</div>
+      <div id="pick-sub">按下「抽籤」開始</div>
+    </div>
+    <div class="row">
+      <button class="o-btn primary" id="do-pick" style="flex:1">🎲 抽籤！</button>
+      <button class="o-btn secondary" id="clear-history">清除記錄</button>
+    </div>
+    <div>
+      <div style="font-size:0.7rem;color:var(--muted);margin-bottom:6px;">已抽記錄</div>
+      <div id="pick-history"></div>
+    </div>
+    <button class="o-btn secondary" id="picker-close" style="width:100%;margin-top:4px;">關閉</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+//  CANVAS SETUP
+// ══════════════════════════════════════════
+const canvas = document.getElementById('c');
+const ctx    = canvas.getContext('2d');
+const wrap   = document.getElementById('canvas-wrap');
+function resize(){ canvas.width = wrap.clientWidth; canvas.height = wrap.clientHeight; }
+resize();
+window.addEventListener('resize', resize);
+
+const PALETTE = [
+  '#ff6b6b','#ff922b','#ffd43b','#69db7c','#4dabf7',
+  '#da77f2','#f783ac','#a9e34b','#63e6be','#ff8787',
+  '#74c0fc','#e599f7','#ffe066','#40c057','#339af0',
+  '#fa5252','#fd7e14','#94d82d','#20c997','#7950f2',
+];
+
+// ══════════════════════════════════════════
+//  BALL PHYSICS  — with stacking collisions
+// ══════════════════════════════════════════
+let balls  = [];
+let volume = 0;
+
+const BASE_R       = 18;   // starting radius
+const MAX_R        = 46;   // max radius when very loud
+const GRAVITY      = 280;  // gentle gravity so balls have time to stack
+const DAMPING      = 0.55; // bounce energy retention
+const FILL_THRESH  = 0.62; // circle packing ~0.9 of hexagonal, 0.62 ≈ visually full
+
+function spawnBall(){
+  const W = canvas.width, H = canvas.height;
+  const r = BASE_R + Math.random() * 8;
+  balls.push({
+    x  : r + Math.random() * (W - r * 2),
+    y  : -r - Math.random() * 40,   // start just above canvas top
+    vx : (Math.random() - 0.5) * 6,
+    vy : 0,
+    r,
+    targetR : r,
+    landed  : false,               // track if ball has reached floor yet
+    color   : PALETTE[Math.floor(Math.random() * PALETTE.length)],
+    shrinking: false,
+  });
+}
+
+function spawnIdleBall(){
+  // idle balls start already on screen, spread across bottom half
+  const W = canvas.width, H = canvas.height;
+  const r = BASE_R + Math.random() * 6;
+  balls.push({
+    x  : r + Math.random() * (W - r * 2),
+    y  : H * 0.5 + Math.random() * H * 0.4,
+    vx : (Math.random() - 0.5) * 3,
+    vy : (Math.random() - 0.5) * 2,
+    r,
+    targetR : r,
+    landed  : true,
+    color   : PALETTE[Math.floor(Math.random() * PALETTE.length)],
+    shrinking: false,
+  });
+}
+
+// Ball–ball collision response (position correction + velocity impulse)
+function resolveBallCollisions(){
+  const n = balls.length;
+  for(let i = 0; i < n; i++){
+    for(let j = i+1; j < n; j++){
+      const a = balls[i], b = balls[j];
+      const dx = b.x - a.x, dy = b.y - a.y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      const minD = a.r + b.r;
+      if(dist < minD && dist > 0.001){
+        // push apart so they don't overlap
+        const overlap = (minD - dist) * 0.52;
+        const nx = dx / dist, ny = dy / dist;
+        a.x -= nx * overlap;  a.y -= ny * overlap;
+        b.x += nx * overlap;  b.y += ny * overlap;
+
+        // exchange velocity along normal (equal mass)
+        const dvx = b.vx - a.vx, dvy = b.vy - a.vy;
+        const dot  = dvx * nx + dvy * ny;
+        if(dot < 0){   // approaching
+          const impulse = dot * 0.6;
+          a.vx += impulse * nx;  a.vy += impulse * ny;
+          b.vx -= impulse * nx;  b.vy -= impulse * ny;
+        }
+      }
+    }
+  }
+}
+
+function updateBalls(dt, vol){
+  const W = canvas.width, H = canvas.height;
+
+  balls.forEach(b => {
+    // resize
+    if(b.shrinking){
+      b.targetR = Math.max(0, b.targetR - 8 * dt);
+    } else {
+      b.targetR = Math.min(MAX_R, b.targetR + vol * 20 * dt);
+    }
+    b.r += (b.targetR - b.r) * 0.12;
+
+    // gravity
+    b.vy += GRAVITY * dt;
+
+    // move
+    b.x += b.vx * dt * 60;
+    b.y += b.vy * dt * 60;
+
+    // floor bounce
+    if(b.y + b.r > H){
+      b.y  = H - b.r;
+      b.vy = -Math.abs(b.vy) * DAMPING;
+      b.vx *= 0.88;
+      // tiny random nudge so balls don't freeze in place
+      if(Math.abs(b.vy) < 1) b.vy = -1;
+    }
+    // ceiling
+    if(b.y - b.r < 0){ b.y = b.r; b.vy = Math.abs(b.vy) * 0.4; }
+    // walls
+    if(b.x - b.r < 0){ b.x = b.r; b.vx =  Math.abs(b.vx) * 0.7; }
+    if(b.x + b.r > W){ b.x = W - b.r; b.vx = -Math.abs(b.vx) * 0.7; }
+  });
+
+  // resolve collisions (2 iterations for stability)
+  resolveBallCollisions();
+  resolveBallCollisions();
+
+  // remove fully shrunk balls
+  balls = balls.filter(b => b.r > 0.8);
+}
+
+// Fill = area of balls visibly inside canvas / canvas area
+// Balls above the top edge are excluded to prevent instant fail on spawn
+function fillRatio(){
+  if(!balls.length) return 0;
+  const W = canvas.width, H = canvas.height;
+  const screenArea = W * H;
+  let area = 0;
+  for(const b of balls){
+    if(b.y + b.r > 0 && b.y - b.r < H && b.x + b.r > 0 && b.x - b.r < W){
+      area += Math.PI * b.r * b.r;
+    }
+  }
+  return Math.min(1, area / screenArea);
+}
+
+function drawBalls(){
+  const fill = fillRatio();
+
+  // background tint darkens red as fill rises
+  const ri = Math.floor(10 + fill * 65);
+  const gi = Math.floor(10 + fill *  5);
+  const bi = Math.floor(20 + fill *  8);
+  const bg = ctx.createRadialGradient(
+    canvas.width*.5, canvas.height*.5, 0,
+    canvas.width*.5, canvas.height*.5, Math.max(canvas.width, canvas.height)*.85
+  );
+  bg.addColorStop(0, `rgb(${ri},${gi},${bi})`);
+  bg.addColorStop(1, 'rgb(10,10,20)');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  balls.forEach(bl => {
+    if(bl.r < 0.5) return;
+    ctx.save();
+    ctx.shadowColor = bl.color;
+    ctx.shadowBlur  = 10 + volume * 18;
+
+    const g = ctx.createRadialGradient(
+      bl.x - bl.r*.3, bl.y - bl.r*.3, bl.r*.05,
+      bl.x, bl.y, bl.r
+    );
+    g.addColorStop(0, lighten(bl.color, .45));
+    g.addColorStop(.55, bl.color);
+    g.addColorStop(1,  darken(bl.color, .4));
+
+    ctx.beginPath();
+    ctx.arc(bl.x, bl.y, Math.max(.5, bl.r), 0, Math.PI*2);
+    ctx.fillStyle = g;
+    ctx.fill();
+
+    // shine
+    ctx.beginPath();
+    ctx.arc(bl.x - bl.r*.27, bl.y - bl.r*.27, bl.r*.25, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(255,255,255,0.28)';
+    ctx.fill();
+    ctx.restore();
+  });
+}
+
+function lighten(hex,a){const[r,g,b]=hr(hex);return`rgb(${mn(r+a*255)},${mn(g+a*255)},${mn(b+a*255)})`;}
+function darken(hex,a) {const[r,g,b]=hr(hex);return`rgb(${mx(r-a*255)},${mx(g-a*255)},${mx(b-a*255)})`;}
+function hr(h){const n=parseInt(h.slice(1),16);return[(n>>16)&255,(n>>8)&255,n&255];}
+function mn(v){return Math.min(255,v|0);} function mx(v){return Math.max(0,v|0);}
+
+// ══════════════════════════════════════════
+//  AUDIO
+// ══════════════════════════════════════════
+let audioCtx,analyser,dataArray,micStream;
+async function startMic(){
+  audioCtx = new(window.AudioContext||window.webkitAudioContext)();
+  micStream = await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+  const src = audioCtx.createMediaStreamSource(micStream);
+  analyser  = audioCtx.createAnalyser();
+  analyser.fftSize = 256;
+  analyser.smoothingTimeConstant = 0.8;
+  src.connect(analyser);
+  dataArray = new Uint8Array(analyser.frequencyBinCount);
+}
+function getVolume(){
+  if(!analyser) return 0;
+  analyser.getByteFrequencyData(dataArray);
+  const avg  = dataArray.reduce((a,v)=>a+v,0) / dataArray.length;
+  const sens = parseFloat(document.getElementById('sens').value);
+  return Math.min(1, (avg/128) * (sens/2));
+}
+
+// ══════════════════════════════════════════
+//  GAME STATE
+// ══════════════════════════════════════════
+let running=false, gameState='idle';
+let silentTime=0, goalSecs=10;
+let noiseAccum=0, rewardCount=0;
+let lastTS=0, flashTimer=0;
+
+const QUIET_VOL  = 0.12;
+const LOUD_VOL   = 0.45;
+const SPAWN_RATE = 0.5;   // noise units needed to spawn one ball
+
+const statusIcon   = document.getElementById('status-icon');
+const statusText   = document.getElementById('status-text');
+const fillBar      = document.getElementById('fill-bar');
+const fillPct      = document.getElementById('fill-pct');
+const silentVal    = document.getElementById('silent-val');
+const alertFlash   = document.getElementById('alert-flash');
+const failOverlay  = document.getElementById('fail-overlay');
+const rewardOverlay= document.getElementById('reward-overlay');
+const startBtn     = document.getElementById('start-btn');
+
+document.getElementById('goal-sel').addEventListener('change', e=>{
+  goalSecs = parseInt(e.target.value);
+  document.getElementById('goal-disp').textContent = goalSecs;
+  silentTime = 0;
+});
+
+function updateUI(vol, fill, silent){
+  const fp = Math.min(100, fill * 100);
+  fillBar.style.width = fp + '%';
+  fillBar.style.background = fp<45 ? 'var(--green)' : fp<75 ? 'var(--yellow)' : 'var(--red)';
+  fillPct.textContent = Math.round(fp) + '%';
+
+  if(!running){ statusIcon.textContent='⚪'; statusText.textContent='等待開始'; }
+  else if(vol < QUIET_VOL){ statusIcon.textContent='🟢'; statusText.textContent='非常安靜 👍'; }
+  else if(vol < LOUD_VOL) { statusIcon.textContent='🟡'; statusText.textContent='有點聲音'; }
+  else { statusIcon.textContent='🔴'; statusText.textContent='太吵了！'; triggerFlash(); }
+
+  const s=Math.floor(silent), mm=Math.floor(s/60), ss=s%60;
+  silentVal.textContent = `${mm}:${ss.toString().padStart(2,'0')}`;
+  silentVal.style.color = silent > goalSecs*.5 ? 'var(--green)' : silent > 0 ? 'var(--yellow)' : 'var(--muted)';
+}
+
+function triggerFlash(){
+  alertFlash.classList.add('flash');
+  clearTimeout(flashTimer);
+  flashTimer = setTimeout(()=>alertFlash.classList.remove('flash'), 200);
+}
+
+function showFail(){ gameState='fail'; failOverlay.classList.add('show'); }
+
+function showReward(){
+  gameState = 'win'; rewardCount++;
+  document.getElementById('reward-secs').textContent = goalSecs;
+  const em=['🏆','🌟','🎉','🥳','✨','🎊','👑','🦁','🎖️'];
+  document.getElementById('reward-emoji').textContent = em[(rewardCount-1)%em.length];
+  rewardOverlay.classList.add('show');
+}
+
+function resetGame(){
+  balls=[]; silentTime=0; noiseAccum=0;
+  gameState = running ? 'playing' : 'idle';
+  failOverlay.classList.remove('show');
+  rewardOverlay.classList.remove('show');
+  updateUI(0, 0, 0);
+}
+
+document.getElementById('fail-retry').addEventListener('click', resetGame);
+document.getElementById('reward-cont').addEventListener('click', resetGame);
+
+// ══════════════════════════════════════════
+//  MAIN LOOP
+// ══════════════════════════════════════════
+function loop(ts){
+  requestAnimationFrame(loop);
+  const dt = Math.min((ts - lastTS)/1000, 0.05);
+  lastTS = ts;
+
+  if(!running){
+    // idle: gentle balls already on screen
+    if(balls.length < 6) spawnIdleBall();
+    balls.forEach(b=>{ b.shrinking=false; b.targetR = BASE_R + 4; });
+    updateBalls(dt, 0.04);
+    drawBalls();
+    updateUI(0, 0, 0);
+    return;
+  }
+
+  if(gameState !== 'playing') return;
+
+  volume = getVolume();
+  const fill = fillRatio();
+
+  if(fill >= FILL_THRESH){ showFail(); return; }
+
+  // accumulate noise → spawn balls
+  noiseAccum += volume * dt * 3.5;
+  while(noiseAccum >= SPAWN_RATE){ spawnBall(); noiseAccum -= SPAWN_RATE; }
+
+  if(volume < QUIET_VOL){
+    silentTime += dt;
+    balls.forEach(b => b.shrinking = true);
+    if(silentTime >= goalSecs){ showReward(); return; }
+  } else {
+    silentTime = Math.max(0, silentTime - dt * 2);
+    balls.forEach(b => b.shrinking = false);
+  }
+
+  updateBalls(dt, volume);
+  drawBalls();
+  updateUI(volume, fill, silentTime);
+}
+
+lastTS = performance.now();
+requestAnimationFrame(loop);
+
+// ── start / stop ──
+startBtn.addEventListener('click', async()=>{
+  if(running){
+    running = false;
+    if(micStream) micStream.getTracks().forEach(t=>t.stop());
+    startBtn.textContent='🎙 開始'; startBtn.classList.remove('active');
+    gameState='idle'; balls=[];
+  } else {
+    try{
+      await startMic();
+      running=true; gameState='playing';
+      silentTime=0; noiseAccum=0; balls=[];
+      startBtn.textContent='⏹ 停止'; startBtn.classList.add('active');
+    } catch(e){ alert('無法存取麥克風！請允許瀏覽器麥克風權限。'); }
+  }
+});
+
+// ══════════════════════════════════════════
+//  STUDENT PICKER
+// ══════════════════════════════════════════
+const pickerPanel = document.getElementById('picker-panel');
+const namesArea   = document.getElementById('names-area');
+const doPickBtn   = document.getElementById('do-pick');
+const pickName    = document.getElementById('pick-name');
+const pickSub     = document.getElementById('pick-sub');
+const pickHistory = document.getElementById('pick-history');
+let pickedHistory=[], pickAnim=null;
+
+document.getElementById('picker-btn').addEventListener('click',()=>pickerPanel.classList.add('show'));
+document.getElementById('picker-close').addEventListener('click',()=>pickerPanel.classList.remove('show'));
+document.getElementById('picker-bg').addEventListener('click',()=>pickerPanel.classList.remove('show'));
+
+function getNames(){ return namesArea.value.split('\n').map(s=>s.trim()).filter(Boolean); }
+
+doPickBtn.addEventListener('click',()=>{
+  const names=getNames();
+  if(!names.length){ pickSub.textContent='請先輸入學生名單！'; return; }
+  doPickBtn.disabled=true;
+  let count=0; const total=20;
+  clearInterval(pickAnim);
+  pickAnim=setInterval(()=>{
+    count++;
+    const rand=names[Math.floor(Math.random()*names.length)];
+    pickName.textContent=rand;
+    pickName.style.transform=`scale(${0.88+Math.random()*0.24})`;
+    pickName.style.opacity=String(0.5+Math.random()*0.5);
+    if(count>=total){
+      clearInterval(pickAnim);
+      const unpicked=names.filter(n=>!pickedHistory.includes(n));
+      const pool=unpicked.length?unpicked:names;
+      const chosen=pool[Math.floor(Math.random()*pool.length)];
+      pickName.textContent=chosen;
+      pickName.style.transform='scale(1.12)';
+      pickName.style.opacity='1';
+      pickSub.textContent='🎉 就是你了！';
+      pickedHistory.push(chosen);
+      renderHistory(); launchConfetti();
+      doPickBtn.disabled=false;
+    }
+  },55);
+});
+
+function renderHistory(){
+  pickHistory.innerHTML='';
+  pickedHistory.slice().reverse().forEach(n=>{
+    const c=document.createElement('div');
+    c.className='chip'; c.textContent=n;
+    pickHistory.appendChild(c);
+  });
+}
+document.getElementById('clear-history').addEventListener('click',()=>{
+  pickedHistory=[]; renderHistory(); pickSub.textContent='記錄已清除';
+});
+
+// confetti
+const cc=document.getElementById('confetti-canvas');
+const ccx=cc.getContext('2d');
+let confettiParts=[];
+function launchConfetti(){
+  const card=document.getElementById('picker-card');
+  cc.width=card.clientWidth; cc.height=card.clientHeight;
+  confettiParts=Array.from({length:70},()=>({
+    x:cc.width*.5, y:cc.height*.42,
+    vx:(Math.random()-.5)*14, vy:-8-Math.random()*10,
+    r:3+Math.random()*5,
+    color:PALETTE[Math.floor(Math.random()*PALETTE.length)],
+    alpha:1,
+  }));
+  animConfetti();
+}
+function animConfetti(){
+  if(!confettiParts.length) return;
+  ccx.clearRect(0,0,cc.width,cc.height);
+  confettiParts.forEach(p=>{
+    p.vy+=0.45; p.x+=p.vx; p.y+=p.vy; p.alpha-=0.016;
+    ccx.globalAlpha=Math.max(0,p.alpha);
+    ccx.fillStyle=p.color;
+    ccx.beginPath(); ccx.arc(p.x,p.y,p.r,0,Math.PI*2); ccx.fill();
+  });
+  ccx.globalAlpha=1;
+  confettiParts=confettiParts.filter(p=>p.alpha>0);
+  if(confettiParts.length) requestAnimationFrame(animConfetti);
+  else ccx.clearRect(0,0,cc.width,cc.height);
+}
+</script>
+</body>
+</html>
