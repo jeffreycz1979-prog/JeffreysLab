@@ -95,6 +95,27 @@
   .footer-links { display: flex; gap: 1.5rem; }
   .footer-links a { font-size: 0.75rem; color: rgba(255,255,255,0.3); text-decoration: none; transition: color 0.2s; }
   .footer-links a:hover { color: var(--yellow); }
+
+  /* ── LANGUAGE SWITCHER ── */
+  .lang-switch {
+    display: flex; align-items: center; gap: 2px;
+    background: rgba(26,58,26,0.08);
+    border: 1.5px solid var(--border);
+    border-radius: 100px; padding: 3px;
+    margin-left: 0.5rem;
+  }
+  .lang-btn {
+    padding: 4px 12px; border-radius: 100px; border: none;
+    background: transparent; cursor: pointer;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem; font-weight: 700;
+    color: var(--text-muted); letter-spacing: 0.05em;
+    transition: all 0.2s;
+  }
+  .lang-btn.active {
+    background: var(--green-dark); color: var(--yellow);
+  }
+  .lang-btn:hover:not(.active) { color: var(--green-dark); }
   .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.6s, transform 0.6s; }
   .reveal.visible { opacity: 1; transform: none; }
   @media (max-width: 900px) {
@@ -120,244 +141,250 @@
 
 <nav>
   <a href="index.html" class="nav-logo">New<span class="dot">Core</span> · Jeffrey's Lab</a>
-  <a href="index.html" class="nav-back">← 回官網首頁</a>
+  <div style="display:flex;align-items:center;gap:0.75rem;">
+    <a href="index.html" class="nav-back" data-zh="← 回官網首頁" data-en="← Back to Home">← 回官網首頁</a>
+    <div class="lang-switch">
+      <button class="lang-btn active" id="btnZH" onclick="setLang('zh')">中</button>
+      <button class="lang-btn" id="btnEN" onclick="setLang('en')">EN</button>
+    </div>
+  </div>
 </nav>
 
 <div class="hero">
   <div>
     <div class="hero-tag">🧪 Jeffrey's Lab · Teaching Tools</div>
-    <h1 class="hero-title">讓每堂課<br>都變得<em>不一樣</em></h1>
+    <h1 class="hero-title" data-zh="讓每堂課<br>都變得<em>不一樣</em>" data-en="Make Every Lesson<br><em>Unforgettable</em>">讓每堂課<br>都變得<em>不一樣</em></h1>
     <p class="hero-sub">
-      精選教學工具，涵蓋課堂互動、字彙練習、出題列印，幫助老師輕鬆備課，讓學生愛上學習。<br>
+      <span data-zh="精選教學工具，涵蓋課堂互動、字彙練習、出題列印，幫助老師輕鬆備課，讓學生愛上學習。" data-en="Curated teaching tools for classroom interaction, vocabulary practice, and printable worksheets — helping teachers prep faster and students learn better.">精選教學工具，涵蓋課堂互動、字彙練習、出題列印，幫助老師輕鬆備課，讓學生愛上學習。</span><br>
       <span style="font-size:0.85rem;color:#bbb;">All tools work directly in the browser — no installation needed.</span>
     </p>
     <div class="hero-stats-row">
-      <div class="h-stat"><span class="h-stat-num">22+</span><span class="h-stat-label">工具總數</span></div>
-      <div class="h-stat"><span class="h-stat-num">AI</span><span class="h-stat-label">Gemini 驅動</span></div>
-      <div class="h-stat"><span class="h-stat-num">零</span><span class="h-stat-label">安裝需求</span></div>
+      <div class="h-stat"><span class="h-stat-num">22+</span><span class="h-stat-label" data-zh="工具總數" data-en="Total Tools">工具總數</span></div>
+      <div class="h-stat"><span class="h-stat-num">AI</span><span class="h-stat-label" data-zh="Gemini 驅動" data-en="Gemini Powered">Gemini 驅動</span></div>
+      <div class="h-stat"><span class="h-stat-num">零</span><span class="h-stat-label" data-zh="安裝需求" data-en="Install Needed">安裝需求</span></div>
     </div>
   </div>
   <div class="hero-visual">
     <div class="tool-preview-grid">
-      <div class="tp-card"><span class="tp-emoji">🎙️</span><div class="tp-name">語音點名</div><div class="tp-cat">教務系統</div></div>
-      <div class="tp-card"><span class="tp-emoji">📝</span><div class="tp-name">AI 出題系統</div><div class="tp-cat">AI 出題</div></div>
-      <div class="tp-card"><span class="tp-emoji">🧩</span><div class="tp-name">AI 配對挑戰</div><div class="tp-cat">AI 出題</div></div>
-      <div class="tp-card"><span class="tp-emoji">🛡️</span><div class="tp-name">單字防禦戰</div><div class="tp-cat">字彙遊戲</div></div>
-      <div class="tp-card"><span class="tp-emoji">🃏</span><div class="tp-name">閃示卡</div><div class="tp-cat">字彙練習</div></div>
-      <div class="tp-card"><span class="tp-emoji">🖼️</span><div class="tp-name">視覺圖卡偵探</div><div class="tp-cat">視覺教學</div></div>
+      <div class="tp-card"><span class="tp-emoji">🎙️</span><div class="tp-name" data-zh="語音點名" data-en="Voice Attendance">語音點名</div><div class="tp-cat" data-zh="教務系統" data-en="Admin System">教務系統</div></div>
+      <div class="tp-card"><span class="tp-emoji">📝</span><div class="tp-name" data-zh="AI 出題系統" data-en="AI Quiz Generator">AI 出題系統</div><div class="tp-cat" data-zh="AI 出題" data-en="AI Worksheets">AI 出題</div></div>
+      <div class="tp-card"><span class="tp-emoji">🧩</span><div class="tp-name" data-zh="AI 配對挑戰" data-en="AI Match Challenge">AI 配對挑戰</div><div class="tp-cat" data-zh="AI 出題" data-en="AI Worksheets">AI 出題</div></div>
+      <div class="tp-card"><span class="tp-emoji">🛡️</span><div class="tp-name" data-zh="單字防禦戰" data-en="Word Defense">單字防禦戰</div><div class="tp-cat" data-zh="字彙遊戲" data-en="Vocab Games">字彙遊戲</div></div>
+      <div class="tp-card"><span class="tp-emoji">🃏</span><div class="tp-name" data-zh="閃示卡" data-en="Flashcards">閃示卡</div><div class="tp-cat" data-zh="字彙練習" data-en="Vocab Practice">字彙練習</div></div>
+      <div class="tp-card"><span class="tp-emoji">🖼️</span><div class="tp-name" data-zh="視覺圖卡偵探" data-en="Visual Detective">視覺圖卡偵探</div><div class="tp-cat" data-zh="視覺教學" data-en="Visual Learning">視覺教學</div></div>
     </div>
   </div>
 </div>
 
 <div class="filter-bar reveal">
-  <button class="filter-btn active" data-cat="all">全部 All</button>
-  <button class="filter-btn" data-cat="classroom">課堂互動</button>
-  <button class="filter-btn" data-cat="vocab">字彙練習</button>
-  <button class="filter-btn" data-cat="ai">AI 出題</button>
-  <button class="filter-btn" data-cat="admin">教務管理</button>
-  <button class="filter-btn" data-cat="visual">視覺教學</button>
-  <button class="filter-btn" data-cat="games">🕹️ 教學小遊戲</button>
+  <button class="filter-btn active" data-cat="all" data-zh="全部 All" data-en="All Tools">全部 All</button>
+  <button class="filter-btn" data-cat="classroom" data-zh="課堂互動" data-en="Classroom">課堂互動</button>
+  <button class="filter-btn" data-cat="vocab" data-zh="字彙練習" data-en="Vocabulary">字彙練習</button>
+  <button class="filter-btn" data-cat="ai" data-zh="AI 出題" data-en="AI Worksheets">AI 出題</button>
+  <button class="filter-btn" data-cat="admin" data-zh="教務管理" data-en="Admin">教務管理</button>
+  <button class="filter-btn" data-cat="visual" data-zh="視覺教學" data-en="Visual">視覺教學</button>
+  <button class="filter-btn" data-cat="games" data-zh="🕹️ 教學小遊戲" data-en="🕹️ Mini-Games">🕹️ 教學小遊戲</button>
 </div>
 
 <div class="tools-container">
 
-  <div class="category-label reveal" data-cat="admin">📋 教務管理 School Administration</div>
+  <div class="category-label reveal" data-cat="admin" data-zh="📋 教務管理 School Administration" data-en="📋 School Administration">📋 教務管理 School Administration</div>
   <div class="tools-grid reveal">
     <a href="https://jeffreycz1979-prog.github.io/newcore-attendance/" target="_blank" class="tool-card featured" data-cat="admin">
       <div class="tool-icon-wrap icon-bg-dark">🎙️</div>
-      <div class="tool-tag">核心系統 · AI 驅動</div>
-      <div class="tool-name">NewCore 教務系統<br>語音點名 · 成績管理</div>
-      <div class="tool-desc">整合語音點名（Gemini AI 辨識）、出缺席總表、智慧成績單、考試成績輸入。一套系統解決補習班完整教務需求，支援 PDF 成績單與 Email 自動發送。</div>
-      <div class="tool-footer"><span class="tool-badge">● 需授權使用</span><span style="font-size:0.8rem;color:rgba(255,255,255,0.4);">開啟系統 →</span></div>
+      <div class="tool-tag" data-zh="核心系統 · AI 驅動" data-en="Core System · AI Powered">核心系統 · AI 驅動</div>
+      <div class="tool-name" data-zh="NewCore 教務系統<br>語音點名 · 成績管理" data-en="NewCore School System<br>Voice Attendance · Grade Management">NewCore 教務系統<br>語音點名 · 成績管理</div>
+      <div class="tool-desc" data-zh="整合語音點名（Gemini AI 辨識）、出缺席總表、智慧成績單、考試成績輸入。一套系統解決補習班完整教務需求，支援 PDF 成績單與 Email 自動發送。" data-en="Integrates voice attendance (Gemini AI), attendance overview, smart report cards, and exam scores. A complete school admin system with PDF reports and automated parent emails.">整合語音點名（Gemini AI 辨識）、出缺席總表、智慧成績單、考試成績輸入。一套系統解決補習班完整教務需求，支援 PDF 成績單與 Email 自動發送。</div>
+      <div class="tool-footer"><span class="tool-badge">● 需授權使用</span><span style="font-size:0.8rem;color:rgba(255,255,255,0.4);" data-zh="開啟系統 →" data-en="Open System →">開啟系統 →</span></div>
     </a>
     <a href="https://jeffreycz1979-prog.github.io/newcore-pro/admin.html" target="_blank" class="tool-card" data-cat="admin">
       <div class="tool-icon-wrap icon-bg-green">🏗️</div>
-      <div class="tool-tag">教務管理</div>
-      <div class="tool-name">NewCore 建班系統</div>
-      <div class="tool-desc">設定班級名稱、課程規格、上課日、授課老師，自動計算總堂次與預計結束日期，生成完整課程表。</div>
+      <div class="tool-tag" data-zh="教務管理" data-en="School Admin">教務管理</div>
+      <div class="tool-name" data-zh="NewCore 建班系統" data-en="NewCore Class Builder">NewCore 建班系統</div>
+      <div class="tool-desc" data-zh="設定班級名稱、課程規格、上課日、授課老師，自動計算總堂次與預計結束日期，生成完整課程表。" data-en="Set class name, schedule specs, class days, and teachers. Auto-calculates total sessions and end date, and generates a complete timetable.">設定班級名稱、課程規格、上課日、授課老師，自動計算總堂次與預計結束日期，生成完整課程表。</div>
       <div class="tool-footer"><span class="tool-badge" style="background:rgba(108,99,255,0.15);color:#9d97ff;">● Standard / Pro 方案</span></div>
     </a>
   </div>
 
-  <div class="category-label reveal" data-cat="classroom">🎮 課堂互動 Classroom Engagement</div>
+  <div class="category-label reveal" data-cat="classroom" data-zh="🎮 課堂互動 Classroom Engagement" data-en="🎮 Classroom Engagement">🎮 課堂互動 Classroom Engagement</div>
   <div class="tools-grid reveal">
     <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/tool_package.html" target="_blank" class="tool-card" data-cat="classroom">
       <div class="tool-icon-wrap icon-bg-orange">🎰</div>
-      <div class="tool-tag">課堂互動</div>
-      <div class="tool-name">獎勵樂透大富翁</div>
-      <div class="tool-desc">大富翁格式的獎勵抽籤系統，擲骰子或隨機選格，給學生驚喜感。支援加分、扣分、神秘獎勵等多種格子設定。</div>
-      <div class="tool-footer"><span class="tool-badge free">● 免費使用</span></div>
+      <div class="tool-tag" data-zh="課堂互動" data-en="Classroom">課堂互動</div>
+      <div class="tool-name" data-zh="獎勵樂透大富翁" data-en="Reward Lottery Board">獎勵樂透大富翁</div>
+      <div class="tool-desc" data-zh="大富翁格式的獎勵抽籤系統，擲骰子或隨機選格，給學生驚喜感。支援加分、扣分、神秘獎勵等多種格子設定。" data-en="A Monopoly-style reward lottery. Roll dice or land on random squares for student surprises. Supports bonus points, deductions, and mystery rewards.">大富翁格式的獎勵抽籤系統，擲骰子或隨機選格，給學生驚喜感。支援加分、扣分、神秘獎勵等多種格子設定。</div>
+      <div class="tool-footer"><span class="tool-badge free" data-zh="● 免費使用" data-en="● Free to Use">● 免費使用</span></div>
     </a>
     <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/tool_package.html" target="_blank" class="tool-card" data-cat="classroom">
       <div class="tool-icon-wrap icon-bg-mint">🎯</div>
-      <div class="tool-tag">課堂互動</div>
-      <div class="tool-name">分數紀錄器</div>
-      <div class="tool-desc">個人或分組計分，支援動物頭像、即時排行榜。點擊學生名字即可加分或扣分，分數傳送整合教務系統。</div>
+      <div class="tool-tag" data-zh="課堂互動" data-en="Classroom">課堂互動</div>
+      <div class="tool-name" data-zh="分數紀錄器" data-en="Score Tracker">分數紀錄器</div>
+      <div class="tool-desc" data-zh="個人或分組計分，支援動物頭像、即時排行榜。點擊學生名字即可加分或扣分，分數傳送整合教務系統。" data-en="Individual or team scoring with animal avatars and live leaderboard. Tap a student's name to add or deduct points, integrated with the grade system.">個人或分組計分，支援動物頭像、即時排行榜。點擊學生名字即可加分或扣分，分數傳送整合教務系統。</div>
       <div class="tool-footer"><span class="tool-badge free">● 免費使用</span></div>
     </a>
     <a href="timer.html" target="_blank" class="tool-card" data-cat="classroom">
       <div class="tool-icon-wrap icon-bg-pink">⏱️</div>
-      <div class="tool-tag">課堂互動 · 多組計時</div>
-      <div class="tool-name">多組計時器</div>
-      <div class="tool-desc">倒數＋正數雙模式，最多 10 組同時進行。全螢幕投影、角落浮動、視覺警示、音效、隨機點名，一頁搞定所有計時需求。</div>
-      <div class="tool-footer"><span class="tool-badge free">● 免費使用</span></div>
+      <div class="tool-tag" data-zh="課堂互動 · 多組計時" data-en="Classroom · Multi-Timer">課堂互動 · 多組計時</div>
+      <div class="tool-name" data-zh="多組計時器" data-en="Multi-Group Timer">多組計時器</div>
+      <div class="tool-desc" data-zh="倒數＋正數雙模式，最多 10 組同時進行。全螢幕投影、角落浮動、視覺警示、音效、隨機點名，一頁搞定所有計時需求。" data-en="Countdown + count-up dual mode, up to 10 groups at once. Full-screen projection, floating corner display, visual alerts, sound effects, and random name picker.">倒數＋正數雙模式，最多 10 組同時進行。全螢幕投影、角落浮動、視覺警示、音效、隨機點名，一頁搞定所有計時需求。</div>
+      <div class="tool-footer"><span class="tool-badge free" data-zh="● 免費使用" data-en="● Free to Use">● 免費使用</span></div>
     </a>
     <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/bouncy_classroom.html" target="_blank" class="tool-card" data-cat="classroom">
       <div class="tool-icon-wrap icon-bg-dark">🎱</div>
-      <div class="tool-tag">課堂管理 · 噪音控制</div>
-      <div class="tool-name">課室安靜挑戰</div>
-      <div class="tool-desc">麥克風即時偵測課室音量，越吵球越多越大，填滿畫面就宣告失敗！安靜夠久自動倒數計時並彈出獎勵。內建學生隨機抽籤器，帶動課堂秩序管理。</div>
-      <div class="tool-footer"><span class="tool-badge free">● 免費使用</span></div>
+      <div class="tool-tag" data-zh="課堂管理 · 噪音控制" data-en="Classroom Management · Noise Control">課堂管理 · 噪音控制</div>
+      <div class="tool-name" data-zh="課室安靜挑戰" data-en="Quiet Classroom Challenge">課室安靜挑戰</div>
+      <div class="tool-desc" data-zh="麥克風即時偵測課室音量，越吵球越多越大，填滿畫面就宣告失敗！安靜夠久自動倒數計時並彈出獎勵。內建學生隨機抽籤器，帶動課堂秩序管理。" data-en="Mic detects classroom noise in real time — the louder it gets, the more balls appear. Fill the screen and it's game over! Stay quiet long enough to earn a reward. Includes a random student picker.">麥克風即時偵測課室音量，越吵球越多越大，填滿畫面就宣告失敗！安靜夠久自動倒數計時並彈出獎勵。內建學生隨機抽籤器，帶動課堂秩序管理。</div>
+      <div class="tool-footer"><span class="tool-badge free" data-zh="● 免費使用" data-en="● Free to Use">● 免費使用</span></div>
     </a>
   </div>
 
-  <div class="category-label reveal" data-cat="vocab">📚 字彙練習 Vocabulary Practice</div>
+  <div class="category-label reveal" data-cat="vocab" data-zh="📚 字彙練習 Vocabulary Practice" data-en="📚 Vocabulary Practice">📚 字彙練習 Vocabulary Practice</div>
   <div class="tools-grid reveal">
     <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/flashcard_match.html" target="_blank" class="tool-card" data-cat="vocab">
       <div class="tool-icon-wrap icon-bg-purple">🃏</div>
-      <div class="tool-tag">字彙練習 · AI 圖片 · 語音</div>
-      <div class="tool-name">閃示卡 ＋ 配對記憶遊戲</div>
-      <div class="tool-desc">自訂字彙庫，Gemini AI 自動生成配圖閃示卡。點擊卡片自動朗讀英文發音，幫助學生建立字音連結。支援閃示卡練習、測驗模式，以及翻牌配對遊戲，支援計時與分數。</div>
-      <div class="tool-footer"><span class="tool-badge ai">● AI 驅動 · 語音輸出</span></div>
+      <div class="tool-tag" data-zh="字彙練習 · AI 圖片 · 語音" data-en="Vocab · AI Images · Audio">字彙練習 · AI 圖片 · 語音</div>
+      <div class="tool-name" data-zh="閃示卡 ＋ 配對記憶遊戲" data-en="Flashcards + Memory Match Game">閃示卡 ＋ 配對記憶遊戲</div>
+      <div class="tool-desc" data-zh="自訂字彙庫，Gemini AI 自動生成配圖閃示卡。點擊卡片自動朗讀英文發音，幫助學生建立字音連結。支援閃示卡練習、測驗模式，以及翻牌配對遊戲，支援計時與分數。" data-en="Build your own word list and let Gemini AI generate illustrated flashcards. Tap a card to hear the pronunciation. Supports flashcard practice, quiz mode, and a flip-card memory match game with timer and scoring.">自訂字彙庫，Gemini AI 自動生成配圖閃示卡。點擊卡片自動朗讀英文發音，幫助學生建立字音連結。支援閃示卡練習、測驗模式，以及翻牌配對遊戲，支援計時與分數。</div>
+      <div class="tool-footer"><span class="tool-badge ai" data-zh="● AI 驅動 · 語音輸出" data-en="● AI Powered · Audio Output">● AI 驅動 · 語音輸出</span></div>
     </a>
     <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/tool_package.html" target="_blank" class="tool-card" data-cat="vocab">
       <div class="tool-icon-wrap icon-bg-yellow">🔤</div>
-      <div class="tool-tag">字彙練習</div>
-      <div class="tool-name">重組單字遊戲</div>
-      <div class="tool-desc">打亂字母讓學生重組，支援點擊、拖拉等互動模式。答對即時反饋，可連結分數紀錄器，自動傳送答題分數至教務系統。</div>
+      <div class="tool-tag" data-zh="字彙練習" data-en="Vocabulary Practice">字彙練習</div>
+      <div class="tool-name" data-zh="重組單字遊戲" data-en="Word Unscramble">重組單字遊戲</div>
+      <div class="tool-desc" data-zh="打亂字母讓學生重組，支援點擊、拖拉等互動模式。答對即時反饋，可連結分數紀錄器，自動傳送答題分數至教務系統。" data-en="Scramble letters for students to reassemble. Supports click and drag interaction. Instant feedback on correct answers, with score integration for the grade system.">打亂字母讓學生重組，支援點擊、拖拉等互動模式。答對即時反饋，可連結分數紀錄器，自動傳送答題分數至教務系統。</div>
       <div class="tool-footer"><span class="tool-badge free">● 免費使用</span></div>
     </a>
     <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/tool_package.html" target="_blank" class="tool-card" data-cat="vocab">
       <div class="tool-icon-wrap icon-bg-mint">🔀</div>
-      <div class="tool-tag">字彙練習 · 句型訓練</div>
-      <div class="tool-name">重組句子遊戲</div>
-      <div class="tool-desc">將句子打散成單字卡，學生點選重組成正確語序。支援中文提示翻譯、練習與測驗雙模式，適合句型練習與文法課使用。</div>
+      <div class="tool-tag" data-zh="字彙練習 · 句型訓練" data-en="Vocab · Sentence Structure">字彙練習 · 句型訓練</div>
+      <div class="tool-name" data-zh="重組句子遊戲" data-en="Sentence Unscramble">重組句子遊戲</div>
+      <div class="tool-desc" data-zh="將句子打散成單字卡，學生點選重組成正確語序。支援中文提示翻譯、練習與測驗雙模式，適合句型練習與文法課使用。" data-en="Break sentences into word cards for students to reassemble in the correct order. Supports Chinese translation hints, practice and quiz modes — great for sentence patterns and grammar lessons.">將句子打散成單字卡，學生點選重組成正確語序。支援中文提示翻譯、練習與測驗雙模式，適合句型練習與文法課使用。</div>
       <div class="tool-footer"><span class="tool-badge free">● 免費使用</span></div>
     </a>
   </div>
 
-  <div class="category-label reveal" data-cat="vocab">🛡️ 單字防禦戰 Word Defense Games</div>
+  <div class="category-label reveal" data-cat="vocab" data-zh="🛡️ 單字防禦戰 Word Defense Games" data-en="🛡️ Word Defense Games">🛡️ 單字防禦戰 Word Defense Games</div>
   <div class="tools-grid reveal">
     <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/word-defense.html" target="_blank" class="tool-card" data-cat="vocab">
       <div class="tool-icon-wrap icon-bg-red">🚀</div>
-      <div class="tool-tag">字彙遊戲 · 選擇挑戰</div>
-      <div class="tool-name">單字防禦戰 Classic</div>
-      <div class="tool-desc">輸入必考單字，系統自動生成多選題，限時內選出正確拼法擊退敵人。支援 Easy／Normal／Hard 三種速度，可開啟 AI 拼字陷阱模式。</div>
+      <div class="tool-tag" data-zh="字彙遊戲 · 選擇挑戰" data-en="Vocab Game · Multiple Choice">字彙遊戲 · 選擇挑戰</div>
+      <div class="tool-name" data-zh="單字防禦戰 Classic" data-en="Word Defense Classic">單字防禦戰 Classic</div>
+      <div class="tool-desc" data-zh="輸入必考單字，系統自動生成多選題，限時內選出正確拼法擊退敵人。支援 Easy／Normal／Hard 三種速度，可開啟 AI 拼字陷阱模式。" data-en="Enter vocab words and the system auto-generates multiple-choice questions. Pick the correct spelling before time runs out to defeat enemies. Easy/Normal/Hard speeds + AI spelling trap mode.">輸入必考單字，系統自動生成多選題，限時內選出正確拼法擊退敵人。支援 Easy／Normal／Hard 三種速度，可開啟 AI 拼字陷阱模式。</div>
       <div class="tool-footer"><span class="tool-badge free">● 免費使用</span></div>
     </a>
     <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/word-defense2.html" target="_blank" class="tool-card" data-cat="vocab">
       <div class="tool-icon-wrap icon-bg-orange">⌨️</div>
-      <div class="tool-tag">字彙遊戲 · 打字挑戰</div>
-      <div class="tool-name">單字防禦戰 Stack</div>
-      <div class="tool-desc">輸入「單字：中文」，看到中文提示就要即時打字拼出正確英文。堆疊拼字玩法，可設定 30／60／120 秒計時，三種難度＋計分。</div>
+      <div class="tool-tag" data-zh="字彙遊戲 · 打字挑戰" data-en="Vocab Game · Typing Challenge">字彙遊戲 · 打字挑戰</div>
+      <div class="tool-name" data-zh="單字防禦戰 Stack" data-en="Word Defense Stack">單字防禦戰 Stack</div>
+      <div class="tool-desc" data-zh="輸入「單字：中文」，看到中文提示就要即時打字拼出正確英文。堆疊拼字玩法，可設定 30／60／120 秒計時，三種難度＋計分。" data-en="Enter word pairs (English: Chinese). See the Chinese prompt and type the correct English spelling in real time. Stacked spelling gameplay with 30/60/120-second timers and three difficulty levels.">輸入「單字：中文」，看到中文提示就要即時打字拼出正確英文。堆疊拼字玩法，可設定 30／60／120 秒計時，三種難度＋計分。</div>
       <div class="tool-footer"><span class="tool-badge free">● 免費使用</span></div>
     </a>
     <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/word-defense3.html" target="_blank" class="tool-card" data-cat="vocab">
       <div class="tool-icon-wrap icon-bg-pink">🥁</div>
-      <div class="tool-tag">字彙遊戲 · 節奏打字</div>
-      <div class="tool-name">單字防禦戰 Rhythm</div>
-      <div class="tool-desc">Rhythm Master 節奏打字終極版——字母從畫面落下，在判定區精準點擊正確字母來拼出單字。結合音樂節奏感與打字挑戰，支援計時與三段難度。</div>
+      <div class="tool-tag" data-zh="字彙遊戲 · 節奏打字" data-en="Vocab Game · Rhythm Typing">字彙遊戲 · 節奏打字</div>
+      <div class="tool-name" data-zh="單字防禦戰 Rhythm" data-en="Word Defense Rhythm">單字防禦戰 Rhythm</div>
+      <div class="tool-desc" data-zh="Rhythm Master 節奏打字終極版——字母從畫面落下，在判定區精準點擊正確字母來拼出單字。結合音樂節奏感與打字挑戰，支援計時與三段難度。" data-en="Rhythm Master ultimate typing mode — letters fall from the screen and you tap the correct ones to spell each word. Combines music-rhythm feel with typing challenges, with timer and three difficulty levels.">Rhythm Master 節奏打字終極版——字母從畫面落下，在判定區精準點擊正確字母來拼出單字。結合音樂節奏感與打字挑戰，支援計時與三段難度。</div>
       <div class="tool-footer"><span class="tool-badge free">● 免費使用</span></div>
     </a>
   </div>
-   <div class="category-label reveal" data-cat="games">🕹️ 教學小遊戲 Learning Mini-Games</div>
+   <div class="category-label reveal" data-cat="games" data-zh="🕹️ 教學小遊戲 Learning Mini-Games" data-en="🕹️ Learning Mini-Games">🕹️ 教學小遊戲 Learning Mini-Games</div>
 <div class="tools-grid reveal">
   <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/spaceshuttle.html" target="_blank" class="tool-card" data-cat="games">
     <div class="tool-icon-wrap icon-bg-mint">🚀</div>
-    <div class="tool-tag">字彙遊戲 · 太空主題</div>
-    <div class="tool-name">New Core SpaceShuttle</div>
-    <div class="tool-desc">太空梭主題的英語學習小遊戲，在宇宙中收集正確答案、閃躲障礙，邊玩邊複習單字。適合課堂暖身或下課前的獎勵時間。</div>
+    <div class="tool-tag" data-zh="字彙遊戲 · 太空主題" data-en="Vocab Game · Space Theme">字彙遊戲 · 太空主題</div>
+    <div class="tool-name" data-zh="New Core SpaceShuttle" data-en="New Core SpaceShuttle">New Core SpaceShuttle</div>
+    <div class="tool-desc" data-zh="太空梭主題的英語學習小遊戲，在宇宙中收集正確答案、閃躲障礙，邊玩邊複習單字。適合課堂暖身或下課前的獎勵時間。" data-en="A space shuttle-themed English learning game. Collect correct answers and dodge obstacles while reviewing vocabulary. Great for warm-ups or end-of-class rewards.">太空梭主題的英語學習小遊戲，在宇宙中收集正確答案、閃躲障礙，邊玩邊複習單字。適合課堂暖身或下課前的獎勵時間。</div>
     <div class="tool-footer"><span class="tool-badge free">● 免費使用</span></div>
   </a>
   <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/jump.html" target="_blank" class="tool-card" data-cat="games">
     <div class="tool-icon-wrap icon-bg-yellow">🦕</div>
-    <div class="tool-tag">字彙遊戲 · 跑酷闖關</div>
-    <div class="tool-name">Dino Dash — Meaning Pop</div>
-    <div class="tool-desc">恐龍跑酷風格！看到單字彈出時，選出正確中文意思就能讓恐龍跳躍過關。結合字義記憶與反應訓練，節奏緊湊刺激。</div>
+    <div class="tool-tag" data-zh="字彙遊戲 · 跑酷闖關" data-en="Vocab Game · Endless Runner">字彙遊戲 · 跑酷闖關</div>
+    <div class="tool-name" data-zh="Dino Dash — Meaning Pop" data-en="Dino Dash — Meaning Pop">Dino Dash — Meaning Pop</div>
+    <div class="tool-desc" data-zh="恐龍跑酷風格！看到單字彈出時，選出正確中文意思就能讓恐龍跳躍過關。結合字義記憶與反應訓練，節奏緊湊刺激。" data-en="Dino runner style! When a word pops up, choose the correct meaning to make the dino jump over the obstacle. Combines vocabulary recall with fast reaction training.">恐龍跑酷風格！看到單字彈出時，選出正確中文意思就能讓恐龍跳躍過關。結合字義記憶與反應訓練，節奏緊湊刺激。</div>
     <div class="tool-footer"><span class="tool-badge free">● 免費使用</span></div>
   </a>
   <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/dragonslayer.html" target="_blank" class="tool-card" data-cat="games">
     <div class="tool-icon-wrap icon-bg-red">🧙‍♂️</div>
-    <div class="tool-tag">文法練習 · 角色扮演</div>
-    <div class="tool-name">Grammar Fighter 文法鬥士</div>
-    <div class="tool-desc">化身魔法師對抗惡龍！每答對一道文法題就能對龍施放魔法攻擊，答錯則受到反擊。RPG 格鬥風格讓文法練習不再無聊。</div>
+    <div class="tool-tag" data-zh="文法練習 · 角色扮演" data-en="Grammar Practice · RPG">文法練習 · 角色扮演</div>
+    <div class="tool-name" data-zh="Grammar Fighter 文法鬥士" data-en="Grammar Fighter">Grammar Fighter 文法鬥士</div>
+    <div class="tool-desc" data-zh="化身魔法師對抗惡龍！每答對一道文法題就能對龍施放魔法攻擊，答錯則受到反擊。RPG 格鬥風格讓文法練習不再無聊。" data-en="Play as a wizard battling a dragon! Answer grammar questions correctly to cast spells — get them wrong and take damage. RPG battle style makes grammar practice actually fun.">化身魔法師對抗惡龍！每答對一道文法題就能對龍施放魔法攻擊，答錯則受到反擊。RPG 格鬥風格讓文法練習不再無聊。</div>
     <div class="tool-footer"><span class="tool-badge free">● 免費使用</span></div>
   </a>
   <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/bounceball.html" target="_blank" class="tool-card" data-cat="games">
     <div class="tool-icon-wrap icon-bg-purple">🛸</div>
-    <div class="tool-tag">字彙遊戲 · 反應訓練</div>
-    <div class="tool-name">Word Catcher — 單字捕手</div>
-    <div class="tool-desc">單字從天而降，用彈板接住正確答案、躲開錯誤選項。融合打磚塊玩法與字彙練習，計時計分，適合個人或班級競賽。</div>
+    <div class="tool-tag" data-zh="字彙遊戲 · 反應訓練" data-en="Vocab Game · Reaction Training">字彙遊戲 · 反應訓練</div>
+    <div class="tool-name" data-zh="Word Catcher — 單字捕手" data-en="Word Catcher">Word Catcher — 單字捕手</div>
+    <div class="tool-desc" data-zh="單字從天而降，用彈板接住正確答案、躲開錯誤選項。融合打磚塊玩法與字彙練習，計時計分，適合個人或班級競賽。" data-en="Words fall from above — use the paddle to catch the correct answer and avoid wrong ones. Combines breakout-style gameplay with vocabulary practice, with timer and scoring for solo or class competitions.">單字從天而降，用彈板接住正確答案、躲開錯誤選項。融合打磚塊玩法與字彙練習，計時計分，適合個人或班級競賽。</div>
     <div class="tool-footer"><span class="tool-badge free">● 免費使用</span></div>
   </a>
   <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/spaceshooter.html" target="_blank" class="tool-card" data-cat="games">
     <div class="tool-icon-wrap icon-bg-orange">👾</div>
-    <div class="tool-tag">字彙遊戲 · 射擊闖關</div>
-    <div class="tool-name">Space Shooter — 太空射手</div>
-    <div class="tool-desc">太空射擊遊戲結合單字測驗，瞄準並擊落帶有正確答案的外星敵人。多關卡設計、難度漸進，讓學生在緊張的戰鬥中強化字彙記憶。</div>
+    <div class="tool-tag" data-zh="字彙遊戲 · 射擊闖關" data-en="Vocab Game · Shooter">字彙遊戲 · 射擊闖關</div>
+    <div class="tool-name" data-zh="Space Shooter — 太空射手" data-en="Space Shooter">Space Shooter — 太空射手</div>
+    <div class="tool-desc" data-zh="太空射擊遊戲結合單字測驗，瞄準並擊落帶有正確答案的外星敵人。多關卡設計、難度漸進，讓學生在緊張的戰鬥中強化字彙記憶。" data-en="Space shooter meets vocabulary quiz — aim and shoot down aliens carrying the correct answer. Multi-level design with progressive difficulty to reinforce word memory under pressure.">太空射擊遊戲結合單字測驗，瞄準並擊落帶有正確答案的外星敵人。多關卡設計、難度漸進，讓學生在緊張的戰鬥中強化字彙記憶。</div>
     <div class="tool-footer"><span class="tool-badge free">● 免費使用</span></div>
   </a>
 </div>
-  <div class="category-label reveal" data-cat="ai">🤖 AI 出題 AI-Generated Worksheets</div>
+  <div class="category-label reveal" data-cat="ai" data-zh="🤖 AI 出題 AI-Generated Worksheets" data-en="🤖 AI-Generated Worksheets">🤖 AI 出題 AI-Generated Worksheets</div>
   <div class="tools-grid reveal">
     <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/wordsearch.html" target="_blank" class="tool-card" data-cat="ai">
       <div class="tool-icon-wrap icon-bg-green">🔍</div>
-      <div class="tool-tag">AI 出題 · 可列印</div>
-      <div class="tool-name">找字遊戲產生器</div>
-      <div class="tool-desc">輸入測驗單字，自動生成找字方格考卷。支援一頁兩份排版，一鍵列印，省去備課時間。</div>
+      <div class="tool-tag" data-zh="AI 出題 · 可列印" data-en="AI Worksheet · Printable">AI 出題 · 可列印</div>
+      <div class="tool-name" data-zh="找字遊戲產生器" data-en="Word Search Generator">找字遊戲產生器</div>
+      <div class="tool-desc" data-zh="輸入測驗單字，自動生成找字方格考卷。支援一頁兩份排版，一鍵列印，省去備課時間。" data-en="Enter your vocab list and auto-generate a word search grid worksheet. Supports two-per-page layout, one-click print — saves prep time.">輸入測驗單字，自動生成找字方格考卷。支援一頁兩份排版，一鍵列印，省去備課時間。</div>
       <div class="tool-footer"><span class="tool-badge free">● 免費使用</span></div>
     </a>
     <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/connect.html" target="_blank" class="tool-card" data-cat="ai">
       <div class="tool-icon-wrap icon-bg-purple">🧩</div>
-      <div class="tool-tag">AI 出題 · Gemini · 可列印</div>
-      <div class="tool-name">AI 定義配對挑戰</div>
-      <div class="tool-desc">輸入字彙清單，Gemini AI 依難度（A1–C1）自動生成英文定義，支援雙語模式。數位挑戰直接在課堂互動作答，也可一鍵列印成 A4 紙本。</div>
-      <div class="tool-footer"><span class="tool-badge ai">● AI 驅動</span></div>
+      <div class="tool-tag" data-zh="AI 出題 · Gemini · 可列印" data-en="AI Worksheet · Gemini · Printable">AI 出題 · Gemini · 可列印</div>
+      <div class="tool-name" data-zh="AI 定義配對挑戰" data-en="AI Definition Match">AI 定義配對挑戰</div>
+      <div class="tool-desc" data-zh="輸入字彙清單，Gemini AI 依難度（A1–C1）自動生成英文定義，支援雙語模式。數位挑戰直接在課堂互動作答，也可一鍵列印成 A4 紙本。" data-en="Enter a word list and Gemini AI auto-generates definitions by difficulty (A1–C1), with bilingual support. Use digitally in class or print to A4.">輸入字彙清單，Gemini AI 依難度（A1–C1）自動生成英文定義，支援雙語模式。數位挑戰直接在課堂互動作答，也可一鍵列印成 A4 紙本。</div>
+      <div class="tool-footer"><span class="tool-badge ai" data-zh="● AI 驅動" data-en="● AI Powered">● AI 驅動</span></div>
     </a>
     <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/connect.html" target="_blank" class="tool-card" data-cat="ai">
       <div class="tool-icon-wrap icon-bg-mint">✏️</div>
-      <div class="tool-tag">AI 出題 · Gemini · 可列印</div>
-      <div class="tool-name">AI 克漏字挑戰</div>
-      <div class="tool-desc">同一介面切換至克漏字模式，AI 依字彙自動生成情境例句，學生在空格填入正確單字。支援數位互動作答與 A4 列印。</div>
+      <div class="tool-tag" data-zh="AI 出題 · Gemini · 可列印" data-en="AI Worksheet · Gemini · Printable">AI 出題 · Gemini · 可列印</div>
+      <div class="tool-name" data-zh="AI 克漏字挑戰" data-en="AI Cloze Test">AI 克漏字挑戰</div>
+      <div class="tool-desc" data-zh="同一介面切換至克漏字模式，AI 依字彙自動生成情境例句，學生在空格填入正確單字。支援數位互動作答與 A4 列印。" data-en="Switch to cloze test mode in the same interface. AI generates contextual sentences with blanks for students to fill in. Supports digital answering and A4 printing.">同一介面切換至克漏字模式，AI 依字彙自動生成情境例句，學生在空格填入正確單字。支援數位互動作答與 A4 列印。</div>
       <div class="tool-footer"><span class="tool-badge ai">● AI 驅動</span></div>
     </a>
     <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/grammar.html" target="_blank" class="tool-card" data-cat="ai">
       <div class="tool-icon-wrap icon-bg-yellow">🔎</div>
-      <div class="tool-tag">AI 出題 · Gemini · 可列印</div>
-      <div class="tool-name">AI 文法改錯訓練</div>
-      <div class="tool-desc">輸入出題指令，Gemini AI 自動生成含錯誤的英文句子，學生在數位挑戰模式中找出並改正錯誤，也可列印成 A4 兩頁紙本考卷。</div>
+      <div class="tool-tag" data-zh="AI 出題 · Gemini · 可列印" data-en="AI Worksheet · Gemini · Printable">AI 出題 · Gemini · 可列印</div>
+      <div class="tool-name" data-zh="AI 文法改錯訓練" data-en="AI Grammar Error Correction">AI 文法改錯訓練</div>
+      <div class="tool-desc" data-zh="輸入出題指令，Gemini AI 自動生成含錯誤的英文句子，學生在數位挑戰模式中找出並改正錯誤，也可列印成 A4 兩頁紙本考卷。" data-en="Give a prompt and Gemini AI generates English sentences with grammar errors for students to find and fix. Use as a digital challenge or print as a two-page A4 worksheet.">輸入出題指令，Gemini AI 自動生成含錯誤的英文句子，學生在數位挑戰模式中找出並改正錯誤，也可列印成 A4 兩頁紙本考卷。</div>
       <div class="tool-footer"><span class="tool-badge ai">● AI 驅動</span></div>
     </a>
     <a href="quiz.html" target="_blank" class="tool-card" data-cat="ai">
       <div class="tool-icon-wrap icon-bg-orange">📝</div>
-      <div class="tool-tag">AI 出題 · CEFR · 可列印</div>
-      <div class="tool-name">AI 智慧出題系統</div>
-      <div class="tool-desc">拍照上傳課本或輸入指令，Gemini AI 依 CEFR 難度自動生成選擇題、書寫題與配合題（含圖片）。支援語音朗讀聽力練習、手動編輯題目，列印學生試卷與解答卷，或切換數位互動作答模式。</div>
-      <div class="tool-footer"><span class="tool-badge ai">● AI 驅動 · 試卷列印</span></div>
+      <div class="tool-tag" data-zh="AI 出題 · CEFR · 可列印" data-en="AI Worksheet · CEFR · Printable">AI 出題 · CEFR · 可列印</div>
+      <div class="tool-name" data-zh="AI 智慧出題系統" data-en="AI Smart Quiz Generator">AI 智慧出題系統</div>
+      <div class="tool-desc" data-zh="拍照上傳課本或輸入指令，Gemini AI 依 CEFR 難度自動生成選擇題、書寫題與配合題（含圖片）。支援語音朗讀聽力練習、手動編輯題目，列印學生試卷與解答卷，或切換數位互動作答模式。" data-en="Photo-upload your textbook or type a prompt, and Gemini AI generates multiple-choice, written, and matching questions (with images) by CEFR level. Supports audio read-aloud, manual editing, student/answer sheet printing, and digital quiz mode.">拍照上傳課本或輸入指令，Gemini AI 依 CEFR 難度自動生成選擇題、書寫題與配合題（含圖片）。支援語音朗讀聽力練習、手動編輯題目，列印學生試卷與解答卷，或切換數位互動作答模式。</div>
+      <div class="tool-footer"><span class="tool-badge ai" data-zh="● AI 驅動 · 試卷列印" data-en="● AI Powered · Print Ready">● AI 驅動 · 試卷列印</span></div>
     </a>
     <a href="crossword.html" target="_blank" class="tool-card" data-cat="ai">
       <div class="tool-icon-wrap icon-bg-mint">🔠</div>
-      <div class="tool-tag">字彙練習 · AI 提示語 · 可列印</div>
-      <div class="tool-name">填字遊戲產生器</div>
-      <div class="tool-desc">輸入單字清單，系統自動交叉排版生成填字格。可手動填寫提示語，或一鍵讓 Gemini AI 自動生成。支援數位作答（即時檢查答案）與 A4 列印兩種模式。</div>
-      <div class="tool-footer"><span class="tool-badge ai">● AI 提示語 · 自動排版</span></div>
+      <div class="tool-tag" data-zh="字彙練習 · AI 提示語 · 可列印" data-en="Vocab · AI Clues · Printable">字彙練習 · AI 提示語 · 可列印</div>
+      <div class="tool-name" data-zh="填字遊戲產生器" data-en="Crossword Puzzle Generator">填字遊戲產生器</div>
+      <div class="tool-desc" data-zh="輸入單字清單，系統自動交叉排版生成填字格。可手動填寫提示語，或一鍵讓 Gemini AI 自動生成。支援數位作答（即時檢查答案）與 A4 列印兩種模式。" data-en="Enter a word list and the system auto-generates a crossword grid. Write your own clues or let Gemini AI generate them instantly. Supports digital answering with live checking and A4 printing.">輸入單字清單，系統自動交叉排版生成填字格。可手動填寫提示語，或一鍵讓 Gemini AI 自動生成。支援數位作答（即時檢查答案）與 A4 列印兩種模式。</div>
+      <div class="tool-footer"><span class="tool-badge ai" data-zh="● AI 提示語 · 自動排版" data-en="● AI Clues · Auto Layout">● AI 提示語 · 自動排版</span></div>
     </a>
   </div>
 
-  <div class="category-label reveal" data-cat="visual">🖼️ 視覺教學 Visual Learning</div>
+  <div class="category-label reveal" data-cat="visual" data-zh="🖼️ 視覺教學 Visual Learning" data-en="🖼️ Visual Learning">🖼️ 視覺教學 Visual Learning</div>
   <div class="tools-grid reveal">
     <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/vision-detective.html" target="_blank" class="tool-card" data-cat="visual">
       <div class="tool-icon-wrap icon-bg-mint">🧩</div>
-      <div class="tool-tag">視覺教學 · 互動搶答</div>
-      <div class="tool-name">視覺圖卡偵探<br>拼圖模式</div>
-      <div class="tool-desc">上傳圖片或連結線上圖庫，系統將圖片切割成 2×2、3×3 或 4×4 拼圖，逐塊揭示讓學生搶答。適合暖身活動、課間轉換或複習遊戲。</div>
-      <div class="tool-footer"><span class="tool-badge ai">● AI 生圖 · 免費圖庫</span></div>
+      <div class="tool-tag" data-zh="視覺教學 · 互動搶答" data-en="Visual Learning · Interactive">視覺教學 · 互動搶答</div>
+      <div class="tool-name" data-zh="視覺圖卡偵探<br>拼圖模式" data-en="Visual Detective<br>Puzzle Mode">視覺圖卡偵探<br>拼圖模式</div>
+      <div class="tool-desc" data-zh="上傳圖片或連結線上圖庫，系統將圖片切割成 2×2、3×3 或 4×4 拼圖，逐塊揭示讓學生搶答。適合暖身活動、課間轉換或複習遊戲。" data-en="Upload an image or link to an online library. The system splits it into a 2×2, 3×3, or 4×4 jigsaw revealed piece by piece. Perfect for warm-ups, transitions, or review games.">上傳圖片或連結線上圖庫，系統將圖片切割成 2×2、3×3 或 4×4 拼圖，逐塊揭示讓學生搶答。適合暖身活動、課間轉換或複習遊戲。</div>
+      <div class="tool-footer"><span class="tool-badge ai" data-zh="● AI 生圖 · 免費圖庫" data-en="● AI Images · Free Library">● AI 生圖 · 免費圖庫</span></div>
     </a>
     <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/vision-detective.html" target="_blank" class="tool-card" data-cat="visual">
       <div class="tool-icon-wrap icon-bg-purple">🔍</div>
-      <div class="tool-tag">視覺教學 · 互動搶答</div>
-      <div class="tool-name">視覺圖卡偵探<br>馬賽克模式</div>
-      <div class="tool-desc">同一工具切換至馬賽克模式，圖片從高度像素化逐漸變清晰，越早答對得分越高。內建 Pixabay、Pexels、Freepik 免費圖庫推薦。</div>
+      <div class="tool-tag" data-zh="視覺教學 · 互動搶答" data-en="Visual Learning · Interactive">視覺教學 · 互動搶答</div>
+      <div class="tool-name" data-zh="視覺圖卡偵探<br>馬賽克模式" data-en="Visual Detective<br>Mosaic Mode">視覺圖卡偵探<br>馬賽克模式</div>
+      <div class="tool-desc" data-zh="同一工具切換至馬賽克模式，圖片從高度像素化逐漸變清晰，越早答對得分越高。內建 Pixabay、Pexels、Freepik 免費圖庫推薦。" data-en="Switch to mosaic mode in the same tool. The image gradually sharpens from heavily pixelated — the sooner students guess correctly, the more points they earn. Built-in Pixabay, Pexels, and Freepik library links.">同一工具切換至馬賽克模式，圖片從高度像素化逐漸變清晰，越早答對得分越高。內建 Pixabay、Pexels、Freepik 免費圖庫推薦。</div>
       <div class="tool-footer"><span class="tool-badge ai">● AI 生圖 · 免費圖庫</span></div>
     </a>
   </div>
@@ -365,21 +392,21 @@
 </div>
 
 <div class="bottom-cta reveal">
-  <h2>想用完整教務系統？<br><span>申請 30 天免費試用</span></h2>
-  <p>NewCore 教務系統包含語音點名、成績管理、家長通知，需要授權使用。</p>
+  <h2 data-zh="想用完整教務系統？<br><span>申請 30 天免費試用</span>" data-en="Want the Full School System?<br><span>Apply for a 30-Day Free Trial</span>">想用完整教務系統？<br><span>申請 30 天免費試用</span></h2>
+  <p data-zh="NewCore 教務系統包含語音點名、成績管理、家長通知，需要授權使用。" data-en="NewCore includes voice attendance, grade management, and parent notifications. Authorization required.">NewCore 教務系統包含語音點名、成績管理、家長通知，需要授權使用。</p>
   <div class="cta-buttons">
-    <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/index.html#apply" class="btn-yellow">📋 申請免費試用</a>
-    <a href="https://line.me/ti/p/~@593fbons" target="_blank" class="btn-ghost">💬 LINE 聯絡 Jeffrey</a>
+    <a href="https://jeffreycz1979-prog.github.io/JeffreysLab/index.html#apply" class="btn-yellow" data-zh="📋 申請免費試用" data-en="📋 Apply for Free Trial">📋 申請免費試用</a>
+    <a href="https://line.me/ti/p/~@593fbons" target="_blank" class="btn-ghost" data-zh="💬 LINE 聯絡 Jeffrey" data-en="💬 Contact Jeffrey on LINE">💬 LINE 聯絡 Jeffrey</a>
   </div>
 </div>
 
 <footer>
   <div class="footer-logo">NewCore · Jeffrey's Lab</div>
-  <p>© 2025 Jeffrey's Lab. 專為補習班老師設計。</p>
+  <p data-zh="© 2025 Jeffrey's Lab. 專為補習班老師設計。" data-en="© 2025 Jeffrey's Lab. Built for English cram school teachers.">© 2025 Jeffrey's Lab. 專為補習班老師設計。</p>
   <div class="footer-links">
-    <a href="index.html">官網首頁</a>
-    <a href="https://jeffreycz1979-prog.github.io/newcore-attendance/" target="_blank">教務系統</a>
-    <a href="https://line.me/ti/p/~@593fbons" target="_blank">LINE 聯絡</a>
+    <a href="index.html" data-zh="官網首頁" data-en="Home">官網首頁</a>
+    <a href="https://jeffreycz1979-prog.github.io/newcore-attendance/" target="_blank" data-zh="教務系統" data-en="School System">教務系統</a>
+    <a href="https://line.me/ti/p/~@593fbons" target="_blank" data-zh="LINE 聯絡" data-en="LINE Contact">LINE 聯絡</a>
   </div>
 </footer>
 
@@ -500,6 +527,34 @@ filterBtns.forEach(btn => {
     });
   });
 });
+
+// ── LANGUAGE SWITCHER ──
+function setLang(lang) {
+  localStorage.setItem('jlab_lang', lang);
+  document.getElementById('btnZH').classList.toggle('active', lang === 'zh');
+  document.getElementById('btnEN').classList.toggle('active', lang === 'en');
+  document.querySelectorAll('[data-zh][data-en]').forEach(el => {
+    const val = lang === 'en' ? el.dataset.en : el.dataset.zh;
+    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+      el.placeholder = val;
+    } else {
+      el.innerHTML = val;
+    }
+  });
+  // Update html lang attr
+  document.documentElement.lang = lang === 'en' ? 'en' : 'zh-TW';
+  // Update page title
+  document.title = lang === 'en'
+    ? "Jeffrey's Lab | Teaching Tools"
+    : "Jeffrey's Lab｜教學工具總覽";
+}
+
+// Init language on load
+(function(){
+  const saved = localStorage.getItem('jlab_lang') || 'zh';
+  setLang(saved);
+})();
+
 </script>
 </body>
 </html>
