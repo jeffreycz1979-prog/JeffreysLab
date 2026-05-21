@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="zh-TW" style="overflow: hidden; width: 100vw; height: 100vh;">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jeffrey's Lab - Cyber-Bomb Decoder Pro V2.1</title>
+    <style>
+        /* CSS RESET & VARIABLES */
+        :root {
+            --bg-color: #03030a;
+            --panel-color: #0c0c1e;
+            --neon-blue: #00f3ff;
+            --neon-pink: #ff0055;
+            --neon-green: #39ff14;
+            --neon-yellow: #ffe600;
+            --text-color: #ffffff;
+            --font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-family);
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            transition: transform 0.1s ease;
+            user-select: none;
+        }
+
+        /* VISUAL FX CANVAS */
+        #fxCanvas {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        header { z-index: 10; text-align: center; width: 100%; }
+        header h1 {
+            font-size: 2.6rem;
+            color: var(--neon-pink);
+            text-shadow: 0 0 15px var(--neon-pink);
+            letter-spacing: 3px;
+        }
+
+        /* DIFFICULTY & TOP BAR */
+        #topMenuBar {
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+            position: absolute;
+            top: 15px;
+            left: 20px;
+        }
+        .menu-btn {
+            background: rgba(12, 12, 30, 0.8);
+            border: 1px solid var(--neon-blue);
+            color: var(--neon-blue);
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+        .menu-btn:hover { background: var(--neon-blue); color: var(--bg-color); box-shadow: 0 0 10px var(--neon-blue); }
+        .diff-active { background: var(--neon-blue) !important; color: var(--bg-color) !important; box-shadow: 0 0 10px var(--neon-blue); }
+
+        #adminToggle { position: absolute; top: 15px; right: 20px; z-index: 100; }
+
+        main {
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 1000px;
+            flex-grow: 1;
+            gap: 20px;
+        }
+
+        /* CLUE & EXTRA INFO */
+        #infoArea {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+        }
+
+        #clueDisplay {
+            font-size: 1.8rem;
+            color: #b5b5e0;
+            background: rgba(12, 12, 30, 0.85);
+            padding: 12px 35px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            text-align: center;
+            max-width: 90%;
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.1);
+        }
+
+        #strategyBar {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        .strat-btn {
+            background: rgba(255, 230, 0, 0.1);
+            border: 1px solid var(--neon-yellow);
+            color: var(--neon-yellow);
+            padding: 5px 15px;
+            font-size: 1rem;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .strat-btn:hover:not(:disabled) { background: var(--neon-yellow); color: #000; box-shadow: 0 0 10px var(--neon-yellow); }
+        .strat-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        /* WORD DISPLAY */
+        #wordDisplay { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; min-height: 80px; }
+        .letter-slot {
+            width: 50px; height: 70px;
+            border-bottom: 5px solid var(--neon-blue);
+            font-size: 3rem; font-weight: bold; text-align: center; line-height: 70px;
+            text-transform: uppercase; color: var(--text-color);
+            text-shadow: 0 0 10px var(--text-color);
+            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .letter-slot.revealed {
+            border-bottom-color: var(--neon-green);
+            color: var(--neon-green);
+            text-shadow: 0 0 20px var(--neon-green);
+            transform: scale(1.05);
+        }
+
+        /* KEYBOARD */
+        #keyboard { display: grid; grid-template-columns: repeat(10, 1fr); gap: 8px; width: 100%; max-width: 800px; }
+        .key {
+            background: var(--panel-color); border: 2px solid rgba(0, 243, 255, 0.2);
+            color: var(--text-color); padding: 12px 0; font-size: 1.4rem; font-weight: bold;
+            border-radius: 6px; cursor: pointer; text-transform: uppercase; transition: all 0.1s ease;
+        }
+        .key:hover { background: var(--neon-blue); color: var(--bg-color); box-shadow: 0 0 12px var(--neon-blue); transform: translateY(-2px); }
+        .key.correct { background: var(--neon-green) !important; color: var(--bg-color) !important; border-color: var(--neon-green) !important; pointer-events: none; box-shadow: 0 0 12px var(--neon-green); }
+        .key.wrong { background: var(--neon-pink) !important; color: var(--text-color) !important; border-color: var(--neon-pink) !important; pointer-events: none; box-shadow: 0 0 10px var(--neon-pink); opacity: 0.5; }
+
+        /* STATUS PANEL */
+        #statusPanel {
+            display: flex; justify-content: space-between; width: 100%; max-width: 800px; z-index: 10;
+            background: var(--panel-color); padding: 12px 30px; border-radius: 8px; border-right: 5px solid var(--neon-yellow);
+        }
+        .status-item { font-size: 1.1rem; }
+        .status-item span { font-weight: bold; font-size: 1.4rem; }
+        #bombStatus { color: var(--neon-yellow); text-shadow: 0 0 10px var(--neon-yellow); }
+        #timerText { color: var(--neon-pink); text-shadow: 0 0 10px var(--neon-pink); }
+        #scoreText { color: var(--neon-blue); text-shadow: 0 0 10px var(--neon-blue); }
+
+        /* IN-SCREEN MODAL */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(3, 3, 10, 0.85); z-index: 150; align-items: center; justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            background: var(--panel-color); border: 2px solid var(--neon-blue); border-radius: 12px;
+            padding: 30px; max-width: 500px; width: 90%; text-align: center; box-shadow: 0 0 35px rgba(0, 243, 255, 0.3);
+            animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes modalPop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        .modal-content h2 { font-size: 2.2rem; margin-bottom: 15px; letter-spacing: 2px; }
+        .modal-content p { font-size: 1.2rem; color: #b5b5e0; margin-bottom: 10px; line-height: 1.6; }
+        .modal-content .highlight-word { font-size: 2rem; font-weight: bold; color: var(--neon-yellow); text-shadow: 0 0 10px var(--neon-yellow); margin: 15px 0; display: block; text-transform: uppercase; }
+        .modal-content .review-box { background: rgba(255,0,85,0.1); border: 1px dashed var(--neon-pink); padding: 10px; border-radius: 6px; margin: 15px 0; color: #ff99bb; font-size: 1rem; }
+        .modal-btn { background: var(--neon-green); color: var(--bg-color); border: none; padding: 10px 25px; font-size: 1.2rem; font-weight: bold; border-radius: 6px; cursor: pointer; transition: all 0.2s; margin-top: 10px; }
+        .modal-btn:hover { box-shadow: 0 0 15px var(--neon-green); transform: translateY(-2px); }
+
+        /* BACKEND PANEL */
+        #adminPanel {
+            display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 90%; max-width: 580px; background: var(--panel-color); border: 2px solid var(--neon-pink);
+            border-radius: 12px; padding: 25px; z-index: 200; box-shadow: 0 0 40px rgba(255, 0, 85, 0.4);
+        }
+        #adminPanel h2 { color: var(--neon-pink); margin-bottom: 5px; }
+        #adminPanel .sub { font-size: 0.85rem; color: #aaa; margin-bottom: 12px; }
+        #adminPanel textarea {
+            width: 100%; height: 200px; background: var(--bg-color); color: #fff;
+            border: 1px solid rgba(255,255,255,0.2); padding: 12px; font-size: 1rem;
+            line-height: 1.4; margin-bottom: 15px; resize: none; border-radius: 6px; font-family: monospace;
+        }
+        .admin-btns { display: flex; gap: 10px; justify-content: flex-end; }
+        .admin-btns button { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.95rem; }
+        .btn-save { background: var(--neon-green); color: var(--bg-color); }
+        .btn-close { background: #444; color: #fff; }
+
+        #screenFlash { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 5; pointer-events: none; opacity: 0; transition: opacity 0.1s ease; }
+    </style>
+</head>
+<body>
+
+    <canvas id="fxCanvas"></canvas>
+    <div id="screenFlash"></div>
+
+    <div id="topMenuBar">
+        <button class="menu-btn diff-active" id="diff-all" onclick="setDifficulty('all')">全部難度</button>
+        <button class="menu-btn" id="diff-easy" onclick="setDifficulty('easy')">Easy</button>
+        <button class="menu-btn" id="diff-normal" onclick="setDifficulty('normal')">Normal</button>
+        <button class="menu-btn" id="diff-hard" onclick="setDifficulty('hard')">Hard</button>
+        <button class="menu-btn" style="border-color: var(--neon-pink); color: var(--neon-pink);" onclick="resetScore()">🔄 重置分數</button>
+    </div>
+
+    <button id="adminToggle" class="menu-btn" onclick="toggleAdmin()">⚙️ 快速修改題庫</button>
+
+    <header>
+        <h1>CYBER BOMB DECODER</h1>
+    </header>
+
+    <main>
+        <div id="infoArea">
+            <div id="clueDisplay">提示載入中...</div>
+            <div id="strategyBar">
+                <button id="hintBtn" class="strat-btn" onclick="buyHint()">💡 購買提示 (花費 15 分)</button>
+            </div>
+        </div>
+        <div id="wordDisplay"></div>
+        <div id="keyboard"></div>
+    </main>
+
+    <div id="statusPanel">
+        <div class="status-item">引信次數: <span id="bombStatus">6</span> / 6</div>
+        <div class="status-item">核心穩定倒數: <span id="timerText">--</span></div>
+        <div class="status-item">目前積分: <span id="scoreText">0</span></div>
+    </div>
+
+    <div id="gameModal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 id="modalTitle" style="color: var(--neon-green);">LEVEL CLEAR</h2>
+            <p id="modalMsg">順利拆除核心定時炸彈！</p>
+            <span id="modalTargetWord" class="highlight-word">APPLE</span>
+            <div id="reviewBox" class="review-box" style="display: none;"></div>
+            <button class="modal-btn" onclick="closeModalAndNext()">進入下一關 NEXT</button>
+        </div>
+    </div>
+
+    <div id="adminPanel">
+        <h2>老師專用題庫設定板</h2>
+        <div class="sub">※ 格式升級：單字 | 提示詞 | 難度(easy/normal/hard)  （一行一題，免括號）</div>
+        <textarea id="vocabInput" placeholder="apple|一種紅色的水果|easy&#10;computer|用來處理數據的電子儀器|normal"></textarea>
+        <div class="admin-btns">
+            <button class="btn-close" onclick="toggleAdmin()">放棄關閉</button>
+            <button class="btn-save" onclick="saveVocab()">儲弄並重啟遊戲</button>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // DATA STORAGE & ROBUST PARSER WITH AUTO-RESET
+        // ==========================================
+        const DEFAULT_RAW = `apple|A round red or green fruit that keeps the doctor away.|easy
+banana|A long curved yellow fruit loved by monkeys.|easy
+computer|An electronic machine used for data processing and browsing.|normal
+elephant|The largest living land animal, characterized by a long trunk.|easy
+galaxy|A huge system of stellar remnants, gas, dust, and dark matter.|hard
+astronaut|A person who is trained to travel in a spacecraft.|hard
+internet|A global computer network providing information.|normal`;
+
+        // 強健的文字解析器：支援容錯，自動防呆
+        function parseRawText(rawText) {
+            if (!rawText || typeof rawText !== 'string') return [];
+            
+            // 關鍵防呆：如果發現塞進來的是舊版 JSON 格式，自動轉換或清空
+            if (rawText.trim().startsWith('[') || rawText.trim().startsWith('{')) {
+                try {
+                    const json = JSON.parse(rawText);
+                    if (Array.isArray(json)) {
+                        return json.map(item => ({
+                            word: (item.word || "test").trim(),
+                            clue: (item.clue || "no clue").trim(),
+                            difficulty: (item.difficulty || "normal").trim().toLowerCase()
+                        }));
+                    }
+                } catch(e) {
+                    console.log("發現損壞的舊版 JSON，啟動自動重置機制。");
+                }
+                return []; 
+            }
+
+            return rawText.split('\n')
+                .map(line => line.trim())
+                .filter(line => line && line.includes('|'))
+                .map(line => {
+                    const parts = line.split('|');
+                    return { 
+                        word: parts[0] ? parts[0].trim() : "test", 
+                        clue: parts[1] ? parts[1].trim() : "clue",
+                        difficulty: parts[2] ? parts[2].trim().toLowerCase() : 'normal'
+                    };
+                });
+        }
+
+        let fullVocabList = [];
+        let currentPool = [];
+        let poolIndex = 0;
+        let selectedDifficulty = localStorage.getItem("jeffrey_bomb_diff") || "all";
+        let score = parseInt(localStorage.getItem("jeffrey_decoder_score_v2")) || 0;
+
+        // 核心載入：加入防崩潰與自動清空機制
+        function loadVocabFromStorage() {
+            try {
+                // 清理舊版本混亂的 key 殘留
+                localStorage.removeItem("jeffrey_decoder_vocab");
+                
+                let savedVocab = localStorage.getItem("jeffrey_bomb_vocab_raw_v2");
+                
+                // 如果抓出來的資料是舊格式 JSON，或者是空的，強制重設成預設字串
+                if (!savedVocab || savedVocab.trim().startsWith('[') || savedVocab.trim().startsWith('{')) {
+                    savedVocab = DEFAULT_RAW;
+                    localStorage.setItem("jeffrey_bomb_vocab_raw_v2", DEFAULT_RAW);
+                }
+
+                fullVocabList = parseRawText(savedVocab);
+                
+                if (fullVocabList.length === 0) {
+                    throw new Error("解析出的題庫為空");
+                }
+            } catch (err) {
+                console.error("題庫載入出錯，已還原為出廠設定:", err);
+                fullVocabList = parseRawText(DEFAULT_RAW);
+                localStorage.setItem("jeffrey_bomb_vocab_raw_v2", DEFAULT_RAW);
+            }
+        }
+
+        // 執行載入
+        loadVocabFromStorage();
+
+        // GAME CONTROL STATE
+        let currentQuestion = {};
+        let guessedLetters = [];
+        let wrongLetters = [];
+        let remainingAttempts = 6;
+        let gameActive = false;
+
+        // COUNTDOWN TIMER VARIABLES
+        let countdownTimer = null;
+        let timeLeft = 45;
+
+        // ==========================================
+        // SHUFFLE LOGIC
+        // ==========================================
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function generateNewPool() {
+            if (selectedDifficulty === "all") {
+                currentPool = [...fullVocabList];
+            } else {
+                currentPool = fullVocabList.filter(item => item.difficulty === selectedDifficulty);
+            }
+
+            if (currentPool.length === 0) {
+                selectedDifficulty = "all";
+                updateDiffMenuUI();
+                currentPool = [...fullVocabList];
+            }
+
+            shuffleArray(currentPool);
+            poolIndex = 0;
+        }
+
+        // ==========================================
+        // CANVAS ANIMATION FRAMEWORK
+        // ==========================================
+        const canvas = document.getElementById('fxCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let bombPulse = 0;
+        let levelClearBanner = { active: false, text: "", alpha: 0, y: 0 };
+
+        function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor(x, y, color, speedMultiplier = 1) {
+                this.x = x; this.y = y; this.color = color;
+                this.radius = Math.random() * 3 + 2;
+                this.vx = (Math.random() - 0.5) * 12 * speedMultiplier;
+                this.vy = (Math.random() - 0.5) * 12 * speedMultiplier - (speedMultiplier > 1 ? 0 : 3);
+                this.gravity = speedMultiplier > 1 ? 0.05 : 0.15;
+                this.alpha = 1;
+                this.decay = Math.random() * 0.02 + 0.01;
+            }
+            draw() {
+                ctx.save(); ctx.globalAlpha = this.alpha; ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color; ctx.shadowBlur = 12; ctx.shadowColor = this.color;
+                ctx.fill(); ctx.restore();
+            }
+            update() { this.x += this.vx; this.y += this.vy; this.vy += this.gravity; this.alpha -= this.decay; }
+        }
+
+        function drawCyberBomb() {
+            if (!gameActive && !levelClearBanner.active) return;
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2 - 50;
+            
+            bombPulse += (7 - remainingAttempts) * 0.04 + 0.02;
+
+            ctx.save();
+            ctx.beginPath();
+            const pulseRadius = 55 + Math.sin(bombPulse) * (6 - remainingAttempts) * 1.5;
+            ctx.arc(cx, cy, pulseRadius, 0, Math.PI * 2);
+            
+            let strokeColor = 'rgba(0, 243, 255, 0.8)';
+            if (remainingAttempts <= 4 && remainingAttempts > 2) strokeColor = '#ffe600';
+            else if (remainingAttempts <= 2) strokeColor = '#ff0055';
+            
+            ctx.fillStyle = '#0c0c1e';
+            ctx.strokeStyle = strokeColor;
+            ctx.lineWidth = 5;
+            ctx.shadowBlur = 25;
+            ctx.shadowColor = strokeColor;
+            ctx.fill(); ctx.stroke();
+            ctx.restore();
+
+            ctx.save();
+            ctx.font = "bold 2.4rem monospace";
+            ctx.fillStyle = remainingAttempts <= 2 ? '#ff0055' : '#00f3ff';
+            ctx.textAlign = "center"; ctx.textBaseline = "middle";
+            ctx.shadowBlur = 10; ctx.shadowColor = ctx.fillStyle;
+            ctx.fillText(`ERR:${6 - remainingAttempts}`, cx, cy);
+            ctx.restore();
+
+            if (remainingAttempts > 0 && gameActive) {
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(cx, cy - pulseRadius);
+                const fuseLength = remainingAttempts * 20;
+                const endX = cx + (6 - remainingAttempts) * 15;
+                const endY = cy - 70 - fuseLength;
+                ctx.quadraticCurveTo(cx + 60, cy - 120, endX, endY);
+                ctx.strokeStyle = '#d4a373'; ctx.lineWidth = 4; ctx.stroke();
+
+                if (Math.random() > 0.3) {
+                    particles.push(new Particle(endX, endY, '#ffe600'));
+                    particles.push(new Particle(endX, endY, '#ff5500'));
+                }
+                ctx.restore();
+            }
+        }
+
+        function drawLevelClearBanner() {
+            if (!levelClearBanner.active) return;
+            ctx.save();
+            ctx.globalAlpha = levelClearBanner.alpha;
+            ctx.font = "bold 4.5rem 'Segoe UI'";
+            ctx.fillStyle = levelClearBanner.color || '#39ff14';
+            ctx.textAlign = "center";
+            ctx.shadowBlur = 25;
+            ctx.shadowColor = ctx.fillStyle;
+            ctx.fillText(levelClearBanner.text, canvas.width / 2, levelClearBanner.y);
+            ctx.restore();
+
+            if (levelClearBanner.alpha < 1) levelClearBanner.alpha += 0.05;
+        }
+
+        function triggerConfetti() {
+            const colors = ['#00f3ff', '#ff0055', '#39ff14', '#ffe600'];
+            for (let i = 0; i < 150; i++) {
+                particles.push(new Particle(canvas.width / 2, canvas.height / 2 - 50, colors[Math.floor(Math.random() * colors.length)]));
+            }
+        }
+
+        function triggerNuclearExplosion() {
+            for (let i = 0; i < 300; i++) {
+                particles.push(new Particle(canvas.width / 2, canvas.height / 2 - 50, '#ff0055', 2.5));
+                particles.push(new Particle(canvas.width / 2, canvas.height / 2 - 50, '#ffe600', 1.8));
+            }
+        }
+
+        function flashScreen(color) {
+            const flash = document.getElementById('screenFlash');
+            flash.style.background = color; flash.style.opacity = '0.4';
+            setTimeout(() => flash.style.opacity = '0', 120);
+        }
+
+        function shakeScreen() {
+            document.body.style.transform = `translate(${(Math.random()-0.5)*20}px, ${(Math.random()-0.5)*20}px)`;
+            setTimeout(() => document.body.style.transform = 'translate(0,0)', 100);
+        }
+
+        function fxLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawCyberBomb();
+            drawLevelClearBanner();
+            particles = particles.filter(p => p.alpha > 0);
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(fxLoop);
+        }
+        requestAnimationFrame(fxLoop);
+
+        // ==========================================
+        // TIMING SYSTEM
+        // ==========================================
+        function startTimer() {
+            clearInterval(countdownTimer);
+            timeLeft = 45;
+            document.getElementById('timerText').innerText = `${timeLeft}s`;
+            
+            countdownTimer = setInterval(() => {
+                if (!gameActive) { clearInterval(countdownTimer); return; }
+                timeLeft--;
+                const timerEl = document.getElementById('timerText');
+                timerEl.innerText = `${timeLeft}s`;
+
+                if (timeLeft <= 10) {
+                    timerEl.style.color = '#ff0055';
+                    flashScreen('rgba(255, 0, 85, 0.05)');
+                } else {
+                    timerEl.style.color = 'var(--neon-pink)';
+                }
+
+                if (timeLeft <= 0) {
+                    clearInterval(countdownTimer);
+                    handleTimeOut();
+                }
+            }, 1000);
+        }
+
+        function handleTimeOut() {
+            remainingAttempts = 0;
+            checkLose("TIME OUT!");
+        }
+
+        // ==========================================
+        // GAMEPLAY LOGIC CORE
+        // ==========================================
+        function initGame() {
+            if (currentPool.length === 0 || poolIndex >= currentPool.length) {
+                generateNewPool();
+            }
+
+            if (currentPool.length === 0) {
+                document.getElementById('clueDisplay').innerText = "提示：目前該難度下無可用題庫，請至後台新增。";
+                return;
+            }
+
+            currentQuestion = currentPool[poolIndex];
+            guessedLetters = [];
+            wrongLetters = [];
+            remainingAttempts = 6;
+            levelClearBanner.active = false;
+            gameActive = true;
+
+            document.getElementById('hintBtn').disabled = false;
+            updateStatusUI();
+            document.getElementById('clueDisplay').innerText = `[${currentQuestion.difficulty.toUpperCase()}] HINT: ${currentQuestion.clue}`;
+
+            // 生成字格
+            const wordDisplay = document.getElementById('wordDisplay');
+            wordDisplay.innerHTML = '';
+            for (let char of currentQuestion.word) {
+                const slot = document.createElement('div');
+                slot.classList.add('letter-slot');
+                if (!/[a-zA-Z]/.test(char)) {
+                    slot.innerText = char; slot.classList.add('revealed');
+                }
+                wordDisplay.appendChild(slot);
+            }
+
+            // 生成鍵盤
+            const keyboard = document.getElementById('keyboard');
+            keyboard.innerHTML = '';
+            for (let letter of "abcdefghijklmnopqrstuvwxyz") {
+                const btn = document.createElement('button');
+                btn.classList.add('key'); btn.innerText = letter; btn.setAttribute('data-letter', letter);
+                btn.addEventListener('click', () => handleGuess(letter));
+                keyboard.appendChild(btn);
+            }
+
+            startTimer();
+        }
+
+        function handleGuess(letter) {
+            if (!gameActive || guessedLetters.includes(letter)) return;
+            guessedLetters.push(letter);
+            const btn = document.querySelector(`.key[data-letter="${letter}"]`);
+
+            if (currentQuestion.word.toLowerCase().includes(letter)) {
+                if(btn) btn.classList.add('correct');
+                flashScreen('rgba(57, 255, 20, 0.4)');
+                revealLetters(letter);
+                checkWin();
+            } else {
+                if(btn) btn.classList.add('wrong');
+                wrongLetters.push(letter.toUpperCase());
+                remainingAttempts--;
+                updateStatusUI();
+                flashScreen('rgba(255, 0, 85, 0.4)');
+                shakeScreen();
+                checkLose();
+            }
+        }
+
+        function revealLetters(letter) {
+            const slots = document.getElementsByClassName('letter-slot');
+            for (let i = 0; i < currentQuestion.word.length; i++) {
+                if (currentQuestion.word[i].toLowerCase() === letter) {
+                    slots[i].innerText = currentQuestion.word[i];
+                    slots[i].classList.add('revealed');
+                }
+            }
+        }
+
+        function buyHint() {
+            if (!gameActive || score < 15) {
+                flashScreen('rgba(255, 0, 85, 0.2)');
+                return;
+            }
+            score -= 15;
+            localStorage.setItem("jeffrey_decoder_score_v2", score);
+            document.getElementById('scoreText').innerText = score;
+            document.getElementById('hintBtn').disabled = true;
+
+            for (let char of currentQuestion.word.toLowerCase()) {
+                if (/[a-z]/.test(char) && !guessedLetters.includes(char)) {
+                    handleGuess(char);
+                    break;
+                }
+            }
+        }
+
+        function updateStatusUI() {
+            document.getElementById('bombStatus').innerText = remainingAttempts;
+            document.getElementById('scoreText').innerText = score;
+        }
+
+        function checkWin() {
+            const slots = document.getElementsByClassName('letter-slot');
+            let isWin = Array.from(slots).every(slot => slot.classList.contains('revealed'));
+
+            if (isWin) {
+                gameActive = false;
+                clearInterval(countdownTimer);
+                score += 10;
+                localStorage.setItem("jeffrey_decoder_score_v2", score);
+                
+                levelClearBanner = { active: true, text: "DECODED CLEAR", color: "#39ff14", alpha: 0, y: canvas.height / 2 - 140 };
+                triggerConfetti();
+
+                setTimeout(() => {
+                    showGameModal("DECODED SUCCESS", "順利解碼核心，警報解除！", 'var(--neon-green)', false);
+                }, 1200);
+            }
+        }
+
+        function checkLose(customTitle) {
+            if (remainingAttempts <= 0) {
+                gameActive = false;
+                clearInterval(countdownTimer);
+                triggerNuclearExplosion();
+                flashScreen('rgba(255, 0, 85, 0.8)');
+
+                levelClearBanner = { active: true, text: "BOMB EXPLODED", color: "#ff0055", alpha: 0, y: canvas.height / 2 - 140 };
+                
+                const slots = document.getElementsByClassName('letter-slot');
+                for (let i = 0; i < currentQuestion.word.length; i++) {
+                    slots[i].innerText = currentQuestion.word[i];
+                    slots[i].classList.add('revealed');
+                    slots[i].style.color = 'var(--neon-pink)';
+                }
+
+                setTimeout(() => {
+                    showGameModal(customTitle || "CORE MELTDOWN", "防護牆完全瓦解，炸彈已引爆！", 'var(--neon-pink)', true);
+                }, 1200);
+            }
+        }
+
+        // ==========================================
+        // IN-SCREEN DIALOG MODAL
+        // ==========================================
+        function showGameModal(title, msg, titleColor, isLose) {
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalTitle').style.color = titleColor;
+            document.getElementById('modalMsg').innerText = msg;
+            document.getElementById('modalTargetWord').innerText = currentQuestion.word;
+
+            const reviewBox = document.getElementById('reviewBox');
+            if (isLose && wrongLetters.length > 0) {
+                reviewBox.style.display = "block";
+                reviewBox.innerText = `💡 複習提醒：本次嘗試錯誤的字母有 [ ${wrongLetters.join(', ')} ]，請特別留意發音對應關係！`;
+            } else {
+                reviewBox.style.display = "none";
+            }
+
+            document.getElementById('gameModal').style.display = "flex";
+        }
+
+        function closeModalAndNext() {
+            document.getElementById('gameModal').style.display = "none";
+            poolIndex++;
+            initGame();
+        }
+
+        // ==========================================
+        // CONTROLS & RESET
+        // ==========================================
+        function setDifficulty(level) {
+            selectedDifficulty = level;
+            localStorage.setItem("jeffrey_bomb_diff", level);
+            updateDiffMenuUI();
+            generateNewPool();
+            initGame();
+        }
+
+        function updateDiffMenuUI() {
+            const btns = ['all', 'easy', 'normal', 'hard'];
+            btns.forEach(b => {
+                const el = document.getElementById(`diff-${b}`);
+                if (el) {
+                    if (b === selectedDifficulty) el.classList.add('diff-active');
+                    else el.classList.remove('diff-active');
+                }
+            });
+        }
+
+        function resetScore() {
+            score = 0;
+            localStorage.setItem("jeffrey_decoder_score_v2", score);
+            document.getElementById('scoreText').innerText = score;
+            flashScreen('rgba(0, 243, 255, 0.2)');
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (document.getElementById('adminPanel').style.display === 'block') return;
+            const key = e.key.toLowerCase();
+            if (/[a-z]/.test(key) && key.length === 1) handleGuess(key);
+        });
+
+        // ==========================================
+        // TEACHER CONFIG PANEL
+        // ==========================================
+        function toggleAdmin() {
+            const panel = document.getElementById('adminPanel');
+            if (panel.style.display === 'block') {
+                panel.style.display = 'none';
+            } else {
+                panel.style.display = 'block';
+                const currentRaw = localStorage.getItem("jeffrey_bomb_vocab_raw_v2") || DEFAULT_RAW;
+                document.getElementById('vocabInput').value = currentRaw;
+            }
+        }
+
+        function saveVocab() {
+            const inputText = document.getElementById('vocabInput').value.trim();
+            const parsedResult = parseRawText(inputText);
+
+            if (parsedResult.length === 0 && inputText !== "") {
+                alert("格式解析失敗！請確認有加入難度設定且用 | 分開。\n例如：dog|小狗|easy");
+                return;
+            }
+
+            fullVocabList = parsedResult;
+            localStorage.setItem("jeffrey_bomb_vocab_raw_v2", inputText);
+            
+            toggleAdmin();
+            generateNewPool();
+            initGame();
+        }
+
+        // 首次初始化啟動
+        updateDiffMenuUI();
+        initGame();
+    </script>
+</body>
+</html>

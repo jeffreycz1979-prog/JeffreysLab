@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jeffrey's Lab - Cyber-Bomb Decoder</title>
+    <style>
+        /* CSS RESET & VARIABLES */
+        :root {
+            --bg-color: #05050d;
+            --panel-color: #101026;
+            --neon-blue: #00f3ff;
+            --neon-pink: #ff0055;
+            --neon-green: #39ff14;
+            --neon-yellow: #ffe600;
+            --text-color: #ffffff;
+            --font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-family);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px;
+            transition: transform 0.1s ease; /* 用於畫面震動特效 */
+        }
+
+        /* VISUAL FX CANVAS */
+        #fxCanvas {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        header { z-index: 10; text-align: center; width: 100%; }
+        header h1 {
+            font-size: 2.5rem;
+            color: var(--neon-pink);
+            text-shadow: 0 0 15px var(--neon-pink);
+            letter-spacing: 3px;
+        }
+
+        main {
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 1000px;
+            flex-grow: 1;
+            gap: 25px;
+        }
+
+        /* CLUE & WORD DISPLAY */
+        #clueDisplay {
+            font-size: 1.8rem;
+            color: #b5b5e0;
+            background: rgba(16, 16, 38, 0.9);
+            padding: 12px 35px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            text-align: center;
+            max-width: 90%;
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.1);
+        }
+
+        #wordDisplay { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; min-height: 85px; }
+        .letter-slot {
+            width: 55px; height: 75px;
+            border-bottom: 5px solid var(--neon-blue);
+            font-size: 3.2rem; font-weight: bold; text-align: center; line-height: 75px;
+            text-transform: uppercase; color: var(--text-color);
+            text-shadow: 0 0 10px var(--text-color);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .letter-slot.revealed {
+            border-bottom-color: var(--neon-green);
+            color: var(--neon-green);
+            text-shadow: 0 0 25px var(--neon-green);
+            transform: scale(1.1);
+        }
+
+        /* KEYBOARD */
+        #keyboard { display: grid; grid-template-columns: repeat(10, 1fr); gap: 8px; width: 100%; max-width: 800px; }
+        .key {
+            background: var(--panel-color); border: 2px solid rgba(0, 243, 255, 0.2);
+            color: var(--text-color); padding: 14px 0; font-size: 1.4rem; font-weight: bold;
+            border-radius: 6px; cursor: pointer; text-transform: uppercase; transition: all 0.15s ease;
+        }
+        .key:hover { background: var(--neon-blue); color: var(--bg-color); box-shadow: 0 0 15px var(--neon-blue); transform: translateY(-2px); }
+        .key.correct { background: var(--neon-green) !important; color: var(--bg-color) !important; border-color: var(--neon-green) !important; pointer-events: none; box-shadow: 0 0 15px var(--neon-green); }
+        .key.wrong { background: var(--neon-pink) !important; color: var(--text-color) !important; border-color: var(--neon-pink) !important; pointer-events: none; box-shadow: 0 0 12px var(--neon-pink); opacity: 0.6; }
+
+        /* STATUS */
+        #statusPanel {
+            display: flex; justify-content: space-between; width: 100%; max-width: 800px; z-index: 10;
+            background: var(--panel-color); padding: 12px 30px; border-radius: 8px; border-right: 5px solid var(--neon-yellow);
+        }
+        .status-item { font-size: 1.2rem; }
+        .status-item span { font-weight: bold; font-size: 1.5rem; }
+        #bombStatus { color: var(--neon-yellow); text-shadow: 0 0 10px var(--neon-yellow); }
+        #scoreText { color: var(--neon-blue); text-shadow: 0 0 10px var(--neon-blue); }
+
+        /* UI CONTROLS & NEW FRIENDLY ADMIN */
+        #adminToggle {
+            position: absolute; top: 20px; right: 20px; z-index: 100;
+            background: transparent; border: 1px solid var(--neon-blue); color: var(--neon-blue);
+            padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold;
+        }
+        #adminToggle:hover { background: rgba(0,243,255,0.1); }
+
+        #adminPanel {
+            display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 90%; max-width: 550px; background: var(--panel-color); border: 2px solid var(--neon-pink);
+            border-radius: 12px; padding: 25px; z-index: 200; box-shadow: 0 0 40px rgba(255, 0, 85, 0.4);
+        }
+        #adminPanel h2 { margin-bottom: 5px; color: var(--neon-pink); }
+        #adminPanel .sub { font-size: 0.85rem; color: #aaa; margin-bottom: 15px; }
+        #adminPanel textarea {
+            width: 100%; height: 220px; background: var(--bg-color); color: #fff;
+            border: 1px solid rgba(255,255,255,0.2); padding: 12px; font-size: 1.1rem;
+            line-height: 1.5; margin-bottom: 15px; resize: none; border-radius: 6px;
+        }
+        #adminPanel textarea:focus { border-color: var(--neon-blue); outline: none; }
+        
+        .admin-btns { display: flex; gap: 10px; justify-content: flex-end; }
+        .admin-btns button { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 1rem; }
+        .btn-save { background: var(--neon-green); color: var(--bg-color); }
+        .btn-close { background: #444; color: #fff; }
+
+        #screenFlash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; opacity: 0; transition: opacity 0.1s ease; }
+    </style>
+</head>
+<body>
+
+    <canvas id="fxCanvas"></canvas>
+    <div id="screenFlash"></div>
+
+    <button id="adminToggle" onclick="toggleAdmin()">⚙️ 快速修改題庫</button>
+
+    <header>
+        <h1>CYBER BOMB DECODER</h1>
+    </header>
+
+    <main>
+        <div id="clueDisplay">提示載入中...</div>
+        <div id="wordDisplay"></div>
+        <div id="keyboard"></div>
+    </main>
+
+    <div id="statusPanel">
+        <div class="status-item">引信狀態: <span id="bombStatus">穩定</span></div>
+        <div class="status-item">目前積分: <span id="scoreText">0</span></div>
+    </div>
+
+    <div id="adminPanel">
+        <h2>老師專用題庫設定板</h2>
+        <div class="sub">※ 格式超簡單：單字 | 提示詞（一行一題即可，免打引號或括號）</div>
+        <textarea id="vocabInput" placeholder="apple|一種紅色的水果&#10;banana|猴子最愛吃的黃色水果"></textarea>
+        <div class="admin-btns">
+            <button class="btn-close" onclick="toggleAdmin()">放棄關閉</button>
+            <button class="btn-save" onclick="saveVocab()">儲存並重啟遊戲</button>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // DATA STORAGE & USER FRIENDLY CONVERTER
+        // ==========================================
+        const DEFAULT_RAW = `apple|A round red or green fruit that keeps the doctor away.
+computer|An electronic machine used for data processing and browsing.
+elephant|The largest living land animal, characterized by a long trunk.
+galaxy|A huge system of stellar remnants, gas, dust, and dark matter.
+astronaut|A person who is trained to travel in a spacecraft.`;
+
+        // 將「單字|提示」的文字格式轉換為程式陣列
+        function parseRawText(rawText) {
+            return rawText.split('\n')
+                .map(line => line.trim())
+                .filter(line => line && line.includes('|'))
+                .map(line => {
+                    const parts = line.split('|');
+                    return { word: parts[0].trim(), clue: parts[1].trim() };
+                });
+        }
+
+        // 將內部程式陣列還原成老師看的懂的「單字|提示」文字
+        function convertToRawText(vocabArray) {
+            return vocabArray.map(item => `${item.word}|${item.clue}`).join('\n');
+        }
+
+        let vocabList = [];
+        const savedVocab = localStorage.getItem("jeffrey_bomb_vocab_raw");
+        if (savedVocab) {
+            vocabList = parseRawText(savedVocab);
+        } else {
+            vocabList = parseRawText(DEFAULT_RAW);
+            localStorage.setItem("jeffrey_bomb_vocab_raw", DEFAULT_RAW);
+        }
+
+        let score = parseInt(localStorage.getItem("jeffrey_decoder_score")) || 0;
+        let currentQuestion = {};
+        let guessedLetters = [];
+        let remainingAttempts = 6;
+        let gameActive = true;
+
+        // ==========================================
+        // CANVAS ANIMATION: CYBER BOMB & SPARKS
+        // ==========================================
+        const canvas = document.getElementById('fxCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let bombPulse = 0;
+
+        function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor(x, y, color, speedMultiplier = 1) {
+                this.x = x; this.y = y; this.color = color;
+                this.radius = Math.random() * 3 + 2;
+                this.vx = (Math.random() - 0.5) * 12 * speedMultiplier;
+                this.vy = (Math.random() - 0.5) * 12 * speedMultiplier - (speedMultiplier > 1 ? 0 : 3);
+                this.gravity = speedMultiplier > 1 ? 0.05 : 0.15;
+                this.alpha = 1;
+                this.decay = Math.random() * 0.03 + 0.01;
+            }
+            draw() {
+                ctx.save(); ctx.globalAlpha = this.alpha; ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color; ctx.shadowBlur = 12; ctx.shadowColor = this.color;
+                ctx.fill(); ctx.restore();
+            }
+            update() { this.x += this.vx; this.y += this.vy; this.vy += this.gravity; this.alpha -= this.decay; }
+        }
+
+        function drawCyberBomb() {
+            if (!gameActive) return;
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2 - 45;
+            
+            bombPulse += (7 - remainingAttempts) * 0.05 + 0.02; // 錯誤愈多，閃爍跳動愈快
+
+            // 1. 繪製定時炸彈本體
+            ctx.save();
+            ctx.beginPath();
+            const pulseRadius = 55 + Math.sin(bombPulse) * (6 - remainingAttempts) * 1.5;
+            ctx.arc(cx, cy, pulseRadius, 0, Math.PI * 2);
+            
+            // 根據危險狀態變色
+            let bombColor = '#1a1a3a';
+            let strokeColor = 'rgba(0, 243, 255, 0.8)';
+            if (remainingAttempts <= 4 && remainingAttempts > 2) { strokeColor = '#ffe600'; }
+            else if (remainingAttempts <= 2) { strokeColor = '#ff0055'; bombColor = '#2a0510'; }
+            
+            ctx.fillStyle = bombColor;
+            ctx.strokeStyle = strokeColor;
+            ctx.lineWidth = 5;
+            ctx.shadowBlur = 25;
+            ctx.shadowColor = strokeColor;
+            ctx.fill();
+            ctx.stroke();
+            ctx.restore();
+
+            // 2. 繪製炸彈上倒數的電子外觀 (顯示剩餘機會次數)
+            ctx.save();
+            ctx.font = "bold 2.5rem monospace";
+            ctx.fillStyle = remainingAttempts <= 2 ? '#ff0055' : '#00f3ff';
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = ctx.fillStyle;
+            ctx.fillText(`00:0${remainingAttempts}`, cx, cy);
+            ctx.restore();
+
+            // 3. 繪製動態倒數引線 (引線長度取決於剩餘機會)
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - pulseRadius);
+            
+            // 貝茲曲線繪製彎曲的引線
+            const fuseLength = remainingAttempts * 25;
+            const controlX = cx + 60;
+            const controlY = cy - 130;
+            const endX = cx + (6 - remainingAttempts) * 15;
+            const endY = cy - 80 - fuseLength;
+            
+            ctx.quadraticCurveTo(controlX, controlY, endX, endY);
+            ctx.strokeStyle = '#d4a373';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+
+            // 4. 引線末端的動態燃燒火花特效
+            if (remainingAttempts > 0) {
+                if (Math.random() > 0.3) {
+                    particles.push(new Particle(endX, endY, '#ffe600'));
+                    particles.push(new Particle(endX, endY, '#ff5500'));
+                }
+            }
+            ctx.restore();
+        }
+
+        function triggerConfetti() {
+            const colors = ['#00f3ff', '#ff0055', '#39ff14', '#ffe600'];
+            for (let i = 0; i < 150; i++) {
+                particles.push(new Particle(canvas.width / 2, canvas.height / 2 - 45, colors[Math.floor(Math.random() * colors.length)]));
+            }
+        }
+
+        function triggerNuclearExplosion() {
+            // 核爆全螢幕火球顆粒
+            for (let i = 0; i < 300; i++) {
+                particles.push(new Particle(canvas.width / 2, canvas.height / 2 - 45, '#ff0055', 2.5));
+                particles.push(new Particle(canvas.width / 2, canvas.height / 2 - 45, '#ffe600', 1.8));
+            }
+        }
+
+        function flashScreen(color) {
+            const flash = document.getElementById('screenFlash');
+            flash.style.background = color; flash.style.opacity = '0.4';
+            setTimeout(() => flash.style.opacity = '0', 120);
+        }
+
+        function shakeScreen() {
+            document.body.style.transform = `translate(${(Math.random()-0.5)*20}px, ${(Math.random()-0.5)*20}px)`;
+            setTimeout(() => document.body.style.transform = 'translate(0,0)', 100);
+        }
+
+        // 60fps 動態渲染引擎
+        function fxLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawCyberBomb();
+            particles = particles.filter(p => p.alpha > 0);
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(fxLoop);
+        }
+        requestAnimationFrame(fxLoop);
+
+
+        // ==========================================
+        // GAMEPLAY CORE LOGIC
+        // ==========================================
+        function initGame() {
+            if (vocabList.length === 0) {
+                alert("目前題庫為空，已自動還原預設單字庫！");
+                vocabList = parseRawText(DEFAULT_RAW);
+                localStorage.setItem("jeffrey_bomb_vocab_raw", DEFAULT_RAW);
+            }
+
+            currentQuestion = vocabList[Math.floor(Math.random() * vocabList.length)];
+            guessedLetters = [];
+            remainingAttempts = 6;
+            gameActive = true;
+
+            updateStatusUI();
+            document.getElementById('clueDisplay').innerText = `HINT: ${currentQuestion.clue}`;
+
+            // 生成字格
+            const wordDisplay = document.getElementById('wordDisplay');
+            wordDisplay.innerHTML = '';
+            for (let char of currentQuestion.word) {
+                const slot = document.createElement('div');
+                slot.classList.add('letter-slot');
+                if (!/[a-zA-Z]/.test(char)) {
+                    slot.innerText = char;
+                    slot.classList.add('revealed');
+                }
+                wordDisplay.appendChild(slot);
+            }
+
+            // 生成鍵盤
+            const keyboard = document.getElementById('keyboard');
+            keyboard.innerHTML = '';
+            for (let letter of "abcdefghijklmnopqrstuvwxyz") {
+                const btn = document.createElement('button');
+                btn.classList.add('key'); btn.innerText = letter; btn.setAttribute('data-letter', letter);
+                btn.addEventListener('click', () => handleGuess(letter));
+                keyboard.appendChild(btn);
+            }
+        }
+
+        function handleGuess(letter) {
+            if (!gameActive || guessedLetters.includes(letter)) return;
+            guessedLetters.push(letter);
+            const btn = document.querySelector(`.key[data-letter="${letter}"]`);
+
+            if (currentQuestion.word.toLowerCase().includes(letter)) {
+                if(btn) btn.classList.add('correct');
+                flashScreen('rgba(57, 255, 20, 0.4)');
+                revealLetters(letter);
+                checkWin();
+            } else {
+                if(btn) btn.classList.add('wrong');
+                remainingAttempts--;
+                updateStatusUI();
+                flashScreen('rgba(255, 0, 85, 0.4)');
+                shakeScreen(); // 答錯即觸發畫面震動
+                checkLose();
+            }
+        }
+
+        function revealLetters(letter) {
+            const slots = document.getElementsByClassName('letter-slot');
+            for (let i = 0; i < currentQuestion.word.length; i++) {
+                if (currentQuestion.word[i].toLowerCase() === letter) {
+                    slots[i].innerText = currentQuestion.word[i];
+                    slots[i].classList.add('revealed');
+                }
+            }
+        }
+
+        function updateStatusUI() {
+            const statusText = document.getElementById('bombStatus');
+            document.getElementById('scoreText').innerText = score;
+            
+            if (remainingAttempts >= 5) { statusText.innerText = "穩定 (SAFE)"; statusText.style.color = 'var(--neon-green)'; }
+            else if (remainingAttempts >= 3) { statusText.innerText = "引信燃燒中 (WARNING)"; statusText.style.color = 'var(--neon-yellow)'; }
+            else { statusText.innerText = "即將引爆 (CRITICAL!!)"; statusText.style.color = 'var(--neon-pink)'; }
+        }
+
+        function checkWin() {
+            const slots = document.getElementsByClassName('letter-slot');
+            let isWin = Array.from(slots).every(slot => slot.classList.contains('revealed'));
+
+            if (isWin) {
+                gameActive = false;
+                score += 10;
+                localStorage.setItem("jeffrey_decoder_score", score);
+                document.getElementById('scoreText').innerText = score;
+                triggerConfetti();
+                setTimeout(() => {
+                    alert("【拆彈成功】順利解除危機，警報解除！");
+                    initGame();
+                }, 800);
+            }
+        }
+
+        function checkLose() {
+            if (remainingAttempts <= 0) {
+                gameActive = false;
+                triggerNuclearExplosion();
+                flashScreen('rgba(255, 0, 85, 0.8)');
+                
+                // 強制公開正確答案並變為紅色高亮
+                const slots = document.getElementsByClassName('letter-slot');
+                for (let i = 0; i < currentQuestion.word.length; i++) {
+                    slots[i].innerText = currentQuestion.word[i];
+                    slots[i].classList.add('revealed');
+                    slots[i].style.color = 'var(--neon-pink)';
+                }
+
+                setTimeout(() => {
+                    alert(`💥【炸彈引爆】引信燒盡！正確單字是：${currentQuestion.word.toUpperCase()}`);
+                    initGame();
+                }, 800);
+            }
+        }
+
+        // 監聽實體鍵盤輸入
+        window.addEventListener('keydown', (e) => {
+            const key = e.key.toLowerCase();
+            if (/[a-z]/.test(key) && key.length === 1) handleGuess(key);
+        });
+
+
+        // ==========================================
+        // TEACHER FRIENDLY BACKEND INPUT LOGIC
+        // ==========================================
+        function toggleAdmin() {
+            const panel = document.getElementById('adminPanel');
+            if (panel.style.display === 'block') {
+                panel.style.display = 'none';
+            } else {
+                panel.style.display = 'block';
+                // 從 LocalStorage 載入目前正使用的 Raw 文字結構放進編輯區
+                const currentRaw = localStorage.getItem("jeffrey_bomb_vocab_raw") || DEFAULT_RAW;
+                document.getElementById('vocabInput').value = currentRaw;
+            }
+        }
+
+        function saveVocab() {
+            const inputText = document.getElementById('vocabInput').value.trim();
+            const parsedResult = parseRawText(inputText);
+
+            if (parsedResult.length === 0 && inputText !== "") {
+                alert("格式解析失敗！請確保每行資料都有使用 | 符號隔開單字與提示。\n例如：dog|一隻小狗");
+                return;
+            }
+
+            vocabList = parsedResult;
+            // 完整保留老師打的原汁原味純文字格式至快取
+            localStorage.setItem("jeffrey_bomb_vocab_raw", inputText);
+            
+            alert(`題庫修改成功！共載入 ${vocabList.length} 個新單字。`);
+            toggleAdmin();
+            initGame();
+        }
+
+        // 初始化
+        initGame();
+    </script>
+</body>
+</html>
