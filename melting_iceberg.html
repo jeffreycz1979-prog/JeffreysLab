@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jeffrey's Lab: 拯救北極熊 v3.0 🐻‍❄️</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;700&family=Noto+Sans+TC:wght@400;900&display=swap');
+
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#070a1a; 
+  --panel:rgba(255,255,255,0.06);
+  --border:rgba(120,200,255,0.15);
+  --accent:#00e5ff;
+  --ice:#e0ffff;
+  --ice-shadow:#88ccff;
+  --fire:#ff5500;
+  --fire-core:#ffdd00;
+  --text:#f0faff;
+  --muted:#708090;
+}
+body{background:var(--bg);color:var(--text);font-family:'Fredoka','Noto Sans TC',sans-serif;height:100vh;overflow:hidden;display:flex;flex-direction:column;}
+
+/* TOPBAR */
+#topbar{display:flex;align-items:center;gap:12px;padding:12px 20px;background:linear-gradient(180deg, rgba(10,15,35,0.98), rgba(10,15,35,0.92));border-bottom:1px solid var(--border);flex-shrink:0;z-index:20;box-shadow:0 4px 15px rgba(0,0,0,0.3);}
+#title{font-size:1.2rem;font-weight:900;white-space:nowrap;letter-spacing:-0.5px;}
+#title span{color:var(--accent);text-shadow:0 0 10px rgba(0,229,255,0.5);}
+
+#status-pill{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--border);border-radius:99px;padding:6px 16px;font-size:0.9rem;font-weight:700;}
+#status-icon{font-size:1rem;color:var(--muted);}
+#status-icon.active{color:var(--accent);animation:pulse 1.5s infinite;}
+
+/* HEALTH BAR */
+#health-wrap{flex:1;max-width:300px;height:18px;background:rgba(0,30,60,0.5);border-radius:99px;overflow:hidden;border:1px solid rgba(120,200,255,0.2);position:relative;box-shadow:inset 0 2px 4px rgba(0,0,0,0.5);}
+#health-bar{height:100%;width:100%;border-radius:99px;background:linear-gradient(90deg, #00d2ff, #fff, #00d2ff);background-size:200% 100%;animation:liquidFlow 3s linear infinite;transition:width 0.1s linear;}
+#health-text{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:900;color:#000;text-shadow:0 1px 1px rgba(255,255,255,0.8);letter-spacing:0.5px;}
+
+#timer-badge{display:flex;flex-direction:column;align-items:center;background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:5px 18px;min-width:110px;}
+#timer-lbl{font-size:0.6rem;color:var(--muted);letter-spacing:1px;text-transform:uppercase;font-weight:700;}
+#timer-val{font-size:1.6rem;font-weight:900;font-variant-numeric:tabular-nums;line-height:1.1;color:var(--text);letter-spacing:-1px;}
+
+.btn{padding:10px 24px;border-radius:99px;border:none;font-family:inherit;font-size:0.95rem;font-weight:700;cursor:pointer;transition:all 0.15s;box-shadow:0 2px 6px rgba(0,0,0,0.3);}
+.btn:hover{transform:translateY(-1px) scale(1.03);filter:brightness(1.1);}
+#start-btn{background:linear-gradient(135deg, #00e5ff, #00aaff);color:#000;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;}
+#start-btn.active{background:linear-gradient(135deg, #ff5500, #ffaa00);color:#fff;border-color:rgba(255,200,150,0.3);}
+
+.ctrl{display:flex;align-items:center;gap:8px;font-size:0.85rem;color:var(--text);font-weight:700;white-space:nowrap;}
+.ctrl label{color:var(--muted);}
+input[type=range]{-webkit-appearance:none;width:100px;height:6px;border-radius:99px;background:rgba(120,200,255,0.1);outline:none;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 0 12px var(--accent);border:2px solid #fff;}
+select.ctrl-sel{background:var(--panel);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:5px 10px;font-size:0.85rem;font-family:inherit;font-weight:700;outline:none;}
+
+/* MAIN CANVAS */
+#canvas-wrap{flex:1;position:relative;overflow:hidden;background:linear-gradient(180deg, #070a1a 0%, #0a1025 100%);}
+canvas{display:block;width:100%;height:100%;}
+
+/* OVERLAYS */
+.overlay{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.5s;backdrop-filter:blur(12px);}
+.overlay.show{opacity:1;pointer-events:all;}
+.card{position:relative;border-radius:36px;padding:45px 65px;text-align:center;transform:scale(0.8);transition:transform 0.5s cubic-bezier(.34,1.56,.64,1);box-shadow:0 15px 50px rgba(0,0,0,0.6);}
+.overlay.show .card{transform:scale(1);}
+
+#fail-overlay .card{background:linear-gradient(135deg,#2d0a0a,#1a0000);border:3px solid var(--fire);box-shadow:0 0 80px rgba(255,85,0,0.35);}
+#fail-title{font-size:2.8rem;font-weight:900;color:var(--fire);margin-bottom:12px;}
+#fail-sub{font-size:1.1rem;color:var(--text);opacity:0.8;margin-bottom:30px;}
+
+#win-overlay .card{background:linear-gradient(135deg,#0a1f1f,#051111);border:3px solid var(--accent);box-shadow:0 0 80px rgba(0,229,255,0.25);}
+#win-title{font-size:2.8rem;font-weight:900;color:var(--accent);margin-bottom:12px;}
+#win-sub{font-size:1.1rem;color:var(--text);opacity:0.8;margin-bottom:30px;}
+
+.o-btn{padding:14px 36px;border-radius:99px;border:none;font-family:inherit;font-size:1.1rem;font-weight:900;cursor:pointer;background:linear-gradient(135deg, #fff, #ddd);color:#000;}
+
+@keyframes pulse{0%{opacity:0.6;transform:scale(1);}50%{opacity:1;transform:scale(1.1);}100%{opacity:0.6;transform:scale(1);}}
+@keyframes liquidFlow{0%{background-position:200% 0;}100%{background-position:0 0;}}
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <div id="title">🐻‍❄️ 拯救<span>北極熊</span></div>
+  <div id="status-pill"><span id="status-icon">●</span><span id="status-text">初始化</span></div>
+  <div id="health-wrap">
+    <div id="health-bar"></div>
+    <div id="health-text">冰山血量 100%</div>
+  </div>
+  <div id="timer-badge">
+    <div id="timer-lbl">挑戰倒數</div>
+    <div id="timer-val">00:00</div>
+  </div>
+  <div class="ctrl"><label>靈敏</label><input type="range" id="sens" min="0.2" max="4" step="0.1" value="1.5"></div>
+  <div class="ctrl">
+    <label>目標</label>
+    <select class="ctrl-sel" id="goal-sel">
+      <option value="30">30s</option>
+      <option value="60" selected>1m</option>
+      <option value="120">2m</option>
+      <option value="180">3m</option>
+    </select>
+  </div>
+  <button class="btn" id="start-btn">🎙 開啟偵測</button>
+</div>
+
+<div id="canvas-wrap"><canvas id="c"></canvas></div>
+
+<div class="overlay" id="fail-overlay">
+  <div class="card">
+    <div style="font-size:5rem; margin-bottom:15px;">🌊</div>
+    <div id="fail-title">冰山融化了！</div>
+    <div id="fail-sub">聲音太大家裡失火，北極熊落水了...😭</div>
+    <button class="o-btn" onclick="resetGame()">🔄 再試一次</button>
+  </div>
+</div>
+
+<div class="overlay" id="win-overlay">
+  <div class="card">
+    <div style="font-size:5rem; margin-bottom:15px;">🐻‍❄️</div>
+    <div id="win-title">挑戰成功！</div>
+    <div id="win-sub">大家太棒了！成功守護了北極熊的冰山家園！</div>
+    <button class="o-btn" onclick="resetGame()">🎉 續航守護</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+//  CONFIG & ASSET LOADING (內嵌精緻向量北極熊)
+// ══════════════════════════════════════════
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const wrap = document.getElementById('canvas-wrap');
+function resize(){ canvas.width = wrap.clientWidth; canvas.height = wrap.clientHeight; }
+resize();
+window.addEventListener('resize', resize);
+
+const GAME_CFG = {
+  meltRate: 0.32,      
+  recoverRate: 0.04,   
+  loudThresh: 0.35,    
+  fireColor: '#ff5500',
+  fireCore: '#ffdd00',
+  iceColor: '#e0ffff',
+  iceShadow: '#88ccff',
+  waterColor: '#0c1636'
+};
+
+// 完美的精緻 Q 版北極熊 SVG Base64 (內含毛茸茸層次、立體萌動大眼、粉紅腮紅、小肉墊細節)
+const bearImg = new Image();
+bearImg.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><g stroke='%23d0e8ff' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><ellipse cx='55' cy='75' rx='35' ry='28' fill='%23ffffff'/><circle cx='82' cy='52' r='20' fill='%23ffffff'/><circle cx='92' cy='32' r='6' fill='%23ffffff'/><circle cx='92' cy='32' r='3' fill='%23f0f7ff'/><circle cx='68' cy='35' r='6' fill='%23ffffff'/><circle cx='68' cy='35' r='3' fill='%23f0f7ff'/><ellipse cx='42' cy='98' rx='8' ry='10' fill='%23ffffff'/><ellipse cx='42' cy='98' rx='5' ry='6' fill='%23e0efff'/><circle cx='38' cy='90' r='2' fill='%23b0d0f0'/><circle cx='42' cy='88' r='2' fill='%23b0d0f0'/><circle cx='46' cy='90' r='2' fill='%23b0d0f0'/><ellipse cx='72' cy='98' rx='8' ry='10' fill='%23ffffff'/><ellipse cx='72' cy='98' rx='5' ry='6' fill='%23e0efff'/><circle cx='68' cy='90' r='2' fill='%23b0d0f0'/><circle cx='72' cy='88' r='2' fill='%23b0d0f0'/><circle cx='76' cy='90' r='2' fill='%23b0d0f0'/></g><circle cx='76' cy='48' r='3.5' fill='%231a1a2e'/><circle cx='75' cy='46' r='1' fill='%23ffffff'/><circle cx='92' cy='48' r='3.5' fill='%231a1a2e'/><circle cx='91' cy='46' r='1' fill='%23ffffff'/><ellipse cx='85' cy='56' rx='5' ry='3.5' fill='%2322223b'/><circle cx='72' cy='56' r='4' fill='%23ffb3c1' opacity='0.6'/><circle cx='96' cy='56' r='4' fill='%23ffb3c1' opacity='0.6'/><path d='M 82,62 Q 85,65 88,62' stroke='%2322223b' stroke-width='1.5' fill='none' stroke-linecap='round'/></svg>";
+
+if(localStorage.getItem('bear_sens_v3')) document.getElementById('sens').value = localStorage.getItem('bear_sens_v3');
+if(localStorage.getItem('bear_goal_v3')) document.getElementById('goal-sel').value = localStorage.getItem('bear_goal_v3');
+
+// ══════════════════════════════════════════
+//  AUDIO PROCESSING
+// ══════════════════════════════════════════
+let audioCtx, analyser, dataArray, micStream;
+async function startMic(){
+  audioCtx = new(window.AudioContext||window.webkitAudioContext)();
+  micStream = await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+  const src = audioCtx.createMediaStreamSource(micStream);
+  analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 256;
+  analyser.smoothingTimeConstant = 0.4; 
+  src.connect(analyser);
+  dataArray = new Uint8Array(analyser.frequencyBinCount);
+}
+
+function getVolume(){
+  if(!analyser) return 0;
+  analyser.getByteFrequencyData(dataArray);
+  const avg = dataArray.reduce((a,v)=>a+v,0) / dataArray.length;
+  const sens = parseFloat(document.getElementById('sens').value);
+  return Math.min(1, (avg/110) * sens);
+}
+
+// ══════════════════════════════════════════
+//  FIRE & STARS PARTICLES
+// ══════════════════════════════════════════
+let particles = [];
+function createFire(vol) {
+  if (vol < 0.04) return;
+  const count = Math.floor(vol * 18);
+  for(let i=0; i<count; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: canvas.height + 20,
+      vx: (Math.random() - 0.5) * 3,
+      vy: -vol * (20 + Math.random() * 22),
+      size: 12 + Math.random() * 18,
+      life: 1,
+      death: 0.015 + Math.random() * 0.02,
+      angle: Math.random() * Math.PI * 2,
+      spin: (Math.random() - 0.5) * 0.08
+    });
+  }
+}
+
+function updateDrawFire(ctx) {
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  particles.forEach((p, i) => {
+    p.x += p.vx; p.y += p.vy;
+    p.vy += 0.35; 
+    p.life -= p.death;
+    p.size *= 0.96;
+    p.angle += p.spin;
+
+    if (p.life <= 0 || p.size < 0.5) {
+      particles.splice(i, 1);
+      return;
+    }
+
+    const rad = Math.max(0.1, p.size);
+    const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, rad);
+    const alpha = Math.max(0, p.life * 1.3);
+
+    g.addColorStop(0, hexToRGBA(GAME_CFG.fireCore, alpha));
+    g.addColorStop(0.2, hexToRGBA(GAME_CFG.fireColor, alpha));
+    g.addColorStop(0.7, hexToRGBA(GAME_CFG.fireColor, alpha * 0.4));
+    g.addColorStop(1, 'rgba(255,85,0,0)');
+
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    const sides = 5;
+    for(let j=0; j<=sides; j++){
+      const ang = j * (Math.PI * 2 / sides) + p.angle;
+      const r = rad * (0.85 + Math.random() * 0.3);
+      const px = p.x + Math.cos(ang) * r;
+      const py = p.y + Math.sin(ang) * r;
+      if(j===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+    }
+    ctx.fill();
+  });
+  ctx.restore();
+}
+
+function hexToRGBA(hex, a) {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
+}
+
+let stars = [];
+for(let i=0; i<60; i++) stars.push({x:Math.random(), y:Math.random(), r:Math.random()*1.3});
+function drawStars(ctx) {
+  ctx.save();
+  ctx.fillStyle = '#ffffff';
+  stars.forEach(s => {
+    ctx.globalAlpha = Math.sin(performance.now()/800 + s.x*50) * 0.4 + 0.4;
+    ctx.beginPath(); ctx.arc(s.x * canvas.width, s.y * canvas.height * 0.65, s.r, 0, Math.PI * 2); ctx.fill();
+  });
+  ctx.restore();
+}
+
+// ══════════════════════════════════════════
+//  GAME CYCLE CONTROL
+// ══════════════════════════════════════════
+let running = false, gameState = 'idle'; 
+let lastTS = 0, iceHealth = 1.0, currentTime = 0, goalTime = 60, volume = 0;
+
+const statusIcon = document.getElementById('status-icon');
+const statusText = document.getElementById('status-text');
+const healthBar = document.getElementById('health-bar');
+const healthText = document.getElementById('health-text');
+const timerVal = document.getElementById('timer-val');
+const startBtn = document.getElementById('start-btn');
+const goalSel = document.getElementById('goal-sel');
+const sensInput = document.getElementById('sens');
+
+goalTime = parseInt(goalSel.value);
+updateTimerUI();
+
+goalSel.addEventListener('change', e => { goalTime = parseInt(e.target.value); localStorage.setItem('bear_goal_v3', goalTime); currentTime=0; updateTimerUI(); });
+sensInput.addEventListener('input', e => { localStorage.setItem('bear_sens_v3', e.target.value); });
+
+function updateTimerUI() {
+  const s = Math.max(0, Math.ceil(goalTime - currentTime));
+  const mm = Math.floor(s/60).toString().padStart(2,'0');
+  const ss = (s%60).toString().padStart(2,'0');
+  timerVal.textContent = `${mm}:${ss}`;
+}
+
+function updateStatusUI(vol) {
+  const hp = Math.max(0, iceHealth);
+  healthBar.style.width = (hp * 100) + '%';
+  healthText.textContent = `冰山血量 ${Math.round(hp * 100)}%`;
+  
+  if(!running) { statusIcon.textContent='●'; statusIcon.className=''; statusText.textContent='準備中'; return; }
+  
+  if (vol > GAME_CFG.loudThresh) {
+    statusIcon.textContent='●'; statusIcon.className=''; statusText.textContent='太吵了！融化中';
+  } else if (vol > 0.08) {
+    statusIcon.textContent='●'; statusIcon.className=''; statusText.textContent='有聲音，注意';
+  } else {
+    statusIcon.textContent='●'; statusIcon.className='active'; 
+    statusText.textContent='非常安靜，凍結修復';
+  }
+}
+
+function drawScene(vol) {
+  const W = canvas.width, H = canvas.height;
+
+  const redFactor = running ? Math.pow(vol, 2) * 90 : 0;
+  ctx.fillStyle = `rgb(${7 + redFactor}, 10, 26)`; 
+  ctx.fillRect(0, 0, W, H);
+  
+  drawStars(ctx);
+
+  const waterHeight = H * 0.35;
+  const waterG = ctx.createLinearGradient(0, H - waterHeight, 0, H);
+  waterG.addColorStop(0, GAME_CFG.waterColor);
+  waterG.addColorStop(1, '#030714');
+  ctx.fillStyle = waterG;
+  ctx.fillRect(0, H - waterHeight, W, waterHeight);
+
+  const centerX = W / 2;
+  const hp = Math.max(0, iceHealth);
+  const baseWidth = W * 0.72 * Math.max(0.12, hp); 
+  const iceHeight = H * 0.52 * Math.max(0.1, hp); 
+  const iceTopY = H - waterHeight - iceHeight + 15; 
+
+  if (hp > 0.01) {
+    ctx.save();
+    ctx.shadowColor = hexToRGBA(GAME_CFG.iceShadow, 0.35);
+    ctx.shadowBlur = 25;
+    ctx.shadowOffsetY = 8;
+    
+    const topW = baseWidth * 0.38;
+    const botW = baseWidth * 0.5;
+    const botY = H - waterHeight + 15;
+
+    ctx.fillStyle = GAME_CFG.iceColor;
+    ctx.beginPath();
+    ctx.moveTo(centerX - topW, iceTopY);
+    ctx.lineTo(centerX + topW, iceTopY);
+    ctx.lineTo(centerX + botW, botY);
+    ctx.lineTo(centerX - botW, botY);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+
+    // 冰山陰影
+    ctx.fillStyle = 'rgba(100, 180, 255, 0.2)';
+    ctx.beginPath();
+    ctx.moveTo(centerX + topW, iceTopY);
+    ctx.lineTo(centerX + topW - 15, iceTopY + iceHeight * 0.4);
+    ctx.lineTo(centerX + botW - 25, botY);
+    ctx.lineTo(centerX + botW, botY);
+    ctx.closePath();
+    ctx.fill();
+
+    // 渲染高畫質北極熊 (並帶有隨機呼吸微幅上下動態)
+    if (topW * 2 > 60) {
+      const bearSize = 75; 
+      const breathe = Math.sin(performance.now() / 300) * 1.5;
+      ctx.drawImage(
+        bearImg, 
+        centerX - bearSize / 2, 
+        iceTopY - bearSize + 8 + breathe, 
+        bearSize, 
+        bearSize
+      );
+    }
+  }
+
+  if(running) {
+    createFire(vol);
+    updateDrawFire(ctx);
+  }
+}
+
+function endGame(win) {
+  running = false;
+  gameState = win ? 'win' : 'fail';
+  if(micStream) micStream.getTracks().forEach(t=>t.stop());
+  document.getElementById(win ? 'win-overlay' : 'fail-overlay').classList.add('show');
+}
+
+function resetGame() {
+  running = false; gameState = 'idle'; iceHealth = 1.0; currentTime = 0; volume = 0; particles = [];
+  if(micStream) micStream.getTracks().forEach(t=>t.stop());
+  document.getElementById('fail-overlay').classList.remove('show');
+  document.getElementById('win-overlay').classList.remove('show');
+  startBtn.textContent = '🎙 開啟偵測'; startBtn.classList.remove('active');
+  goalSel.disabled = false;
+  updateTimerUI(); updateStatusUI(0);
+}
+
+function loop(ts) {
+  requestAnimationFrame(loop);
+  const dt = Math.min((ts - lastTS) / 1000, 0.04);
+  lastTS = ts;
+
+  if (gameState === 'idle') {
+    drawScene(0);
+    return;
+  }
+
+  if (gameState === 'playing' && running) {
+    volume = getVolume();
+    currentTime += dt;
+
+    if (volume > GAME_CFG.loudThresh) {
+      iceHealth -= Math.pow(volume, 2) * GAME_CFG.meltRate * dt * 2.5;
+    } else if (volume < 0.08) {
+      iceHealth = Math.min(1.0, iceHealth + GAME_CFG.recoverRate * dt);
+    }
+
+    if (iceHealth <= 0) { iceHealth = 0; endGame(false); }
+    else if (currentTime >= goalTime) { currentTime = goalTime; endGame(true); }
+
+    drawScene(volume);
+    updateStatusUI(volume);
+    updateTimerUI();
+  } else {
+    drawScene(volume);
+  }
+}
+
+lastTS = performance.now();
+requestAnimationFrame(loop);
+
+startBtn.addEventListener('click', async () => {
+  if (running) { resetGame(); } 
+  else {
+    try {
+      await startMic();
+      running = true; gameState = 'playing'; iceHealth = 1.0; currentTime = 0; particles = [];
+      startBtn.textContent = '⏹ 停止挑戰'; startBtn.classList.add('active');
+      goalSel.disabled = true;
+    } catch (e) {
+      alert('無法存取麥克風！請確認給予瀏覽器麥克風權限。');
+    }
+  }
+});
+</script>
+</body>
+</html>
