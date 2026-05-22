@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git pull *)",
+      "Bash(git checkout *)",
+      "Bash(gh pr create --title 'Add Cyber-Bomb Decoder, Melting Iceberg & Quiet Ball to tool listings' --body ' *)"
+    ]
+  }
+}
