@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
+<link rel="manifest" href="/JeffreysLab/manifest.json">
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/JeffreysLab/sw.js');
+  }
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Jeffrey's Lab｜教學工具總覽</title>
