@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jeffrey's Lab: 拯救北極熊 v3.0 🐻‍❄️</title>
+<title>Jeffrey's Lab: 拯救北極熊 v4.0 🐻‍❄️</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;700&family=Noto+Sans+TC:wght@400;900&display=swap');
 
 *{margin:0;padding:0;box-sizing:border-box;}
 :root{
-  --bg:#070a1a; 
+  --bg:#070a1a;
   --panel:rgba(255,255,255,0.06);
   --border:rgba(120,200,255,0.15);
   --accent:#00e5ff;
@@ -19,78 +19,120 @@
   --fire-core:#ffdd00;
   --text:#f0faff;
   --muted:#708090;
+  --green:#00ff88;
+  --red:#ff4466;
 }
 body{background:var(--bg);color:var(--text);font-family:'Fredoka','Noto Sans TC',sans-serif;height:100vh;overflow:hidden;display:flex;flex-direction:column;}
 
 /* TOPBAR */
-#topbar{display:flex;align-items:center;gap:12px;padding:12px 20px;background:linear-gradient(180deg, rgba(10,15,35,0.98), rgba(10,15,35,0.92));border-bottom:1px solid var(--border);flex-shrink:0;z-index:20;box-shadow:0 4px 15px rgba(0,0,0,0.3);}
-#title{font-size:1.2rem;font-weight:900;white-space:nowrap;letter-spacing:-0.5px;}
+#topbar{display:flex;align-items:center;gap:10px;padding:10px 16px;background:linear-gradient(180deg,rgba(10,15,35,0.98),rgba(10,15,35,0.92));border-bottom:1px solid var(--border);flex-shrink:0;z-index:20;box-shadow:0 4px 15px rgba(0,0,0,0.3);flex-wrap:wrap;}
+#title{font-size:1.1rem;font-weight:900;white-space:nowrap;letter-spacing:-0.5px;}
 #title span{color:var(--accent);text-shadow:0 0 10px rgba(0,229,255,0.5);}
 
-#status-pill{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--border);border-radius:99px;padding:6px 16px;font-size:0.9rem;font-weight:700;}
-#status-icon{font-size:1rem;color:var(--muted);}
-#status-icon.active{color:var(--accent);animation:pulse 1.5s infinite;}
+#health-wrap{flex:1;min-width:120px;max-width:220px;height:18px;background:rgba(0,30,60,0.5);border-radius:99px;overflow:hidden;border:1px solid rgba(120,200,255,0.2);position:relative;box-shadow:inset 0 2px 4px rgba(0,0,0,0.5);}
+#health-bar{height:100%;width:100%;border-radius:99px;background:linear-gradient(90deg,#00d2ff,#fff,#00d2ff);background-size:200% 100%;animation:liquidFlow 3s linear infinite;transition:width 0.15s linear;}
+#health-text{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:900;color:#000;text-shadow:0 1px 1px rgba(255,255,255,0.8);}
 
-/* HEALTH BAR */
-#health-wrap{flex:1;max-width:300px;height:18px;background:rgba(0,30,60,0.5);border-radius:99px;overflow:hidden;border:1px solid rgba(120,200,255,0.2);position:relative;box-shadow:inset 0 2px 4px rgba(0,0,0,0.5);}
-#health-bar{height:100%;width:100%;border-radius:99px;background:linear-gradient(90deg, #00d2ff, #fff, #00d2ff);background-size:200% 100%;animation:liquidFlow 3s linear infinite;transition:width 0.1s linear;}
-#health-text{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:900;color:#000;text-shadow:0 1px 1px rgba(255,255,255,0.8);letter-spacing:0.5px;}
+#timer-badge{display:flex;flex-direction:column;align-items:center;background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:4px 14px;min-width:90px;}
+#timer-lbl{font-size:0.58rem;color:var(--muted);letter-spacing:1px;text-transform:uppercase;font-weight:700;}
+#timer-val{font-size:1.4rem;font-weight:900;font-variant-numeric:tabular-nums;line-height:1.1;color:var(--text);letter-spacing:-1px;}
 
-#timer-badge{display:flex;flex-direction:column;align-items:center;background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:5px 18px;min-width:110px;}
-#timer-lbl{font-size:0.6rem;color:var(--muted);letter-spacing:1px;text-transform:uppercase;font-weight:700;}
-#timer-val{font-size:1.6rem;font-weight:900;font-variant-numeric:tabular-nums;line-height:1.1;color:var(--text);letter-spacing:-1px;}
-
-.btn{padding:10px 24px;border-radius:99px;border:none;font-family:inherit;font-size:0.95rem;font-weight:700;cursor:pointer;transition:all 0.15s;box-shadow:0 2px 6px rgba(0,0,0,0.3);}
+.btn{padding:8px 18px;border-radius:99px;border:none;font-family:inherit;font-size:0.9rem;font-weight:700;cursor:pointer;transition:all 0.15s;box-shadow:0 2px 6px rgba(0,0,0,0.3);}
 .btn:hover{transform:translateY(-1px) scale(1.03);filter:brightness(1.1);}
-#start-btn{background:linear-gradient(135deg, #00e5ff, #00aaff);color:#000;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;}
-#start-btn.active{background:linear-gradient(135deg, #ff5500, #ffaa00);color:#fff;border-color:rgba(255,200,150,0.3);}
+#start-btn{background:linear-gradient(135deg,#00e5ff,#00aaff);color:#000;border:1px solid rgba(255,255,255,0.2);white-space:nowrap;}
+#start-btn.active{background:linear-gradient(135deg,#ff5500,#ffaa00);color:#fff;}
+#setup-btn{background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;white-space:nowrap;}
 
-.ctrl{display:flex;align-items:center;gap:8px;font-size:0.85rem;color:var(--text);font-weight:700;white-space:nowrap;}
+.ctrl{display:flex;align-items:center;gap:6px;font-size:0.82rem;color:var(--text);font-weight:700;white-space:nowrap;}
 .ctrl label{color:var(--muted);}
-input[type=range]{-webkit-appearance:none;width:100px;height:6px;border-radius:99px;background:rgba(120,200,255,0.1);outline:none;}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 0 12px var(--accent);border:2px solid #fff;}
-select.ctrl-sel{background:var(--panel);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:5px 10px;font-size:0.85rem;font-family:inherit;font-weight:700;outline:none;}
+input[type=range]{-webkit-appearance:none;width:80px;height:6px;border-radius:99px;background:rgba(120,200,255,0.1);outline:none;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 0 10px var(--accent);border:2px solid #fff;}
+select.ctrl-sel{background:var(--panel);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:4px 8px;font-size:0.82rem;font-family:inherit;font-weight:700;outline:none;}
+
+/* SCORE BADGES */
+.score-badge{display:flex;flex-direction:column;align-items:center;background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:4px 12px;}
+.score-lbl{font-size:0.58rem;color:var(--muted);letter-spacing:1px;text-transform:uppercase;font-weight:700;}
+.score-val{font-size:1.2rem;font-weight:900;line-height:1.1;}
 
 /* MAIN CANVAS */
-#canvas-wrap{flex:1;position:relative;overflow:hidden;background:linear-gradient(180deg, #070a1a 0%, #0a1025 100%);}
+#canvas-wrap{flex:1;position:relative;overflow:hidden;}
 canvas{display:block;width:100%;height:100%;}
 
+/* WORD INPUT AREA - overlay on canvas */
+#word-panel{position:absolute;bottom:0;left:0;right:0;z-index:10;display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 16px 16px;background:linear-gradient(0deg,rgba(7,10,26,0.97) 0%,rgba(7,10,26,0.85) 60%,transparent 100%);pointer-events:none;transition:opacity 0.3s;}
+#word-panel.active{pointer-events:all;}
+
+#clue-box{display:flex;gap:20px;align-items:flex-start;justify-content:center;flex-wrap:wrap;max-width:700px;width:100%;}
+.clue-card{background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:16px;padding:10px 20px;text-align:center;min-width:140px;}
+.clue-label{font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;}
+.clue-zh{font-size:1.4rem;font-weight:900;color:var(--accent);}
+.clue-en{font-size:0.9rem;color:var(--text);opacity:0.85;margin-top:4px;line-height:1.4;}
+
+#letter-display{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;max-width:600px;}
+.letter-slot{width:36px;height:44px;border-bottom:3px solid var(--border);display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;font-size:1.4rem;font-weight:900;letter-spacing:0;color:var(--text);transition:all 0.15s;position:relative;}
+.letter-slot.filled{border-color:var(--accent);color:var(--accent);}
+.letter-slot.correct{border-color:var(--green);color:var(--green);}
+.letter-slot.wrong{border-color:var(--red);color:var(--red);animation:shake 0.3s;}
+
+#input-row{display:flex;gap:10px;align-items:center;}
+#word-input{background:rgba(255,255,255,0.08);border:2px solid var(--border);border-radius:14px;padding:10px 20px;font-size:1.2rem;font-weight:700;color:var(--text);font-family:inherit;outline:none;width:260px;text-align:center;text-transform:uppercase;letter-spacing:2px;transition:border-color 0.2s;}
+#word-input:focus{border-color:var(--accent);}
+#submit-btn{background:linear-gradient(135deg,#00e5ff,#00aaff);color:#000;padding:10px 24px;border-radius:99px;border:none;font-family:inherit;font-size:1rem;font-weight:900;cursor:pointer;}
+#submit-btn:hover{filter:brightness(1.1);transform:translateY(-1px);}
+#skip-btn{background:rgba(255,255,255,0.08);color:var(--muted);padding:10px 18px;border-radius:99px;border:1px solid var(--border);font-family:inherit;font-size:0.9rem;font-weight:700;cursor:pointer;}
+
+#feedback-msg{font-size:1rem;font-weight:700;height:24px;text-align:center;transition:all 0.2s;}
+
+/* SETUP MODAL */
+.modal-bg{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.8);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.3s;}
+.modal-bg.show{opacity:1;pointer-events:all;}
+.modal{background:linear-gradient(135deg,#0d1730,#0a1020);border:1px solid var(--border);border-radius:28px;padding:36px;max-width:520px;width:90%;transform:scale(0.9);transition:transform 0.3s cubic-bezier(.34,1.56,.64,1);}
+.modal-bg.show .modal{transform:scale(1);}
+.modal h2{font-size:1.5rem;font-weight:900;color:var(--accent);margin-bottom:20px;text-align:center;}
+.modal label{display:block;font-size:0.85rem;color:var(--muted);margin-bottom:6px;font-weight:700;}
+.modal textarea{width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:12px;padding:12px;color:var(--text);font-family:'Noto Sans TC',sans-serif;font-size:0.85rem;line-height:1.6;resize:vertical;min-height:180px;outline:none;}
+.modal textarea:focus{border-color:var(--accent);}
+.modal-hint{font-size:0.78rem;color:var(--muted);margin-top:6px;line-height:1.5;}
+.modal-actions{display:flex;gap:10px;margin-top:20px;justify-content:flex-end;}
+.modal-btn{padding:10px 24px;border-radius:99px;border:none;font-family:inherit;font-size:0.95rem;font-weight:700;cursor:pointer;}
+.modal-btn.primary{background:linear-gradient(135deg,#00e5ff,#00aaff);color:#000;}
+.modal-btn.ghost{background:var(--panel);color:var(--muted);border:1px solid var(--border);}
+
 /* OVERLAYS */
-.overlay{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.5s;backdrop-filter:blur(12px);}
+.overlay{position:fixed;inset:0;z-index:150;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.5s;backdrop-filter:blur(12px);}
 .overlay.show{opacity:1;pointer-events:all;}
-.card{position:relative;border-radius:36px;padding:45px 65px;text-align:center;transform:scale(0.8);transition:transform 0.5s cubic-bezier(.34,1.56,.64,1);box-shadow:0 15px 50px rgba(0,0,0,0.6);}
+.card{position:relative;border-radius:36px;padding:40px 60px;text-align:center;transform:scale(0.8);transition:transform 0.5s cubic-bezier(.34,1.56,.64,1);box-shadow:0 15px 50px rgba(0,0,0,0.6);}
 .overlay.show .card{transform:scale(1);}
-
-#fail-overlay .card{background:linear-gradient(135deg,#2d0a0a,#1a0000);border:3px solid var(--fire);box-shadow:0 0 80px rgba(255,85,0,0.35);}
-#fail-title{font-size:2.8rem;font-weight:900;color:var(--fire);margin-bottom:12px;}
-#fail-sub{font-size:1.1rem;color:var(--text);opacity:0.8;margin-bottom:30px;}
-
-#win-overlay .card{background:linear-gradient(135deg,#0a1f1f,#051111);border:3px solid var(--accent);box-shadow:0 0 80px rgba(0,229,255,0.25);}
-#win-title{font-size:2.8rem;font-weight:900;color:var(--accent);margin-bottom:12px;}
-#win-sub{font-size:1.1rem;color:var(--text);opacity:0.8;margin-bottom:30px;}
-
-.o-btn{padding:14px 36px;border-radius:99px;border:none;font-family:inherit;font-size:1.1rem;font-weight:900;cursor:pointer;background:linear-gradient(135deg, #fff, #ddd);color:#000;}
+#fail-overlay .card{background:linear-gradient(135deg,#2d0a0a,#1a0000);border:3px solid var(--fire);}
+#win-overlay .card{background:linear-gradient(135deg,#0a1f1f,#051111);border:3px solid var(--accent);}
+.o-title{font-size:2.4rem;font-weight:900;margin-bottom:10px;}
+.o-sub{font-size:1rem;opacity:0.8;margin-bottom:8px;}
+.o-stats{font-size:0.9rem;color:var(--accent);margin-bottom:24px;font-weight:700;}
+.o-btn{padding:12px 32px;border-radius:99px;border:none;font-family:inherit;font-size:1rem;font-weight:900;cursor:pointer;background:linear-gradient(135deg,#fff,#ddd);color:#000;}
 
 @keyframes pulse{0%{opacity:0.6;transform:scale(1);}50%{opacity:1;transform:scale(1.1);}100%{opacity:0.6;transform:scale(1);}}
 @keyframes liquidFlow{0%{background-position:200% 0;}100%{background-position:0 0;}}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-4px);}75%{transform:translateX(4px);}}
+@keyframes popIn{0%{transform:scale(0.7);opacity:0;}100%{transform:scale(1);opacity:1;}}
 </style>
 </head>
 <body>
 
 <div id="topbar">
   <div id="title">🐻‍❄️ 拯救<span>北極熊</span></div>
-  <div id="status-pill"><span id="status-icon">●</span><span id="status-text">初始化</span></div>
   <div id="health-wrap">
     <div id="health-bar"></div>
-    <div id="health-text">冰山血量 100%</div>
+    <div id="health-text">冰山 100%</div>
   </div>
   <div id="timer-badge">
-    <div id="timer-lbl">挑戰倒數</div>
+    <div id="timer-lbl">倒數</div>
     <div id="timer-val">00:00</div>
   </div>
+  <div class="score-badge"><div class="score-lbl">答對</div><div class="score-val" id="correct-val" style="color:var(--green)">0</div></div>
+  <div class="score-badge"><div class="score-lbl">答錯</div><div class="score-val" id="wrong-val" style="color:var(--red)">0</div></div>
   <div class="ctrl"><label>靈敏</label><input type="range" id="sens" min="0.2" max="4" step="0.1" value="1.5"></div>
   <div class="ctrl">
-    <label>目標</label>
+    <label>時限</label>
     <select class="ctrl-sel" id="goal-sel">
       <option value="30">30s</option>
       <option value="60" selected>1m</option>
@@ -98,32 +140,104 @@ canvas{display:block;width:100%;height:100%;}
       <option value="180">3m</option>
     </select>
   </div>
-  <button class="btn" id="start-btn">🎙 開啟偵測</button>
+  <button class="btn" id="setup-btn">📝 單字設定</button>
+  <button class="btn" id="start-btn">🎙 開始挑戰</button>
 </div>
 
-<div id="canvas-wrap"><canvas id="c"></canvas></div>
-
-<div class="overlay" id="fail-overlay">
-  <div class="card">
-    <div style="font-size:5rem; margin-bottom:15px;">🌊</div>
-    <div id="fail-title">冰山融化了！</div>
-    <div id="fail-sub">聲音太大家裡失火，北極熊落水了...😭</div>
-    <button class="o-btn" onclick="resetGame()">🔄 再試一次</button>
+<div id="canvas-wrap">
+  <canvas id="c"></canvas>
+  <div id="word-panel">
+    <div id="clue-box">
+      <div class="clue-card">
+        <div class="clue-label">中文</div>
+        <div class="clue-zh" id="clue-zh">—</div>
+      </div>
+      <div class="clue-card" style="flex:1;max-width:340px;">
+        <div class="clue-label">英文定義</div>
+        <div class="clue-en" id="clue-en">—</div>
+      </div>
+    </div>
+    <div id="letter-display"></div>
+    <div id="input-row">
+      <input type="text" id="word-input" placeholder="輸入英文單字" autocomplete="off" autocorrect="off" spellcheck="false">
+      <button id="submit-btn">✓ 確認</button>
+      <button id="skip-btn">⏭ 跳過</button>
+    </div>
+    <div id="feedback-msg"></div>
   </div>
 </div>
 
+<!-- SETUP MODAL -->
+<div class="modal-bg" id="setup-modal">
+  <div class="modal">
+    <h2>📝 單字庫設定</h2>
+    <label>自訂單字清單（每行一個，格式：英文單字 = 中文 = 英文定義）</label>
+    <textarea id="custom-words" placeholder="apple = 蘋果 = A round fruit that is red, green, or yellow
+ocean = 海洋 = A very large area of salt water
+forest = 森林 = A large area covered with trees
+penguin = 企鵝 = A black and white bird that cannot fly"></textarea>
+    <div class="modal-hint">💡 若留空則使用內建單字庫。定義欄可省略，僅需 「英文 = 中文」格式亦可。</div>
+    <div class="modal-actions">
+      <button class="modal-btn ghost" onclick="closeSetup()">取消</button>
+      <button class="modal-btn primary" onclick="saveSetup()">✓ 確認使用</button>
+    </div>
+  </div>
+</div>
+
+<!-- FAIL / WIN OVERLAYS -->
+<div class="overlay" id="fail-overlay">
+  <div class="card">
+    <div style="font-size:4rem;margin-bottom:12px;">🌊</div>
+    <div class="o-title" style="color:var(--fire)">冰山融化了！</div>
+    <div class="o-sub">聲音太大，北極熊落水了...😭</div>
+    <div class="o-stats" id="fail-stats"></div>
+    <button class="o-btn" onclick="resetGame()">🔄 再試一次</button>
+  </div>
+</div>
 <div class="overlay" id="win-overlay">
   <div class="card">
-    <div style="font-size:5rem; margin-bottom:15px;">🐻‍❄️</div>
-    <div id="win-title">挑戰成功！</div>
-    <div id="win-sub">大家太棒了！成功守護了北極熊的冰山家園！</div>
-    <button class="o-btn" onclick="resetGame()">🎉 續航守護</button>
+    <div style="font-size:4rem;margin-bottom:12px;">🐻‍❄️</div>
+    <div class="o-title" style="color:var(--accent)">挑戰成功！</div>
+    <div class="o-sub">大家太棒了！成功守護北極熊的冰山家園！</div>
+    <div class="o-stats" id="win-stats"></div>
+    <button class="o-btn" onclick="resetGame()">🎉 再玩一次</button>
   </div>
 </div>
 
 <script>
 // ══════════════════════════════════════════
-//  CONFIG & ASSET LOADING (內嵌精緻向量北極熊)
+//  BUILT-IN WORD BANK
+// ══════════════════════════════════════════
+const BUILTIN_WORDS = [
+  {w:'arctic',zh:'北極的',en:'Relating to the region around the North Pole'},
+  {w:'polar',zh:'極地的',en:'Relating to the areas around the North or South Pole'},
+  {w:'iceberg',zh:'冰山',en:'A large mass of ice floating in the sea'},
+  {w:'glacier',zh:'冰川',en:'A slow-moving mass of ice formed from compacted snow'},
+  {w:'frozen',zh:'冰凍的',en:'Turned into ice or made very cold'},
+  {w:'climate',zh:'氣候',en:'The usual weather conditions in a region over a long period'},
+  {w:'habitat',zh:'棲息地',en:'The natural environment where an animal or plant lives'},
+  {w:'survive',zh:'存活',en:'To continue to live or exist despite difficulties'},
+  {w:'protect',zh:'保護',en:'To keep safe from harm or damage'},
+  {w:'melt',zh:'融化',en:'To change from solid to liquid by heating'},
+  {w:'ocean',zh:'海洋',en:'A very large area of salt water covering much of the Earth'},
+  {w:'penguin',zh:'企鵝',en:'A black and white bird from the Antarctic that cannot fly'},
+  {w:'blizzard',zh:'暴風雪',en:'A severe snowstorm with strong winds and low visibility'},
+  {w:'tundra',zh:'凍原',en:'A vast flat treeless region in the Arctic with frozen ground'},
+  {w:'species',zh:'物種',en:'A group of living things that can breed with each other'},
+  {w:'extinct',zh:'滅絕',en:'No longer existing as a living species'},
+  {w:'energy',zh:'能量',en:'The power used to do work or produce heat and light'},
+  {w:'weather',zh:'天氣',en:'The condition of the atmosphere at a particular time and place'},
+  {w:'winter',zh:'冬天',en:'The coldest season of the year'},
+  {w:'rescue',zh:'拯救',en:'To save someone from danger or a difficult situation'},
+  {w:'silent',zh:'安靜的',en:'Making little or no noise'},
+  {w:'careful',zh:'小心的',en:'Giving attention to avoid mistakes or danger'},
+  {w:'ancient',zh:'古老的',en:'Very old, belonging to a time long ago'},
+  {w:'crystal',zh:'水晶',en:'A clear glassy solid with a regular geometric shape'},
+  {w:'balance',zh:'平衡',en:'A state where things are of equal weight or importance'},
+];
+
+// ══════════════════════════════════════════
+//  CANVAS SETUP
 // ══════════════════════════════════════════
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
@@ -133,9 +247,11 @@ resize();
 window.addEventListener('resize', resize);
 
 const GAME_CFG = {
-  meltRate: 0.32,      
-  recoverRate: 0.04,   
-  loudThresh: 0.35,    
+  meltRate: 0.28,
+  recoverRate: 0.035,
+  loudThresh: 0.35,
+  wrongPenalty: 0.10,
+  correctBonus: 0.06,
   fireColor: '#ff5500',
   fireCore: '#ffdd00',
   iceColor: '#e0ffff',
@@ -143,15 +259,11 @@ const GAME_CFG = {
   waterColor: '#0c1636'
 };
 
-// 完美的精緻 Q 版北極熊 SVG Base64 (內含毛茸茸層次、立體萌動大眼、粉紅腮紅、小肉墊細節)
 const bearImg = new Image();
 bearImg.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><g stroke='%23d0e8ff' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><ellipse cx='55' cy='75' rx='35' ry='28' fill='%23ffffff'/><circle cx='82' cy='52' r='20' fill='%23ffffff'/><circle cx='92' cy='32' r='6' fill='%23ffffff'/><circle cx='92' cy='32' r='3' fill='%23f0f7ff'/><circle cx='68' cy='35' r='6' fill='%23ffffff'/><circle cx='68' cy='35' r='3' fill='%23f0f7ff'/><ellipse cx='42' cy='98' rx='8' ry='10' fill='%23ffffff'/><ellipse cx='42' cy='98' rx='5' ry='6' fill='%23e0efff'/><circle cx='38' cy='90' r='2' fill='%23b0d0f0'/><circle cx='42' cy='88' r='2' fill='%23b0d0f0'/><circle cx='46' cy='90' r='2' fill='%23b0d0f0'/><ellipse cx='72' cy='98' rx='8' ry='10' fill='%23ffffff'/><ellipse cx='72' cy='98' rx='5' ry='6' fill='%23e0efff'/><circle cx='68' cy='90' r='2' fill='%23b0d0f0'/><circle cx='72' cy='88' r='2' fill='%23b0d0f0'/><circle cx='76' cy='90' r='2' fill='%23b0d0f0'/></g><circle cx='76' cy='48' r='3.5' fill='%231a1a2e'/><circle cx='75' cy='46' r='1' fill='%23ffffff'/><circle cx='92' cy='48' r='3.5' fill='%231a1a2e'/><circle cx='91' cy='46' r='1' fill='%23ffffff'/><ellipse cx='85' cy='56' rx='5' ry='3.5' fill='%2322223b'/><circle cx='72' cy='56' r='4' fill='%23ffb3c1' opacity='0.6'/><circle cx='96' cy='56' r='4' fill='%23ffb3c1' opacity='0.6'/><path d='M 82,62 Q 85,65 88,62' stroke='%2322223b' stroke-width='1.5' fill='none' stroke-linecap='round'/></svg>";
 
-if(localStorage.getItem('bear_sens_v3')) document.getElementById('sens').value = localStorage.getItem('bear_sens_v3');
-if(localStorage.getItem('bear_goal_v3')) document.getElementById('goal-sel').value = localStorage.getItem('bear_goal_v3');
-
 // ══════════════════════════════════════════
-//  AUDIO PROCESSING
+//  AUDIO
 // ══════════════════════════════════════════
 let audioCtx, analyser, dataArray, micStream;
 async function startMic(){
@@ -160,277 +272,378 @@ async function startMic(){
   const src = audioCtx.createMediaStreamSource(micStream);
   analyser = audioCtx.createAnalyser();
   analyser.fftSize = 256;
-  analyser.smoothingTimeConstant = 0.4; 
+  analyser.smoothingTimeConstant = 0.4;
   src.connect(analyser);
   dataArray = new Uint8Array(analyser.frequencyBinCount);
 }
-
 function getVolume(){
   if(!analyser) return 0;
   analyser.getByteFrequencyData(dataArray);
-  const avg = dataArray.reduce((a,v)=>a+v,0) / dataArray.length;
+  const avg = dataArray.reduce((a,v)=>a+v,0)/dataArray.length;
   const sens = parseFloat(document.getElementById('sens').value);
-  return Math.min(1, (avg/110) * sens);
+  return Math.min(1,(avg/110)*sens);
 }
 
 // ══════════════════════════════════════════
-//  FIRE & STARS PARTICLES
+//  PARTICLES
 // ══════════════════════════════════════════
 let particles = [];
-function createFire(vol) {
-  if (vol < 0.04) return;
-  const count = Math.floor(vol * 18);
-  for(let i=0; i<count; i++) {
-    particles.push({
-      x: Math.random() * canvas.width,
-      y: canvas.height + 20,
-      vx: (Math.random() - 0.5) * 3,
-      vy: -vol * (20 + Math.random() * 22),
-      size: 12 + Math.random() * 18,
-      life: 1,
-      death: 0.015 + Math.random() * 0.02,
-      angle: Math.random() * Math.PI * 2,
-      spin: (Math.random() - 0.5) * 0.08
-    });
+function createFire(vol){
+  if(vol < 0.04) return;
+  const count = Math.floor(vol*16);
+  for(let i=0;i<count;i++){
+    particles.push({x:Math.random()*canvas.width,y:canvas.height+20,vx:(Math.random()-0.5)*3,vy:-vol*(18+Math.random()*20),size:10+Math.random()*16,life:1,death:0.016+Math.random()*0.02,angle:Math.random()*Math.PI*2,spin:(Math.random()-0.5)*0.08});
   }
 }
-
-function updateDrawFire(ctx) {
-  ctx.save();
-  ctx.globalCompositeOperation = 'lighter';
-  particles.forEach((p, i) => {
-    p.x += p.vx; p.y += p.vy;
-    p.vy += 0.35; 
-    p.life -= p.death;
-    p.size *= 0.96;
-    p.angle += p.spin;
-
-    if (p.life <= 0 || p.size < 0.5) {
-      particles.splice(i, 1);
-      return;
-    }
-
-    const rad = Math.max(0.1, p.size);
-    const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, rad);
-    const alpha = Math.max(0, p.life * 1.3);
-
-    g.addColorStop(0, hexToRGBA(GAME_CFG.fireCore, alpha));
-    g.addColorStop(0.2, hexToRGBA(GAME_CFG.fireColor, alpha));
-    g.addColorStop(0.7, hexToRGBA(GAME_CFG.fireColor, alpha * 0.4));
-    g.addColorStop(1, 'rgba(255,85,0,0)');
-
-    ctx.fillStyle = g;
-    ctx.beginPath();
-    const sides = 5;
-    for(let j=0; j<=sides; j++){
-      const ang = j * (Math.PI * 2 / sides) + p.angle;
-      const r = rad * (0.85 + Math.random() * 0.3);
-      const px = p.x + Math.cos(ang) * r;
-      const py = p.y + Math.sin(ang) * r;
-      if(j===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
-    }
+function updateDrawFire(){
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  particles.forEach((p,i)=>{
+    p.x+=p.vx;p.y+=p.vy;p.vy+=0.35;p.life-=p.death;p.size*=0.96;p.angle+=p.spin;
+    if(p.life<=0||p.size<0.5){particles.splice(i,1);return;}
+    const rad=Math.max(0.1,p.size);
+    const g=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,rad);
+    const alpha=Math.max(0,p.life*1.3);
+    g.addColorStop(0,hexToRGBA(GAME_CFG.fireCore,alpha));
+    g.addColorStop(0.2,hexToRGBA(GAME_CFG.fireColor,alpha));
+    g.addColorStop(0.7,hexToRGBA(GAME_CFG.fireColor,alpha*0.4));
+    g.addColorStop(1,'rgba(255,85,0,0)');
+    ctx.fillStyle=g;ctx.beginPath();
+    for(let j=0;j<=5;j++){const ang=j*(Math.PI*2/5)+p.angle;const r=rad*(0.85+Math.random()*0.3);const px=p.x+Math.cos(ang)*r;const py=p.y+Math.sin(ang)*r;if(j===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);}
     ctx.fill();
   });
   ctx.restore();
 }
+function hexToRGBA(hex,a){const n=parseInt(hex.slice(1),16);return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;}
 
-function hexToRGBA(hex, a) {
-  const n = parseInt(hex.slice(1), 16);
-  return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
-}
-
-let stars = [];
-for(let i=0; i<60; i++) stars.push({x:Math.random(), y:Math.random(), r:Math.random()*1.3});
-function drawStars(ctx) {
-  ctx.save();
-  ctx.fillStyle = '#ffffff';
-  stars.forEach(s => {
-    ctx.globalAlpha = Math.sin(performance.now()/800 + s.x*50) * 0.4 + 0.4;
-    ctx.beginPath(); ctx.arc(s.x * canvas.width, s.y * canvas.height * 0.65, s.r, 0, Math.PI * 2); ctx.fill();
-  });
+let stars=[];
+for(let i=0;i<60;i++) stars.push({x:Math.random(),y:Math.random(),r:Math.random()*1.3});
+function drawStars(){
+  ctx.save();ctx.fillStyle='#ffffff';
+  stars.forEach(s=>{ctx.globalAlpha=Math.sin(performance.now()/800+s.x*50)*0.4+0.4;ctx.beginPath();ctx.arc(s.x*canvas.width,s.y*canvas.height*0.65,s.r,0,Math.PI*2);ctx.fill();});
   ctx.restore();
 }
 
 // ══════════════════════════════════════════
-//  GAME CYCLE CONTROL
+//  WORD / QUIZ LOGIC
 // ══════════════════════════════════════════
-let running = false, gameState = 'idle'; 
-let lastTS = 0, iceHealth = 1.0, currentTime = 0, goalTime = 60, volume = 0;
+let wordBank = [];
+let customWords = [];
+let currentWord = null;
+let currentInput = '';
+let correctCount = 0, wrongCount = 0;
+let feedbackTimer = null;
 
-const statusIcon = document.getElementById('status-icon');
-const statusText = document.getElementById('status-text');
-const healthBar = document.getElementById('health-bar');
-const healthText = document.getElementById('health-text');
-const timerVal = document.getElementById('timer-val');
-const startBtn = document.getElementById('start-btn');
-const goalSel = document.getElementById('goal-sel');
-const sensInput = document.getElementById('sens');
+function parseCustomWords(text){
+  const lines = text.trim().split('\n');
+  const result = [];
+  for(const line of lines){
+    const parts = line.split('=').map(s=>s.trim());
+    if(parts.length >= 2 && parts[0]){
+      result.push({
+        w: parts[0].toLowerCase(),
+        zh: parts[1] || '',
+        en: parts[2] || ''
+      });
+    }
+  }
+  return result;
+}
 
-goalTime = parseInt(goalSel.value);
+function buildWordBank(){
+  wordBank = customWords.length > 0 ? [...customWords] : [...BUILTIN_WORDS];
+  // shuffle
+  for(let i=wordBank.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [wordBank[i],wordBank[j]]=[wordBank[j],wordBank[i]];
+  }
+}
+
+let usedIndices = [];
+function nextWord(){
+  if(usedIndices.length >= wordBank.length) usedIndices = [];
+  let idx;
+  do { idx = Math.floor(Math.random()*wordBank.length); } while(usedIndices.includes(idx) && usedIndices.length < wordBank.length);
+  usedIndices.push(idx);
+  currentWord = wordBank[idx];
+  currentInput = '';
+  renderWordUI();
+}
+
+function renderWordUI(){
+  if(!currentWord){ document.getElementById('word-panel').classList.remove('active'); return; }
+  document.getElementById('clue-zh').textContent = currentWord.zh || '—';
+  document.getElementById('clue-en').textContent = currentWord.en || '（無定義）';
+  document.getElementById('word-input').value = '';
+  document.getElementById('word-input').focus();
+
+  // letter slots
+  const display = document.getElementById('letter-display');
+  display.innerHTML = '';
+  const w = currentWord.w;
+  // show first letter as hint
+  for(let i=0;i<w.length;i++){
+    const slot = document.createElement('div');
+    slot.className = 'letter-slot' + (i===0?' filled':'');
+    slot.textContent = i===0 ? w[0].toUpperCase() : '';
+    slot.id = 'slot-'+i;
+    display.appendChild(slot);
+  }
+}
+
+function updateSlots(val){
+  if(!currentWord) return;
+  const w = currentWord.w;
+  const typed = val.toLowerCase();
+  for(let i=0;i<w.length;i++){
+    const slot = document.getElementById('slot-'+i);
+    if(!slot) continue;
+    if(i===0){slot.textContent=w[0].toUpperCase();slot.className='letter-slot filled';continue;}
+    if(i < typed.length+1){
+      const ch = typed[i-1];
+      slot.textContent = ch ? ch.toUpperCase() : '';
+      slot.className = 'letter-slot filled';
+    } else {
+      slot.textContent='';slot.className='letter-slot';
+    }
+  }
+}
+
+function showFeedback(msg, color){
+  const el = document.getElementById('feedback-msg');
+  el.textContent = msg;
+  el.style.color = color;
+  if(feedbackTimer) clearTimeout(feedbackTimer);
+  feedbackTimer = setTimeout(()=>{el.textContent='';},1800);
+}
+
+function submitAnswer(){
+  if(!currentWord || !running) return;
+  const raw = document.getElementById('word-input').value.trim().toLowerCase();
+  if(!raw) return;
+  
+  // 自動補上第一個字母（因為已顯示為提示）
+  const firstLetter = currentWord.w[0];
+  const input = raw.startsWith(firstLetter) ? raw : firstLetter + raw;
+  
+  if(input === currentWord.w){
+    // CORRECT
+    correctCount++;
+    document.getElementById('correct-val').textContent = correctCount;
+    iceHealth = Math.min(1.0, iceHealth + GAME_CFG.correctBonus);
+    showFeedback('✓ 正確！+' + Math.round(GAME_CFG.correctBonus*100) + '% 冰山回血！', '#00ff88');
+    // flash slots green
+    for(let i=0;i<currentWord.w.length;i++){
+      const s=document.getElementById('slot-'+i);
+      if(s) s.className='letter-slot correct';
+    }
+    setTimeout(()=>nextWord(), 600);
+  } else {
+    // WRONG
+    wrongCount++;
+    document.getElementById('wrong-val').textContent = wrongCount;
+    iceHealth = Math.max(0, iceHealth - GAME_CFG.wrongPenalty);
+    showFeedback('✗ 答錯！-' + Math.round(GAME_CFG.wrongPenalty*100) + '% 冰山融化！', '#ff4466');
+    for(let i=1;i<currentWord.w.length;i++){
+      const s=document.getElementById('slot-'+i);
+      if(s) s.className='letter-slot wrong';
+    }
+    document.getElementById('word-input').value='';
+    setTimeout(()=>renderWordUI(),500);
+  }
+}
+
+// ══════════════════════════════════════════
+//  SETUP MODAL
+// ══════════════════════════════════════════
+function openSetup(){ document.getElementById('setup-modal').classList.add('show'); }
+function closeSetup(){ document.getElementById('setup-modal').classList.remove('show'); }
+function saveSetup(){
+  const text = document.getElementById('custom-words').value;
+  customWords = parseCustomWords(text);
+  closeSetup();
+  buildWordBank();
+}
+document.getElementById('setup-btn').addEventListener('click', openSetup);
+
+// ══════════════════════════════════════════
+//  GAME STATE
+// ══════════════════════════════════════════
+let running=false, gameState='idle';
+let lastTS=0, iceHealth=1.0, currentTime=0, goalTime=60, volume=0;
+
+const healthBar=document.getElementById('health-bar');
+const healthText=document.getElementById('health-text');
+const timerVal=document.getElementById('timer-val');
+const startBtn=document.getElementById('start-btn');
+const goalSel=document.getElementById('goal-sel');
+
+goalTime=parseInt(goalSel.value);
 updateTimerUI();
 
-goalSel.addEventListener('change', e => { goalTime = parseInt(e.target.value); localStorage.setItem('bear_goal_v3', goalTime); currentTime=0; updateTimerUI(); });
-sensInput.addEventListener('input', e => { localStorage.setItem('bear_sens_v3', e.target.value); });
+goalSel.addEventListener('change',e=>{goalTime=parseInt(e.target.value);currentTime=0;updateTimerUI();});
 
-function updateTimerUI() {
-  const s = Math.max(0, Math.ceil(goalTime - currentTime));
-  const mm = Math.floor(s/60).toString().padStart(2,'0');
-  const ss = (s%60).toString().padStart(2,'0');
-  timerVal.textContent = `${mm}:${ss}`;
+function updateTimerUI(){
+  const s=Math.max(0,Math.ceil(goalTime-currentTime));
+  timerVal.textContent=`${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
 }
 
-function updateStatusUI(vol) {
-  const hp = Math.max(0, iceHealth);
-  healthBar.style.width = (hp * 100) + '%';
-  healthText.textContent = `冰山血量 ${Math.round(hp * 100)}%`;
-  
-  if(!running) { statusIcon.textContent='●'; statusIcon.className=''; statusText.textContent='準備中'; return; }
-  
-  if (vol > GAME_CFG.loudThresh) {
-    statusIcon.textContent='●'; statusIcon.className=''; statusText.textContent='太吵了！融化中';
-  } else if (vol > 0.08) {
-    statusIcon.textContent='●'; statusIcon.className=''; statusText.textContent='有聲音，注意';
-  } else {
-    statusIcon.textContent='●'; statusIcon.className='active'; 
-    statusText.textContent='非常安靜，凍結修復';
-  }
+function updateHealthUI(){
+  const hp=Math.max(0,iceHealth);
+  healthBar.style.width=(hp*100)+'%';
+  healthText.textContent=`冰山 ${Math.round(hp*100)}%`;
+  // color shift when low
+  if(hp<0.3) healthBar.style.background='linear-gradient(90deg,#ff4466,#ff8800,#ff4466)';
+  else healthBar.style.background='linear-gradient(90deg,#00d2ff,#fff,#00d2ff)';
+  healthBar.style.backgroundSize='200% 100%';
 }
 
-function drawScene(vol) {
-  const W = canvas.width, H = canvas.height;
-
-  const redFactor = running ? Math.pow(vol, 2) * 90 : 0;
-  ctx.fillStyle = `rgb(${7 + redFactor}, 10, 26)`; 
-  ctx.fillRect(0, 0, W, H);
-  
-  drawStars(ctx);
-
-  const waterHeight = H * 0.35;
-  const waterG = ctx.createLinearGradient(0, H - waterHeight, 0, H);
-  waterG.addColorStop(0, GAME_CFG.waterColor);
-  waterG.addColorStop(1, '#030714');
-  ctx.fillStyle = waterG;
-  ctx.fillRect(0, H - waterHeight, W, waterHeight);
-
-  const centerX = W / 2;
-  const hp = Math.max(0, iceHealth);
-  const baseWidth = W * 0.72 * Math.max(0.12, hp); 
-  const iceHeight = H * 0.52 * Math.max(0.1, hp); 
-  const iceTopY = H - waterHeight - iceHeight + 15; 
-
-  if (hp > 0.01) {
-    ctx.save();
-    ctx.shadowColor = hexToRGBA(GAME_CFG.iceShadow, 0.35);
-    ctx.shadowBlur = 25;
-    ctx.shadowOffsetY = 8;
-    
-    const topW = baseWidth * 0.38;
-    const botW = baseWidth * 0.5;
-    const botY = H - waterHeight + 15;
-
-    ctx.fillStyle = GAME_CFG.iceColor;
-    ctx.beginPath();
-    ctx.moveTo(centerX - topW, iceTopY);
-    ctx.lineTo(centerX + topW, iceTopY);
-    ctx.lineTo(centerX + botW, botY);
-    ctx.lineTo(centerX - botW, botY);
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-
-    // 冰山陰影
-    ctx.fillStyle = 'rgba(100, 180, 255, 0.2)';
-    ctx.beginPath();
-    ctx.moveTo(centerX + topW, iceTopY);
-    ctx.lineTo(centerX + topW - 15, iceTopY + iceHeight * 0.4);
-    ctx.lineTo(centerX + botW - 25, botY);
-    ctx.lineTo(centerX + botW, botY);
-    ctx.closePath();
-    ctx.fill();
-
-    // 渲染高畫質北極熊 (並帶有隨機呼吸微幅上下動態)
-    if (topW * 2 > 60) {
-      const bearSize = 75; 
-      const breathe = Math.sin(performance.now() / 300) * 1.5;
-      ctx.drawImage(
-        bearImg, 
-        centerX - bearSize / 2, 
-        iceTopY - bearSize + 8 + breathe, 
-        bearSize, 
-        bearSize
-      );
-    }
-  }
-
-  if(running) {
-    createFire(vol);
-    updateDrawFire(ctx);
-  }
-}
-
-function endGame(win) {
-  running = false;
-  gameState = win ? 'win' : 'fail';
+function endGame(win){
+  running=false; gameState=win?'win':'fail';
   if(micStream) micStream.getTracks().forEach(t=>t.stop());
-  document.getElementById(win ? 'win-overlay' : 'fail-overlay').classList.add('show');
+  document.getElementById('word-panel').classList.remove('active');
+  const statsMsg=`答對 ${correctCount} 題 · 答錯 ${wrongCount} 題`;
+  document.getElementById(win?'win-stats':'fail-stats').textContent=statsMsg;
+  document.getElementById(win?'win-overlay':'fail-overlay').classList.add('show');
 }
 
-function resetGame() {
-  running = false; gameState = 'idle'; iceHealth = 1.0; currentTime = 0; volume = 0; particles = [];
+function resetGame(){
+  running=false;gameState='idle';iceHealth=1.0;currentTime=0;volume=0;particles=[];
+  correctCount=0;wrongCount=0;currentWord=null;
+  document.getElementById('correct-val').textContent='0';
+  document.getElementById('wrong-val').textContent='0';
   if(micStream) micStream.getTracks().forEach(t=>t.stop());
   document.getElementById('fail-overlay').classList.remove('show');
   document.getElementById('win-overlay').classList.remove('show');
-  startBtn.textContent = '🎙 開啟偵測'; startBtn.classList.remove('active');
-  goalSel.disabled = false;
-  updateTimerUI(); updateStatusUI(0);
+  document.getElementById('word-panel').classList.remove('active');
+  document.getElementById('letter-display').innerHTML='';
+  document.getElementById('clue-zh').textContent='—';
+  document.getElementById('clue-en').textContent='—';
+  document.getElementById('feedback-msg').textContent='';
+  startBtn.textContent='🎙 開始挑戰';startBtn.classList.remove('active');
+  goalSel.disabled=false;updateTimerUI();updateHealthUI();
 }
 
-function loop(ts) {
-  requestAnimationFrame(loop);
-  const dt = Math.min((ts - lastTS) / 1000, 0.04);
-  lastTS = ts;
+// ══════════════════════════════════════════
+//  DRAW SCENE
+// ══════════════════════════════════════════
+function drawScene(vol){
+  const W=canvas.width,H=canvas.height;
+  const redFactor=running?Math.pow(vol,2)*80:0;
+  ctx.fillStyle=`rgb(${7+redFactor},10,26)`;
+  ctx.fillRect(0,0,W,H);
+  drawStars();
 
-  if (gameState === 'idle') {
-    drawScene(0);
-    return;
+  const waterHeight=H*0.38;
+  const waterG=ctx.createLinearGradient(0,H-waterHeight,0,H);
+  waterG.addColorStop(0,GAME_CFG.waterColor);waterG.addColorStop(1,'#030714');
+  ctx.fillStyle=waterG;ctx.fillRect(0,H-waterHeight,W,waterHeight);
+
+  const centerX=W/2;
+  const hp=Math.max(0,iceHealth);
+  const baseWidth=W*0.68*Math.max(0.12,hp);
+  const iceHeight=H*0.48*Math.max(0.1,hp);
+  const iceTopY=H-waterHeight-iceHeight+15;
+
+  if(hp>0.01){
+    ctx.save();
+    ctx.shadowColor=hexToRGBA(GAME_CFG.iceShadow,0.3);ctx.shadowBlur=22;ctx.shadowOffsetY=6;
+    const topW=baseWidth*0.38,botW=baseWidth*0.5,botY=H-waterHeight+15;
+    ctx.fillStyle=GAME_CFG.iceColor;
+    ctx.beginPath();
+    ctx.moveTo(centerX-topW,iceTopY);ctx.lineTo(centerX+topW,iceTopY);
+    ctx.lineTo(centerX+botW,botY);ctx.lineTo(centerX-botW,botY);
+    ctx.closePath();ctx.fill();ctx.restore();
+
+    ctx.fillStyle='rgba(100,180,255,0.18)';
+    ctx.beginPath();ctx.moveTo(centerX+topW,iceTopY);ctx.lineTo(centerX+topW-12,iceTopY+iceHeight*0.4);ctx.lineTo(centerX+botW-20,botY);ctx.lineTo(centerX+botW,botY);ctx.closePath();ctx.fill();
+
+    if(topW*2>55){
+      const bearSize=72;
+      const breathe=Math.sin(performance.now()/300)*1.5;
+      ctx.drawImage(bearImg,centerX-bearSize/2,iceTopY-bearSize+8+breathe,bearSize,bearSize);
+    }
   }
 
-  if (gameState === 'playing' && running) {
-    volume = getVolume();
-    currentTime += dt;
+  if(running){createFire(vol);updateDrawFire();}
+}
 
-    if (volume > GAME_CFG.loudThresh) {
-      iceHealth -= Math.pow(volume, 2) * GAME_CFG.meltRate * dt * 2.5;
-    } else if (volume < 0.08) {
-      iceHealth = Math.min(1.0, iceHealth + GAME_CFG.recoverRate * dt);
+// ══════════════════════════════════════════
+//  MAIN LOOP
+// ══════════════════════════════════════════
+function loop(ts){
+  requestAnimationFrame(loop);
+  const dt=Math.min((ts-lastTS)/1000,0.04);
+  lastTS=ts;
+
+  if(gameState==='idle'){drawScene(0);return;}
+
+  if(gameState==='playing'&&running){
+    volume=getVolume();
+    currentTime+=dt;
+
+    if(volume>GAME_CFG.loudThresh){
+      iceHealth-=Math.pow(volume,2)*GAME_CFG.meltRate*dt*2.5;
+    } else if(volume<0.08){
+      iceHealth=Math.min(1.0,iceHealth+GAME_CFG.recoverRate*dt);
     }
 
-    if (iceHealth <= 0) { iceHealth = 0; endGame(false); }
-    else if (currentTime >= goalTime) { currentTime = goalTime; endGame(true); }
+    if(iceHealth<=0){iceHealth=0;endGame(false);}
+    else if(currentTime>=goalTime){currentTime=goalTime;endGame(true);}
 
     drawScene(volume);
-    updateStatusUI(volume);
+    updateHealthUI();
     updateTimerUI();
   } else {
     drawScene(volume);
   }
 }
-
-lastTS = performance.now();
+lastTS=performance.now();
 requestAnimationFrame(loop);
 
-startBtn.addEventListener('click', async () => {
-  if (running) { resetGame(); } 
-  else {
-    try {
-      await startMic();
-      running = true; gameState = 'playing'; iceHealth = 1.0; currentTime = 0; particles = [];
-      startBtn.textContent = '⏹ 停止挑戰'; startBtn.classList.add('active');
-      goalSel.disabled = true;
-    } catch (e) {
-      alert('無法存取麥克風！請確認給予瀏覽器麥克風權限。');
-    }
+// ══════════════════════════════════════════
+//  START BUTTON
+// ══════════════════════════════════════════
+startBtn.addEventListener('click', async()=>{
+  if(running){resetGame();return;}
+  try{
+    await startMic();
+    buildWordBank();
+    running=true;gameState='playing';iceHealth=1.0;currentTime=0;particles=[];
+    correctCount=0;wrongCount=0;
+    document.getElementById('correct-val').textContent='0';
+    document.getElementById('wrong-val').textContent='0';
+    startBtn.textContent='⏹ 停止';startBtn.classList.add('active');
+    goalSel.disabled=true;
+    document.getElementById('word-panel').classList.add('active');
+    usedIndices=[];
+    nextWord();
+  } catch(e){
+    alert('無法存取麥克風！請確認給予瀏覽器麥克風權限。');
   }
+});
+
+// ══════════════════════════════════════════
+//  INPUT EVENTS
+// ══════════════════════════════════════════
+document.getElementById('word-input').addEventListener('input', e=>{
+  updateSlots(e.target.value);
+});
+document.getElementById('word-input').addEventListener('keydown', e=>{
+  if(e.key==='Enter') submitAnswer();
+});
+document.getElementById('submit-btn').addEventListener('click', submitAnswer);
+document.getElementById('skip-btn').addEventListener('click', ()=>{
+  if(!running||!currentWord) return;
+  wrongCount++;
+  document.getElementById('wrong-val').textContent=wrongCount;
+  iceHealth=Math.max(0,iceHealth-GAME_CFG.wrongPenalty*0.5);
+  showFeedback('跳過（答案：'+currentWord.w.toUpperCase()+'）', '#aaaaff');
+  setTimeout(()=>nextWord(),400);
+});
+
+// close modal on bg click
+document.getElementById('setup-modal').addEventListener('click', e=>{
+  if(e.target===document.getElementById('setup-modal')) closeSetup();
 });
 </script>
 </body>
