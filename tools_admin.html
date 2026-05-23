@@ -13,6 +13,77 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Noto+Sans+TC:wght@400;700&display=swap');
 
+/* LOGIN OVERLAY */
+#login-overlay{
+  position:fixed;inset:0;z-index:999;
+  background:rgba(13,17,23,0.97);
+  backdrop-filter:blur(8px);
+  display:flex;align-items:center;justify-content:center;
+}
+#login-overlay.hidden{display:none;}
+.login-box{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:36px 32px;
+  width:100%;max-width:360px;
+  text-align:center;
+}
+.login-box .logo-icon{
+  font-size:2.2rem;
+  background:var(--accent);
+  width:60px;height:60px;
+  border-radius:16px;
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 16px;
+}
+.login-box h2{font-size:1.2rem;font-weight:700;margin-bottom:4px;}
+.login-box p{font-size:0.82rem;color:var(--muted);margin-bottom:24px;}
+.login-box input{
+  width:100%;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:12px 16px;
+  color:var(--text);
+  font-family:inherit;font-size:0.95rem;
+  outline:none;
+  margin-bottom:12px;
+  transition:border-color 0.15s;
+}
+.login-box input:focus{border-color:var(--green);}
+.login-btn{
+  width:100%;
+  background:var(--accent);
+  border:none;border-radius:10px;
+  color:#fff;font-family:inherit;
+  font-size:0.95rem;font-weight:700;
+  padding:12px;cursor:pointer;
+  transition:background 0.15s;
+}
+.login-btn:hover{background:var(--accent2);}
+.login-btn:disabled{opacity:0.5;cursor:not-allowed;}
+.login-error{
+  font-size:0.8rem;color:#f87171;
+  margin-top:10px;min-height:18px;
+}
+.login-info{
+  font-size:0.75rem;color:var(--muted);
+  margin-top:16px;
+  padding-top:16px;
+  border-top:1px solid var(--border);
+}
+/* LOGOUT BTN */
+#logout-btn{
+  background:transparent;
+  border:1px solid var(--border);
+  color:var(--muted);
+  font-family:inherit;font-size:0.78rem;
+  padding:5px 14px;border-radius:99px;
+  cursor:pointer;transition:all 0.15s;
+}
+#logout-btn:hover{border-color:#f87171;color:#f87171;}
+
 *{margin:0;padding:0;box-sizing:border-box;}
 :root{
   --bg:#0d1117;
@@ -145,12 +216,28 @@ header{
 </head>
 <body>
 
+<!-- LOGIN OVERLAY -->
+<div id="login-overlay">
+  <div class="login-box">
+    <div class="logo-icon">🧪</div>
+    <h2>Jeffrey's Lab Admin</h2>
+    <p>請輸入你的 NewCore 授權碼</p>
+    <input type="password" id="auth-input" placeholder="授權碼" autocomplete="off" />
+    <button class="login-btn" id="login-btn" onclick="doLogin()">登入</button>
+    <div class="login-error" id="login-error"></div>
+    <div class="login-info">本頁面使用 Pro 金鑰，登入後所有 AI 工具均以付費模式運行。</div>
+  </div>
+</div>
+
 <header>
   <div class="logo">
     <div class="logo-icon">🧪</div>
     <div class="logo-text">Jeffrey's <span>Lab</span></div>
   </div>
-  <div class="admin-badge">ADMIN</div>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div class="admin-badge">ADMIN</div>
+    <button id="logout-btn" onclick="doLogout()">登出</button>
+  </div>
 </header>
 
 <div class="filter-bar">
@@ -464,6 +551,87 @@ btns.forEach(btn => {
 });
 
 updateCount();
+
+// ─── Auth ──────────────────────────────────────────────────────
+const BRAIN_URL = 'https://script.google.com/macros/s/AKfycbyd852t6GKJe1yxPT_8ytDERBzWhlnPjGl6XQnGNTdKxQkNAeaV0fN8JJnlGf3c6Uw/exec';
+const SESSION_KEY = 'jlab_admin_auth';
+
+function callBrain(params) {
+  return new Promise((resolve, reject) => {
+    const cb = 'cb_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+    const s = document.createElement('script');
+    window[cb] = data => { resolve(data); delete window[cb]; s.remove(); };
+    const qs = Object.entries({...params, callback: cb})
+      .map(([k,v]) => `${k}=${encodeURIComponent(v)}`).join('&');
+    s.src = `${BRAIN_URL}?${qs}`;
+    s.onerror = () => reject(new Error('Network error'));
+    document.body.appendChild(s);
+  });
+}
+
+async function doLogin() {
+  const code = document.getElementById('auth-input').value.trim();
+  if (!code) return;
+  const btn = document.getElementById('login-btn');
+  const errEl = document.getElementById('login-error');
+  btn.disabled = true;
+  btn.textContent = '驗證中…';
+  errEl.textContent = '';
+  try {
+    const res = await callBrain({ action: 'checkLicense', sheetId: code });
+    if (res && res.valid) {
+      const plan = (res.plan || 'Free').toString().trim();
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify({ code, plan, name: res.name }));
+      localStorage.setItem('newcore_tools_plan', plan);
+      applySession({ plan, name: res.name });
+    } else {
+      errEl.textContent = res?.message || '授權碼無效，請確認後重試。';
+    }
+  } catch(e) {
+    errEl.textContent = '連線失敗，請稍後再試。';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '登入';
+  }
+}
+
+function applySession(session) {
+  document.getElementById('login-overlay').classList.add('hidden');
+  // 若不是 Pro 顯示提示
+  if (session.plan !== 'Pro') {
+    const bar = document.createElement('div');
+    bar.style.cssText = 'background:#78350f;color:#fde68a;font-size:0.8rem;text-align:center;padding:6px;';
+    bar.textContent = `⚠️ 目前方案：${session.plan}，AI 工具使用免費 Key（可能有速率限制）`;
+    document.body.insertBefore(bar, document.querySelector('header').nextSibling);
+  }
+}
+
+function doLogout() {
+  sessionStorage.removeItem(SESSION_KEY);
+  localStorage.removeItem('newcore_tools_plan');
+  document.getElementById('login-overlay').classList.remove('hidden');
+  document.getElementById('auth-input').value = '';
+  document.getElementById('login-error').textContent = '';
+}
+
+// Enter key
+document.getElementById('auth-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+
+// Auto-restore session
+(function checkSession() {
+  const raw = sessionStorage.getItem(SESSION_KEY);
+  if (raw) {
+    try {
+      const s = JSON.parse(raw);
+      localStorage.setItem('newcore_tools_plan', s.plan); // 確保子工具能讀到
+      applySession(s);
+    } catch(e) {
+      sessionStorage.removeItem(SESSION_KEY);
+    }
+  }
+})();
 </script>
 </body>
 </html>
