@@ -578,14 +578,14 @@ async function doLogin() {
   btn.textContent = '驗證中…';
   errEl.textContent = '';
   try {
-    const res = await callBrain({ action: 'checkLicense', sheetId: code });
-    if (res && res.valid) {
-      const plan = (res.plan || 'Free').toString().trim();
+    const res = await callBrain({ action: 'verifyMasterAuth', authCode: code });
+    if (res && res.ok) {
+      const plan = 'Pro'; // Admin 頁面固定 Pro Key
       sessionStorage.setItem(SESSION_KEY, JSON.stringify({ code, plan, name: res.name }));
       localStorage.setItem('newcore_tools_plan', plan);
       applySession({ plan, name: res.name });
     } else {
-      errEl.textContent = res?.message || '授權碼無效，請確認後重試。';
+      errEl.textContent = res?.msg || '授權碼無效，請確認後重試。';
     }
   } catch(e) {
     errEl.textContent = '連線失敗，請稍後再試。';
