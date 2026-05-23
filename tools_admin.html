@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jeffrey's Lab · Admin</title>
+<link rel="manifest" href="/JeffreysLab/manifest_admin.json">
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/JeffreysLab/sw.js');
+  }
+</script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Noto+Sans+TC:wght@400;700&display=swap');
+
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#0d1117;
+  --surface:#161b22;
+  --surface2:#21262d;
+  --border:#30363d;
+  --accent:#1b5e20;
+  --accent2:#2e7d32;
+  --green:#4caf50;
+  --text:#e6edf3;
+  --muted:#8b949e;
+  --tag-bg:#1f2937;
+}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Fredoka','Noto Sans TC',sans-serif;
+  min-height:100vh;
+}
+
+/* HEADER */
+header{
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  padding:14px 24px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  position:sticky;
+  top:0;
+  z-index:100;
+}
+.logo{display:flex;align-items:center;gap:10px;}
+.logo-icon{width:36px;height:36px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;}
+.logo-text{font-size:1.1rem;font-weight:700;color:var(--text);}
+.logo-text span{color:var(--green);}
+.admin-badge{background:var(--accent);color:#fff;font-size:0.7rem;font-weight:700;padding:3px 10px;border-radius:99px;letter-spacing:1px;}
+
+/* FILTER BAR */
+.filter-bar{
+  padding:16px 24px 0;
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.filter-btn{
+  background:var(--surface2);
+  border:1px solid var(--border);
+  color:var(--muted);
+  padding:6px 16px;
+  border-radius:99px;
+  font-family:inherit;
+  font-size:0.85rem;
+  font-weight:600;
+  cursor:pointer;
+  transition:all 0.15s;
+}
+.filter-btn:hover{border-color:var(--green);color:var(--text);}
+.filter-btn.active{background:var(--accent);border-color:var(--accent2);color:#fff;}
+
+/* GRID */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  gap:12px;
+  padding:16px 24px 32px;
+}
+
+/* SECTION LABEL */
+.section-label{
+  grid-column:1/-1;
+  font-size:0.75rem;
+  font-weight:700;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:2px;
+  padding:8px 0 4px;
+  border-bottom:1px solid var(--border);
+  margin-top:8px;
+}
+
+/* CARD */
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:16px;
+  text-decoration:none;
+  color:var(--text);
+  display:flex;
+  align-items:flex-start;
+  gap:14px;
+  transition:all 0.15s;
+  position:relative;
+  overflow:hidden;
+}
+.card::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(135deg,var(--accent) 0%,transparent 60%);
+  opacity:0;
+  transition:opacity 0.2s;
+}
+.card:hover{border-color:var(--green);transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,0.4);}
+.card:hover::before{opacity:0.05;}
+
+.card-icon{font-size:1.8rem;flex-shrink:0;width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:var(--surface2);border-radius:10px;}
+.card-body{flex:1;min-width:0;}
+.card-title{font-size:0.95rem;font-weight:700;color:var(--text);margin-bottom:4px;line-height:1.3;}
+.card-desc{font-size:0.78rem;color:var(--muted);line-height:1.5;}
+.card-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px;}
+.tag{font-size:0.68rem;font-weight:600;padding:2px 8px;border-radius:99px;background:var(--tag-bg);color:var(--muted);border:1px solid var(--border);}
+.tag.ai{color:#a78bfa;border-color:#4c1d95;}
+.tag.free{color:#34d399;border-color:#065f46;}
+.tag.auth{color:#fbbf24;border-color:#78350f;}
+
+/* COUNT BAR */
+.count-bar{
+  padding:0 24px 12px;
+  font-size:0.8rem;
+  color:var(--muted);
+}
+.count-bar span{color:var(--green);font-weight:700;}
+
+/* hidden */
+.card.hidden{display:none;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🧪</div>
+    <div class="logo-text">Jeffrey's <span>Lab</span></div>
+  </div>
+  <div class="admin-badge">ADMIN</div>
+</header>
+
+<div class="filter-bar">
+  <button class="filter-btn active" data-filter="all">全部</button>
+  <button class="filter-btn" data-filter="課堂互動">課堂互動</button>
+  <button class="filter-btn" data-filter="字彙練習">字彙練習</button>
+  <button class="filter-btn" data-filter="單字防禦戰">單字防禦戰</button>
+  <button class="filter-btn" data-filter="小遊戲">小遊戲</button>
+  <button class="filter-btn" data-filter="AI出題">AI 出題</button>
+  <button class="filter-btn" data-filter="視覺教學">視覺教學</button>
+  <button class="filter-btn" data-filter="教務管理">教務管理</button>
+</div>
+
+<div class="count-bar">共 <span id="count">0</span> 個工具</div>
+
+<div class="grid" id="grid">
+
+  <!-- 教務管理 -->
+  <div class="section-label" data-section="教務管理">📋 教務管理</div>
+
+  <a class="card" href="https://jeffreycz1979-prog.github.io/newcore-attendance/" target="_blank" data-cat="教務管理">
+    <div class="card-icon">🎙️</div>
+    <div class="card-body">
+      <div class="card-title">NewCore 教務系統</div>
+      <div class="card-desc">語音點名、成績管理、家長通知、智慧成績單。</div>
+      <div class="card-tags"><span class="tag ai">AI</span><span class="tag auth">需授權</span></div>
+    </div>
+  </a>
+
+  <a class="card" href="https://jeffreycz1979-prog.github.io/newcore-pro/admin.html" target="_blank" data-cat="教務管理">
+    <div class="card-icon">🏗️</div>
+    <div class="card-body">
+      <div class="card-title">NewCore 建班系統</div>
+      <div class="card-desc">設定班級、課程規格、上課日，自動計算課程表。</div>
+      <div class="card-tags"><span class="tag auth">Standard/Pro</span></div>
+    </div>
+  </a>
+
+  <!-- 課堂互動 -->
+  <div class="section-label" data-section="課堂互動">🎮 課堂互動</div>
+
+  <a class="card" href="tool_package.html" target="_blank" data-cat="課堂互動">
+    <div class="card-icon">🎰</div>
+    <div class="card-body">
+      <div class="card-title">獎勵樂透大富翁</div>
+      <div class="card-desc">擲骰子隨機選格，加分、扣分、神秘獎勵。</div>
+      <div class="card-tags"><span class="tag free">免費</span></div>
+    </div>
+  </a>
+
+  <a class="card" href="tool_package.html" target="_blank" data-cat="課堂互動">
+    <div class="card-icon">🎯</div>
+    <div class="card-body">
+      <div class="card-title">分數紀錄器</div>
+      <div class="card-desc">個人或分組計分，動物頭像、即時排行榜。</div>
+      <div class="card-tags"><span class="tag free">免費</span></div>
+    </div>
+  </a>
+
+  <a class="card" href="timer.html" target="_blank" data-cat="課堂互動">
+    <div class="card-icon">⏱️</div>
+    <div class="card-body">
+      <div class="card-title">多組計時器</div>
+      <div class="card-desc">倒數＋正數雙模式，最多 10 組，全螢幕投影。</div>
+      <div class="card-tags"><span class="tag free">免費</span></div>
+    </div>
+  </a>
+
+  <a class="card" href="bouncy_classroom.html" target="_blank" data-cat="課堂互動">
+    <div class="card-icon">🎱</div>
+    <div class="card-body">
+      <div class="card-title">課室安靜挑戰</div>
+      <div class="card-desc">麥克風偵測音量，越吵球越多，安靜倒數計時。</div>
+      <div class="card-tags"><span class="tag free">免費</span></div>
+    </div>
+  </a>
+
+  <!-- 字彙練習 -->
+  <div class="section-label" data-section="字彙練習">📚 字彙練習</div>
+
+  <a class="card" href="flashcard_match.html" target="_blank" data-cat="字彙練習">
+    <div class="card-icon">🃏</div>
+    <div class="card-body">
+      <div class="card-title">閃示卡 ＋ 配對記憶遊戲</div>
+      <div class="card-desc">Gemini AI 自動生成配圖，語音朗讀，翻牌配對。</div>
+      <div class="card-tags"><span class="tag ai">AI</span><span class="tag free">免費</span></div>
+    </div>
+  </a>
+
+  <a class="card" href="tool_package.html" target="_blank" data-cat="字彙練習">
+    <div class="card-icon">🔤</div>
+    <div class="card-body">
+      <div class="card-title">重組單字遊戲</div>
+      <div class="card-desc">打亂字母讓學生重組，點擊拖拉互動，即時反饋。</div>
+      <div class="card-tags"><span class="tag free">免費</span></div>
+    </div>
+  </a>
+
+  <a class="card" href="tool_package.html" target="_blank" data-cat="字彙練習">
+    <div class="card-icon">🔀</div>
+    <div class="card-body">
+      <div class="card-title">重組句子遊戲</div>
+      <div class="card-desc">句子打散成單字卡，點選重組，支援中文提示。</div>
+      <div class="card-tags"><span class="tag free">免費</span></div>
+    </div>
+  </a>
+
+  <!-- 單字防禦戰 -->
+  <div class="section-label" data-section="單字防禦戰">🛡️ 單字防禦戰</div>
+
+  <a class="card" href="word-defense.html" target="_blank" data-cat="單字防禦戰">
+    <div class="card-icon">🚀</div>
+    <div class="card-body">
+      <div class="card-title">單字防禦戰 Classic</div>
+      <div class="card-desc">多選題擊退敵人，Easy/Normal/Hard，AI 拼字陷阱。</div>
+      <div class="card-tags"><span class="tag free">免費</span></div>
+    </div>
+  </a>
+
+  <a class="card" href="word-defense2.html" target="_blank" data-cat="單字防禦戰">
+    <div class="card-icon">⌨️</div>
+    <div class="card-body">
+      <div class="card-title">單字防禦戰 Stack</div>
+      <div class="card-desc">看中文即時打字拼英文，堆疊玩法，三種難度。</div>
+      <div class="card-tags"><span class="tag free">免費</span></div>
+    </div>
+  </a>
+
+  <a class="card" href="word-defense3.html" target="_blank" data-cat="單字防禦戰">
+    <div class="card-icon">🥁</div>
+    <div class="card-body">
+      <div class="card-title">單字防禦戰 Rhythm</div>
+      <div class="card-desc">字母從畫面落下，節奏打字，音樂感十足。</div>
+      <div class="card-tags"><span class="tag free">免費</span></div>
+    </div>
+  </a>
+
+  <!-- 小遊戲 -->
+  <div class="section-label" data-section="小遊戲">🕹️ 教學小遊戲</div>
+
+  <a class="card" href="spaceshuttle.html" target="_blank" data-cat="小遊戲">
+    <div class="card-icon">🚀</div>
+    <div class="card-body">
+      <div class="card-title">SpaceShuttle</div>
+      <div class="card-desc">太空梭主題，宇宙中收集正確答案、閃躲障礙。</div>
+      <div class="card-tags"><span class="tag free">免費</span></div>
+    </div>
+  </a>
+
+  <a class="card" href="jump.html" target="_blank" data-cat="小遊戲">
+    <div class="card-icon">🦕</div>
+    <div class="card-body">
+      <div class="card-title">Dino Dash</div>
+      <div class="card-desc">恐龍跑酷，選出正確中文意思讓恐龍跳躍過關。</div>
+      <div class="card-tags"><span class="tag free">免費</span></div>
+    </div>
+  </a>
+
+  <a class="card" href="dragonslayer.html" target="_blank" data-cat="小遊戲">
+    <div class="card-icon">🧙‍♂️</div>
+    <div class="card-body">
+      <div class="card-title">Grammar Fighter</div>
+      <div class="card-desc">答對文法題施放魔法攻擊惡龍，RPG 格鬥風格。</div>
+      <div class="card-tags"><span class="tag free">免費</span></div>
+    </div>
+  </a>
+
+  <a class="card" href="bounceball.html" target="_blank" data-cat="小遊戲">
+    <div class="card-icon">🛸</div>
+    <div class="card-body">
+      <div class="card-title">Word Catcher</div>
+      <div class="card-desc">單字從天而降，彈板接住正確答案，打磚塊玩法。</div>
+      <div class="card-tags"><span class="tag free">免費</span></div>
+    </div>
+  </a>
+
+  <a class="card" href="spaceshooter.html" target="_blank" data-cat="小遊戲">
+    <div class="card-icon">👾</div>
+    <div class="card-body">
+      <div class="card-title">Space Shooter</div>
+      <div class="card-desc">射擊帶有正確答案的外星敵人，多關卡漸進難度。</div>
+      <div class="card-tags"><span class="tag free">免費</span></div>
+    </div>
+  </a>
+
+  <a class="card" href="hangman2.html" target="_blank" data-cat="小遊戲">
+    <div class="card-icon">💣</div>
+    <div class="card-body">
+      <div class="card-title">Cyber-Bomb Decoder</div>
+      <div class="card-desc">賽博風猜字，一字母一字母猜，猜錯炸彈倒計時。</div>
+      <div class="card-tags"><span class="tag free">免費</span></div>
+    </div>
+  </a>
+
+  <a class="card" href="melting_iceberg.html" target="_blank" data-cat="小遊戲">
+    <div class="card-icon">🐻‍❄️</div>
+    <div class="card-body">
+      <div class="card-title">拯救北極熊</div>
+      <div class="card-desc">答錯冰山融化，拼字救北極熊，麥克風噪音控制。</div>
+      <div class="card-tags"><span class="tag free">免費</span></div>
+    </div>
+  </a>
+
+  <!-- AI 出題 -->
+  <div class="section-label" data-section="AI出題">🤖 AI 出題</div>
+
+  <a class="card" href="wordsearch.html" target="_blank" data-cat="AI出題">
+    <div class="card-icon">🔍</div>
+    <div class="card-body">
+      <div class="card-title">找字遊戲產生器</div>
+      <div class="card-desc">自動生成找字方格考卷，一頁兩份，一鍵列印。</div>
+      <div class="card-tags"><span class="tag free">免費</span></div>
+    </div>
+  </a>
+
+  <a class="card" href="connect.html" target="_blank" data-cat="AI出題">
+    <div class="card-icon">🧩</div>
+    <div class="card-body">
+      <div class="card-title">AI 定義配對 ＋ 克漏字</div>
+      <div class="card-desc">Gemini 依難度生成定義或克漏字，數位互動或列印。</div>
+      <div class="card-tags"><span class="tag ai">AI</span><span class="tag free">免費</span></div>
+    </div>
+  </a>
+
+  <a class="card" href="grammar.html" target="_blank" data-cat="AI出題">
+    <div class="card-icon">🔎</div>
+    <div class="card-body">
+      <div class="card-title">AI 文法改錯訓練</div>
+      <div class="card-desc">AI 生成含錯句子，學生找出並改正，支援列印。</div>
+      <div class="card-tags"><span class="tag ai">AI</span><span class="tag free">免費</span></div>
+    </div>
+  </a>
+
+  <a class="card" href="quiz.html" target="_blank" data-cat="AI出題">
+    <div class="card-icon">📝</div>
+    <div class="card-body">
+      <div class="card-title">AI 智慧出題系統</div>
+      <div class="card-desc">拍照上傳課本，依 CEFR 生成選擇題、書寫題、配合題。</div>
+      <div class="card-tags"><span class="tag ai">AI</span><span class="tag free">免費</span></div>
+    </div>
+  </a>
+
+  <a class="card" href="crossword.html" target="_blank" data-cat="AI出題">
+    <div class="card-icon">🔠</div>
+    <div class="card-body">
+      <div class="card-title">填字遊戲產生器</div>
+      <div class="card-desc">自動交叉排版，AI 生成提示語，數位作答或列印。</div>
+      <div class="card-tags"><span class="tag ai">AI</span><span class="tag free">免費</span></div>
+    </div>
+  </a>
+
+  <!-- 視覺教學 -->
+  <div class="section-label" data-section="視覺教學">🖼️ 視覺教學</div>
+
+  <a class="card" href="vision-detective.html" target="_blank" data-cat="視覺教學">
+    <div class="card-icon">🧩</div>
+    <div class="card-body">
+      <div class="card-title">視覺圖卡偵探 — 拼圖模式</div>
+      <div class="card-desc">圖片切割成拼圖逐塊揭示，學生搶答。</div>
+      <div class="card-tags"><span class="tag free">免費</span></div>
+    </div>
+  </a>
+
+  <a class="card" href="vision-detective.html" target="_blank" data-cat="視覺教學">
+    <div class="card-icon">🔍</div>
+    <div class="card-body">
+      <div class="card-title">視覺圖卡偵探 — 馬賽克模式</div>
+      <div class="card-desc">圖片從像素化逐漸變清晰，越早答對得分越高。</div>
+      <div class="card-tags"><span class="tag free">免費</span></div>
+    </div>
+  </a>
+
+</div>
+
+<script>
+// Filter
+const btns = document.querySelectorAll('.filter-btn');
+const cards = document.querySelectorAll('.card');
+const sections = document.querySelectorAll('.section-label');
+const countEl = document.getElementById('count');
+
+function updateCount(){
+  const visible = document.querySelectorAll('.card:not(.hidden)').length;
+  countEl.textContent = visible;
+}
+
+btns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    btns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const filter = btn.dataset.filter;
+
+    cards.forEach(card => {
+      if(filter === 'all' || card.dataset.cat === filter){
+        card.classList.remove('hidden');
+      } else {
+        card.classList.add('hidden');
+      }
+    });
+
+    // hide empty sections
+    sections.forEach(sec => {
+      const sectionName = sec.dataset.section;
+      const sectionCards = document.querySelectorAll(`.card[data-cat="${sectionName}"]`);
+      const anyVisible = [...sectionCards].some(c => !c.classList.contains('hidden'));
+      sec.style.display = anyVisible || filter === 'all' ? '' : 'none';
+    });
+
+    updateCount();
+  });
+});
+
+updateCount();
+</script>
+</body>
+</html>

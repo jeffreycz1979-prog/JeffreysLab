@@ -1,0 +1,26 @@
+{
+  "name": "Jeffrey's Lab Admin",
+  "short_name": "JLab Admin",
+  "description": "Jeffrey's Lab 教學工具管理入口",
+  "start_url": "/JeffreysLab/tools_admin.html",
+  "scope": "/JeffreysLab/",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#1b5e20",
+  "background_color": "#0d1117",
+  "lang": "zh-TW",
+  "icons": [
+    {
+      "src": "/JeffreysLab/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/JeffreysLab/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
