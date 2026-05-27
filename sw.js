@@ -1,6 +1,6 @@
 // Jeffrey's Lab - Service Worker
 // 更新快取版本號時，舊快取會自動清除
-const CACHE_NAME = 'jeffreyslab-v3';
+const CACHE_NAME = 'jeffreyslab-v4';
 
 // 預先快取的檔案清單（根目錄為 /JeffreysLab/）
 const PRECACHE_URLS = [
