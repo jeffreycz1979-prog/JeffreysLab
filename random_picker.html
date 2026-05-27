@@ -1,0 +1,752 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font-sans);}
+.app{padding:4px 0;}
+.topbar{display:flex;align-items:center;gap:5px;margin-bottom:5px;flex-wrap:wrap;}
+.seg{display:flex;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);overflow:hidden;}
+.seg button{padding:4px 10px;border:none;background:var(--color-background-primary);color:var(--color-text-secondary);cursor:pointer;font-size:12px;font-family:var(--font-sans);}
+.seg button.active{background:var(--color-background-secondary);color:var(--color-text-primary);font-weight:500;}
+.seg button+button{border-left:0.5px solid var(--color-border-secondary);}
+.tbtn{padding:4px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-secondary);cursor:pointer;font-size:12px;font-family:var(--font-sans);}
+.tbtn:hover{background:var(--color-background-secondary);color:var(--color-text-primary);}
+.spacer{flex:1;}
+
+.hrow{display:flex;align-items:center;gap:7px;margin-bottom:5px;padding:4px 8px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);}
+.hrow label{font-size:11px;color:var(--color-text-secondary);white-space:nowrap;}
+.hrow input[type=range]{flex:1;}
+.hrow input[type=number]{width:58px;padding:2px 4px;border:0.5px solid var(--color-border-tertiary);border-radius:4px;font-size:12px;font-family:var(--font-mono);background:var(--color-background-primary);color:var(--color-text-primary);text-align:center;}
+.hrow input[type=number]:focus{outline:none;}
+.hrow span{font-size:11px;color:var(--color-text-tertiary);}
+@media(max-width:600px){.hrow{display:none;}}
+
+.grid{display:grid;gap:6px;}
+.grid.g1{grid-template-columns:1fr;}
+.grid.g2{grid-template-columns:1fr 1fr;}
+.grid.g3{grid-template-columns:1fr 1fr 1fr;}
+.grid.g4{grid-template-columns:1fr 1fr;}
+
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:6px;display:flex;flex-direction:column;gap:4px;overflow:hidden;position:relative;}
+.card-top{display:flex;align-items:center;gap:4px;flex-shrink:0;}
+.card-title{font-size:11px;font-weight:500;color:var(--color-text-primary);flex:1;}
+.card-mode{display:flex;border:0.5px solid var(--color-border-tertiary);border-radius:4px;overflow:hidden;flex-shrink:0;}
+.card-mode button{padding:2px 6px;border:none;background:transparent;color:var(--color-text-secondary);font-size:10px;cursor:pointer;font-family:var(--font-sans);}
+.card-mode button.active{background:var(--color-background-secondary);color:var(--color-text-primary);}
+.card-mode button+button{border-left:0.5px solid var(--color-border-tertiary);}
+
+/* Settings icon */
+.settings-btn{background:none;border:none;color:var(--color-text-tertiary);cursor:pointer;padding:0 2px;font-size:13px;line-height:1;flex-shrink:0;}
+.settings-btn:hover{color:var(--color-text-secondary);}
+
+/* Settings panel */
+.settings-panel{display:none;flex-direction:column;gap:0;background:var(--color-background-secondary);border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-tertiary);flex-shrink:0;overflow:hidden;}
+.settings-panel.open{display:flex;}
+/* each row */
+.setting-row{display:flex;align-items:center;gap:8px;padding:5px 8px;font-size:11px;color:var(--color-text-secondary);border-bottom:0.5px solid var(--color-border-tertiary);}
+.setting-row:last-child{border-bottom:none;}
+.setting-row .sr-label{flex:1;color:var(--color-text-secondary);}
+.setting-row .sr-hint{font-size:10px;color:var(--color-text-tertiary);}
+.copy-btn{display:none;}
+/* toggle switch — pure div, no checkbox */
+.sw{position:relative;width:30px;height:16px;flex-shrink:0;cursor:pointer;border-radius:8px;background:var(--color-border-secondary);transition:background .2s;}
+.sw.on{background:#5DCAA5;}
+.sw::after{content:'';position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 2px rgba(0,0,0,.2);}
+.sw.on::after{transform:translateX(14px);}
+/* reset pool link-style */
+.reset-pool-btn{font-size:10px;color:var(--color-text-tertiary);background:none;border:none;cursor:pointer;padding:0;font-family:var(--font-sans);text-decoration:underline;text-underline-offset:2px;}
+.reset-pool-btn:hover{color:var(--color-text-secondary);}
+
+.wheel-wrap{position:relative;display:flex;justify-content:center;align-items:flex-start;padding-top:11px;flex-shrink:0;cursor:pointer;}
+.wheel-wrap:hover canvas{filter:brightness(1.04);}
+.wheel-wrap:active canvas{filter:brightness(0.97);}
+.pointer{position:absolute;top:0;left:50%;transform:translateX(-50%);width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:13px solid #D85A30;z-index:3;}
+/* spin pulse ring when hovering wheel */
+.wheel-wrap::after{content:'';position:absolute;inset:11px 50%;border-radius:50%;pointer-events:none;opacity:0;transition:opacity .2s;}
+.wheel-wrap:hover::after{opacity:0;}
+
+.digi-section{cursor:pointer;}
+.digi{font-weight:500;text-align:center;font-family:var(--font-mono);background:var(--color-background-secondary);border-radius:var(--border-radius-md);display:flex;align-items:center;justify-content:center;color:var(--color-text-secondary);letter-spacing:2px;flex-shrink:0;width:100%;transition:background .15s;}
+.digi:hover{background:var(--color-border-tertiary);}
+.digi.done{color:#3B6D11;background:#EAF3DE;}
+.digi.done:hover{background:#d5ebca;}
+
+.result{display:flex;align-items:center;justify-content:center;border-radius:var(--border-radius-md);font-weight:500;background:var(--color-background-secondary);color:var(--color-text-secondary);flex-shrink:0;transition:all .3s;}
+.result.win{background:#EAF3DE;color:#3B6D11;}
+
+.go{width:100%;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);font-weight:500;cursor:pointer;font-family:var(--font-sans);flex-shrink:0;}
+.go:hover{background:var(--color-background-secondary);}
+.go:disabled{opacity:0.3;cursor:not-allowed;}
+
+.tog{background:none;border:none;color:var(--color-text-tertiary);cursor:pointer;padding:0;font-family:var(--font-sans);flex-shrink:0;}
+.tog:hover{color:var(--color-text-secondary);}
+
+.input-area{display:flex;flex-direction:column;gap:3px;overflow:hidden;transition:max-height 0.28s ease,opacity 0.22s ease;opacity:1;}
+.input-area.hidden{max-height:0!important;opacity:0;pointer-events:none;}
+textarea{width:100%;resize:none;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:4px 6px;font-family:var(--font-sans);background:var(--color-background-secondary);color:var(--color-text-primary);line-height:1.5;display:block;}
+textarea:focus{outline:none;border-color:var(--color-border-primary);}
+.tags{display:flex;flex-wrap:wrap;gap:2px;}
+.tag{padding:1px 5px;background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:20px;color:var(--color-text-primary);cursor:pointer;transition:all .15s;user-select:none;}
+.tag:hover{border-color:var(--color-border-secondary);}
+.tag.win{background:#EAF3DE;border-color:#97C459;color:#3B6D11;}
+.tag.used{background:var(--color-background-primary);color:var(--color-text-tertiary);text-decoration:line-through;border-color:var(--color-border-tertiary);}
+.tag.excluded{background:var(--color-background-primary);color:var(--color-text-tertiary);border-style:dashed;opacity:.6;}
+
+
+
+/* confetti canvas */
+.confetti-canvas{position:absolute;inset:0;pointer-events:none;border-radius:var(--border-radius-lg);z-index:10;}
+
+/* pool indicator */
+.pool-badge{font-size:10px;color:var(--color-text-tertiary);font-family:var(--font-mono);}
+
+@media(max-width:600px){
+  .topbar{gap:3px;}
+  .tbtn,.seg button{font-size:11px;padding:3px 8px;}
+  .grid.g2,.grid.g3,.grid.g4{grid-template-columns:1fr;}
+}
+</style>
+
+<h2 class="sr-only">自適應多面板隨機點名工具</h2>
+<div class="app">
+  <div class="topbar">
+    <div class="seg" id="count-seg">
+      <button class="active" onclick="setCount(1)">1</button>
+      <button onclick="setCount(2)">2</button>
+      <button onclick="setCount(3)">3</button>
+      <button onclick="setCount(4)">4</button>
+    </div>
+    <button class="tbtn" id="btn-hide" onclick="toggleAllInput()">隱藏輸入</button>
+    <button class="tbtn" onclick="spinAll()">全部抽籤</button>
+    <div class="spacer"></div>
+    <button class="tbtn" id="lang-btn" onclick="toggleLang()">EN</button>
+  </div>
+
+  <div class="hrow">
+    <label id="lbl-h">目標高度：</label>
+    <input type="range" id="h-slider" min="300" max="1200" step="5" value="600" oninput="setH(+this.value,false)">
+    <input type="number" id="h-num" min="300" max="1200" step="5" value="600" onchange="setH(+this.value,true)">
+    <span>px</span>
+  </div>
+
+  <div class="grid g1" id="main-grid"></div>
+</div>
+
+<script>
+const COLORS=['#9FE1CB','#AFA9EC','#FAC775','#F4C0D1','#B5D4F4','#C0DD97','#F5C4B3','#D3D1C7','#5DCAA5','#7F77DD'];
+let lang='zh', count=1, allHidden=false, panels=[], targetH=600;
+
+const L={
+  zh:{panel:'面板',wheel:'轉盤',digi:'數字',go:'抽籤',again:'再抽',hide:'隱藏輸入',show:'顯示輸入',all:'全部抽籤',hint:'名單（每行一個，支援逗號分隔）',exp:'▼ 展開名單',col:'▲ 收起',empty:'輸入名單',lbl:'目標高度：',norepeat:'不重複抽',exclude:'排除學生',resetPool:'重置已抽',remaining:'剩'},
+  en:{panel:'Panel',wheel:'Wheel',digi:'Num',go:'Draw',again:'Again',hide:'Hide inputs',show:'Show inputs',all:'Draw all',hint:'Names (one per line, comma ok)',exp:'▼ show names',col:'▲ hide',empty:'Enter names',lbl:'Target height:',norepeat:'No repeat',exclude:'Exclude student',resetPool:'Reset pool',remaining:'left'}
+};
+const T=k=>L[lang][k]||'';
+
+// ── Audio ──────────────────────────────────────────────
+const AC=new(window.AudioContext||window.webkitAudioContext||function(){})();
+function beep(freq,dur,vol,type){
+  if(!AC||AC.state==='suspended') return;
+  try{
+    const o=AC.createOscillator(), g=AC.createGain();
+    o.connect(g); g.connect(AC.destination);
+    o.type=type||'sine'; o.frequency.value=freq;
+    g.gain.setValueAtTime(vol||0.08,AC.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,AC.currentTime+dur);
+    o.start(); o.stop(AC.currentTime+dur);
+  }catch(e){}
+}
+function playTick(){ beep(880+Math.random()*200,0.06,0.06,'square'); }
+function playWin(){
+  [523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,0.18,0.1,'sine'),i*80));
+}
+function resumeAC(){ if(AC&&AC.state==='suspended') AC.resume(); }
+
+// ── LocalStorage ──────────────────────────────────────
+function saveToStorage(){
+  const data=panels.map(p=>({rawText:p.rawText,mode:p.mode,inputVisible:p.inputVisible,noRepeat:p.noRepeat,excludedSet:[...p.excludedSet],usedPool:[...p.usedPool]}));
+  try{localStorage.setItem('nc_picker_v6',JSON.stringify({count,targetH,lang,panels:data}));}catch(e){}
+}
+function loadFromStorage(){
+  try{
+    const raw=localStorage.getItem('nc_picker_v6');
+    if(!raw) return false;
+    const d=JSON.parse(raw);
+    lang=d.lang||'zh'; count=d.count||1; targetH=d.targetH||600;
+    panels=(d.panels||[]).map((p,i)=>({
+      id:i, names:parseName(p.rawText||''), rawText:p.rawText||'',
+      mode:p.mode||'wheel', angle:0, spinning:false,
+      inputVisible:p.inputVisible!==false,
+      noRepeat:p.noRepeat||false,
+      excludedSet:new Set(p.excludedSet||[]),
+      usedPool:new Set(p.usedPool||[]),
+      settingsOpen:false
+    }));
+    return true;
+  }catch(e){return false;}
+}
+
+// ── Name parsing ───────────────────────────────────────
+function parseName(raw){
+  if(!raw) return [];
+  // Support newline, comma, full-width comma
+  return raw.split(/[\n,，]/).map(s=>s.trim()).filter(Boolean);
+}
+
+// ── Lang ──────────────────────────────────────────────
+function toggleLang(){
+  lang=lang==='zh'?'en':'zh';
+  document.getElementById('lang-btn').textContent=lang==='zh'?'EN':'中';
+  document.getElementById('btn-hide').textContent=allHidden?T('show'):T('hide');
+  document.getElementById('lbl-h').textContent=T('lbl');
+  panels.forEach(p=>refreshText(p.id));
+  saveToStorage();
+}
+function refreshText(id){
+  const card=document.getElementById(`pc-${id}`);
+  if(!card) return;
+  const p=panels[id];
+  card.querySelector('.card-title').textContent=T('panel')+' '+(id+1);
+  card.querySelector('.wbtn').textContent=T('wheel');
+  card.querySelector('.dbtn').textContent=T('digi');
+  card.querySelector('.tog').textContent=p.inputVisible?T('col'):T('exp');
+  const ta=card.querySelector('textarea');
+  if(ta) ta.placeholder=T('hint');
+}
+
+// ── Height ────────────────────────────────────────────
+function setH(v,fromNum){
+  v=Math.min(1200,Math.max(300,v||300));
+  targetH=v;
+  document.getElementById('h-slider').value=v;
+  document.getElementById('h-num').value=v;
+  applyLayout(); saveToStorage();
+}
+
+function applyLayout(){
+  const rows=count===4?2:1;
+  const TOPBAR=34, HROW=34, GRID_GAP=6;
+  const outerPad=8, rowGaps=(rows-1)*GRID_GAP;
+  const availH=targetH-TOPBAR-HROW-outerPad-rowGaps-GRID_GAP*2;
+  const cardH=Math.max(80,Math.floor(availH/rows));
+  panels.forEach(p=>{
+    const card=document.getElementById(`pc-${p.id}`);
+    if(!card) return;
+    card.style.height=cardH+'px';
+    resizeCard(p.id,cardH);
+  });
+}
+
+function resizeCard(id,cardH){
+  const p=panels[id];
+  const card=document.getElementById(`pc-${id}`);
+  if(!card) return;
+
+  const CARD_PAD=12,CARD_GAP=4;
+  const TOPROW=22,GOBTN=24,TOG=16,RESULT=26;
+  const settingsH=p.settingsOpen?72:0;
+  const INPUT_H=p.inputVisible?90:0;
+  const slots=4+(p.inputVisible?1:0)+(p.settingsOpen?1:0);
+  const gaps=CARD_GAP*(slots);
+  const mainH=cardH-CARD_PAD-TOPROW-GOBTN-TOG-RESULT-INPUT_H-settingsH-gaps;
+  const safeMain=Math.max(30,mainH);
+
+  const go=document.getElementById(`go-${id}`);
+  const res=document.getElementById(`res-${id}`);
+  const tog=card.querySelector('.tog');
+  const ia=document.getElementById(`ia-${id}`);
+  const ta=card.querySelector('textarea');
+  const sp=card.querySelector('.settings-panel');
+
+  const fs=Math.max(9,Math.min(13,Math.floor(cardH/20)));
+  if(go){go.style.height=GOBTN+'px';go.style.fontSize=fs+'px';}
+  if(res){res.style.height=RESULT+'px';res.style.fontSize=Math.min(15,fs+2)+'px';}
+  if(tog) tog.style.fontSize=Math.max(9,fs-1)+'px';
+  if(ta){ta.style.height=Math.max(36,INPUT_H-22)+'px';ta.style.fontSize=Math.max(10,fs-1)+'px';}
+  if(ia&&p.inputVisible) ia.style.maxHeight=INPUT_H+'px';
+  if(sp&&p.settingsOpen) sp.style.maxHeight=settingsH+'px';
+
+  if(p.mode==='wheel'){
+    const ws=card.querySelector('.wheel-section');
+    if(ws) ws.style.height=(safeMain+11)+'px';
+    const sz=Math.max(28,safeMain-11);
+    drawWheelSized(id,sz);
+  } else {
+    const ds=card.querySelector('.digi-section');
+    if(ds) ds.style.height=safeMain+'px';
+    const dd=document.getElementById(`dd-${id}`);
+    if(dd){
+      dd.style.height=safeMain+'px';
+      dd.style.fontSize=Math.max(14,Math.min(48,Math.floor(safeMain*0.38)))+'px';
+    }
+  }
+}
+
+// ── Pool helpers ───────────────────────────────────────
+function getPool(p){
+  // active names = names minus excluded
+  const active=p.names.filter(n=>!p.excludedSet.has(n));
+  if(p.noRepeat){
+    const avail=active.filter(n=>!p.usedPool.has(n));
+    // if empty, auto-reset
+    if(avail.length===0){ p.usedPool.clear(); return [...active]; }
+    return avail;
+  }
+  return active;
+}
+function updatePoolBadge(id){
+  const p=panels[id];
+  const badge=document.getElementById(`pool-badge-${id}`);
+  if(!badge) return;
+  if(p.noRepeat){
+    const pool=getPool(p);
+    const total=p.names.filter(n=>!p.excludedSet.has(n)).length;
+    badge.textContent=`${pool.length}/${total} ${T('remaining')}`;
+    badge.style.display='';
+  } else {
+    badge.style.display='none';
+  }
+}
+
+// ── Panel render ───────────────────────────────────────
+function setCount(n){
+  count=n;
+  document.querySelectorAll('#count-seg button').forEach((b,i)=>b.className=i===n-1?'active':'');
+  document.getElementById('main-grid').className=`grid g${n<=3?n:4}`;
+  while(panels.length<n) panels.push({id:panels.length,names:[],rawText:'',mode:'wheel',angle:0,spinning:false,inputVisible:true,noRepeat:false,excludedSet:new Set(),usedPool:new Set(),settingsOpen:false});
+  panels=panels.slice(0,n);
+  renderAll();
+  setTimeout(applyLayout,20);
+  saveToStorage();
+}
+
+function renderAll(){
+  const grid=document.getElementById('main-grid');
+  grid.innerHTML='';
+  panels.forEach(p=>{
+    const d=document.createElement('div');
+    d.className='card'; d.id=`pc-${p.id}`;
+
+    // Build copy-from chips
+    const copyChips=panels.filter(q=>q.id!==p.id).map(q=>`<button class="copy-btn" onclick="copyFrom(${p.id},${q.id})">${T('panel')} ${q.id+1}</button>`).join('');
+
+    d.innerHTML=`
+      <canvas class="confetti-canvas" id="cfv-${p.id}"></canvas>
+      <div class="card-top">
+        <span class="card-title">${T('panel')} ${p.id+1}</span>
+        <span class="pool-badge" id="pool-badge-${p.id}" style="display:none"></span>
+        <div class="card-mode">
+          <button class="wbtn ${p.mode==='wheel'?'active':''}" onclick="setPanelMode(${p.id},'wheel')">${T('wheel')}</button>
+          <button class="dbtn ${p.mode==='digi'?'active':''}" onclick="setPanelMode(${p.id},'digi')">${T('digi')}</button>
+        </div>
+        <button class="settings-btn" onclick="toggleSettings(${p.id})" title="設定">⚙</button>
+      </div>
+      <div class="settings-panel ${p.settingsOpen?'open':''}" id="sp-${p.id}"></div>
+      <div class="wheel-section" style="${p.mode==='wheel'?'':'display:none'}">
+        <div class="wheel-wrap" id="ww-${p.id}" onclick="handleWheelClick(${p.id})"><div class="pointer"></div><canvas id="wc-${p.id}"></canvas></div>
+      </div>
+      <div class="digi-section" style="${p.mode==='digi'?'':'display:none'}" onclick="handleDigiClick(${p.id})">
+        <div class="digi" id="dd-${p.id}">—</div>
+      </div>
+      <div class="result" id="res-${p.id}">—</div>
+      <button class="go" id="go-${p.id}" onclick="spinPanel(${p.id})" ${getPool(p).length<2?'disabled':''}>${T('go')}</button>
+      <button class="tog" onclick="toggleInput(${p.id})">${p.inputVisible?T('col'):T('exp')}</button>
+      <div class="input-area ${p.inputVisible?'':'hidden'}" id="ia-${p.id}" style="max-height:90px">
+        <textarea placeholder="${T('hint')}" oninput="updatePanel(${p.id},this.value)">${p.rawText}</textarea>
+        <div class="tags" id="tags-${p.id}">${renderTags(p)}</div>
+      </div>`;
+    grid.appendChild(d);
+    buildSettingsPanel(p.id);
+    drawWheelSized(p.id,120);
+    updatePoolBadge(p.id);
+  });
+}
+
+// ── Build settings panel ───────────────────────────────
+function buildSettingsPanel(id){
+  const sp=document.getElementById(`sp-${id}`);
+  if(!sp) return;
+  sp.innerHTML='';
+  const p=panels[id];
+
+  function makeRow(){ const r=document.createElement('div'); r.className='setting-row'; return r; }
+  function makeLabel(txt,cls){ const s=document.createElement('span'); s.className=cls||'sr-label'; s.textContent=txt; return s; }
+
+  // ── Row 1: No-repeat + toggle ──
+  const r1=makeRow();
+  r1.appendChild(makeLabel(T('norepeat')));
+  const sp1=document.createElement('span'); sp1.style.flex='1'; r1.appendChild(sp1);
+  if(p.noRepeat){
+    const rb=document.createElement('button');
+    rb.className='reset-pool-btn';
+    rb.textContent=T('resetPool');
+    rb.onclick=()=>resetPool(id);
+    r1.appendChild(rb);
+  }
+  const sw=document.createElement('div');
+  sw.className='sw'+(p.noRepeat?' on':'');
+  sw.onclick=()=>setNoRepeat(id,!panels[id].noRepeat);
+  r1.appendChild(sw);
+  sp.appendChild(r1);
+
+  // ── Row 2: Exclude hint ──
+  const r2=makeRow();
+  r2.appendChild(makeLabel(T('exclude')));
+  const sp2=document.createElement('span'); sp2.style.flex='1'; r2.appendChild(sp2);
+  r2.appendChild(makeLabel('點名字 tag 切換','sr-hint'));
+  sp.appendChild(r2);
+}
+
+function renderTags(p){
+  return p.names.map(n=>{
+    let cls='tag';
+    if(p.usedPool.has(n)) cls='tag used';
+    else if(p.excludedSet.has(n)) cls='tag excluded';
+    return `<span class="${cls}" onclick="toggleExclude(${p.id},'${CSS.escape?n.replace(/'/g,"\\'"):n}')">${n}</span>`;
+  }).join('');
+}
+
+function refreshTags(id){
+  const p=panels[id];
+  const tags=document.getElementById(`tags-${id}`);
+  if(tags) tags.innerHTML=renderTags(p);
+}
+
+// ── Exclude ────────────────────────────────────────────
+function toggleExclude(id,name){
+  const p=panels[id];
+  if(p.excludedSet.has(name)) p.excludedSet.delete(name);
+  else { p.excludedSet.add(name); p.usedPool.delete(name); }
+  refreshTags(id);
+  updateGoBtn(id);
+  updatePoolBadge(id);
+  drawWheelSized(id);
+  saveToStorage();
+}
+
+// ── Settings ───────────────────────────────────────────
+function toggleSettings(id){
+  const p=panels[id];
+  p.settingsOpen=!p.settingsOpen;
+  const sp=document.getElementById(`sp-${id}`);
+  if(sp) sp.className='settings-panel '+(p.settingsOpen?'open':'');
+  setTimeout(applyLayout,10);
+}
+function setNoRepeat(id,val){
+  panels[id].noRepeat=val;
+  panels[id].usedPool.clear();
+  buildSettingsPanel(id);
+  updateGoBtn(id); updatePoolBadge(id); refreshTags(id);
+  saveToStorage();
+}
+function resetPool(id){
+  panels[id].usedPool.clear();
+  refreshTags(id); updateGoBtn(id); updatePoolBadge(id);
+  saveToStorage();
+}
+
+// ── Copy from ──────────────────────────────────────────
+function copyFrom(toId,fromId){
+  const src=panels[fromId];
+  panels[toId].rawText=src.rawText;
+  panels[toId].names=[...src.names];
+  panels[toId].excludedSet=new Set(src.excludedSet);
+  panels[toId].usedPool.clear();
+  renderAll(); setTimeout(applyLayout,20); saveToStorage();
+}
+
+// ── Mode / Input toggles ──────────────────────────────
+function setPanelMode(id,mode){
+  panels[id].mode=mode;
+  const card=document.getElementById(`pc-${id}`);
+  card.querySelector('.wheel-section').style.display=mode==='wheel'?'':'none';
+  card.querySelector('.digi-section').style.display=mode==='digi'?'':'none';
+  card.querySelector('.wbtn').className=`wbtn ${mode==='wheel'?'active':''}`;
+  card.querySelector('.dbtn').className=`dbtn ${mode==='digi'?'active':''}`;
+  setTimeout(applyLayout,10); saveToStorage();
+}
+
+function toggleInput(id){
+  const p=panels[id];
+  p.inputVisible=!p.inputVisible;
+  const ia=document.getElementById(`ia-${id}`);
+  const tog=document.querySelector(`#pc-${id} .tog`);
+  if(ia) ia.className='input-area '+(p.inputVisible?'':'hidden');
+  if(tog) tog.textContent=p.inputVisible?T('col'):T('exp');
+  setTimeout(applyLayout,30); saveToStorage();
+}
+
+function toggleAllInput(){
+  allHidden=!allHidden;
+  document.getElementById('btn-hide').textContent=allHidden?T('show'):T('hide');
+  panels.forEach(p=>{
+    p.inputVisible=!allHidden;
+    const ia=document.getElementById(`ia-${p.id}`);
+    const tog=document.querySelector(`#pc-${p.id} .tog`);
+    if(ia) ia.className='input-area '+(p.inputVisible?'':'hidden');
+    if(tog) tog.textContent=p.inputVisible?T('col'):T('exp');
+  });
+  setTimeout(applyLayout,30); saveToStorage();
+}
+
+function updatePanel(id,val){
+  const p=panels[id];
+  p.rawText=val;
+  p.names=parseName(val);
+  // clean excluded/used that no longer exist
+  p.excludedSet=new Set([...p.excludedSet].filter(n=>p.names.includes(n)));
+  p.usedPool=new Set([...p.usedPool].filter(n=>p.names.includes(n)));
+  refreshTags(id);
+  updateGoBtn(id);
+  updatePoolBadge(id);
+  drawWheelSized(id);
+  saveToStorage();
+}
+
+function updateGoBtn(id){
+  const p=panels[id];
+  const go=document.getElementById(`go-${id}`);
+  if(go){
+    const pool=getPool(p);
+    go.disabled=pool.length<2;
+    if(!p.spinning) go.textContent=T('go');
+  }
+}
+
+// ── Wheel click (anywhere on wheel triggers spin) ──────
+function handleWheelClick(id){
+  resumeAC();
+  spinPanel(id);
+}
+function handleDigiClick(id){
+  resumeAC();
+  spinPanel(id);
+}
+
+// ── Draw wheel ─────────────────────────────────────────
+function drawWheelSized(id,forceSz){
+  const canvas=document.getElementById(`wc-${id}`);
+  if(!canvas) return;
+  const p=panels[id];
+  const sz=forceSz||canvas.width||120;
+  canvas.width=sz; canvas.height=sz;
+  const cx=sz/2, cy=sz/2, r=sz/2-4;
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,sz,sz);
+
+  // active names for the wheel (excluded = greyed out segment)
+  const names=p.names;
+  if(!names||names.length===0){
+    ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);
+    ctx.fillStyle='var(--color-background-secondary)';ctx.fill();
+    ctx.fillStyle='var(--color-text-tertiary)';
+    ctx.font=`${Math.max(8,Math.floor(sz/14))}px sans-serif`;ctx.textAlign='center';
+    ctx.fillText(T('empty'),cx,cy+4);
+    return;
+  }
+
+  const slice=(Math.PI*2)/names.length;
+  names.forEach((name,i)=>{
+    const isExcluded=p.excludedSet.has(name);
+    const isUsed=p.usedPool.has(name);
+    const s=p.angle+i*slice, e=s+slice;
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,s,e);ctx.closePath();
+    let fillColor=COLORS[i%COLORS.length];
+    if(isExcluded||isUsed) fillColor='rgba(180,180,180,0.25)';
+    ctx.fillStyle=fillColor;ctx.fill();
+    ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();
+    ctx.save();ctx.translate(cx,cy);ctx.rotate(s+slice/2);ctx.textAlign='right';
+    const ml=names.length>8?3:names.length>5?5:7;
+    const lbl=name.length>ml?name.slice(0,ml)+'…':name;
+    const tfs=Math.max(7,Math.min(11,Math.floor(sz/16)));
+    ctx.fillStyle=isExcluded||isUsed?'#aaa':'#2C2C2A';
+    ctx.font=`${tfs}px sans-serif`;
+    ctx.fillText(lbl,r-4,tfs/2);ctx.restore();
+  });
+  ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);
+  ctx.strokeStyle='rgba(0,0,0,0.07)';ctx.lineWidth=1;ctx.stroke();
+  const cr=Math.max(8,sz/16);
+  ctx.beginPath();ctx.arc(cx,cy,cr,0,Math.PI*2);
+  ctx.fillStyle='#fff';ctx.fill();
+  ctx.strokeStyle='var(--color-border-secondary)';ctx.lineWidth=1;ctx.stroke();
+  // center icon
+  ctx.fillStyle='var(--color-text-tertiary)';
+  ctx.font=`${Math.max(8,Math.floor(cr*0.9))}px sans-serif`;ctx.textAlign='center';
+  ctx.fillText('▶',cx,cy+Math.floor(cr*0.3));
+}
+
+function getWinner(id){
+  const p=panels[id];
+  // winner is from the active pool at spin time (stored in p._spinPool)
+  if(p._spinPool&&p._spinPool.length>0){
+    const slice=(Math.PI*2)/p.names.length;
+    let norm=((-Math.PI/2-p.angle)%(Math.PI*2)+Math.PI*2)%(Math.PI*2);
+    const idx=Math.floor(norm/slice)%p.names.length;
+    // find winner from spin pool (closest by angle)
+    return p._winner||p._spinPool[0];
+  }
+  const slice=(Math.PI*2)/p.names.length;
+  let norm=((-Math.PI/2-p.angle)%(Math.PI*2)+Math.PI*2)%(Math.PI*2);
+  return p.names[Math.floor(norm/slice)%p.names.length];
+}
+
+// ── Winner display ─────────────────────────────────────
+function showWinner(id,name){
+  const res=document.getElementById(`res-${id}`);
+  if(res){res.textContent='🎉 '+name;res.className='result win';}
+  // Update tags: highlight winner, style used/excluded
+  refreshTags(id);
+  // Re-highlight winner tag
+  document.querySelectorAll(`#tags-${id} .tag`).forEach(t=>{
+    if(t.textContent===name) t.className='tag win';
+  });
+  const go=document.getElementById(`go-${id}`);
+  if(go) go.textContent=T('again');
+  updatePoolBadge(id);
+  playWin();
+  launchConfetti(id);
+}
+
+function resetPanel(id){
+  const res=document.getElementById(`res-${id}`);
+  if(res){res.textContent='—';res.className='result';}
+  const dd=document.getElementById(`dd-${id}`);
+  if(dd){dd.textContent='—';dd.className='digi';}
+  refreshTags(id);
+}
+
+// ── Spin ──────────────────────────────────────────────
+function spinPanel(id){
+  const p=panels[id];
+  const pool=getPool(p);
+  if(p.spinning||pool.length<2) return;
+  p.spinning=true;
+  const go=document.getElementById(`go-${id}`);
+  if(go) go.disabled=true;
+  resetPanel(id);
+  // Pick winner now
+  const winner=pool[Math.floor(Math.random()*pool.length)];
+  p._winner=winner;
+  p._spinPool=pool;
+  p.mode==='wheel'?doWheel(id,winner):doDigi(id,winner);
+}
+
+function doWheel(id,winner){
+  const p=panels[id];
+  const canvas=document.getElementById(`wc-${id}`);
+  const sz=canvas?canvas.width:120;
+
+  // Calculate target angle so wheel stops on winner
+  const winnerIdx=p.names.indexOf(winner);
+  const slice=(Math.PI*2)/p.names.length;
+  // Current angle normalised
+  const curNorm=((-Math.PI/2-p.angle)%(Math.PI*2)+Math.PI*2)%(Math.PI*2);
+  const winStart=winnerIdx*slice;
+  const winMid=winStart+slice/2;
+  // How much to rotate so pointer hits winMid
+  let delta=winMid-curNorm;
+  if(delta<0) delta+=Math.PI*2;
+  // Add several full rotations for drama
+  const fullRotations=(7+Math.floor(Math.random()*4))*Math.PI*2;
+  const total=fullRotations+delta;
+
+  const dur=2800+Math.random()*800;
+  const t0=performance.now(), a0=p.angle;
+  const ease=t=>1-Math.pow(1-t,3);
+  let lastTick=0;
+
+  function frame(now){
+    const tt=Math.min((now-t0)/dur,1);
+    const prog=ease(tt);
+    p.angle=a0+total*prog;
+    // tick sounds while spinning
+    if(tt<0.85&&now-lastTick>50-tt*30){ playTick(); lastTick=now; }
+    drawWheelSized(id,sz);
+    if(tt<1){ requestAnimationFrame(frame); }
+    else{
+      p.spinning=false;
+      // Mark as used if noRepeat
+      if(p.noRepeat) p.usedPool.add(winner);
+      const go=document.getElementById(`go-${id}`);
+      if(go) go.disabled=getPool(p).length<2;
+      showWinner(id,winner);
+      saveToStorage();
+    }
+  }
+  requestAnimationFrame(frame);
+}
+
+function doDigi(id,winner){
+  const p=panels[id], dd=document.getElementById(`dd-${id}`);
+  const pool=p._spinPool||getPool(p);
+  if(dd) dd.className='digi';
+  let c=0, total=28+Math.floor(Math.random()*16);
+  function roll(){
+    if(dd){ dd.textContent=pool[Math.floor(Math.random()*pool.length)]; playTick(); }
+    c++;
+    if(c<total) setTimeout(roll,35+c*2.5);
+    else{
+      if(dd){dd.textContent=winner;dd.className='digi done';}
+      if(p.noRepeat) p.usedPool.add(winner);
+      p.spinning=false;
+      const go=document.getElementById(`go-${id}`);
+      if(go) go.disabled=getPool(p).length<2;
+      showWinner(id,winner);
+      saveToStorage();
+    }
+  }
+  roll();
+}
+
+function spinAll(){
+  panels.forEach(p=>{
+    const pool=getPool(p);
+    if(!p.spinning&&pool.length>=2) spinPanel(p.id);
+  });
+}
+
+// ── Confetti ──────────────────────────────────────────
+function launchConfetti(id){
+  const cv=document.getElementById(`cfv-${id}`);
+  if(!cv) return;
+  const card=document.getElementById(`pc-${id}`);
+  cv.width=card.offsetWidth; cv.height=card.offsetHeight;
+  const ctx=cv.getContext('2d');
+  const pieces=Array.from({length:60},()=>({
+    x:Math.random()*cv.width, y:Math.random()*cv.height*0.4-cv.height*0.1,
+    vx:(Math.random()-0.5)*4, vy:Math.random()*3+1,
+    r:Math.random()*5+2, color:COLORS[Math.floor(Math.random()*COLORS.length)],
+    rot:Math.random()*360, rotV:(Math.random()-0.5)*8, life:1
+  }));
+  let frame=0;
+  function draw(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    pieces.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; p.vy+=0.12; p.rot+=p.rotV; p.life-=0.016;
+      if(p.life<=0) return;
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot*Math.PI/180);
+      ctx.globalAlpha=Math.min(1,p.life*2);
+      ctx.fillStyle=p.color;
+      ctx.fillRect(-p.r,-p.r/2,p.r*2,p.r);
+      ctx.restore();
+    });
+    frame++;
+    if(frame<80) requestAnimationFrame(draw);
+    else ctx.clearRect(0,0,cv.width,cv.height);
+  }
+  requestAnimationFrame(draw);
+}
+
+// ── Init ──────────────────────────────────────────────
+const restored=loadFromStorage();
+if(restored){
+  // Apply UI state
+  document.getElementById('lang-btn').textContent=lang==='zh'?'EN':'中';
+  document.getElementById('h-slider').value=targetH;
+  document.getElementById('h-num').value=targetH;
+  document.querySelectorAll('#count-seg button').forEach((b,i)=>b.className=i===count-1?'active':'');
+  document.getElementById('main-grid').className=`grid g${count<=3?count:4}`;
+  renderAll();
+  setTimeout(applyLayout,20);
+} else {
+  setCount(1);
+}
+</script>
