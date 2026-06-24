@@ -8,58 +8,73 @@
         :root { --primary: #4361ee; --secondary: #f72585; --bg-dark: #0f172a; --panel-bg: #1e293b; --text: #f8fafc; }
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--bg-dark); color: var(--text); font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif; overflow-x: hidden; }
         
-        /* 專業控制台佈局 */
         #dashboard { display: flex; flex-direction: column; align-items: center; padding: 20px; width: 100%; box-sizing: border-box; }
         .header { text-align: center; margin-bottom: 20px; }
         .header h1 { margin: 0; color: #48cae4; letter-spacing: 2px; }
 
-        /* 全局設定區 */
         .global-settings { background: var(--panel-bg); padding: 20px; border-radius: 12px; width: 100%; max-width: 900px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); margin-bottom: 15px; display: flex; flex-wrap: wrap; gap: 15px; justify-content: space-between; border-left: 4px solid var(--primary); }
         .setting-group { display: flex; align-items: center; gap: 10px; }
         input, select { padding: 10px 15px; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 6px; font-size: 15px; }
         input:focus, select:focus { outline: none; border-color: var(--primary); }
 
-        /* 新增：資源百寶箱 */
-        .resource-links { background: rgba(16, 185, 129, 0.1); padding: 10px 20px; border-radius: 8px; width: 100%; max-width: 900px; margin-bottom: 20px; border: 1px solid rgba(16, 185, 129, 0.3); display: flex; align-items: center; gap: 15px; font-size: 14px; }
+        .resource-links { background: rgba(16, 185, 129, 0.1); padding: 10px 20px; border-radius: 8px; width: 100%; max-width: 900px; margin-bottom: 20px; border: 1px solid rgba(16, 185, 129, 0.3); display: flex; align-items: center; gap: 15px; font-size: 14px; flex-wrap: wrap; }
         .resource-links a { color: #34d399; text-decoration: none; font-weight: bold; background: rgba(52, 211, 153, 0.1); padding: 5px 10px; border-radius: 4px; transition: 0.2s; }
         .resource-links a:hover { background: rgba(52, 211, 153, 0.3); }
 
-        /* 題庫編輯區 */
         #question-list { width: 100%; max-width: 900px; display: flex; flex-direction: column; gap: 15px; margin-bottom: 30px; }
-        .q-card { background: var(--panel-bg); padding: 20px; border-radius: 10px; display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 15px; align-items: center; position: relative; border: 1px solid #334155; }
-        .q-card.local-mode { border-color: #10b981; }
         
+        /* 題目卡：只剩單字 + 圖片來源 + 預覽 + 刪除 */
+        .q-card { background: var(--panel-bg); padding: 20px; border-radius: 10px; display: grid; grid-template-columns: 1fr 1fr auto auto; gap: 15px; align-items: center; border: 1px solid #334155; }
+        .q-card.local-mode { border-color: #10b981; }
         .img-preview { width: 50px; height: 50px; background: #0f172a; border-radius: 5px; object-fit: cover; border: 1px solid #475569; }
         .btn-remove { background: #ef4444; border: none; color: white; padding: 8px 12px; border-radius: 5px; cursor: pointer; }
         .btn-add { background: #10b981; border: none; color: white; padding: 15px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; width: 100%; max-width: 900px; margin-bottom: 20px; }
-
         .btn-launch { background: var(--primary); border: none; color: white; padding: 18px 40px; border-radius: 8px; cursor: pointer; font-size: 20px; font-weight: bold; box-shadow: 0 4px 15px rgba(67, 97, 238, 0.4); transition: 0.2s; width: 100%; max-width: 900px; }
         .btn-launch:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(67, 97, 238, 0.6); }
+        .btn-clear-cache { background: transparent; border: 1px solid #475569; color: #64748b; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; width: 100%; max-width: 900px; margin-bottom: 10px; }
+        .btn-clear-cache:hover { border-color: #ef4444; color: #ef4444; }
 
         .hidden { display: none !important; }
 
         /* 遊戲畫布區 */
-        #game-stage { display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100vh; position: relative; }
+        #game-stage { display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; min-height: 100vh; position: relative; padding: 20px; box-sizing: border-box; }
         #canvas-container { position: relative; width: 450px; height: 450px; border: 4px solid #334155; border-radius: 8px; background: #000; overflow: hidden; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         
-        #puzzle-board { display: grid; width: 100%; height: 100%; grid-template-columns: repeat(var(--size), 1fr); gap: 1px; background: #222;}
+        #puzzle-board { display: grid; width: 100%; height: 100%; grid-template-columns: repeat(var(--size), 1fr); gap: 1px; background: #222; }
         .piece { cursor: pointer; background-size: 450px 450px; transition: transform 0.1s; }
         .piece.selected { outline: 4px solid #fff; outline-offset: -4px; transform: scale(0.92); z-index: 10; box-shadow: 0 0 15px rgba(255,255,255,0.5); }
         #detective-img { width: 100%; height: 100%; object-fit: cover; }
 
-        /* 選項按鈕與資訊 */
-        #options-area { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; width: 90%; max-width: 700px; min-height: 60px;}
-        .opt-btn { padding: 15px 30px; background: var(--panel-bg); border: 2px solid #475569; color: #fff; font-size: 22px; font-weight: bold; cursor: pointer; border-radius: 8px; transition: 0.2s; min-width: 160px; }
-        .opt-btn:hover { border-color: var(--primary); background: #2563eb; }
+        /* 拼字輸入區 */
+        #spelling-area { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 90%; max-width: 500px; }
+        .hint-text { font-size: 28px; letter-spacing: 8px; font-family: monospace; color: #38bdf8; font-weight: bold; }
+        .hint-label { font-size: 13px; color: #64748b; margin-top: -6px; }
+        #spelling-input { font-size: 26px; text-align: center; letter-spacing: 4px; padding: 12px 20px; width: 100%; box-sizing: border-box; background: #0f172a; border: 2px solid #475569; border-radius: 8px; color: #fff; font-family: monospace; text-transform: uppercase; }
+        #spelling-input:focus { border-color: var(--primary); outline: none; }
+        #btn-submit { background: var(--primary); border: none; color: white; padding: 14px 40px; border-radius: 8px; cursor: pointer; font-size: 18px; font-weight: bold; width: 100%; transition: 0.2s; }
+        #btn-submit:hover { background: #2563eb; }
+        #answer-feedback { font-size: 20px; font-weight: bold; min-height: 30px; }
 
-        #score-display { margin-top: 20px; font-size: 24px; color: #38bdf8; font-weight: bold; font-family: monospace; }
+        #score-display { margin-top: 12px; font-size: 22px; color: #38bdf8; font-weight: bold; font-family: monospace; }
         
-        /* 老師控制面板 */
-        #teacher-controls { position: absolute; bottom: 20px; left: 20px; display: flex; gap: 10px; }
-        .control-btn { padding: 10px 20px; background: rgba(30, 41, 59, 0.8); border: 1px solid #475569; color: #cbd5e1; cursor: pointer; border-radius: 5px; backdrop-filter: blur(5px); }
+        #teacher-controls { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; justify-content: center; }
+        .control-btn { padding: 10px 20px; background: rgba(30, 41, 59, 0.8); border: 1px solid #475569; color: #cbd5e1; cursor: pointer; border-radius: 5px; }
         .control-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
 
-        #status-bar { color: #f59e0b; font-weight: bold; margin-bottom: 10px; }
+        #status-bar { color: #f59e0b; font-weight: bold; margin-bottom: 10px; min-height: 24px; }
+
+        /* ── 響應式 ── */
+        @media (max-width: 600px) {
+            #dashboard { padding: 12px; }
+            .global-settings { flex-direction: column; }
+            .q-card { grid-template-columns: 1fr auto; grid-template-rows: auto auto; }
+            .q-card > div:nth-child(2) { grid-column: 1 / -1; }
+            .img-preview { display: none; }
+            #canvas-container { width: 320px; height: 320px; }
+            .hint-text { font-size: 22px; letter-spacing: 5px; }
+            #spelling-input { font-size: 20px; }
+            .resource-links { flex-direction: column; gap: 8px; }
+        }
     </style>
 </head>
 <body>
@@ -67,15 +82,15 @@
     <div id="dashboard">
         <div class="header">
             <h1>NewCore Vision Pro</h1>
-            <p style="color:#94a3b8; margin-top:5px;">互動視覺圖卡教案編輯器 (無盡題庫版)</p>
+            <p style="color:#94a3b8; margin-top:5px;">互動視覺圖卡教案編輯器（拼字克漏字版）</p>
         </div>
 
         <div class="global-settings">
-                <div class="setting-group">
+            <div class="setting-group">
                 <select id="grid-size">
-                    <option value="2">2x2 拼圖 (極簡)</option>
-                    <option value="3" selected>3x3 拼圖 (標準)</option>
-                    <option value="4">4x4 拼圖 (挑戰)</option>
+                    <option value="2">2x2 拼圖（極簡）</option>
+                    <option value="3" selected>3x3 拼圖（標準）</option>
+                    <option value="4">4x4 拼圖（挑戰）</option>
                 </select>
                 <select id="game-mode">
                     <option value="puzzle">🧩 拼圖模式</option>
@@ -89,15 +104,15 @@
             <a href="https://pixabay.com/" target="_blank">Pixabay</a>
             <a href="https://www.pexels.com/" target="_blank">Pexels</a>
             <a href="https://www.freepik.com/" target="_blank">Freepik</a>
-            <span style="color:#64748b; font-size:12px; margin-left:10px;">(可下載後使用「📁 上傳本機圖片」獲得最穩定體驗)</span>
+            <span style="color:#64748b; font-size:12px;">(下載後用「📁 上傳本機圖片」最穩定)</span>
         </div>
 
         <div id="status-bar"></div>
-
         <div id="question-list"></div>
 
         <button class="btn-add" onclick="addQuestionCard()">+ 新增題目卡</button>
         <button class="btn-launch" onclick="launchGame()">🚀 啟動無盡課堂遊戲</button>
+        <button class="btn-clear-cache" onclick="clearSavedData()">🗑 清除已儲存的題庫，重新開始</button>
     </div>
 
     <div id="game-stage">
@@ -105,17 +120,29 @@
             <div id="puzzle-board" class="hidden"></div>
             <img id="detective-img" class="hidden" alt="Game Image">
         </div>
-        
+
+        <div id="spelling-area">
+            <div class="hint-label">看圖拼字 — 依提示輸入完整單字</div>
+            <div class="hint-text" id="hint-display"></div>
+            <input type="text" id="spelling-input" placeholder="輸入完整單字..." autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+            <button id="btn-submit" onclick="checkSpelling()">✅ 確認答案</button>
+            <div id="answer-feedback"></div>
+        </div>
+
         <div id="score-display"></div>
-        <div id="options-area"></div>
 
         <div id="teacher-controls">
-            <button class="control-btn" onclick="location.reload()">⏹ 結束課堂</button>
+            <button class="control-btn" onclick="exitGame()">⏹ 結束課堂</button>
             <button class="control-btn" onclick="drawNextQuestion()" style="border-color: #10b981; color: #10b981;">⏭ 隨機下一題</button>
+            <button class="control-btn" onclick="revealAnswer()" style="border-color: #f59e0b; color: #f59e0b;">👁 顯示答案</button>
         </div>
     </div>
 
 <script>
+    const GATEWAY_URL = "https://script.google.com/macros/s/AKfycbz0O6eB9fVC3Xp7g0Kt4U-32Inmf9ieDYJygEf3jW78xaWx10glPscEefEQwgB0jCioug/exec";
+    const GATEWAY_TOKEN = "MYVIEWBOARDgoogleAPI";
+    const STORAGE_KEY = "nc_vision_questions";
+
     let questionsData = [];
     let currentQuestion = null;
     let gameActive = false;
@@ -124,66 +151,116 @@
     let activeTimer;
     let currentScore = 1000;
     let isPuzzleSolved = false;
+    let answerRevealed = false;
 
-    const GATEWAY_URL = "https://script.google.com/macros/s/AKfycbz0O6eB9fVC3Xp7g0Kt4U-32Inmf9ieDYJygEf3jW78xaWx10glPscEefEQwgB0jCioug/exec";
-    const GATEWAY_TOKEN = "MYVIEWBOARDgoogleAPI";
+    // ── 題庫持久化 ──────────────────────────────────────────────
+
+    function saveQuestionsToStorage() {
+        // 本機圖片的 base64 也一起存（可能很大，但 localStorage 通常 5MB 夠用）
+        const data = questionsData.map(q => ({
+            correct: q.correct,
+            source: q.source,
+            localImgData: q.localImgData || ""
+        }));
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        } catch(e) {
+            console.warn("localStorage 儲存失敗（可能是本機圖片太大）", e);
+        }
+    }
+
+    function loadQuestionsFromStorage() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            return raw ? JSON.parse(raw) : null;
+        } catch(e) { return null; }
+    }
+
+    function clearSavedData() {
+        if (!confirm("確定要清除所有已儲存的題目並重新開始嗎？")) return;
+        localStorage.removeItem(STORAGE_KEY);
+        document.getElementById('question-list').innerHTML = '';
+        questionsData = [];
+        addQuestionCard();
+        document.getElementById('status-bar').innerText = "✅ 題庫已清除";
+        setTimeout(() => document.getElementById('status-bar').innerText = "", 2000);
+    }
+
+    // ── 初始化 ──────────────────────────────────────────────────
 
     window.onload = () => {
-    addQuestionCard(); // 刪掉讀 nc_vision_key 那行
-};
+        const saved = loadQuestionsFromStorage();
+        if (saved && saved.length > 0) {
+            saved.forEach(q => addQuestionCard(q));
+            document.getElementById('status-bar').innerText = `✅ 已載入上次題庫（${saved.length} 題）`;
+            setTimeout(() => document.getElementById('status-bar').innerText = "", 3000);
+        } else {
+            addQuestionCard();
+        }
+    };
 
-    function addQuestionCard() {
-        const id = Date.now();
+    // ── 題目卡管理 ──────────────────────────────────────────────
+
+    function addQuestionCard(prefill) {
+        const id = Date.now() + Math.random();
+        const safeId = id.toString().replace('.', '_');
         const card = document.createElement('div');
-        card.className = 'q-card';
-        card.id = `card-${id}`;
-        
+        card.className = 'q-card' + (prefill && prefill.source === 'local' ? ' local-mode' : '');
+        card.id = `card-${safeId}`;
+
+        const sourceVal = prefill ? prefill.source : 'unsplash-cartoon';
+        const correctVal = prefill ? prefill.correct : '';
+
         card.innerHTML = `
             <div style="display:flex; flex-direction:column; gap:8px;">
-                <input type="text" class="q-correct" placeholder="*正確單字 (例: Banana)">
-                <div style="display:flex; gap:5px;">
-                    <input type="text" class="q-w1" placeholder="干擾 A" style="width:100%;">
-                    <input type="text" class="q-w2" placeholder="干擾 B" style="width:100%;">
-                </div>
+                <input type="text" class="q-correct" placeholder="*單字 (例: Banana)" value="${correctVal}">
             </div>
-            
+
             <div style="display:flex; flex-direction:column; gap:8px;">
-                <select class="q-source" onchange="handleSourceChange(this, ${id})">
-                    <option value="unsplash-cartoon">AI 繪圖 (卡通風格)</option>
-                    <option value="unsplash-real">AI 繪圖 (寫實風格)</option>
-                    <option value="local">📁 上傳本機圖片</option>
+                <select class="q-source" onchange="handleSourceChange(this, '${safeId}')">
+                    <option value="unsplash-cartoon" ${sourceVal==='unsplash-cartoon'?'selected':''}>AI 繪圖（卡通風格）</option>
+                    <option value="unsplash-real" ${sourceVal==='unsplash-real'?'selected':''}>AI 繪圖（寫實風格）</option>
+                    <option value="local" ${sourceVal==='local'?'selected':''}>📁 上傳本機圖片</option>
                 </select>
-                <input type="file" id="file-${id}" class="hidden" accept="image/*" onchange="handleLocalFile(this, ${id})">
+                <input type="file" id="file-${safeId}" class="${sourceVal==='local'?'':'hidden'}" accept="image/*" onchange="handleLocalFile(this, '${safeId}')">
             </div>
 
             <div style="display:flex; align-items:center; justify-content:center;">
-                <img id="preview-${id}" class="img-preview hidden" alt="預覽">
+                <img id="preview-${safeId}" class="img-preview ${prefill && prefill.localImgData ? '' : 'hidden'}" alt="預覽">
             </div>
 
-            <button class="btn-remove" onclick="document.getElementById('card-${id}').remove()">刪除</button>
+            <button class="btn-remove" onclick="document.getElementById('card-${safeId}').remove()">刪除</button>
         `;
         document.getElementById('question-list').appendChild(card);
+
+        // 如果有本機圖片資料，還原預覽
+        if (prefill && prefill.localImgData) {
+            const preview = card.querySelector('.img-preview');
+            preview.src = prefill.localImgData;
+            preview.setAttribute('data-base64', prefill.localImgData);
+        }
     }
 
-    function handleSourceChange(selectEl, id) {
-        const fileInput = document.getElementById(`file-${id}`);
-        const card = document.getElementById(`card-${id}`);
+    function handleSourceChange(selectEl, safeId) {
+        const fileInput = document.getElementById(`file-${safeId}`);
+        const card = fileInput.closest('.q-card');
         if (selectEl.value === 'local') {
             fileInput.classList.remove('hidden');
             card.classList.add('local-mode');
         } else {
             fileInput.classList.add('hidden');
             card.classList.remove('local-mode');
-            document.getElementById(`preview-${id}`).classList.add('hidden');
-            document.getElementById(`preview-${id}`).removeAttribute('data-base64');
+            const preview = document.getElementById(`preview-${safeId}`);
+            preview.classList.add('hidden');
+            preview.removeAttribute('data-base64');
         }
     }
 
-    function handleLocalFile(input, id) {
+    function handleLocalFile(input, safeId) {
         if (input.files && input.files[0]) {
             const reader = new FileReader();
             reader.onload = (e) => {
-                const preview = document.getElementById(`preview-${id}`);
+                const preview = document.getElementById(`preview-${safeId}`);
                 preview.src = e.target.result;
                 preview.setAttribute('data-base64', e.target.result);
                 preview.classList.remove('hidden');
@@ -192,190 +269,199 @@
         }
     }
 
-    async function launchGame() {
-    // 刪掉 apiKey 相關的兩行，改成直接讀 Gateway plan
-    const cards = document.querySelectorAll('.q-card');
-    questionsData = [];
-    document.getElementById('status-bar').innerText = "⏳ 正在處理教材資料...";
+    // ── 啟動遊戲 ─────────────────────────────────────────────────
 
-    for (let card of cards) {
-        const correct = card.querySelector('.q-correct').value.trim();
-        if (!correct) continue;
+    function launchGame() {
+        const cards = document.querySelectorAll('.q-card');
+        questionsData = [];
+        document.getElementById('status-bar').innerText = "⏳ 整理題庫中...";
 
-        let w1 = card.querySelector('.q-w1').value.trim();
-        let w2 = card.querySelector('.q-w2').value.trim();
-        const source = card.querySelector('.q-source').value;
-        let localImgData = "";
-
-        if (!w1 || !w2) {
-            const aiWords = await fetchDistractors(correct);
-            w1 = w1 || aiWords[0];
-            w2 = w2 || aiWords[1];
+        for (let card of cards) {
+            const correct = card.querySelector('.q-correct').value.trim();
+            if (!correct) continue;
+            const source = card.querySelector('.q-source').value;
+            let localImgData = "";
+            if (source === 'local') {
+                const preview = card.querySelector('.img-preview');
+                localImgData = preview.getAttribute('data-base64') || "";
+                if (!localImgData) { alert(`題目 "${correct}" 選擇了上傳圖片卻未選擇檔案！`); return; }
+            }
+            questionsData.push({ correct, source, localImgData });
         }
 
-        if (source === 'local') {
-            const preview = card.querySelector('.img-preview');
-            localImgData = preview.getAttribute('data-base64');
-            if (!localImgData) { alert(`題目 "${correct}" 選擇了上傳圖片卻未選擇檔案！`); return; }
+        if (questionsData.length === 0) {
+            document.getElementById('status-bar').innerText = "❌ 請至少輸入一題單字！";
+            return;
         }
 
-        questionsData.push({ correct, options: [correct, w1, w2], source, localImgData });
+        // 儲存題庫到 localStorage
+        saveQuestionsToStorage();
+
+        document.getElementById('dashboard').style.display = 'none';
+        document.getElementById('game-stage').style.display = 'flex';
+        drawNextQuestion();
     }
 
-    if (questionsData.length === 0) {
-        document.getElementById('status-bar').innerText = "❌ 請至少完整輸入一題正確單字！";
-        return;
+    function exitGame() {
+        // 回到編輯頁，不清除 questionsData，下次進入遊戲還能繼續
+        document.getElementById('game-stage').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'flex';
+        clearInterval(activeTimer);
     }
 
-    document.getElementById('dashboard').style.display = 'none';
-    document.getElementById('game-stage').style.display = 'flex';
-    drawNextQuestion();
-}
+    // ── 遊戲邏輯 ─────────────────────────────────────────────────
 
-    async function fetchDistractors(word) {
-    const plan = localStorage.getItem('newcore_tools_plan') || 'Free';
-    const useFreeKey = plan !== 'Pro';
-    const prompt = `Return JSON array of two single-word English distractors for "${word}". Format: ["A", "B"]. Return ONLY the JSON array, no markdown.`;
-    try {
-        const res = await fetch(GATEWAY_URL, {
-            method: 'POST',
-            redirect: 'follow',
-            body: JSON.stringify({
-                auth: GATEWAY_TOKEN,
-                action: 'lab_tool',
-                params: { customPrompt: prompt, model: 'gemini-2.5-flash', useFreeKey }
-            })
-        });
-        const gwResult = await res.json();
-        if (!gwResult.ok) throw new Error(gwResult.error);
-        const match = gwResult.text.match(/\[.*?\]/);
-        return match ? JSON.parse(match[0]) : ["Option A", "Option B"];
-    } catch(e) { return ["Option A", "Option B"]; }
-}
-
-    // --- 遊戲引擎 (即時生成與防卡死) ---
     function drawNextQuestion() {
         if (questionsData.length === 0) return;
-        
-        // ⚠️ 重點修正：不再從陣列中刪除，實現「無盡隨機題庫」
         const randIdx = Math.floor(Math.random() * questionsData.length);
-        currentQuestion = questionsData[randIdx]; 
-        
+        currentQuestion = questionsData[randIdx];
+
         gameActive = false;
         isPuzzleSolved = false;
+        answerRevealed = false;
         clearInterval(activeTimer);
         currentScore = 1000;
-        
-        document.getElementById('options-area').innerHTML = `<span style="color:#64748b;">準備圖片中... (最長等待8秒)</span>`;
-        document.getElementById('score-display').innerText = "";
-        document.getElementById('detective-img').src = ""; // 清空舊圖
 
-        // 1. 即時動態產生最新網址 (確保即使抽到同一題，每次圖都不一樣)
+        // 重設 UI
+        document.getElementById('spelling-input').value = '';
+        document.getElementById('answer-feedback').innerText = '';
+        document.getElementById('answer-feedback').style.color = '';
+        document.getElementById('score-display').innerText = '';
+        document.getElementById('score-display').style.color = '#38bdf8';
+        document.getElementById('spelling-input').disabled = false;
+        document.getElementById('btn-submit').disabled = false;
+        setHint(currentQuestion.correct);
+
+        document.getElementById('detective-img').src = "";
+        document.getElementById('answer-feedback').innerText = "⏳ 圖片載入中...";
+
         let finalImgUrl = "";
         if (currentQuestion.source === 'local') {
             finalImgUrl = currentQuestion.localImgData;
-        } else if (currentQuestion.source === 'unsplash-cartoon') {
-            const seed = Math.floor(Math.random() * 1000000);
-            const prompt = encodeURIComponent(`A cute, colorful, cartoon-style illustration of a ${currentQuestion.correct}, vibrant colors, simple background, educational art for kids`);
-            finalImgUrl = `https://image.pollinations.ai/prompt/${prompt}?width=500&height=500&nologo=true&seed=${seed}`;
         } else {
             const seed = Math.floor(Math.random() * 1000000);
-            const prompt = encodeURIComponent(`A clear, high-resolution, photorealistic image of a ${currentQuestion.correct}, bright lighting, plain background, educational`);
+            const styleTag = currentQuestion.source === 'unsplash-cartoon'
+                ? 'cute, colorful, cartoon-style illustration, vibrant colors, simple background, educational art for kids'
+                : 'clear, high-resolution, photorealistic, bright lighting, plain background, educational';
+            const prompt = encodeURIComponent(`${styleTag} of a ${currentQuestion.correct}`);
             finalImgUrl = `https://image.pollinations.ai/prompt/${prompt}?width=500&height=500&nologo=true&seed=${seed}`;
         }
 
-        // 2. 圖片載入與 8 秒超時機制
         const img = new Image();
         if (!finalImgUrl.startsWith('data:')) img.crossOrigin = "Anonymous";
-
         let fallbackTriggered = false;
-        
-        // 防卡死函數
+
         const triggerFallback = () => {
-            if(fallbackTriggered) return;
+            if (fallbackTriggered) return;
             fallbackTriggered = true;
-            console.warn("圖片超時或載入失敗，啟動備用...");
-            const fallbackImg = new Image();
-            fallbackImg.crossOrigin = "Anonymous";
-            fallbackImg.onload = () => {
-                currentQuestion.activeImgUrl = fallbackImg.src;
-                setupStage(currentQuestion);
-            };
-            fallbackImg.onerror = () => {
-                document.getElementById('options-area').innerHTML = `<span style="color:#ef4444;">❌ 網路異常，請點擊「隨機下一題」。</span>`;
-            };
-            fallbackImg.src = `https://loremflickr.com/500/500/${currentQuestion.correct}?lock=${Math.floor(Math.random()*100)}`;
+            const fb = new Image();
+            fb.crossOrigin = "Anonymous";
+            fb.onload = () => { currentQuestion.activeImgUrl = fb.src; setupStage(); };
+            fb.onerror = () => { document.getElementById('answer-feedback').innerText = "❌ 網路異常，請點「隨機下一題」"; };
+            fb.src = `https://loremflickr.com/500/500/${currentQuestion.correct}?lock=${Math.floor(Math.random()*100)}`;
         };
 
-        // 設定 8 秒終極超時
         const loadTimeout = setTimeout(triggerFallback, 8000);
-
         img.onload = () => {
-            if(fallbackTriggered) return; // 如果已經超時就不理會了
+            if (fallbackTriggered) return;
             clearTimeout(loadTimeout);
             currentQuestion.activeImgUrl = finalImgUrl;
-            setupStage(currentQuestion);
+            setupStage();
         };
-        img.onerror = () => {
-            clearTimeout(loadTimeout);
-            triggerFallback();
-        };
-
+        img.onerror = () => { clearTimeout(loadTimeout); triggerFallback(); };
         img.src = finalImgUrl;
     }
 
-    function setupStage(qData) {
+    // 產生提示：顯示字首 + 底線
+    function setHint(word) {
+        const hint = word[0].toUpperCase() + ' ' + '_ '.repeat(word.length - 1).trim();
+        document.getElementById('hint-display').innerText = hint;
+    }
+
+    function setupStage() {
         gameActive = true;
+        document.getElementById('answer-feedback').innerText = '';
         const mode = document.getElementById('game-mode').value;
         const size = parseInt(document.getElementById('grid-size').value);
-
-        const area = document.getElementById('options-area');
-        area.innerHTML = '';
-        const shuffled = [...qData.options].sort(() => Math.random() - 0.5);
-        
-        shuffled.forEach(txt => {
-            const btn = document.createElement('button');
-            btn.className = 'opt-btn';
-            btn.innerText = txt;
-            btn.onclick = () => handleAnswer(txt === qData.correct);
-            area.appendChild(btn);
-        });
-
-        // 傳入真正載入成功的 activeImgUrl
-        if(mode === 'puzzle') startPuzzle(qData.activeImgUrl, size);
-        else startDetective(qData.activeImgUrl);
+        if (mode === 'puzzle') startPuzzle(currentQuestion.activeImgUrl, size);
+        else startDetective(currentQuestion.activeImgUrl);
+        document.getElementById('spelling-input').focus();
     }
 
-    function handleAnswer(isCorrect) {
+    // ── 拼字判斷 ─────────────────────────────────────────────────
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && document.getElementById('game-stage').style.display === 'flex') {
+            checkSpelling();
+        }
+    });
+
+    function checkSpelling() {
         if (!gameActive && !isPuzzleSolved) return;
+        if (answerRevealed) { drawNextQuestion(); return; }
 
-        clearInterval(activeTimer);
-        document.getElementById('detective-img').style.filter = 'none';
+        const input = document.getElementById('spelling-input').value.trim().toLowerCase();
+        const correct = currentQuestion.correct.toLowerCase();
+        const fb = document.getElementById('answer-feedback');
 
-        if (isCorrect) {
-            alert(`🎯 完全正確！\n榮譽積分：${currentScore}`);
-            document.getElementById('puzzle-board').style.display = 'none';
-            document.getElementById('detective-img').style.display = 'block';
-            document.getElementById('detective-img').src = currentQuestion.activeImgUrl;
+        if (input === correct) {
+            clearInterval(activeTimer);
             gameActive = false;
+            fb.innerText = `🎯 完全正確！積分：${currentScore}`;
+            fb.style.color = '#10b981';
+            document.getElementById('score-display').innerText = `🏆 得分：${currentScore}`;
+            document.getElementById('score-display').style.color = '#10b981';
+            document.getElementById('spelling-input').disabled = true;
+            document.getElementById('btn-submit').disabled = true;
+            // 顯示完整圖片
+            revealImage();
         } else {
-            alert("❌ 答錯了！分數受到懲罰！");
-            currentScore = Math.max(0, currentScore - 200);
-            document.getElementById('score-display').innerText = `目前積分: ${currentScore}`;
+            currentScore = Math.max(0, currentScore - 150);
+            fb.innerText = `❌ 再試一次！（扣 150 分）`;
+            fb.style.color = '#ef4444';
+            document.getElementById('score-display').innerText = `目前積分：${currentScore}`;
+            document.getElementById('spelling-input').value = '';
+            document.getElementById('spelling-input').focus();
         }
     }
+
+    function revealAnswer() {
+        clearInterval(activeTimer);
+        answerRevealed = true;
+        const fb = document.getElementById('answer-feedback');
+        fb.innerText = `答案：${currentQuestion.correct}`;
+        fb.style.color = '#f59e0b';
+        document.getElementById('spelling-input').disabled = true;
+        document.getElementById('btn-submit').disabled = true;
+        revealImage();
+    }
+
+    function revealImage() {
+        const imgEl = document.getElementById('detective-img');
+        const board = document.getElementById('puzzle-board');
+        board.style.display = 'none';
+        imgEl.classList.remove('hidden');
+        imgEl.style.display = 'block';
+        imgEl.style.filter = 'none';
+        imgEl.src = currentQuestion.activeImgUrl;
+    }
+
+    // ── 拼圖模式 ─────────────────────────────────────────────────
 
     function startPuzzle(url, size) {
         const board = document.getElementById('puzzle-board');
         const imgEl = document.getElementById('detective-img');
-        board.classList.remove('hidden'); imgEl.classList.add('hidden');
+        board.classList.remove('hidden');
         board.style.display = 'grid';
-        
+        imgEl.classList.add('hidden');
+        imgEl.style.display = 'none';
+
         board.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
         board.style.setProperty('--size', size);
         piecesArray = Array.from({length: size * size}, (_, i) => i).sort(() => Math.random() - 0.5);
-        const pSize = 450 / size;
+        firstSelected = null;
 
+        const pSize = 450 / size;
         const render = () => {
             board.innerHTML = '';
             piecesArray.forEach((pos, idx) => {
@@ -384,12 +470,11 @@
                 div.style.backgroundImage = `url(${url})`;
                 div.style.backgroundPosition = `-${(pos % size) * pSize}px -${Math.floor(pos / size) * pSize}px`;
                 div.onclick = () => {
-                    if(!gameActive || isPuzzleSolved) return;
-                    if(firstSelected === null) { firstSelected = idx; render(); }
+                    if (!gameActive || isPuzzleSolved) return;
+                    if (firstSelected === null) { firstSelected = idx; render(); }
                     else {
                         [piecesArray[firstSelected], piecesArray[idx]] = [piecesArray[idx], piecesArray[firstSelected]];
                         firstSelected = null; render();
-                        
                         if (piecesArray.every((val, i) => val === i)) {
                             isPuzzleSolved = true;
                             clearInterval(activeTimer);
@@ -403,33 +488,34 @@
         };
         render();
 
-        document.getElementById('score-display').style.color = '#38bdf8';
         activeTimer = setInterval(() => {
-            if(!gameActive || isPuzzleSolved) return;
+            if (!gameActive || isPuzzleSolved) return;
             currentScore = Math.max(100, currentScore - 10);
-            document.getElementById('score-display').innerText = `🕒 計時中... 剩餘積分: ${currentScore}`;
+            document.getElementById('score-display').innerText = `🕒 計時中... 剩餘積分：${currentScore}`;
         }, 1000);
     }
+
+    // ── 馬賽克模式 ───────────────────────────────────────────────
 
     function startDetective(url) {
         const board = document.getElementById('puzzle-board');
         const imgEl = document.getElementById('detective-img');
-        board.classList.add('hidden'); imgEl.classList.remove('hidden');
+        board.classList.add('hidden');
+        board.style.display = 'none';
+        imgEl.classList.remove('hidden');
         imgEl.style.display = 'block';
         imgEl.src = url;
-        
+
         let b = 45;
         imgEl.style.filter = `blur(${b}px) contrast(1.2)`;
-        
+
         activeTimer = setInterval(() => {
-            if(!gameActive) return;
+            if (!gameActive) return;
             b -= 2.5;
             currentScore = Math.max(0, currentScore - 50);
-            
-            if(b <= 0) { b = 0; clearInterval(activeTimer); }
-            
+            if (b <= 0) { b = 0; clearInterval(activeTimer); }
             imgEl.style.filter = `blur(${b}px) contrast(1.2)`;
-            document.getElementById('score-display').innerText = `🔍 搶答中！目前積分: ${currentScore}`;
+            document.getElementById('score-display').innerText = `🔍 搶答中！目前積分：${currentScore}`;
         }, 500);
     }
 </script>
