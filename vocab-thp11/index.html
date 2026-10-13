@@ -68,6 +68,8 @@ h3 small{font-family:'Syne',sans-serif;font-size:11px;color:var(--muted);font-we
 .units{display:flex;flex-direction:column;gap:8px}
 .unit{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px 14px;display:grid;
   grid-template-columns:44px 1fr auto;align-items:center;gap:10px;text-align:left;width:100%}
+.locked{opacity:.4;display:flex;align-items:center;gap:12px;background:var(--panel);border:1px dashed var(--line);border-radius:16px;padding:12px 14px;font-size:13px;color:var(--muted)}
+.locked .u{font-size:18px;width:auto}
 .unit .u{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:var(--lime)}
 .unit .t{font-size:12px;color:var(--muted);margin-bottom:6px}
 .unit .pct{font-family:'Syne',sans-serif;font-weight:700;font-size:15px}
@@ -638,7 +640,7 @@ function rowsToWords(rows) {
   const h = rows[0].map((x) => x.trim());
   const col = (n) => h.indexOf(n);
   const C = { id: col('ID'), w: col('單字'), type: col('類型'), pos: col('詞性'), ipa: col('音標'), zh: col('中文'), def: col('英文定義'),
-    ex: col('例句'), exzh: col('例句中文'), book: col('教材'), unit: col('單元'), lesson: col('課次'), lv: col('CEFR'), status: col('狀態'), note: col('備註') };
+    ex: col('例句'), exzh: col('例句中文'), book: col('教材'), unit: col('單元'), lesson: col('課次'), lv: col('CEFR'), status: col('狀態'), note: col('備註'), open: col('開放') };
   if (C.w < 0) throw new Error('CSV 找不到「單字」欄');
   const g = (r, i) => (i >= 0 && r[i] != null ? r[i].trim() : '');
   return rows.slice(1).filter((r) => g(r, C.w)).map((r, i) => ({
@@ -646,9 +648,21 @@ function rowsToWords(rows) {
     word: g(r, C.w), type: g(r, C.type), pos: g(r, C.pos), ipa: g(r, C.ipa), zh: g(r, C.zh), def: g(r, C.def),
     ex: g(r, C.ex), exzh: g(r, C.exzh), books: g(r, C.book).split(/[,，、]/).map((s) => s.trim()).filter(Boolean),
     unit: g(r, C.unit).toUpperCase(), lesson: g(r, C.lesson).toUpperCase(), lv: g(r, C.lv).toUpperCase(), status: g(r, C.status), note: g(r, C.note),
+    openCol: C.open >= 0, open: !/^(N|NO|否|關|0|X|×)$/i.test(g(r, C.open)),
   }));
 }
-function setWords(words) { st.words = words; st.byId = {}; words.forEach((w) => (st.byId[w.id] = w)); }
+// 單元開放：Sheet 有「開放」欄就照它（填 N 的字不開放）；沒有這欄就只開放 DEFAULT_OPEN
+const DEFAULT_OPEN = ['U1', 'U2', 'U3'];
+function setWords(words) {
+  const useCol = words.some((w) => w.openCol);
+  const isOpen = (w) => (useCol ? w.open !== false : DEFAULT_OPEN.includes(w.unit));
+  st.allWords = words;
+  st.words = words.filter(isOpen);
+  st.lockedUnits = [...new Set(words.filter((w) => !isOpen(w)).map((w) => w.unit))].filter((u) => !st.words.some((w) => w.unit === u)).sort(natSort);
+  st.byId = {}; st.words.forEach((w) => (st.byId[w.id] = w));
+  st.set.units = st.set.units.filter((u) => st.words.some((w) => w.unit === u));
+}
+const lockedRows = (cls) => (st.lockedUnits || []).map((u) => `<div class="${cls} locked"><span class="u">🔒</span><span class="m"><b>${esc(u)}</b>　即將開放 Coming soon</span></div>`).join('');
 const natSort = (a, b) => a.localeCompare(b, 'en', { numeric: true });
 const allUnits = () => [...new Set(st.words.map((w) => w.unit).filter(Boolean))].sort((a, b) => (a[0] === 'U' ? 0 : 1) - (b[0] === 'U' ? 0 : 1) || natSort(a, b));
 const allLessons = () => [...new Set(st.words.map((w) => w.lesson).filter(Boolean))].sort(natSort);
@@ -1113,7 +1127,7 @@ function renderHome() {
     return `<button class="unit" data-unit="${esc(u)}"><span class="u">${esc(u)}</span>
       <div><div class="t">${n} 個字・已掌握 ${k.known}${st.meta.quizBest && st.meta.quizBest[u] != null ? `・挑戰最佳 ${st.meta.quizBest[u]}%` : ''}</div><div class="stack">${seg(k.known, 'var(--mint)')}${seg(k.learn + k.hard, 'var(--amber)')}</div></div>
       <span class="pct">${Math.round(k.known / n * 100)}%</span></button>`;
-  }).join('') || '<p class="hint">載入中…</p>';
+  }).join('') + lockedRows('unitl') || '<p class="hint">載入中…</p>';
 }
 function renderFilters() {
   const chip = (val, on, grp, label) => `<button class="chip ${on ? 'on' : ''}" data-grp="${grp}" data-val="${esc(val)}">${esc(label || val || '全部')}</button>`;
@@ -1424,7 +1438,7 @@ function renderQuizHome() {
       return `<button class="qunit" data-qunit="${esc(u)}"><span class="u">${esc(u)}</span>
         <span class="m"><b>${mastered ? '🏅 已精熟' : n + ' 個字'}</b><br>最佳 ${best[u] != null ? best[u] + '%' : '—'}・今天 ${qb[u] ? '+' + qb[u] + ' ⭐' : '還沒挑戰'}</span>
         <span class="go">挑戰 ▶</span></button>`;
-    }).join('') || '<p class="hint">載入中…</p>'}</div>`;
+    }).join('') + lockedRows('qunitl') || '<p class="hint">載入中…</p>'}</div>`;
 }
 
 // ═══════════════════════════════════════════════════════
