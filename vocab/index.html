@@ -48,6 +48,10 @@ main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
   padding:5px 12px;font-size:12px;font-weight:500}
 .chip.on{background:var(--green);border-color:var(--green);color:var(--lime)}
 .flabel{font-size:11px;color:var(--muted);margin:10px 0 4px;font-weight:700;letter-spacing:.5px}
+.ftoggle{width:100%;border:none;background:#fff;border-radius:12px;padding:9px 12px;font-size:13px;color:var(--muted);
+  display:flex;align-items:center;gap:4px;text-align:left}
+.ftoggle b{color:var(--green);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fpanel{display:none}.fpanel.open{display:block}
 
 /* ── 進度條 ── */
 .sessbar{display:flex;align-items:center;gap:10px;margin:12px 0 10px;font-size:12px;color:var(--muted)}
@@ -80,6 +84,11 @@ main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .card.flipped .front{flex:none;padding-top:6px}
 .card.flipped .word{font-size:clamp(24px,7vw,32px)}
 .card.flipped .hint{display:none}
+.card.flipped .front{gap:4px}
+.card.flipped .pos{display:none}
+.card.flipped .ipa{font-size:14px}
+.card.flipped .front .spk{width:38px;height:38px;font-size:17px;box-shadow:none}
+.card.flipped .back{touch-action:pan-y}   /* 背面內容可上下捲動 */
 .zh{font-size:22px;font-weight:700;color:var(--ink);text-align:center}
 .sec{font-size:11px;font-weight:700;color:var(--mint);letter-spacing:.6px;margin-bottom:3px}
 .def{font-size:15px;line-height:1.5}
@@ -179,10 +188,13 @@ nav button.on{color:var(--green);font-weight:700}
 <main>
   <!-- ═══ 複習 ═══ -->
   <section class="view active" id="v-review">
-    <div class="flabel">難度</div>
-    <div class="chips" id="fLevel"></div>
-    <div class="flabel">領域</div>
-    <div class="chips" id="fDomain"></div>
+    <button class="ftoggle" id="fToggle">🔍 篩選：<b id="fSummary">全部</b><span>▾</span></button>
+    <div class="fpanel" id="fPanel">
+      <div class="flabel">難度</div>
+      <div class="chips" id="fLevel"></div>
+      <div class="flabel">領域</div>
+      <div class="chips" id="fDomain"></div>
+    </div>
 
     <div class="sessbar">
       <span id="sessTxt">0 / 0</span>
@@ -770,6 +782,7 @@ function renderFilters() {
   const chip = (val, on, grp) => `<button class="chip ${on ? 'on' : ''}" data-grp="${grp}" data-val="${esc(val)}">${esc(val || '全部')}</button>`;
   $('fLevel').innerHTML = chip('', !st.set.levels.length, 'lv') + lvs.map((l) => chip(l, st.set.levels.includes(l), 'lv')).join('');
   $('fDomain').innerHTML = chip('', !st.set.domains.length, 'dom') + doms.map((d) => chip(d, st.set.domains.includes(d), 'dom')).join('');
+  $('fSummary').textContent = [...st.set.levels, ...st.set.domains].join('、') || '全部';
 }
 function toggleFilter(grp, val) {
   const key = grp === 'lv' ? 'levels' : 'domains';
@@ -882,6 +895,7 @@ document.addEventListener('click', (e) => {
 });
 $('modal').addEventListener('click', (e) => { if (e.target.id === 'modal') $('modal').classList.remove('show'); });
 $('undoBtn').onclick = undo;
+$('fToggle').onclick = () => $('fPanel').classList.toggle('open');
 $('search').oninput = renderList;
 $('sAuto').onclick = () => { st.set.autoSpeak = !st.set.autoSpeak; saveSet(); renderSettings(); };
 $('btnSync').onclick = async () => {
