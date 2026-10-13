@@ -434,7 +434,7 @@ nav button.on{color:var(--lime);font-weight:700}
         </div>
       </div>
     </div>
-    <p class="hint">Jeffrey's Lab · THP11 Word Quest v3.1</p>
+    <p class="hint">Jeffrey's Lab · THP11 Word Quest v3.2</p>
   </section>
 </main>
 
@@ -1290,16 +1290,26 @@ function showView(id) {
 // ═══════════════════════════════════════════════════════
 //  挑戰（測驗）：每單元 10 題，題型混合
 // ═══════════════════════════════════════════════════════
-// 10 題：單字 6 題（含拼字 2）、聽力 2 題、文法 2 題；沒有文法資料的單元自動補單字題
-const QUIZ_PLAN = ['en2zh', 'listen', 'gram', 'cloze', 'match', 'lsent', 'spell', 'gram', 'zh2en', 'spell'];
+// 10 題：單字 6 題（含拼字 2）、聽力 2 題（句型＋例句）、文法 2 題；沒有資料的單元自動補單字題
+const QUIZ_PLAN = ['en2zh', 'listen', 'gram', 'cloze', 'match', 'ltalk', 'spell', 'gram', 'lsent', 'spell'];
 const Q_PTS = 2, SPELL_PTS = 3, COMBO_PTS = 1, PERFECT_PTS = 5, MASTER_PTS = 50, MASTER_PCT = 90;   // 一次最多 35 分
 const QTYPE = {
   en2zh: '選出正確的中文 Choose the meaning', zh2en: '選出正確的英文 Choose the word', listen: '聽音選字 Listen and choose',
   cloze: '選字填空 Fill in the blank', match: '配對 Match the pairs', spell: '拼出這個字 Spell the word',
-  lsent: '聽句子選意思 Listen to the sentence', choice: '文法 Grammar', reply: '聽句子選回應 Choose the best reply', order: '排出句子 Build the sentence',
+  lsent: '聽句子選意思 Listen to the sentence', choice: '文法 Grammar', order: '文法排句子 Build the sentence',
+  reply: '聽句子選回應 Choose the best reply', lfill: '聽句子填空 Listen and fill in', lpick: '選出你聽到的句子 Which one did you hear?', lorder: '聽句子排句子 Listen and build',
 };
 // 文法資料（grammar.json）：小卡 + 題庫；離線時用快取
-let GRAM = { cards: {}, questions: {} };
+let GRAM = { cards: {}, everyday: {}, questions: {}, listening: {} };
+const isGram = (t) => t === 'choice' || t === 'order';   // 文法題；其他是聽力題
+const sayOf = (g) => g.say || g.q || (g.words || []).join(' ');
+function makeG(g) {   // 文法／聽力題資料 → 題目
+  if (g.type === 'order' || g.type === 'lorder') {
+    let o; do { o = shuffle(g.words.map((t, i) => ({ t, i }))); } while (o.every((x, k) => x.i === k) && o.length > 2);
+    return { type: g.type, g, pool: o, picked: [] };
+  }
+  return { type: g.type, g, opts: shuffle(g.opts.map((t, i) => ({ t, i }))) };
+}
 async function loadGrammar() {
   try {
     const res = await fetch('grammar.json', { cache: 'no-store' });
@@ -1338,6 +1348,7 @@ function startQuiz(unit) {
   const take = (ok) => { const w = order.find((x) => !used.has(x.id) && ok(x)); if (w) used.add(w.id); return w; };
   const choice = (type, w) => ({ type, w, opts: shuffle([w, ...distract(w)]) });
   const gpool = shuffle((GRAM.questions || {})[unit] || []);
+  const lpool = shuffle((GRAM.listening || {})[unit] || []);
   const qs = [];
   for (const type of QUIZ_PLAN) {
     let q = null;
@@ -1350,10 +1361,9 @@ function startQuiz(unit) {
     } else if (type === 'cloze') {
       const w = take((x) => clozeOf(x)); if (w) q = { ...choice(type, w), text: clozeOf(w) };
     } else if (type === 'gram') {
-      const g = gpool.shift();
-      if (g) q = g.type === 'order'
-        ? { type: 'order', g, pool: (() => { let o; do { o = shuffle(g.words.map((t, i) => ({ t, i }))); } while (o.every((x, k) => x.i === k) && o.length > 2); return o; })(), picked: [] }
-        : { type: g.type, g, opts: shuffle(g.opts.map((t, i) => ({ t, i }))) };
+      const g = gpool.shift(); if (g) q = makeG(g);
+    } else if (type === 'ltalk') {
+      const g = lpool.shift(); if (g) q = makeG(g);
     } else if (type === 'lsent') {   // 播放整句例句，選中文意思
       const w = take((x) => x.ex && x.exzh);
       if (w) {
@@ -1377,6 +1387,7 @@ function renderQuiz() {
   const head = `<div class="qhead"><button class="undo" data-act="qquit">✕ 離開</button><span>${qz.i + 1} / ${qz.qs.length}</span>
     <div class="track"><i style="width:${qz.i / qz.qs.length * 100}%"></i></div><span class="combo">${qz.combo >= 3 ? '×' + qz.combo : ''}</span><b class="qpts">+${qz.pts}</b></div>`;
   const spk = (t) => `<button class="spk small" data-say="${esc(t)}" aria-label="發音">🔊</button>`;
+  const ears = (t) => `<button class="spk" data-say="${esc(t)}" aria-label="再聽一次">🔊</button><button class="spk turtle" data-say="${esc(t)}" data-slow="1" aria-label="慢速">🐢</button>`;
   const opt = (w, label, en) => `<button class="opt ${en ? 'en' : ''}" data-opt="${esc(w.id)}">${label}</button>`;
   let body = '';
   if (q.type === 'en2zh') body = `<div class="qword">${esc(q.w.word)}</div><div class="qmid">${spk(q.w.word)}</div>
@@ -1401,6 +1412,14 @@ function renderQuiz() {
       <button class="spk turtle" data-say="${esc(q.g.q)}" data-slow="1" aria-label="慢速">🐢</button></div>
     <div class="hint" style="margin-top:8px">聽句子，選出最適合的回答</div>
     <div class="opts">${q.opts.map((o) => `<button class="opt en" data-gopt="${o.i}">${esc(o.t)}</button>`).join('')}</div>`;
+  else if (q.type === 'lfill') body = `<div class="qmid">${ears(sayOf(q.g))}</div>
+    <div class="gq" style="margin-top:12px">${esc(q.g.q).replace('___', '<u>____</u>')}</div>
+    <div class="opts">${q.opts.map((o) => `<button class="opt en" data-gopt="${o.i}">${esc(o.t)}</button>`).join('')}</div>`;
+  else if (q.type === 'lpick') body = `<div class="qmid">${ears(sayOf(q.g))}</div>
+    <div class="opts">${q.opts.map((o) => `<button class="opt en" data-gopt="${o.i}">${esc(o.t)}</button>`).join('')}</div>`;
+  else if (q.type === 'lorder') body = `<div class="qmid">${ears(sayOf(q.g))}</div><div class="hint" style="margin-top:8px">聽句子，依順序點單字排出來</div>
+    <div class="otray" id="otray"></div><div class="opool" id="opool"></div>
+    <button class="btn wide" style="margin-top:12px" data-act="gorder">確認 Check</button>`;
   else if (q.type === 'order') body = `<div class="hint">依順序點單字，排成正確的句子（點上面的字可以拿掉）</div>
     <div class="otray" id="otray"></div><div class="opool" id="opool"></div>
     <button class="btn wide" style="margin-top:12px" data-act="gorder">確認 Check</button>`;
@@ -1412,7 +1431,8 @@ function renderQuiz() {
       <button class="btn wide" style="margin-top:10px" data-act="qspell">確認 Check</button>`;
   }
   box.innerHTML = head + `<div class="qcard"><div class="qtype">${QTYPE[q.type]}</div>${body}<div id="qfb"></div></div>`;
-  if (q.type === 'order') drawOrder();
+  if (q.type === 'order' || q.type === 'lorder') drawOrder();
+  if (q.type === 'lfill' || q.type === 'lpick' || q.type === 'lorder') speak(sayOf(q.g));
   if (q.type === 'listen' || (q.type === 'en2zh' && st.set.autoSpeak)) speak(q.w.word);
   if (q.type === 'lsent') speak(q.w.ex);
   if (q.type === 'reply') speak(q.g.q);
@@ -1474,7 +1494,7 @@ function pickMatch(btn) {
 }
 function gramFeedback(ok, right) {   // 文法題不加入單字複習，只顯示正確句子和規則
   scoreQ(ok, []);
-  qz.gwrong = qz.gwrong || 0; if (!ok) qz.gwrong++;
+  qz.gwrong = qz.gwrong || 0; if (!ok && isGram(qz.qs[qz.i].type)) qz.gwrong++;
   const g = qz.qs[qz.i].g, last = qz.i === qz.qs.length - 1;
   $('qfb').innerHTML = `<div class="qbar"><div class="in ${ok ? 'ok' : 'bad'}">
       <div class="txt">${ok ? '✓ Correct!' : '✕ ' + esc(right)}<br><small>💡 ${esc(g.tip || '')}</small></div>
@@ -1486,7 +1506,8 @@ function pickGOpt(btn) {
   document.querySelectorAll('[data-gopt]').forEach((b) => { b.disabled = true; if (+b.dataset.gopt === q.g.a) b.classList.add('ok'); });
   if (!ok) btn.classList.add('bad');
   gramFeedback(ok, q.g.opts[q.g.a]);
-  if (q.type === 'reply' && !ok) speak(q.g.opts[q.g.a]);
+  if (!ok && q.type === 'reply') speak(q.g.opts[q.g.a]);
+  if (!ok && (q.type === 'lfill' || q.type === 'lpick')) speak(sayOf(q.g));
 }
 function drawOrder() {
   const q = qz.qs[qz.i];
@@ -1549,17 +1570,20 @@ function makeIcs() {
   st.set.remind = { ...r, addedAt: Date.now() }; saveSet(); renderMe();
   toast('打開檔案後，按「加入」就完成了');
 }
-function openGrammar(unit) {
-  const c = (GRAM.cards || {})[unit];
-  if (!c) return toast('這個單元還沒有文法小卡');
-  $('sheet').innerHTML = `<div class="gcard"><div class="qtype" style="text-align:left;margin-bottom:4px">📘 ${esc(unit)} 文法小卡 GRAMMAR</div>
+function cardHTMLg(c, label) {
+  return `<div class="gcard"><div class="qtype" style="text-align:left;margin-bottom:4px">${label}</div>
       <h4>${esc(c.title)}</h4><div class="gzh">${esc(c.zh)}</div>
-      ${(c.rules || []).map(([r, ex]) => `<div class="grule"><b>${esc(r)}</b><i>${esc(ex)}</i>
-        <button class="spk small" style="float:right;margin-top:-26px" data-say="${esc(ex)}">🔊</button></div>`).join('')}
+      ${(c.rules || []).map(([r, ex]) => `<div class="grule" style="display:flex;gap:10px;align-items:center"><div style="flex:1;min-width:0"><b>${esc(r)}</b><i>${esc(ex)}</i></div>
+        <button class="spk small" data-say="${esc(ex)}">🔊</button></div>`).join('')}
       ${(c.phrases || []).map(([k, v]) => `<div class="grule"><b>${esc(k)}</b><span style="font-size:14px">${esc(v)}</span></div>`).join('')}
       ${(c.mistakes || []).length ? `<div class="sec" style="margin-top:14px">常見錯誤 COMMON MISTAKES</div>` : ''}
       ${(c.mistakes || []).map(([x, o, why]) => `<div class="gmis"><span class="x">✕ ${esc(x)}</span><span class="o">✓ ${esc(o)}</span><small>${esc(why)}</small></div>`).join('')}
-    </div>
+    </div>`;
+}
+function openGrammar(unit) {
+  const c = (GRAM.cards || {})[unit], e = (GRAM.everyday || {})[unit];
+  if (!c && !e) return toast('這個單元還沒有文法小卡');
+  $('sheet').innerHTML = (c ? cardHTMLg(c, `📘 ${esc(unit)} 文法 GRAMMAR`) : '') + (e ? cardHTMLg(e, `🗣️ ${esc(unit)} 生活句型 EVERYDAY ENGLISH（聽力題）`) : '') + `
     <div class="btnrow"><button class="btn" data-qunit="${esc(unit)}">去挑戰 ${esc(unit)} ▶</button><button class="btn ghost" data-close="1">關閉</button></div>`;
   $('modal').classList.add('show');
 }

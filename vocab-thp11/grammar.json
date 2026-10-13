@@ -1,101 +1,1222 @@
 {
-  "_說明": "THP11 文法小卡與文法題。type：choice＝選擇、reply＝聽句子選回應、order＝排出句子（words 依正確順序填寫，App 會打亂）。a＝正確選項的位置（從 0 開始）。",
-  "cards": {
-    "U1": {
-      "title": "Talking About Trends",
-      "zh": "描述流行：用形容詞或名詞說東西看起來怎麼樣",
-      "rules": [
-        ["(n.) is/are + 形容詞", "Roller skates are old-fashioned."],
-        ["(n.) look/seem + 形容詞", "Roller skating seems fun."],
-        ["(n.) look/seem like + 名詞", "Roller skates look like rollerblades."]
-      ],
-      "mistakes": [
-        ["These shoes look like old.", "These shoes look old.", "形容詞前面不加 like"],
-        ["Sneakers is popular.", "Sneakers are popular.", "複數名詞用 are"]
-      ]
-    },
-    "U2": {
-      "title": "Asking People to Help",
-      "zh": "請求幫忙：禮貌地請別人做事，以及怎麼回答",
-      "rules": [
-        ["Please + 原形動詞…", "Please give me that pencil."],
-        ["Can / Could / Would you + 原形動詞…?", "Could you help me with my homework, please?"],
-        ["please 可以放句首、句尾或 you 後面", "Would you please give me a cookie?"]
-      ],
-      "phrases": [
-        ["答應", "Okay. ／ Sure! ／ No problem! ／ Just a second. ／ Here you go. ／ One moment, please."],
-        ["拒絕", "Sorry + 原因或建議：Sorry, I don't have any extra money. Maybe you can ask Jeff."]
-      ],
-      "mistakes": [
-        ["Could you helping me?", "Could you help me?", "you 後面用原形動詞"],
-        ["Please gives me a pen.", "Please give me a pen.", "Please 後面用原形動詞"]
-      ]
-    },
-    "U3": {
-      "title": "Talking About Directions",
-      "zh": "問路：問附近有沒有某個地方、怎麼走",
-      "rules": [
-        ["Is there a (n.) nearby?", "Yes, there's a drugstore next to the bank."],
-        ["Could you tell me how to get to (n.)?", "Sure, go straight down 2nd Street."]
-      ],
-      "phrases": [
-        ["位置", "next to 在旁邊 ／ across from 在對面 ／ between A and B 在 A 和 B 之間 ／ on the corner of A and B 在 A 和 B 的轉角"],
-        ["指路", "go straight down 沿著…直走 ／ go past 經過 ／ turn right/left at 在…右轉／左轉"]
-      ],
-      "mistakes": [
-        ["between the bank or the hotel", "between the bank and the hotel", "between 要搭配 and"],
-        ["how to get the park", "how to get to the park", "get 後面要加 to"]
-      ]
-    }
-  },
-  "questions": {
-    "U1": [
-      { "type": "choice", "q": "Roller skating ___ fun.", "opts": ["seems", "seems like", "look like"], "a": 0, "tip": "seem 後面接形容詞（fun）" },
-      { "type": "choice", "q": "This jacket ___ old-fashioned.", "opts": ["looks", "looks like", "look like"], "a": 0, "tip": "look 後面接形容詞，不加 like" },
-      { "type": "choice", "q": "Rollerblades ___ popular now.", "opts": ["are", "is", "be"], "a": 0, "tip": "複數名詞用 are" },
-      { "type": "choice", "q": "This T-shirt looks ___.", "opts": ["stylish", "like stylish", "a stylish"], "a": 0, "tip": "look + 形容詞" },
-      { "type": "choice", "q": "Her dress looks like ___.", "opts": ["a princess dress", "beautiful", "fancy"], "a": 0, "tip": "look like 後面接名詞" },
-      { "type": "choice", "q": "Fidget spinners were a fad. They ___ boring now.", "opts": ["seem", "seem like", "seems like"], "a": 0, "tip": "seem + 形容詞（boring）" },
-      { "type": "choice", "q": "選出正確的句子", "opts": ["Roller skates look like rollerblades.", "Roller skates look rollerblades.", "Roller skates looks like rollerblades."], "a": 0, "tip": "look like + 名詞；複數主詞用 look" },
-      { "type": "choice", "q": "選出正確的句子", "opts": ["Sneakers are in style.", "Sneakers is in style.", "Sneakers look like in style."], "a": 0, "tip": "複數名詞用 are" },
-      { "type": "choice", "q": "選出正確的句子", "opts": ["That song seems like a classic.", "That song seems a classic.", "That song seem like a classic."], "a": 0, "tip": "seem like + 名詞（a classic）" },
-      { "type": "order", "words": ["Roller", "skates", "are", "old-fashioned."], "tip": "(n.) are + 形容詞" },
-      { "type": "order", "words": ["This", "hat", "looks", "like", "a", "bucket."], "tip": "look like + 名詞" },
-      { "type": "order", "words": ["Rollerblading", "seems", "fun."], "tip": "seem + 形容詞" },
-      { "type": "order", "words": ["My", "jeans", "look", "very", "casual."], "tip": "look + 形容詞" }
+ "_說明": "THP11 文法與聽力題。grammar＝課本 Grammar 頁（choice 選擇、order 排句子）；listening＝Everyday English 句型的聽力題（reply 聽句子選回應、lfill 聽句子填空、lpick 選出聽到的句子、lorder 聽句子排句子）。a＝正確選項位置（從 0 開始），App 會打亂選項順序。",
+ "cards": {
+  "U1": {
+   "title": "Present Tense & Present Continuous",
+   "zh": "現在式：現在的事實、常常發生、永遠為真的事；現在進行式：正在發生的事",
+   "rules": [
+    [
+     "現在式 Be 動詞：am / is / are",
+     "Jess is usually late."
     ],
-    "U2": [
-      { "type": "choice", "q": "Could you ___ me with my homework?", "opts": ["help", "helping", "to help"], "a": 0, "tip": "Could you + 原形動詞" },
-      { "type": "choice", "q": "Please ___ me that pencil.", "opts": ["give", "gives", "giving"], "a": 0, "tip": "Please + 原形動詞" },
-      { "type": "choice", "q": "哪一句最有禮貌？", "opts": ["Would you please close the window?", "Close the window!", "You close the window."], "a": 0, "tip": "Would you please… 是很有禮貌的請求" },
-      { "type": "choice", "q": "選出正確的句子", "opts": ["Could you lend me a hand?", "Could you lending me a hand?", "Could you to lend me a hand?"], "a": 0, "tip": "you 後面用原形動詞" },
-      { "type": "choice", "q": "please 放在哪裡是對的？", "opts": ["Give me a cookie, please.", "Give please me a cookie.", "Give me a please cookie."], "a": 0, "tip": "please 放句首、句尾，或 Would you 後面" },
-      { "type": "reply", "q": "Could you pass me the salt, please?", "opts": ["Sure! Here you go.", "Yes, I am.", "No, it isn't."], "a": 0, "tip": "答應並遞東西：Here you go." },
-      { "type": "reply", "q": "Can you wait for me?", "opts": ["Sure, no problem.", "Here you go.", "Nice to meet you."], "a": 0, "tip": "答應：Sure / No problem" },
-      { "type": "reply", "q": "Marco, could you lend me some money?", "opts": ["Sorry, I don't have any extra money.", "Sorry, here you go.", "Yes, I'm Marco."], "a": 0, "tip": "拒絕：Sorry + 原因" },
-      { "type": "reply", "q": "Can you help me carry this box?", "opts": ["Sorry, I'm busy. Maybe you can ask Tom.", "Sorry, yes.", "I'm fine, thank you."], "a": 0, "tip": "拒絕：Sorry + 原因 + 建議" },
-      { "type": "reply", "q": "Could you give me the remote, please?", "opts": ["Here you go.", "Go straight.", "See you."], "a": 0, "tip": "遞東西給人：Here you go." },
-      { "type": "reply", "q": "Would you open the door for me?", "opts": ["Okay! One moment, please.", "Yes, I would like.", "No, thank you."], "a": 0, "tip": "答應：Okay / One moment, please." },
-      { "type": "order", "words": ["Could", "you", "help", "me,", "please?"], "tip": "Could you + 原形動詞" },
-      { "type": "order", "words": ["Please", "give", "me", "a", "cookie."], "tip": "Please + 原形動詞" },
-      { "type": "order", "words": ["Would", "you", "please", "open", "the", "window?"], "tip": "Would you please + 原形動詞" }
+    [
+     "現在式一般動詞：主詞是 he / she / it 要加 s",
+     "Jess studies English every Monday."
     ],
-    "U3": [
-      { "type": "choice", "q": "Is there a drugstore ___?", "opts": ["nearby", "near", "next"], "a": 0, "tip": "Is there a (n.) nearby?" },
-      { "type": "choice", "q": "The bank is ___ the bookstore and the pizza restaurant.", "opts": ["between", "across from", "next to"], "a": 0, "tip": "between A and B" },
-      { "type": "choice", "q": "The park is across ___ the shopping mall.", "opts": ["from", "to", "of"], "a": 0, "tip": "across from 在對面" },
-      { "type": "choice", "q": "The café is on the corner ___ 1st Street and Park Road.", "opts": ["of", "at", "in"], "a": 0, "tip": "on the corner of A and B" },
-      { "type": "choice", "q": "Could you tell me how to get ___ the train station?", "opts": ["to", "at", "in"], "a": 0, "tip": "get to 到達某地" },
-      { "type": "choice", "q": "Go straight ___ 2nd Street.", "opts": ["down", "on", "at"], "a": 0, "tip": "go straight down 沿著…直走" },
-      { "type": "choice", "q": "Turn left ___ the next traffic light.", "opts": ["at", "on", "in"], "a": 0, "tip": "turn left at 在…左轉" },
-      { "type": "choice", "q": "Go ___ the fast food restaurant, then turn right.", "opts": ["past", "pass", "passed"], "a": 0, "tip": "go past 經過" },
-      { "type": "choice", "q": "The library is next ___ the school.", "opts": ["to", "of", "from"], "a": 0, "tip": "next to 在旁邊" },
-      { "type": "choice", "q": "選出正確的句子", "opts": ["There's a convenience store between the bank and the hotel.", "There's a convenience store between the bank or the hotel.", "There's a convenience store between of the bank and the hotel."], "a": 0, "tip": "between A and B" },
-      { "type": "reply", "q": "Is there a parking lot nearby?", "opts": ["Yes, there's one in front of the mall.", "Yes, I'm nearby.", "No, thank you."], "a": 0, "tip": "Yes, there's a (n.) + 位置" },
-      { "type": "reply", "q": "Could you tell me how to get to the hospital?", "opts": ["Sure, go straight and turn right at the corner.", "Sure, it's very hot.", "Yes, I could."], "a": 0, "tip": "Sure, + 指路" },
-      { "type": "order", "words": ["Is", "there", "a", "bank", "nearby?"], "tip": "Is there a (n.) nearby?" },
-      { "type": "order", "words": ["Turn", "right", "at", "the", "next", "traffic", "light."], "tip": "turn right at" },
-      { "type": "order", "words": ["Go", "past", "the", "shopping", "mall."], "tip": "go past 經過" }
+    [
+     "現在進行式：am / is / are + V-ing",
+     "The giraffes are drinking water."
     ]
+   ],
+   "phrases": [
+    [
+     "用現在式的線索",
+     "always, usually, sometimes, never, every day, once a week"
+    ],
+    [
+     "用現在進行式的線索",
+     "now, right now, Look!, Listen!"
+    ]
+   ],
+   "mistakes": [
+    [
+     "Jess study English every Monday.",
+     "Jess studies English every Monday.",
+     "主詞是 Jess（she），動詞加 s"
+    ],
+    [
+     "She running now.",
+     "She is running now.",
+     "進行式不能少 am / is / are"
+    ],
+    [
+     "I am understand the question.",
+     "I understand the question.",
+     "一般動詞前面不加 be 動詞"
+    ]
+   ]
+  },
+  "U2": {
+   "title": "Relative Clauses",
+   "zh": "關係代名詞：放在名詞後面，補充說明是「哪一個」",
+   "rules": [
+    [
+     "who / that → 人",
+     "The boy who is wearing a striped shirt is my friend."
+    ],
+    [
+     "which / that → 動物、東西、想法",
+     "This is a smartphone app that can help you plan your trip."
+    ],
+    [
+     "whose → 某人的（所有格）",
+     "I can't find the girl whose smartwatch is on the table."
+    ],
+    [
+     "where → 地點",
+     "That's the park where weird people were hanging out."
+    ],
+    [
+     "when → 時間",
+     "I can't remember a time when there weren't any smartphones."
+    ]
+   ],
+   "mistakes": [
+    [
+     "The boy which is wearing a hat",
+     "The boy who is wearing a hat",
+     "人用 who 或 that"
+    ],
+    [
+     "the girl who bag is red",
+     "the girl whose bag is red",
+     "「某人的」用 whose"
+    ],
+    [
+     "the park when we met",
+     "the park where we met",
+     "地點用 where，時間才用 when"
+    ]
+   ]
+  },
+  "U3": {
+   "title": "Past Tense & Past Perfect Tense",
+   "zh": "過去式：已經結束的事；過去完成式：兩件過去的事，比較早發生的那件",
+   "rules": [
+    [
+     "過去式 Be 動詞：was / were",
+     "The students were tired."
+    ],
+    [
+     "過去式一般動詞",
+     "They fell asleep on the bus."
+    ],
+    [
+     "過去完成式：had + 過去分詞（先發生）＋ 過去式（後發生）",
+     "Everyone had already eaten dinner when Dad got home."
+    ]
+   ],
+   "phrases": [
+    [
+     "時間順序",
+     "had + p.p.（更早）→ 過去式（後來）→ 現在"
+    ],
+    [
+     "常見搭配",
+     "when, before, after, already, by the time"
+    ]
+   ],
+   "mistakes": [
+    [
+     "When Dad got home, everyone already ate.",
+     "When Dad got home, everyone had already eaten.",
+     "比較早發生的事用 had + p.p."
+    ],
+    [
+     "Mom were a doctor.",
+     "Mom was a doctor.",
+     "單數主詞用 was"
+    ],
+    [
+     "I had order lunch.",
+     "I had ordered lunch.",
+     "had 後面接過去分詞"
+    ]
+   ]
   }
+ },
+ "everyday": {
+  "U1": {
+   "title": "Talking About Trends",
+   "zh": "描述流行：用形容詞或名詞說東西看起來怎麼樣",
+   "rules": [
+    [
+     "(n.) is/are + 形容詞",
+     "Roller skates are old-fashioned."
+    ],
+    [
+     "(n.) look/seem + 形容詞",
+     "Roller skating seems fun."
+    ],
+    [
+     "(n.) look/seem like + 名詞",
+     "Roller skates look like rollerblades."
+    ]
+   ],
+   "mistakes": [
+    [
+     "These shoes look like old.",
+     "These shoes look old.",
+     "形容詞前面不加 like"
+    ],
+    [
+     "Sneakers is popular.",
+     "Sneakers are popular.",
+     "複數名詞用 are"
+    ]
+   ]
+  },
+  "U2": {
+   "title": "Asking People to Help",
+   "zh": "請求幫忙：禮貌地請別人做事，以及怎麼回答",
+   "rules": [
+    [
+     "Please + 原形動詞…",
+     "Please give me that pencil."
+    ],
+    [
+     "Can / Could / Would you + 原形動詞…?",
+     "Could you help me with my homework, please?"
+    ],
+    [
+     "please 可以放句首、句尾或 you 後面",
+     "Would you please give me a cookie?"
+    ]
+   ],
+   "phrases": [
+    [
+     "答應",
+     "Okay. ／ Sure! ／ No problem! ／ Just a second. ／ Here you go. ／ One moment, please."
+    ],
+    [
+     "拒絕",
+     "Sorry + 原因或建議：Sorry, I don't have any extra money. Maybe you can ask Jeff."
+    ]
+   ],
+   "mistakes": [
+    [
+     "Could you helping me?",
+     "Could you help me?",
+     "you 後面用原形動詞"
+    ],
+    [
+     "Please gives me a pen.",
+     "Please give me a pen.",
+     "Please 後面用原形動詞"
+    ]
+   ]
+  },
+  "U3": {
+   "title": "Talking About Directions",
+   "zh": "問路：問附近有沒有某個地方、怎麼走",
+   "rules": [
+    [
+     "Is there a (n.) nearby?",
+     "Yes, there's a drugstore next to the bank."
+    ],
+    [
+     "Could you tell me how to get to (n.)?",
+     "Sure, go straight down 2nd Street."
+    ]
+   ],
+   "phrases": [
+    [
+     "位置",
+     "next to 在旁邊 ／ across from 在對面 ／ between A and B 在 A 和 B 之間 ／ on the corner of A and B 在 A 和 B 的轉角"
+    ],
+    [
+     "指路",
+     "go straight down 沿著…直走 ／ go past 經過 ／ turn right/left at 在…右轉／左轉"
+    ]
+   ],
+   "mistakes": [
+    [
+     "between the bank or the hotel",
+     "between the bank and the hotel",
+     "between 要搭配 and"
+    ],
+    [
+     "how to get the park",
+     "how to get to the park",
+     "get 後面要加 to"
+    ]
+   ]
+  }
+ },
+ "questions": {
+  "U1": [
+   {
+    "type": "choice",
+    "q": "Jess ___ English every Monday.",
+    "opts": [
+     "studies",
+     "study",
+     "is studying"
+    ],
+    "a": 0,
+    "tip": "every Monday → 現在式；Jess 是第三人稱，動詞加 s"
+   },
+   {
+    "type": "choice",
+    "q": "Look! The giraffes ___ water.",
+    "opts": [
+     "are drinking",
+     "drink",
+     "drinks"
+    ],
+    "a": 0,
+    "tip": "Look! → 正在發生，用進行式"
+   },
+   {
+    "type": "choice",
+    "q": "Giraffes ___ leaves.",
+    "opts": [
+     "eat",
+     "eats",
+     "are eat"
+    ],
+    "a": 0,
+    "tip": "永遠為真的事實用現在式"
+   },
+   {
+    "type": "choice",
+    "q": "I ___ happy today.",
+    "opts": [
+     "am",
+     "is",
+     "are"
+    ],
+    "a": 0,
+    "tip": "I 搭配 am"
+   },
+   {
+    "type": "choice",
+    "q": "Ted ___ on the sneakers right now.",
+    "opts": [
+     "is drawing",
+     "draws",
+     "draw"
+    ],
+    "a": 0,
+    "tip": "right now → 進行式"
+   },
+   {
+    "type": "choice",
+    "q": "My brother ___ his sneakers every weekend.",
+    "opts": [
+     "cleans",
+     "is clean",
+     "clean"
+    ],
+    "a": 0,
+    "tip": "every weekend → 現在式，第三人稱加 s"
+   },
+   {
+    "type": "choice",
+    "q": "Listen! Someone ___ the piano.",
+    "opts": [
+     "is playing",
+     "plays",
+     "play"
+    ],
+    "a": 0,
+    "tip": "Listen! → 正在發生"
+   },
+   {
+    "type": "choice",
+    "q": "The sneakers ___ stylish.",
+    "opts": [
+     "are",
+     "is",
+     "be"
+    ],
+    "a": 0,
+    "tip": "複數主詞用 are"
+   },
+   {
+    "type": "choice",
+    "q": "She never ___ late for class.",
+    "opts": [
+     "is",
+     "are",
+     "be"
+    ],
+    "a": 0,
+    "tip": "頻率字 never 搭配現在式"
+   },
+   {
+    "type": "choice",
+    "q": "選出正確的句子",
+    "opts": [
+     "Jess is running now.",
+     "Jess running now.",
+     "Jess is run now."
+    ],
+    "a": 0,
+    "tip": "進行式 = is + V-ing"
+   },
+   {
+    "type": "choice",
+    "q": "選出正確的句子",
+    "opts": [
+     "He likes to travel.",
+     "He like to travel.",
+     "He is like to travel."
+    ],
+    "a": 0,
+    "tip": "he 搭配動詞加 s"
+   },
+   {
+    "type": "order",
+    "words": [
+     "Ted",
+     "is",
+     "drawing",
+     "on",
+     "the",
+     "sneakers."
+    ],
+    "tip": "進行式 is + V-ing"
+   },
+   {
+    "type": "order",
+    "words": [
+     "Jess",
+     "studies",
+     "English",
+     "every",
+     "Monday."
+    ],
+    "tip": "常常發生用現在式"
+   },
+   {
+    "type": "order",
+    "words": [
+     "The",
+     "giraffes",
+     "are",
+     "drinking",
+     "water."
+    ],
+    "tip": "進行式 are + V-ing"
+   }
+  ],
+  "U2": [
+   {
+    "type": "choice",
+    "q": "The boy ___ is wearing a striped shirt is my friend.",
+    "opts": [
+     "who",
+     "which",
+     "where"
+    ],
+    "a": 0,
+    "tip": "人用 who"
+   },
+   {
+    "type": "choice",
+    "q": "This is an app ___ can help you plan your trip.",
+    "opts": [
+     "that",
+     "who",
+     "where"
+    ],
+    "a": 0,
+    "tip": "東西用 that / which"
+   },
+   {
+    "type": "choice",
+    "q": "I can't find the girl ___ smartwatch is on the table.",
+    "opts": [
+     "whose",
+     "who",
+     "which"
+    ],
+    "a": 0,
+    "tip": "「她的」手錶 → whose"
+   },
+   {
+    "type": "choice",
+    "q": "That's the park ___ we played soccer.",
+    "opts": [
+     "where",
+     "when",
+     "which"
+    ],
+    "a": 0,
+    "tip": "地點用 where"
+   },
+   {
+    "type": "choice",
+    "q": "I remember the day ___ I got my first phone.",
+    "opts": [
+     "when",
+     "where",
+     "who"
+    ],
+    "a": 0,
+    "tip": "時間用 when"
+   },
+   {
+    "type": "choice",
+    "q": "The boy ___ headphones are white is doing homework.",
+    "opts": [
+     "whose",
+     "who",
+     "that"
+    ],
+    "a": 0,
+    "tip": "「他的」耳機 → whose"
+   },
+   {
+    "type": "choice",
+    "q": "I have a dog ___ loves to swim.",
+    "opts": [
+     "that",
+     "who",
+     "where"
+    ],
+    "a": 0,
+    "tip": "動物用 that / which"
+   },
+   {
+    "type": "choice",
+    "q": "She is the teacher ___ helped me with my homework.",
+    "opts": [
+     "who",
+     "which",
+     "whose"
+    ],
+    "a": 0,
+    "tip": "人用 who"
+   },
+   {
+    "type": "choice",
+    "q": "Summer is the season ___ we go to the beach.",
+    "opts": [
+     "when",
+     "where",
+     "which"
+    ],
+    "a": 0,
+    "tip": "時間（季節）用 when"
+   },
+   {
+    "type": "choice",
+    "q": "選出正確的句子",
+    "opts": [
+     "The phone which I bought is new.",
+     "The phone who I bought is new.",
+     "The phone where I bought is new."
+    ],
+    "a": 0,
+    "tip": "東西用 which / that"
+   },
+   {
+    "type": "choice",
+    "q": "選出正確的句子",
+    "opts": [
+     "The girl whose bag is red is Amy.",
+     "The girl who bag is red is Amy.",
+     "The girl which bag is red is Amy."
+    ],
+    "a": 0,
+    "tip": "「某人的」用 whose"
+   },
+   {
+    "type": "order",
+    "words": [
+     "The",
+     "boy",
+     "who",
+     "is",
+     "wearing",
+     "a",
+     "hat",
+     "is",
+     "my",
+     "friend."
+    ],
+    "tip": "人用 who"
+   },
+   {
+    "type": "order",
+    "words": [
+     "This",
+     "is",
+     "the",
+     "app",
+     "that",
+     "helps",
+     "me",
+     "study."
+    ],
+    "tip": "東西用 that"
+   },
+   {
+    "type": "order",
+    "words": [
+     "That's",
+     "the",
+     "park",
+     "where",
+     "we",
+     "met."
+    ],
+    "tip": "地點用 where"
+   }
+  ],
+  "U3": [
+   {
+    "type": "choice",
+    "q": "Mom ___ a doctor.",
+    "opts": [
+     "was",
+     "were",
+     "is"
+    ],
+    "a": 0,
+    "tip": "單數主詞的過去式用 was"
+   },
+   {
+    "type": "choice",
+    "q": "The students ___ tired after the trip.",
+    "opts": [
+     "were",
+     "was",
+     "are"
+    ],
+    "a": 0,
+    "tip": "複數主詞用 were"
+   },
+   {
+    "type": "choice",
+    "q": "Yesterday they ___ asleep on the bus.",
+    "opts": [
+     "fell",
+     "fall",
+     "falls"
+    ],
+    "a": 0,
+    "tip": "fall 的過去式是 fell"
+   },
+   {
+    "type": "choice",
+    "q": "Everyone ___ dinner when Dad got home.",
+    "opts": [
+     "had already eaten",
+     "already eats",
+     "has eat"
+    ],
+    "a": 0,
+    "tip": "先發生的事用 had + p.p."
+   },
+   {
+    "type": "choice",
+    "q": "After I ___ lunch, I closed the menu.",
+    "opts": [
+     "had ordered",
+     "order",
+     "ordering"
+    ],
+    "a": 0,
+    "tip": "先點餐（had ordered），後關菜單（closed）"
+   },
+   {
+    "type": "choice",
+    "q": "Ted ___ to the beach last weekend.",
+    "opts": [
+     "went",
+     "goes",
+     "go"
+    ],
+    "a": 0,
+    "tip": "last weekend → 過去式"
+   },
+   {
+    "type": "choice",
+    "q": "When we arrived, the movie ___.",
+    "opts": [
+     "had started",
+     "starts",
+     "start"
+    ],
+    "a": 0,
+    "tip": "電影比我們到達更早開始 → had started"
+   },
+   {
+    "type": "choice",
+    "q": "She ___ sick people when she was a nurse.",
+    "opts": [
+     "helped",
+     "helps",
+     "help"
+    ],
+    "a": 0,
+    "tip": "過去的事用過去式"
+   },
+   {
+    "type": "choice",
+    "q": "He had read lots of reviews before he ___ the hotel.",
+    "opts": [
+     "booked",
+     "had booked",
+     "books"
+    ],
+    "a": 0,
+    "tip": "後發生的事用過去式"
+   },
+   {
+    "type": "choice",
+    "q": "選出正確的句子",
+    "opts": [
+     "I had finished my homework before I watched TV.",
+     "I finished my homework before I had watch TV.",
+     "I have finished my homework before I watched TV."
+    ],
+    "a": 0,
+    "tip": "先寫完功課 had finished，再看電視 watched"
+   },
+   {
+    "type": "choice",
+    "q": "選出正確的句子",
+    "opts": [
+     "They were at the beach yesterday.",
+     "They was at the beach yesterday.",
+     "They are at the beach yesterday."
+    ],
+    "a": 0,
+    "tip": "they 的過去式用 were"
+   },
+   {
+    "type": "order",
+    "words": [
+     "Everyone",
+     "had",
+     "eaten",
+     "when",
+     "Dad",
+     "got",
+     "home."
+    ],
+    "tip": "先發生 had eaten，後發生 got"
+   },
+   {
+    "type": "order",
+    "words": [
+     "Ted",
+     "went",
+     "to",
+     "the",
+     "beach",
+     "last",
+     "weekend."
+    ],
+    "tip": "過去式 went"
+   },
+   {
+    "type": "order",
+    "words": [
+     "After",
+     "I",
+     "had",
+     "ordered",
+     "lunch,",
+     "I",
+     "closed",
+     "the",
+     "menu."
+    ],
+    "tip": "had ordered 比 closed 更早"
+   }
+  ]
+ },
+ "listening": {
+  "U1": [
+   {
+    "type": "lfill",
+    "say": "Roller skating seems fun.",
+    "q": "Roller skating ___ fun.",
+    "opts": [
+     "seems",
+     "seems like",
+     "look like"
+    ],
+    "a": 0,
+    "tip": "seem 後面接形容詞（fun）"
+   },
+   {
+    "type": "lfill",
+    "say": "This jacket looks old-fashioned.",
+    "q": "This jacket ___ old-fashioned.",
+    "opts": [
+     "looks",
+     "looks like",
+     "look like"
+    ],
+    "a": 0,
+    "tip": "look 後面接形容詞，不加 like"
+   },
+   {
+    "type": "lfill",
+    "say": "Rollerblades are popular now.",
+    "q": "Rollerblades ___ popular now.",
+    "opts": [
+     "are",
+     "is",
+     "be"
+    ],
+    "a": 0,
+    "tip": "複數名詞用 are"
+   },
+   {
+    "type": "lfill",
+    "say": "This T-shirt looks stylish.",
+    "q": "This T-shirt looks ___.",
+    "opts": [
+     "stylish",
+     "like stylish",
+     "a stylish"
+    ],
+    "a": 0,
+    "tip": "look + 形容詞"
+   },
+   {
+    "type": "lfill",
+    "say": "Her dress looks like a princess dress.",
+    "q": "Her dress looks like ___.",
+    "opts": [
+     "a princess dress",
+     "beautiful",
+     "fancy"
+    ],
+    "a": 0,
+    "tip": "look like 後面接名詞"
+   },
+   {
+    "type": "lfill",
+    "say": "Fidget spinners were a fad. They seem boring now.",
+    "q": "Fidget spinners were a fad. They ___ boring now.",
+    "opts": [
+     "seem",
+     "seem like",
+     "seems like"
+    ],
+    "a": 0,
+    "tip": "seem + 形容詞（boring）"
+   },
+   {
+    "type": "lpick",
+    "say": "Roller skates look like rollerblades.",
+    "opts": [
+     "Roller skates look like rollerblades.",
+     "Roller skates look rollerblades.",
+     "Roller skates looks like rollerblades."
+    ],
+    "a": 0,
+    "tip": "look like + 名詞；複數主詞用 look"
+   },
+   {
+    "type": "lpick",
+    "say": "Sneakers are in style.",
+    "opts": [
+     "Sneakers are in style.",
+     "Sneakers is in style.",
+     "Sneakers look like in style."
+    ],
+    "a": 0,
+    "tip": "複數名詞用 are"
+   },
+   {
+    "type": "lpick",
+    "say": "That song seems like a classic.",
+    "opts": [
+     "That song seems like a classic.",
+     "That song seems a classic.",
+     "That song seem like a classic."
+    ],
+    "a": 0,
+    "tip": "seem like + 名詞（a classic）"
+   },
+   {
+    "type": "lorder",
+    "words": [
+     "Roller",
+     "skates",
+     "are",
+     "old-fashioned."
+    ],
+    "tip": "(n.) are + 形容詞"
+   },
+   {
+    "type": "lorder",
+    "words": [
+     "This",
+     "hat",
+     "looks",
+     "like",
+     "a",
+     "bucket."
+    ],
+    "tip": "look like + 名詞"
+   },
+   {
+    "type": "lorder",
+    "words": [
+     "Rollerblading",
+     "seems",
+     "fun."
+    ],
+    "tip": "seem + 形容詞"
+   },
+   {
+    "type": "lorder",
+    "words": [
+     "My",
+     "jeans",
+     "look",
+     "very",
+     "casual."
+    ],
+    "tip": "look + 形容詞"
+   }
+  ],
+  "U2": [
+   {
+    "type": "lfill",
+    "say": "Could you help me with my homework?",
+    "q": "Could you ___ me with my homework?",
+    "opts": [
+     "help",
+     "helping",
+     "to help"
+    ],
+    "a": 0,
+    "tip": "Could you + 原形動詞"
+   },
+   {
+    "type": "lfill",
+    "say": "Please give me that pencil.",
+    "q": "Please ___ me that pencil.",
+    "opts": [
+     "give",
+     "gives",
+     "giving"
+    ],
+    "a": 0,
+    "tip": "Please + 原形動詞"
+   },
+   {
+    "type": "lpick",
+    "say": "Would you please close the window?",
+    "opts": [
+     "Would you please close the window?",
+     "Close the window!",
+     "You close the window."
+    ],
+    "a": 0,
+    "tip": "Would you please… 是很有禮貌的請求"
+   },
+   {
+    "type": "lpick",
+    "say": "Could you lend me a hand?",
+    "opts": [
+     "Could you lend me a hand?",
+     "Could you lending me a hand?",
+     "Could you to lend me a hand?"
+    ],
+    "a": 0,
+    "tip": "you 後面用原形動詞"
+   },
+   {
+    "type": "lpick",
+    "say": "Give me a cookie, please.",
+    "opts": [
+     "Give me a cookie, please.",
+     "Give please me a cookie.",
+     "Give me a please cookie."
+    ],
+    "a": 0,
+    "tip": "please 放句首、句尾，或 Would you 後面"
+   },
+   {
+    "type": "reply",
+    "q": "Could you pass me the salt, please?",
+    "opts": [
+     "Sure! Here you go.",
+     "Yes, I am.",
+     "No, it isn't."
+    ],
+    "a": 0,
+    "tip": "答應並遞東西：Here you go."
+   },
+   {
+    "type": "reply",
+    "q": "Can you wait for me?",
+    "opts": [
+     "Sure, no problem.",
+     "Here you go.",
+     "Nice to meet you."
+    ],
+    "a": 0,
+    "tip": "答應：Sure / No problem"
+   },
+   {
+    "type": "reply",
+    "q": "Marco, could you lend me some money?",
+    "opts": [
+     "Sorry, I don't have any extra money.",
+     "Sorry, here you go.",
+     "Yes, I'm Marco."
+    ],
+    "a": 0,
+    "tip": "拒絕：Sorry + 原因"
+   },
+   {
+    "type": "reply",
+    "q": "Can you help me carry this box?",
+    "opts": [
+     "Sorry, I'm busy. Maybe you can ask Tom.",
+     "Sorry, yes.",
+     "I'm fine, thank you."
+    ],
+    "a": 0,
+    "tip": "拒絕：Sorry + 原因 + 建議"
+   },
+   {
+    "type": "reply",
+    "q": "Could you give me the remote, please?",
+    "opts": [
+     "Here you go.",
+     "Go straight.",
+     "See you."
+    ],
+    "a": 0,
+    "tip": "遞東西給人：Here you go."
+   },
+   {
+    "type": "reply",
+    "q": "Would you open the door for me?",
+    "opts": [
+     "Okay! One moment, please.",
+     "Yes, I would like.",
+     "No, thank you."
+    ],
+    "a": 0,
+    "tip": "答應：Okay / One moment, please."
+   },
+   {
+    "type": "lorder",
+    "words": [
+     "Could",
+     "you",
+     "help",
+     "me,",
+     "please?"
+    ],
+    "tip": "Could you + 原形動詞"
+   },
+   {
+    "type": "lorder",
+    "words": [
+     "Please",
+     "give",
+     "me",
+     "a",
+     "cookie."
+    ],
+    "tip": "Please + 原形動詞"
+   },
+   {
+    "type": "lorder",
+    "words": [
+     "Would",
+     "you",
+     "please",
+     "open",
+     "the",
+     "window?"
+    ],
+    "tip": "Would you please + 原形動詞"
+   }
+  ],
+  "U3": [
+   {
+    "type": "lfill",
+    "say": "Is there a drugstore nearby?",
+    "q": "Is there a drugstore ___?",
+    "opts": [
+     "nearby",
+     "near",
+     "next"
+    ],
+    "a": 0,
+    "tip": "Is there a (n.) nearby?"
+   },
+   {
+    "type": "lfill",
+    "say": "The bank is between the bookstore and the pizza restaurant.",
+    "q": "The bank is ___ the bookstore and the pizza restaurant.",
+    "opts": [
+     "between",
+     "across from",
+     "next to"
+    ],
+    "a": 0,
+    "tip": "between A and B"
+   },
+   {
+    "type": "lfill",
+    "say": "The park is across from the shopping mall.",
+    "q": "The park is across ___ the shopping mall.",
+    "opts": [
+     "from",
+     "to",
+     "of"
+    ],
+    "a": 0,
+    "tip": "across from 在對面"
+   },
+   {
+    "type": "lfill",
+    "say": "The café is on the corner of 1st Street and Park Road.",
+    "q": "The café is on the corner ___ 1st Street and Park Road.",
+    "opts": [
+     "of",
+     "at",
+     "in"
+    ],
+    "a": 0,
+    "tip": "on the corner of A and B"
+   },
+   {
+    "type": "lfill",
+    "say": "Could you tell me how to get to the train station?",
+    "q": "Could you tell me how to get ___ the train station?",
+    "opts": [
+     "to",
+     "at",
+     "in"
+    ],
+    "a": 0,
+    "tip": "get to 到達某地"
+   },
+   {
+    "type": "lfill",
+    "say": "Go straight down 2nd Street.",
+    "q": "Go straight ___ 2nd Street.",
+    "opts": [
+     "down",
+     "on",
+     "at"
+    ],
+    "a": 0,
+    "tip": "go straight down 沿著…直走"
+   },
+   {
+    "type": "lfill",
+    "say": "Turn left at the next traffic light.",
+    "q": "Turn left ___ the next traffic light.",
+    "opts": [
+     "at",
+     "on",
+     "in"
+    ],
+    "a": 0,
+    "tip": "turn left at 在…左轉"
+   },
+   {
+    "type": "lfill",
+    "say": "Go past the fast food restaurant, then turn right.",
+    "q": "Go ___ the fast food restaurant, then turn right.",
+    "opts": [
+     "past",
+     "pass",
+     "passed"
+    ],
+    "a": 0,
+    "tip": "go past 經過"
+   },
+   {
+    "type": "lfill",
+    "say": "The library is next to the school.",
+    "q": "The library is next ___ the school.",
+    "opts": [
+     "to",
+     "of",
+     "from"
+    ],
+    "a": 0,
+    "tip": "next to 在旁邊"
+   },
+   {
+    "type": "lpick",
+    "say": "There's a convenience store between the bank and the hotel.",
+    "opts": [
+     "There's a convenience store between the bank and the hotel.",
+     "There's a convenience store between the bank or the hotel.",
+     "There's a convenience store between of the bank and the hotel."
+    ],
+    "a": 0,
+    "tip": "between A and B"
+   },
+   {
+    "type": "reply",
+    "q": "Is there a parking lot nearby?",
+    "opts": [
+     "Yes, there's one in front of the mall.",
+     "Yes, I'm nearby.",
+     "No, thank you."
+    ],
+    "a": 0,
+    "tip": "Yes, there's a (n.) + 位置"
+   },
+   {
+    "type": "reply",
+    "q": "Could you tell me how to get to the hospital?",
+    "opts": [
+     "Sure, go straight and turn right at the corner.",
+     "Sure, it's very hot.",
+     "Yes, I could."
+    ],
+    "a": 0,
+    "tip": "Sure, + 指路"
+   },
+   {
+    "type": "lorder",
+    "words": [
+     "Is",
+     "there",
+     "a",
+     "bank",
+     "nearby?"
+    ],
+    "tip": "Is there a (n.) nearby?"
+   },
+   {
+    "type": "lorder",
+    "words": [
+     "Turn",
+     "right",
+     "at",
+     "the",
+     "next",
+     "traffic",
+     "light."
+    ],
+    "tip": "turn right at"
+   },
+   {
+    "type": "lorder",
+    "words": [
+     "Go",
+     "past",
+     "the",
+     "shopping",
+     "mall."
+    ],
+    "tip": "go past 經過"
+   }
+  ]
+ }
 }
