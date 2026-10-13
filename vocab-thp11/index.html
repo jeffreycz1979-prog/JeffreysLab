@@ -289,6 +289,11 @@ nav button.on{color:var(--lime);font-weight:700}
 .tip.warn b{color:var(--amber)}
 .codebox{width:100%;height:120px;margin-top:10px;border:1.5px solid var(--line);border-radius:12px;padding:10px;background:var(--panel);
   color:var(--ink);font-family:monospace;font-size:11px;word-break:break-all;resize:none}
+.pid{font-family:'Syne',sans-serif;font-weight:800;font-size:15px;letter-spacing:2px;color:#fff;background:rgba(0,0,0,.35);border-radius:10px;padding:3px 10px;display:inline-block;margin-top:8px}
+.moved{margin-top:10px;background:#3a2e12;color:var(--amber);border-radius:12px;padding:8px;font-size:12px}
+.lock{position:fixed;inset:0;background:var(--bg);z-index:105;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px 24px;gap:12px}
+.lock.show{display:flex}
+.lock h2{font-size:20px}.lock p{color:var(--muted);font-size:14px;line-height:1.7}
 .mode{display:inline-block;margin-top:6px;font-size:11px;border-radius:10px;padding:2px 8px;background:rgba(0,0,0,.3);color:#fff}
 .onb .btn.ghost{position:relative;z-index:1}
 .tip button{position:absolute;top:6px;right:8px;border:none;background:none;color:var(--muted);font-size:16px}
@@ -389,20 +394,17 @@ nav button.on{color:var(--lime);font-weight:700}
     </div>
     <div class="set">
       <div class="srow" style="display:block">
-        <div>搬移進度（轉移碼）<small>從瀏覽器搬到主畫面 App、或換手機時使用</small></div>
+        <div>搬移進度（轉移碼）<small>從瀏覽器搬到主畫面 App、或換手機時使用。產生後這裡會被鎖住，轉移碼 30 分鐘內有效</small></div>
         <div class="btnrow" style="justify-content:flex-start;margin-top:8px">
           <button class="btn" data-act="codeout">產生轉移碼</button>
           <button class="btn ghost" data-act="codein">貼上轉移碼</button>
         </div>
       </div>
       <div class="srow" style="display:block">
-        <div>備份檔<small>存成檔案備份</small></div>
+        <div>重新開始<small>清除這裡的所有進度和積分</small></div>
         <div class="btnrow" style="justify-content:flex-start;margin-top:8px">
-          <button class="btn ghost" id="btnExport">匯出檔案</button>
-          <button class="btn ghost" id="btnImport">匯入檔案</button>
           <button class="btn danger" id="btnReset">全部重來</button>
         </div>
-        <input type="file" id="fileImport" accept="application/json,.json" hidden>
       </div>
     </div>
     <p class="hint">Jeffrey's Lab · THP11 Word Quest v2.1</p>
@@ -425,12 +427,21 @@ nav button.on{color:var(--lime);font-weight:700}
     <p>THP11 單字挑戰：每天複習、累積積分</p>
     <label>What should I call you? <small>你想要我怎麼稱呼你？</small></label>
     <input class="search" id="onbName" maxlength="12" placeholder="例如：Kevin、小安" autocomplete="off">
+    <p id="onbNameNote" style="text-align:left;font-size:12px;color:var(--amber)"></p>
     <label>Pick your buddy <small>選一個頭像</small></label>
     <div class="agrid" id="onbGrid"></div>
     <button class="btn wide" id="onbGo" style="margin-top:24px">Let's go! 開始 ▶</button>
     <p style="font-size:12px;margin-top:12px">學習進度只存在這支手機上</p>
-    <button class="btn ghost wide" style="margin-top:18px" data-act="codein">已經有進度？貼上轉移碼</button>
+    <button class="btn ghost wide" style="margin-top:18px" data-act="codein" id="onbCode">已經有進度？貼上轉移碼</button>
   </div>
+</div>
+
+<!-- 進度已搬到其他裝置 -->
+<div class="lock" id="lock">
+  <div style="font-size:54px">📦</div>
+  <h2>這裡的進度已經搬走了<br><small style="font-size:13px;color:var(--muted)">Your progress has moved</small></h2>
+  <p>你已經產生轉移碼，進度搬到其他裝置後，這裡就不能再使用。<br>如果是按錯了，可以在 30 分鐘內把剛才的轉移碼貼回來。</p>
+  <button class="btn" data-act="codein">貼上轉移碼</button>
 </div>
 
 <div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
@@ -603,7 +614,9 @@ function streakNow() {   // 連續完成每日目標的天數（今天還沒完�
   return n;
 }
 const titleOf = (pts) => { let t = TITLES[0], i = 0; TITLES.forEach((x, j) => { if (pts >= x[0]) { t = x; i = j; } }); return { t, next: TITLES[i + 1] }; };
-const proofCode = (total) => hash(SALT + '|' + (st.profile ? st.profile.name : '') + '|' + total + '|' + todayKey()).slice(-4);
+const studentId = () => st.profile ? hash('ID|' + st.profile.createdAt + '|' + SALT).replace(/[^A-Z0-9]/g, '').slice(-4).padStart(4, 'X') : '----';
+const proofCode = (total) => hash(SALT + '|' + studentId() + '|' + total + '|' + todayKey()).slice(-4);
+const CODE_TTL = 30 * 60000;   // 轉移碼 30 分鐘內有效
 
 // ═══════════════════════════════════════════════════════
 //  CSV
@@ -1167,6 +1180,7 @@ function openProof() {
       <div class="pava">${esc(st.profile.avatar)}</div>
       <div class="pname">${esc(st.profile.name)}</div>
       <div class="ptitle">${esc(t[1].toUpperCase())} · ${esc(t[2])}</div>
+      <div class="pid">ID #${studentId()}</div><br>
       <div class="mode">${isStandalone() ? '📱 主畫面 App' : '🌐 瀏覽器開啟'}</div>
       <div class="ptotal">${P.total}</div><div class="plabel">總積分 TOTAL POINTS</div>
       <div class="pgrid">
@@ -1176,6 +1190,7 @@ function openProof() {
       </div>
       <div class="pfoot"><span>學習 ${active} 天<br><span class="clock" id="clock"></span></span>
         <span style="text-align:right">驗證碼<br><span class="code">${proofCode(P.total)}</span></span></div>
+      ${(st.ledger.moves || []).length ? `<div class="moved">🔁 從其他裝置轉入 ${st.ledger.moves.length} 次（最近：${new Date(st.ledger.moves[st.ledger.moves.length - 1]).toLocaleDateString('zh-TW')}）</div>` : ''}
       ${st.tampered ? '<div class="warnbox">⚠️ 積分資料異常，請找老師確認</div>' : ''}
     </div>
     <div class="btnrow" style="margin-top:14px"><button class="btn ghost" data-close="1">關閉</button></div>`;
@@ -1419,6 +1434,11 @@ let onbPick = '🦊';
 function openOnboarding(edit) {
   onbPick = (st.profile && st.profile.avatar) || AVATARS[Math.floor(Math.random() * AVATARS.length)];
   $('onbName').value = (st.profile && st.profile.name) || '';
+  const locked = !!(edit && st.profile && points().total > 0);   // 有積分後暱稱固定，避免換人頂替
+  $('onbName').disabled = locked;
+  $('onbName').style.opacity = locked ? .5 : 1;
+  $('onbNameNote').textContent = locked ? '有積分之後暱稱就不能改了，只能換頭像' : '';
+  $('onbCode').style.display = edit ? 'none' : '';
   const draw = () => {
     $('onbGrid').innerHTML = AVATARS.map((a) => `<button class="${a === onbPick ? 'on' : ''}" data-ava="${a}">${a}</button>`).join('');
     $('onbAva').textContent = onbPick;
@@ -1435,7 +1455,7 @@ $('onbGo').onclick = async () => {
   if (first) {
     st.profile = { name, avatar: onbPick, createdAt: Date.now() };
   } else {
-    st.profile = { ...st.profile, name, avatar: onbPick };
+    st.profile = { ...st.profile, name: $('onbName').disabled ? st.profile.name : name, avatar: onbPick };
   }
   await db.set('profile', st.profile);
   await saveLedger();   // createdAt 參與簽章，重新簽一次
@@ -1469,7 +1489,7 @@ document.addEventListener('click', (e) => {
   if (t.dataset.act === 'hard') return practiceHard();
   if (t.dataset.act === 'proof') return openProof();
   if (t.dataset.act === 'profile') return openOnboarding(true);
-  if (t.dataset.close) { clearInterval(openProof._i); return $('modal').classList.remove('show'); }
+  if (t.dataset.close) { clearInterval(openProof._i); $('modal').classList.remove('show'); return checkLock(); }
   if (t.dataset.qunit) return startQuiz(t.dataset.qunit);
   if (t.dataset.opt) return pickOpt(t);
   if (t.dataset.ml || t.dataset.mr) return pickMatch(t);
@@ -1482,7 +1502,8 @@ document.addEventListener('click', (e) => {
   if (t.dataset.id && t.classList.contains('row')) return openDetail(t.dataset.id);
 });
 document.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.id === 'spellIn') { e.preventDefault(); checkSpell(); } });
-$('modal').addEventListener('click', (e) => { if (e.target.id === 'modal') { clearInterval(openProof._i); $('modal').classList.remove('show'); } });
+$('modal').addEventListener('click', (e) => { if (e.target.id === 'modal') { clearInterval(openProof._i); $('modal').classList.remove('show'); checkLock(); } });
+function checkLock() { $('lock').classList.toggle('show', !!st.meta.movedOut); }
 $('undoBtn').onclick = undo;
 $('fToggle').onclick = () => $('fPanel').classList.toggle('open');
 $('search').oninput = renderList;
@@ -1500,15 +1521,12 @@ $('btnTtsTest').onclick = async () => {
     browserSpeak('Hello');
   }
 };
-$('btnExport').onclick = () => {
-  const data = { app: APP_ID, version: 1, exportedAt: new Date().toISOString(), profile: st.profile, prog: st.prog, meta: st.meta, ledger: st.ledger, sig: ledgerSig(), settings: st.set };
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([JSON.stringify(data)], { type: 'application/json' }));
-  a.download = 'thp11-' + (st.profile ? st.profile.name : 'me') + '-' + todayKey() + '.json'; a.click();
-};
 // 匯入（備份檔與轉移碼共用）
 async function applyData(data) {
   if (!data || data.app !== APP_ID || !data.prog) throw new Error('不是 THP11 的進度資料');
+  const age = Date.now() - (data.t || 0);
+  if (!data.t || age > CODE_TTL) throw new Error('轉移碼已過期（超過 30 分鐘），請在原本的裝置重新產生');
+  if (age < -5 * 60000) throw new Error('轉移碼時間不對，請檢查手機時間');
   const cur = st.profile ? points().total : 0;
   const inPts = (() => { const keep = st.ledger; st.ledger = data.ledger || { days: {}, bonus: [] }; const t = points().total; st.ledger = keep; return t; })();
   const msg = `匯入「${data.profile ? data.profile.name : ''}」的進度（${inPts} ⭐）？` + (st.profile ? `\n這裡目前的進度（${cur} ⭐）會被取代。` : '');
@@ -1516,26 +1534,22 @@ async function applyData(data) {
   st.profile = data.profile || st.profile; st.prog = data.prog; st.meta = { ...st.meta, ...data.meta };
   st.ledger = data.ledger || { days: {}, bonus: [] };
   if (data.set) st.set = { ...st.set, ...data.set, csvUrl: st.set.csvUrl };
-  st.tampered = data.sig !== ledgerSig();
+  st.tampered = data.sig !== ledgerSig();   // 先用原簽章驗證，再記錄這次轉入
+  delete st.meta.movedOut;
+  st.ledger.moves = [...(st.ledger.moves || []), Date.now()];
   await db.set('profile', st.profile); await saveProg(); await saveMeta(); await saveSet();
-  await db.set('ledger', st.ledger); await db.set('sig', st.tampered ? 'TAMPERED' : data.sig);   // 被改過的資料仍會顯示異常
-  $('onb').classList.remove('show'); $('modal').classList.remove('show');
+  await saveLedger();   // 被改過的資料會存成 TAMPERED，異常標記一直留著
+  $('onb').classList.remove('show'); $('modal').classList.remove('show'); $('lock').classList.remove('show');
   toast('匯入完成 ✅'); renderHeader(); renderFilters(); renderHome(); renderMe(); st.cur = null; showView('v-home');
   return true;
 }
-$('btnImport').onclick = () => $('fileImport').click();
-$('fileImport').onchange = async (e) => {
-  const f = e.target.files[0]; if (!f) return;
-  try { await applyData(JSON.parse(await f.text())); } catch (err) { toast('匯入失敗：' + err.message); }
-  e.target.value = '';
-};
 
 // 轉移碼：進度 → JSON → gzip → base64url；複製貼上就能搬家
 const b64url = (bytes) => { let b = ''; for (let i = 0; i < bytes.length; i += 0x8000) b += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)); return btoa(b).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
 const unb64url = (s) => { const b = atob(s.replace(/-/g, '+').replace(/_/g, '/')); const u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u; };
 const pipe = async (bytes, stream) => new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(stream)).arrayBuffer());
 async function packCode() {
-  const data = { app: APP_ID, v: 1, profile: st.profile, prog: st.prog, meta: st.meta, ledger: st.ledger, sig: ledgerSig(),
+  const data = { app: APP_ID, v: 2, t: Date.now(), profile: st.profile, prog: st.prog, meta: st.meta, ledger: st.ledger, sig: ledgerSig(),
     set: { books: st.set.books, units: st.set.units, lessons: st.set.lessons, autoSpeak: st.set.autoSpeak } };
   const json = JSON.stringify(data, (k, v) => (typeof v === 'number' && !Number.isInteger(v) ? Math.round(v * 1000) / 1000 : v));
   let bytes = new TextEncoder().encode(json), tag = 'J';
@@ -1554,11 +1568,13 @@ async function unpackCode(code) {
 }
 async function openCodeOut() {
   if (!st.profile) return toast('還沒有任何進度');
+  if (!confirm('產生轉移碼後，這裡的進度會被鎖住、不能再使用，只能在新的地方繼續。\n轉移碼 30 分鐘內有效。\n\n確定要搬家嗎？')) return;
   const code = await packCode();
+  st.meta.movedOut = Date.now(); await saveMeta();
   $('sheet').innerHTML = `<h3 style="margin-top:0">產生轉移碼 <small>TRANSFER CODE</small></h3>
     <p class="note">${esc(st.profile.avatar + ' ' + st.profile.name)}・${points().total} ⭐<br>
       1. 按「複製」<br>2. 打開主畫面 App（或新手機）→ 我的 →「貼上轉移碼」<br>
-      轉移碼就是你的全部進度，不要傳給別人。</p>
+      ⏰ 30 分鐘內有效。這裡已經鎖住了。</p>
     <textarea class="codebox" id="codeOut" readonly>${esc(code)}</textarea>
     <div class="btnrow" style="margin-top:12px"><button class="btn" data-act="codecopy">📋 複製</button><button class="btn ghost" data-close="1">關閉</button></div>`;
   $('modal').classList.add('show');
@@ -1615,6 +1631,7 @@ document.addEventListener('keydown', (e) => {
 
   const last = st.meta.lastActive;
   renderHeader(); renderFilters(); renderHome();
+  checkLock();
   if (!st.profile) openOnboarding(false);
   else if (last && daysBetween(last, todayKey()) >= 2) setTimeout(() => coach('comeback'), 600);
   else if (st.meta.day !== todayKey()) setTimeout(() => coach('greet'), 600);
