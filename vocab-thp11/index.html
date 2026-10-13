@@ -798,16 +798,37 @@ async function fetchTTS(text) {
   const isWav = bytes[0] === 0x52 && bytes[1] === 0x49;
   return new Blob([bytes], { type: isWav ? 'audio/wav' : (mime || 'audio/mpeg') });
 }
-async function getAudio(text) {
+// ── 語音請求排隊：一次只送一個，避免連點時被語音服務限流 ──
+// 使用者按的發音排最前面；背景預先下載排後面
+const ttsQ = { jobs: [], busy: false };
+function queueTTS(text, urgent) {
+  return new Promise((resolve, reject) => {
+    const job = { text, resolve, reject };
+    urgent ? ttsQ.jobs.unshift(job) : ttsQ.jobs.push(job);
+    pumpTTS();
+  });
+}
+async function pumpTTS() {
+  if (ttsQ.busy || !ttsQ.jobs.length) return;
+  ttsQ.busy = true;
+  const job = ttsQ.jobs.shift();
+  try { job.resolve(await fetchTTS(job.text)); } catch (e) { job.reject(e); }
+  ttsQ.busy = false;
+  setTimeout(pumpTTS, 300);
+}
+async function getAudio(text, urgent) {
   const key = 'tts:' + text.toLowerCase();
   const hit = await db.get(key);
   if (hit) return hit;
   if (!navigator.onLine) throw new Error('離線');
-  if (tts.fails >= 2) throw new Error('Gateway 連續失敗，本次改用瀏覽器語音');
+  if (Date.now() < (tts.pauseUntil || 0)) throw new Error('語音服務暫停中，先用手機內建語音');
   if (!tts.inflight[key]) {
-    tts.inflight[key] = fetchTTS(text)
+    tts.inflight[key] = queueTTS(text, urgent)
       .then(async (blob) => { tts.fails = 0; await db.set(key, blob); return blob; })
-      .catch((e) => { tts.fails++; throw e; })
+      .catch((e) => {   // 連續失敗 2 次 → 暫停 60 秒再試（不再整段停用）
+        if (++tts.fails >= 2) { tts.pauseUntil = Date.now() + 60000; tts.fails = 0; ttsQ.jobs.splice(0).forEach((j) => j.reject(e)); }
+        throw e;
+      })
       .finally(() => delete tts.inflight[key]);
   }
   return tts.inflight[key];
@@ -820,20 +841,37 @@ function browserSpeak(text, slow) {
   if (v) u.voice = v;
   speechSynthesis.speak(u);
 }
+// iPhone 要求第一次播放必須由手指觸發：第一次點畫面時先「解鎖」音訊和內建語音
+const SILENT = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
+function unlockAudio() {
+  if (tts.unlocked) return; tts.unlocked = true;
+  try { tts.audio.src = SILENT; tts.audio.play().then(() => tts.audio.pause()).catch(() => {}); } catch (e) {}
+  try { if ('speechSynthesis' in window) { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); } } catch (e) {}
+}
+document.addEventListener('pointerdown', unlockAudio, { once: false, passive: true });
 async function speak(text, btn, slow) {
   if (!text) return;
   text = sayText(text);
+  const my = tts.seq = (tts.seq || 0) + 1;   // 只播最後一次按的，舊的請求回來就不播
   tts.audio.pause();
   if ('speechSynthesis' in window) speechSynthesis.cancel();
   btn && btn.classList.add('busy');
   try {
-    const blob = await getAudio(text);
-    if (tts.audio.src) URL.revokeObjectURL(tts.audio.src);
+    const blob = await getAudio(text, true);
+    if (my !== tts.seq) return;
+    if (tts.audio.src && tts.audio.src.startsWith('blob:')) URL.revokeObjectURL(tts.audio.src);
     tts.audio.src = URL.createObjectURL(blob);
     tts.audio.playbackRate = slow ? 0.7 : 1;   // 🐢 慢速
-    await tts.audio.play().catch(() => {});
-  } catch (e) { browserSpeak(text, slow); }
+    await tts.audio.play();
+  } catch (e) { if (my === tts.seq) browserSpeak(text, slow); }   // 播放被擋或服務失敗 → 內建語音
   finally { btn && btn.classList.remove('busy'); }
+}
+// 快速發音（配對題連點用）：有快取就播，沒有就用內建語音，不送網路請求
+async function speakQuick(text) {
+  text = sayText(text);
+  const hit = await db.get('tts:' + text.toLowerCase());
+  if (hit) return speak(text);
+  tts.audio.pause(); browserSpeak(text);
 }
 const prefetch = (text) => { if (text && navigator.onLine) getAudio(sayText(text)).catch(() => {}); };
 
@@ -1377,6 +1415,11 @@ function startQuiz(unit) {
     if (q) qs.push(q);
   }
   Object.assign(qz, { unit, qs, i: 0, right: 0, combo: 0, pts: 0, wrong: [], gwrong: 0, answered: false, result: null, before: points().total });
+  qs.forEach((q) => {   // 背景依序預先下載：聽力題的句子先抓
+    if (q.type === 'lsent') prefetch(q.w.ex);
+    else if (q.g && /^(reply|lfill|lpick|lorder)$/.test(q.type)) prefetch(sayOf(q.g));
+  });
+  qs.forEach((q) => { if (q.w) prefetch(q.w.word); });
   showView('v-quiz');
 }
 function renderQuiz() {
@@ -1475,7 +1518,7 @@ function pickMatch(btn) {
   const side = btn.dataset.ml ? 'ml' : 'mr';
   document.querySelectorAll(`[data-${side}]`).forEach((b) => b.classList.remove('sel'));
   btn.classList.add('sel');
-  if (side === 'ml') speak(st.byId[btn.dataset.ml].word);
+  if (side === 'ml') speakQuick(st.byId[btn.dataset.ml].word);
   const L = document.querySelector('.mt.sel[data-ml]'), Rt = document.querySelector('.mt.sel[data-mr]');
   if (!L || !Rt) return;
   if (L.dataset.ml === Rt.dataset.mr) {
@@ -1755,7 +1798,7 @@ $('btnSync').onclick = async () => { if (await syncCSV(true)) { renderFilters();
 $('btnTtsTest').onclick = async () => {
   const d = $('ttsDiag'); d.style.display = 'block'; d.textContent = '呼叫中…';
   try {
-    await db.del('tts:hello'); tts.fails = 0;
+    await db.del('tts:hello'); tts.fails = 0; tts.pauseUntil = 0;
     const blob = await getAudio('Hello');
     tts.audio.src = URL.createObjectURL(blob); tts.audio.play().catch(() => {});
     d.textContent = '✅ 語音正常';
