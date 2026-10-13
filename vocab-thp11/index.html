@@ -353,40 +353,40 @@ nav button.on{color:var(--lime);font-weight:700}
       <div>
         <h2 id="heroTitle">Weekly Goal<small>本週目標</small></h2>
         <div class="sub" id="heroSub"></div>
-        <button class="btn" data-act="go">開始複習 Start ▶</button>
+        <button class="btn" data-act="go" data-en="Start review ▶">開始複習 Start ▶</button>
       </div>
     </div>
     <div class="trio">
-      <div class="tile o"><b id="tStreak">0</b><span>🔥 連續週數</span></div>
-      <div class="tile l"><b id="tPts">0</b><span>⭐ 總積分</span></div>
-      <div class="tile m"><b id="tKnown">0</b><span>✅ 已掌握</span></div>
+      <div class="tile o"><b id="tStreak">0</b><span data-en="🔥 Week streak">🔥 連續週數</span></div>
+      <div class="tile l"><b id="tPts">0</b><span data-en="⭐ Total points">⭐ 總積分</span></div>
+      <div class="tile m"><b id="tKnown">0</b><span data-en="✅ Mastered">✅ 已掌握</span></div>
     </div>
-    <h3>單元進度 <small>UNITS</small></h3>
+    <h3 data-en="Units">單元進度 <small>UNITS</small></h3>
     <div class="units" id="units"></div>
     <div class="legend">
-      <span><i class="dot d-known"></i>已掌握（間隔複習多次都記得）</span><span><i class="dot d-learn"></i>學習中</span><span><i class="dot d-new"></i>未學</span>
+      <span data-en="<i class=&quot;dot d-known&quot;></i>Mastered (remembered over several reviews)"><i class="dot d-known"></i>已掌握（間隔複習多次都記得）</span><span data-en="<i class=&quot;dot d-learn&quot;></i>Learning"><i class="dot d-learn"></i>學習中</span><span data-en="<i class=&quot;dot d-new&quot;></i>New"><i class="dot d-new"></i>未學</span>
     </div>
   </section>
 
   <!-- ═══ 複習 ═══ -->
   <section class="view" id="v-review">
-    <button class="ftoggle" id="fToggle">🔍 範圍：<b id="fSummary">全部</b><span>▾</span></button>
+    <button class="ftoggle" id="fToggle"><span data-en="🔍 Range: ">🔍 範圍：</span><b id="fSummary">全部</b><span>▾</span></button>
     <div class="fpanel" id="fPanel">
-      <div id="fBookWrap"><div class="flabel">教材 BOOK</div><div class="chips" id="fBook"></div></div>
-      <div class="flabel">單元 UNIT</div><div class="chips" id="fUnit"></div>
-      <div class="flabel">課次 LESSON</div><div class="chips" id="fLesson"></div>
+      <div id="fBookWrap"><div class="flabel" data-en="BOOK">教材 BOOK</div><div class="chips" id="fBook"></div></div>
+      <div class="flabel" data-en="UNIT">單元 UNIT</div><div class="chips" id="fUnit"></div>
+      <div class="flabel" data-en="LESSON">課次 LESSON</div><div class="chips" id="fLesson"></div>
     </div>
     <div class="sessbar">
       <span id="sessTxt">0 / 0</span>
       <div class="track"><i id="sessBar"></i></div>
       <span class="combo" id="combo"></span>
-      <button class="undo" id="undoBtn" disabled>↶ 復原</button>
+      <button class="undo" id="undoBtn" disabled data-en="↶ Undo">↶ 復原</button>
     </div>
     <div class="stage" id="stage"></div>
     <div class="rate" id="rateBtns">
-      <button class="rbtn r1" data-g="1">✕ 不熟<span>← 左滑</span></button>
-      <button class="rbtn r3" data-g="3">✓ 記得<span>右滑 →</span></button>
-      <button class="rbtn r4" data-g="4">★ 太簡單<span>點按</span></button>
+      <button class="rbtn r1" data-g="1" data-en="✕ Again<span>← swipe</span>">✕ 不熟<span>← 左滑</span></button>
+      <button class="rbtn r3" data-g="3" data-en="✓ Got it<span>swipe →</span>">✓ 記得<span>右滑 →</span></button>
+      <button class="rbtn r4" data-g="4" data-en="★ Easy<span>tap</span>">★ 太簡單<span>點按</span></button>
     </div>
   </section>
 
@@ -395,29 +395,30 @@ nav button.on{color:var(--lime);font-weight:700}
 
   <!-- ═══ 單字 ═══ -->
   <section class="view" id="v-list">
-    <input class="search" id="search" type="search" placeholder="搜尋英文或中文…">
-    <div class="flabel">單元</div><div class="chips" id="lUnit"></div>
-    <div class="flabel">狀態</div><div class="chips" id="fStatus"></div>
+    <input class="search" id="search" type="search" placeholder="搜尋英文或中文…" data-en-ph="Search words…">
+    <div class="flabel" data-en="UNIT">單元</div><div class="chips" id="lUnit"></div>
+    <div class="flabel" data-en="STATUS">狀態</div><div class="chips" id="fStatus"></div>
     <div class="count" id="listCount"></div>
     <div class="list" id="list"></div>
   </section>
 
   <!-- ═══ 我的 ═══ -->
   <section class="view" id="v-me">
-    <button class="btn wide" data-act="proof">🏆 出示積分證明 Show my points</button>
-    <h3>我的等級 <small>RANK</small></h3>
+    <button class="btn wide" data-act="proof" data-en="🏆 Show my points">🏆 出示積分證明 Show my points</button>
+    <h3 data-en="My rank">我的等級 <small>RANK</small></h3>
     <div class="rank" id="rank"></div>
-    <h3>積分怎麼拿 <small>HOW TO EARN</small></h3>
+    <h3 data-en="How to earn points">積分怎麼拿 <small>HOW TO EARN</small></h3>
     <div class="set" id="rules"></div>
-    <h3>設定 <small>SETTINGS</small></h3>
+    <h3 data-en="Settings">設定 <small>SETTINGS</small></h3>
     <div class="set">
-      <div class="srow"><div>暱稱與頭像<small id="meName">—</small></div><button class="btn ghost" data-act="profile">修改</button></div>
-      <div class="srow"><div>⏰ 練習提醒<small id="remindInfo">加到手機行事曆，時間到會提醒你</small></div><button class="btn ghost" data-act="remind">設定</button></div>
-      <div class="srow"><div>自動發音<small>卡片出現時自動朗讀</small></div><button class="sw" id="sAuto"></button></div>
-      <div class="srow"><div>同步單字<small id="syncInfo">—</small></div><button class="btn ghost" id="btnSync">同步</button></div>
-      <div class="srow" style="display:block"><div>語音測試<small>聽不到聲音時按這裡</small></div>
+      <div class="srow"><div><span data-en="Name &amp; avatar">暱稱與頭像</span><small id="meName">—</small></div><button class="btn ghost" data-act="profile" data-en="Edit">修改</button></div>
+      <div class="srow"><div>🌐 <span data-en="English mode">英文模式 English mode</span><small data-en="English menus · cards show the English definition first">介面變英文，單字卡和挑戰改看英文定義</small></div><button class="sw" id="sLang"></button></div>
+      <div class="srow"><div><span data-en="⏰ Reminder">⏰ 練習提醒</span><small id="remindInfo">加到手機行事曆，時間到會提醒你</small></div><button class="btn ghost" data-act="remind" data-en="Set">設定</button></div>
+      <div class="srow"><div data-en="Auto speak<small>Read words aloud automatically</small>">自動發音<small>卡片出現時自動朗讀</small></div><button class="sw" id="sAuto"></button></div>
+      <div class="srow"><div><span data-en="Sync words">同步單字</span><small id="syncInfo">—</small></div><button class="btn ghost" id="btnSync" data-en="Sync">同步</button></div>
+      <div class="srow" style="display:block"><div data-en="Voice test<small>Tap here if you can't hear the audio</small>">語音測試<small>聽不到聲音時按這裡</small></div>
         <div class="diag" id="ttsDiag"></div>
-        <div class="btnrow" style="justify-content:flex-start;margin-top:8px"><button class="btn ghost" id="btnTtsTest">測試語音</button></div></div>
+        <div class="btnrow" style="justify-content:flex-start;margin-top:8px"><button class="btn ghost" id="btnTtsTest" data-en="Test voice">測試語音</button></div></div>
     </div>
     <div class="set">
       <div class="srow" style="display:block">
@@ -434,16 +435,16 @@ nav button.on{color:var(--lime);font-weight:700}
         </div>
       </div>
     </div>
-    <p class="hint">Jeffrey's Lab · THP11 Word Quest v3.2</p>
+    <p class="hint">Jeffrey's Lab · THP11 Word Quest v3.3</p>
   </section>
 </main>
 
 <nav id="nav">
-  <button data-v="v-home" class="on"><i>🏠</i>首頁</button>
-  <button data-v="v-review"><i>🃏</i>複習</button>
-  <button data-v="v-quiz"><i>🎯</i>挑戰</button>
-  <button data-v="v-list"><i>📚</i>單字</button>
-  <button data-v="v-me"><i>🏆</i>我的</button>
+  <button data-v="v-home" class="on" data-en="<i>🏠</i>Home"><i>🏠</i>首頁</button>
+  <button data-v="v-review" data-en="<i>🃏</i>Review"><i>🃏</i>複習</button>
+  <button data-v="v-quiz" data-en="<i>🎯</i>Quiz"><i>🎯</i>挑戰</button>
+  <button data-v="v-list" data-en="<i>📚</i>Words"><i>📚</i>單字</button>
+  <button data-v="v-me" data-en="<i>🏆</i>Me"><i>🏆</i>我的</button>
 </nav>
 
 <!-- 第一次使用：暱稱＋頭像 -->
@@ -530,6 +531,22 @@ const LINES = {
   title:   [['Level up! You\'re now a {t}! 🏅', '升級！你現在是「{tz}」了！']],
 };
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
+// ── 英文模式 ──：介面英文、單字卡和挑戰改看英文定義（中文按了才顯示）
+const EN = () => st.set.lang === 'en';
+const L = (zh, en) => (EN() ? en : zh);
+const meaning = (w) => (EN() && w.def ? w.def : w.zh);   // 題目裡的「意思」：英文模式用英文定義
+function applyLang() {
+  document.documentElement.lang = EN() ? 'en' : 'zh-TW';
+  document.querySelectorAll('[data-en]').forEach((el) => {
+    if (el.dataset.zh == null) el.dataset.zh = el.innerHTML;
+    el.innerHTML = EN() ? el.dataset.en : el.dataset.zh;
+  });
+  document.querySelectorAll('[data-en-ph]').forEach((el) => {
+    if (el.dataset.zhPh == null) el.dataset.zhPh = el.placeholder;
+    el.placeholder = EN() ? el.dataset.enPh : el.dataset.zhPh;
+  });
+  const sw = $('sLang'); if (sw) sw.classList.toggle('on', EN());
+}
 
 // ═══════════════════════════════════════════════════════
 //  IndexedDB
@@ -716,7 +733,7 @@ function setWords(words) {
   st.byId = {}; st.words.forEach((w) => (st.byId[w.id] = w));
   st.set.units = st.set.units.filter((u) => st.words.some((w) => w.unit === u));
 }
-const lockedRows = (cls) => (st.lockedUnits || []).map((u) => `<div class="${cls} locked"><span class="u">🔒</span><span class="m"><b>${esc(u)}</b>　即將開放 Coming soon</span></div>`).join('');
+const lockedRows = (cls) => (st.lockedUnits || []).map((u) => `<div class="${cls} locked"><span class="u">🔒</span><span class="m"><b>${esc(u)}</b>　${L('即將開放 Coming soon', 'Coming soon')}</span></div>`).join('');
 const natSort = (a, b) => a.localeCompare(b, 'en', { numeric: true });
 const allUnits = () => [...new Set(st.words.map((w) => w.unit).filter(Boolean))].sort((a, b) => (a[0] === 'U' ? 0 : 1) - (b[0] === 'U' ? 0 : 1) || natSort(a, b));
 const allLessons = () => [...new Set(st.words.map((w) => w.lesson).filter(Boolean))].sort(natSort);
@@ -883,7 +900,7 @@ function coach(key, vars = {}) {
   const [en, zh] = pick(LINES[key]);
   const fill = (s) => s.replace(/\{n\}/g, st.profile ? st.profile.name : '').replace(/\{t\}/g, vars.t || '').replace(/\{tz\}/g, vars.tz || '');
   $('coachAva').textContent = st.profile ? st.profile.avatar : '🦊';
-  $('coachEn').textContent = fill(en); $('coachZh').textContent = fill(zh);
+  $('coachEn').textContent = fill(en); $('coachZh').textContent = EN() ? '' : fill(zh);
   const c = $('coach'); c.classList.add('show');
   clearTimeout(coach._t); coach._t = setTimeout(() => c.classList.remove('show'), 2600);
 }
@@ -918,9 +935,9 @@ function inFilter(w) {
 }
 function dueLabel(p) {
   if (!p) return '';
-  if (p.due <= Date.now()) return '待複習';
+  if (p.due <= Date.now()) return L('待複習', 'due');
   const d = Math.round((p.due - Date.now()) / DAY);
-  return d < 1 ? '今天稍後' : d === 1 ? '明天' : d + ' 天後';
+  return d < 1 ? L('今天稍後', 'later today') : d === 1 ? L('明天', 'tomorrow') : L(d + ' 天後', 'in ' + d + ' days');
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1067,24 +1084,27 @@ function cardHTML(w) {
       ${w.lv ? `<span class="tag">${esc(w.lv)}</span>` : ''}
       ${w.books.includes('GEPT') ? '<span class="tag">GEPT</span>' : ''}
       ${!p ? '<span class="tag warn">NEW</span>' : ''}
-      ${s === 'hard' ? '<span class="tag stub">頑固字</span>' : ''}
+      ${s === 'hard' ? `<span class="tag stub">${L('頑固字', 'Tricky')}</span>` : ''}
     </div>
     <div class="front">
       <div class="word">${esc(w.word)}</div>
       ${w.ipa ? `<div class="ipa">${esc(w.ipa)}</div>` : ''}
       ${w.pos ? `<div class="pos">${esc(w.pos)}</div>` : ''}
       <button class="spk" data-say="${esc(w.word)}" aria-label="發音">🔊</button>
-      <div class="hint">點卡片翻面看解釋 Tap to flip</div>
+      <div class="hint">${L('點卡片翻面看解釋 Tap to flip', 'Tap the card to flip')}</div>
     </div>
     <div class="back">
-      <div class="zh">${esc(w.zh)}</div>
-      ${w.def ? `<div><div class="sec">DEFINITION</div><div class="def">${esc(w.def)}</div></div>` : ''}
+      ${EN() && w.def ? `<div class="zh" style="font-size:18px">${esc(w.def)}</div>
+        <button class="btn ghost zhbtn" data-act="showzh" style="align-self:center;padding:6px 14px;font-size:13px">👁 中文</button>
+        <div class="zh zhhide" style="display:none">${esc(w.zh)}</div>`
+      : `<div class="zh">${esc(w.zh)}</div>
+      ${w.def ? `<div><div class="sec">DEFINITION</div><div class="def">${esc(w.def)}</div></div>` : ''}`}
       ${w.ex ? `<div><div class="sec">EXAMPLE</div><div class="ex"><span>${highlight(w.ex, w.word)}</span>
         <button class="spk small" data-say="${esc(w.ex)}" aria-label="朗讀例句">🔊</button></div>
-        ${w.exzh ? `<div class="exzh">${esc(w.exzh)}</div>` : ''}</div>` : ''}
+        ${w.exzh ? `<div class="exzh ${EN() ? 'zhhide' : ''}" ${EN() ? 'style="display:none"' : ''}>${esc(w.exzh)}</div>` : ''}</div>` : ''}
       ${w.note ? `<div class="note">📝 ${esc(w.note)}</div>` : ''}
     </div>
-    <div class="stamp l">不熟</div><div class="stamp r">記得</div><div class="rail"><i></i></div>`;
+    <div class="stamp l">${L('不熟', 'AGAIN')}</div><div class="stamp r">${L('記得', 'GOT IT')}</div><div class="rail"><i></i></div>`;
 }
 function renderCard() {
   const stage = $('stage');
@@ -1094,18 +1114,18 @@ function renderCard() {
     const hasNew = pool.some((w) => !st.prog[w.id]);
     const left = Math.max(0, WEEK_GOAL - weekCards());
     stage.innerHTML = !st.words.length
-      ? `<div class="done"><div class="big">⏳</div><h2>載入單字中…</h2><p>第一次使用需要連上網路。</p></div>`
+      ? `<div class="done"><div class="big">⏳</div><h2>${L('載入單字中…', 'Loading words…')}</h2><p>${L('第一次使用需要連上網路。', 'You need the internet the first time.')}</p></div>`
       : !pool.length
-      ? `<div class="done"><div class="big">🔍</div><h2>這個範圍沒有單字</h2><p>點上方「範圍」換一個單元。</p></div>`
+      ? `<div class="done"><div class="big">🔍</div><h2>${L('這個範圍沒有單字', 'No words here')}</h2><p>${L('點上方「範圍」換一個單元。', 'Tap “Range” to pick another unit.')}</p></div>`
       : `<div class="done"><div class="big">${left ? '💪' : '🎉'}</div>
-          <h2>${left ? `Almost there!<br><small style="font-size:14px;color:var(--muted)">再 ${left} 張就達成本週目標</small>` : 'Goal complete!<br><small style="font-size:14px;color:var(--muted)">本週目標已達成</small>'}</h2>
-          <p>${st.sess.total ? `這輪完成 ${st.sess.done} 張，不熟 ${st.sess.again} 次。<br>` : ''}${c.due ? `還有 ${c.due} 個字到期。` : '到期的字都複習完了。'}</p>
+          <h2>${left ? `Almost there!<br><small style="font-size:14px;color:var(--muted)">${L(`再 ${left} 張就達成本週目標`, `${left} more cards to reach this week's goal`)}</small>` : `Goal complete!<br><small style="font-size:14px;color:var(--muted)">${L('本週目標已達成', "You reached this week's goal")}</small>`}</h2>
+          <p>${st.sess.total ? L(`這輪完成 ${st.sess.done} 張，不熟 ${st.sess.again} 次。<br>`, `This round: ${st.sess.done} cards, ${st.sess.again} “again”.<br>`) : ''}${c.due ? L(`還有 ${c.due} 個字到期。`, `${c.due} words are due.`) : L('到期的字都複習完了。', 'All due words are done.')}</p>
           <div class="btnrow">
-            ${c.due || c.fresh ? '<button class="btn" data-act="start">繼續複習</button>'
-              : left ? `<button class="btn" data-act="fill" data-n="${Math.min(left, 20)}">多練 ${Math.min(left, 20)} 張</button>` : ''}
-            ${hasNew ? '<button class="btn ghost" data-act="more">再學 5 個新字</button>' : ''}
-            ${!left || c.due || c.fresh ? '<button class="btn ghost" data-act="extra">多練 10 張</button>' : ''}
-            <button class="btn ghost" data-act="hard">練習不熟的字</button>
+            ${c.due || c.fresh ? `<button class="btn" data-act="start">${L('繼續複習', 'Keep going')}</button>`
+              : left ? `<button class="btn" data-act="fill" data-n="${Math.min(left, 20)}">${L(`多練 ${Math.min(left, 20)} 張`, `Practice ${Math.min(left, 20)} more`)}</button>` : ''}
+            ${hasNew ? `<button class="btn ghost" data-act="more">${L('再學 5 個新字', '5 new words')}</button>` : ''}
+            ${!left || c.due || c.fresh ? `<button class="btn ghost" data-act="extra">${L('多練 10 張', 'Practice 10 more')}</button>` : ''}
+            <button class="btn ghost" data-act="hard">${L('練習不熟的字', 'Tricky words')}</button>
           </div></div>`;
     return;
   }
@@ -1188,7 +1208,7 @@ function renderHeader(bump) {
   const pts = points().total, s = streakNow(), t = titleOf(pts).t;
   if (st.profile) { $('hAva').textContent = st.profile.avatar; $('hName').textContent = st.profile.name; }
   $('hTitle').textContent = t[1].toUpperCase();
-  $('hStreak').textContent = '🔥 ' + s + '週';
+  $('hStreak').textContent = '🔥 ' + s + L('週', 'w');
   $('hPts').textContent = '⭐ ' + pts;
   if (bump) { const p = $('hPts'); p.classList.remove('bump'); void p.offsetWidth; p.classList.add('bump'); }
 }
@@ -1208,10 +1228,10 @@ function renderHome() {
       <circle cx="59" cy="59" r="${r}" fill="none" stroke="#232a3c" stroke-width="11"/>
       <circle cx="59" cy="59" r="${r}" fill="none" stroke="${pct >= 1 ? 'var(--mint)' : 'var(--lime)'}" stroke-width="11" stroke-linecap="round"
         stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - pct)}" style="transition:stroke-dashoffset .6s"/></svg>
-      <div class="num"><b>${Math.min(today, WEEK_GOAL)}</b><span>/ ${WEEK_GOAL} 張</span></div>`;
+      <div class="num"><b>${Math.min(today, WEEK_GOAL)}</b><span>/ ${WEEK_GOAL} ${L('張', 'cards')}</span></div>`;
   const c = countDue();
-  $('heroTitle').innerHTML = pct >= 1 ? 'Goal complete! 🎉<small>本週目標達成，可以去挑戰拿分</small>' : `Hi ${esc(st.profile ? st.profile.name : '')}!<small>本週目標：複習 ${WEEK_GOAL} 張（週一重新計算）</small>`;
-  $('heroSub').textContent = `待複習 ${c.due}・新字 ${c.fresh}`;
+  $('heroTitle').innerHTML = pct >= 1 ? `Goal complete! 🎉<small>${L('本週目標達成，可以去挑戰拿分', 'Weekly goal done — try a quiz for more points')}</small>` : `Hi ${esc(st.profile ? st.profile.name : '')}!<small>${L(`本週目標：複習 ${WEEK_GOAL} 張（週一重新計算）`, `This week: review ${WEEK_GOAL} cards (resets Monday)`)}</small>`;
+  $('heroSub').textContent = L(`待複習 ${c.due}・新字 ${c.fresh}`, `Due ${c.due} · New ${c.fresh}`);
   $('tStreak').textContent = streakNow();
   $('tPts').textContent = points().total;
   $('tKnown').textContent = st.words.filter((w) => statusOf(w) === 'known').length;
@@ -1220,19 +1240,19 @@ function renderHome() {
     const k = { known: 0, learn: 0, hard: 0, new: 0 }; ws.forEach((w) => k[statusOf(w)]++);
     const seg = (v, col) => v ? `<i style="width:${v / n * 100}%;background:${col}"></i>` : '';
     return `<button class="unit" data-unit="${esc(u)}"><span class="u">${esc(u)}</span>
-      <div><div class="t">${n} 個字・學過 ${n - k.new}・已掌握 ${k.known}${st.meta.quizBest && st.meta.quizBest[u] != null ? `・挑戰最佳 ${st.meta.quizBest[u]}%` : ''}${st.ledger.bonus.some((b) => b.k === 'master:' + u) ? (faded(u) ? '・<span style="color:var(--muted)">🏅 需要複習</span>' : '・🏅') : ''}</div><div class="stack">${seg(k.known, 'var(--mint)')}${seg(k.learn + k.hard, 'var(--amber)')}</div></div>
-      <span class="pct" style="text-align:right;line-height:1.1">${Math.round((n - k.new) / n * 100)}%<br><small style="font-size:10px;color:var(--muted);font-weight:500">學過</small></span></button>`;
-  }).join('') + lockedRows('unitl') || '<p class="hint">載入中…</p>';
+      <div><div class="t">${L(`${n} 個字・學過 ${n - k.new}・已掌握 ${k.known}`, `${n} words · studied ${n - k.new} · mastered ${k.known}`)}${st.meta.quizBest && st.meta.quizBest[u] != null ? L(`・挑戰最佳 ${st.meta.quizBest[u]}%`, ` · best ${st.meta.quizBest[u]}%`) : ''}${st.ledger.bonus.some((b) => b.k === 'master:' + u) ? (faded(u) ? `・<span style="color:var(--muted)">🏅 ${L('需要複習', 'review me')}</span>` : '・🏅') : ''}</div><div class="stack">${seg(k.known, 'var(--mint)')}${seg(k.learn + k.hard, 'var(--amber)')}</div></div>
+      <span class="pct" style="text-align:right;line-height:1.1">${Math.round((n - k.new) / n * 100)}%<br><small style="font-size:10px;color:var(--muted);font-weight:500">${L('學過', 'studied')}</small></span></button>`;
+  }).join('') + lockedRows('unitl') || `<p class="hint">${L('載入中…', 'Loading…')}</p>`;
 }
 function renderFilters() {
-  const chip = (val, on, grp, label) => `<button class="chip ${on ? 'on' : ''}" data-grp="${grp}" data-val="${esc(val)}">${esc(label || val || '全部')}</button>`;
+  const chip = (val, on, grp, label) => `<button class="chip ${on ? 'on' : ''}" data-grp="${grp}" data-val="${esc(val)}">${esc(label || val || L('全部', 'All'))}</button>`;
   const books = allBooks();
   $('fBookWrap').style.display = books.length > 1 ? '' : 'none';
   $('fBook').innerHTML = chip('', !st.set.books.length, 'books') + books.map((b) => chip(b, st.set.books.includes(b), 'books')).join('');
   $('fUnit').innerHTML = chip('', !st.set.units.length, 'units') + allUnits().map((u) => chip(u, st.set.units.includes(u), 'units')).join('');
-  const LN = { L1: 'L1 Everyday English', L3: 'L3 Word Bank', '補充': '課堂補充' };
+  const LN = { L1: 'L1 Everyday English', L3: 'L3 Word Bank', '補充': L('課堂補充', 'Extra') };
   $('fLesson').innerHTML = chip('', !st.set.lessons.length, 'lessons') + allLessons().map((l) => chip(l, st.set.lessons.includes(l), 'lessons', LN[l] || l)).join('');
-  $('fSummary').textContent = [...st.set.books, ...st.set.units, ...st.set.lessons].join('、') || '全部單元';
+  $('fSummary').textContent = [...st.set.books, ...st.set.units, ...st.set.lessons].join(L('、', ', ')) || L('全部單元', 'All units');
 }
 function toggleFilter(grp, val) {
   if (!val) st.set[grp] = [];
@@ -1241,48 +1261,48 @@ function toggleFilter(grp, val) {
 }
 function renderList() {
   const q = $('search').value.trim().toLowerCase();
-  $('lUnit').innerHTML = ['', ...allUnits()].map((u) => `<button class="chip ${st.listUnit === u ? 'on' : ''}" data-lu="${esc(u)}" data-lu-set="1">${esc(u || '全部')}</button>`).join('');
-  const sts = [['all', '全部'], ['new', '未學'], ['learn', '學習中'], ['known', '已掌握'], ['hard', '頑固字']];
+  $('lUnit').innerHTML = ['', ...allUnits()].map((u) => `<button class="chip ${st.listUnit === u ? 'on' : ''}" data-lu="${esc(u)}" data-lu-set="1">${esc(u || L('全部', 'All'))}</button>`).join('');
+  const sts = [['all', L('全部', 'All')], ['new', L('未學', 'New')], ['learn', L('學習中', 'Learning')], ['known', L('已掌握', 'Mastered')], ['hard', L('頑固字', 'Tricky')]];
   $('fStatus').innerHTML = sts.map(([k, l]) => `<button class="chip ${st.listStatus === k ? 'on' : ''}" data-st="${k}">${l}</button>`).join('');
   const items = st.words.filter((w) => (!st.listUnit || w.unit === st.listUnit) &&
     (st.listStatus === 'all' || statusOf(w) === st.listStatus || (st.listStatus === 'learn' && statusOf(w) === 'hard')) &&
-    (!q || w.word.toLowerCase().includes(q) || w.zh.includes(q)));
-  $('listCount').textContent = `共 ${items.length} 個字`;
-  $('list').innerHTML = items.map(rowHTML).join('') || '<p class="hint" style="margin-top:20px">沒有符合的單字</p>';
+    (!q || w.word.toLowerCase().includes(q) || w.zh.includes(q) || (w.def || '').toLowerCase().includes(q)));
+  $('listCount').textContent = L(`共 ${items.length} 個字`, `${items.length} words`);
+  $('list').innerHTML = items.map(rowHTML).join('') || `<p class="hint" style="margin-top:20px">${L('沒有符合的單字', 'No matching words')}</p>`;
 }
 function rowHTML(w) {
   const s = statusOf(w), p = st.prog[w.id];
   return `<div class="row" data-id="${esc(w.id)}"><i class="dot ${STATUS[s][1]}"></i>
-    <div class="main"><div class="w">${esc(w.word)}</div><div class="z">${esc(w.zh)}</div></div>
+    <div class="main"><div class="w">${esc(w.word)}</div><div class="z">${esc(meaning(w))}</div></div>
     <div class="meta">${esc(w.unit)} ${esc(w.lesson)}<br>${p ? dueLabel(p) : ''}</div>
     <button class="spk small" data-say="${esc(w.word)}">🔊</button></div>`;
 }
 function openDetail(id) {
   const w = st.byId[id]; if (!w) return;
   $('sheet').innerHTML = `<div class="card flipped" style="position:relative;inset:auto;box-shadow:none">${cardHTML(w)}</div>
-    <div class="btnrow" style="margin-top:12px"><button class="btn ghost" data-close="1">關閉</button></div>`;
+    <div class="btnrow" style="margin-top:12px"><button class="btn ghost" data-close="1">${L('關閉', 'Close')}</button></div>`;
   $('modal').classList.add('show');
 }
 function renderMe() {
   const P = points(), { t, next } = titleOf(P.total);
   const span = next ? next[0] - t[0] : 1, got = next ? P.total - t[0] : 1;
-  $('rank').innerHTML = `<div class="top"><b>${t[1]}</b><span>${t[2]}・${P.total} ⭐</span></div>
+  $('rank').innerHTML = `<div class="top"><b>${t[1]}</b><span>${EN() ? '' : t[2] + '・'}${P.total} ⭐</span></div>
     <div class="track" style="margin-top:10px;height:8px"><i style="width:${Math.min(100, got / span * 100)}%;background:var(--lime)"></i></div>
-    <div class="note" style="margin-top:6px">${next ? `再 ${next[0] - P.total} 分升級為 ${next[1]}（${next[2]}）` : '已經是最高等級！'}</div>`;
+    <div class="note" style="margin-top:6px">${next ? L(`再 ${next[0] - P.total} 分升級為 ${next[1]}（${next[2]}）`, `${next[0] - P.total} more points to become ${next[1]}`) : L('已經是最高等級！', 'You reached the top rank!')}</div>`;
   $('rules').innerHTML = `
-    <div class="srow"><div>每複習 1 張<small>每週最多 ${CARD_CAP} 分（週一重新計算）</small></div><b>+1</b></div>
-    <div class="srow"><div>完成每週目標<small>一週複習 ${WEEK_GOAL} 張</small></div><b>+${GOAL_BONUS}</b></div>
-    <div class="srow"><div>連續週數獎勵<small>連續 2／4／6 週完成每週目標</small></div><b>+10／30／60</b></div>
-    <div class="srow"><div>挑戰答對 1 題<small>拼字題 +${SPELL_PTS}；連對 3 題以上每題再 +${COMBO_PTS}</small></div><b>+${Q_PTS}</b></div>
-    <div class="srow"><div>挑戰全對<small>10 題全部答對</small></div><b>+${PERFECT_PTS}</b></div>
-    <div class="srow"><div>單元精熟<small>某單元第一次拿到 ${MASTER_PCT}% 以上（每單元一次）</small></div><b>+${MASTER_PTS}</b></div>
-    <div class="srow"><div>同一單元重複挑戰<small>每週只算最高的一次，打破本週紀錄才會補差額</small></div><b>📈</b></div>
-    <div class="srow"><div>精熟要維持<small>🏅 單元 ${FADE_DAYS} 天沒練會褪色，不扣分，回來練就恢復</small></div><b>🏅</b></div>`;
+    <div class="srow"><div>${L('每複習 1 張', 'Each card reviewed')}<small>${L(`每週最多 ${CARD_CAP} 分（週一重新計算）`, `Up to ${CARD_CAP} a week (resets Monday)`)}</small></div><b>+1</b></div>
+    <div class="srow"><div>${L('完成每週目標', 'Weekly goal')}<small>${L(`一週複習 ${WEEK_GOAL} 張`, `Review ${WEEK_GOAL} cards in a week`)}</small></div><b>+${GOAL_BONUS}</b></div>
+    <div class="srow"><div>${L('連續週數獎勵', 'Week streak bonus')}<small>${L('連續 2／4／6 週完成每週目標', 'Reach the goal 2 / 4 / 6 weeks in a row')}</small></div><b>+10／30／60</b></div>
+    <div class="srow"><div>${L('挑戰答對 1 題', 'Each correct quiz answer')}<small>${L(`拼字題 +${SPELL_PTS}；連對 3 題以上每題再 +${COMBO_PTS}`, `Spelling +${SPELL_PTS}; 3 in a row: +${COMBO_PTS} each`)}</small></div><b>+${Q_PTS}</b></div>
+    <div class="srow"><div>${L('挑戰全對', 'Perfect quiz')}<small>${L('10 題全部答對', 'All 10 correct')}</small></div><b>+${PERFECT_PTS}</b></div>
+    <div class="srow"><div>${L('單元精熟', 'Unit mastery')}<small>${L(`某單元第一次拿到 ${MASTER_PCT}% 以上（每單元一次）`, `First time scoring ${MASTER_PCT}%+ on a unit (once per unit)`)}</small></div><b>+${MASTER_PTS}</b></div>
+    <div class="srow"><div>${L('同一單元重複挑戰', 'Retrying a unit')}<small>${L('每週只算最高的一次，打破本週紀錄才會補差額', 'Only your best score each week counts')}</small></div><b>📈</b></div>
+    <div class="srow"><div>${L('精熟要維持', 'Keep your badge')}<small>${L(`🏅 單元 ${FADE_DAYS} 天沒練會褪色，不扣分，回來練就恢復`, `🏅 fades after ${FADE_DAYS} days without practice — no points lost`)}</small></div><b>🏅</b></div>`;
   $('meName').textContent = st.profile ? st.profile.avatar + ' ' + st.profile.name : '—';
   const rm = st.set.remind;
-  $('remindInfo').textContent = rm && rm.addedAt ? `已設定：每週${rm.days.map((d) => DAYN[d]).join('、')} ${rm.time}` : '加到手機行事曆，時間到會提醒你';
+  $('remindInfo').textContent = rm && rm.addedAt ? L(`已設定：每週${rm.days.map((d) => DAYN[d]).join('、')} ${rm.time}`, `Set: ${rm.days.map((d) => ICSD[d]).join(', ')} at ${rm.time}`) : L('加到手機行事曆，時間到會提醒你', 'Add a reminder to your phone calendar');
   $('sAuto').classList.toggle('on', st.set.autoSpeak);
-  $('syncInfo').textContent = `${st.words.length} 個字・上次同步 ${st.set.syncedAt ? new Date(st.set.syncedAt).toLocaleString('zh-TW') : '—'}`;
+  $('syncInfo').textContent = `${st.words.length} ${L('個字・上次同步', 'words · synced')} ${st.set.syncedAt ? new Date(st.set.syncedAt).toLocaleString('zh-TW') : '—'}`;
 }
 function openProof() {
   const P = points(), { t } = titleOf(P.total);
@@ -1293,23 +1313,23 @@ function openProof() {
   $('sheet').innerHTML = `<div class="proof">
       <div class="pava">${esc(st.profile.avatar)}</div>
       <div class="pname">${esc(st.profile.name)}</div>
-      <div class="ptitle">${esc(t[1].toUpperCase())} · ${esc(t[2])}</div>
+      <div class="ptitle">${esc(t[1].toUpperCase())}${EN() ? '' : ' · ' + esc(t[2])}</div>
       <div class="pid">ID #${studentId()}</div><br>
-      <div class="mode">${isStandalone() ? '📱 主畫面 App' : '🌐 瀏覽器開啟'}</div>
-      <div class="ptotal">${P.total}</div><div class="plabel">總積分 TOTAL POINTS</div>
+      <div class="mode">${isStandalone() ? L('📱 主畫面 App', '📱 Home-screen app') : L('🌐 瀏覽器開啟', '🌐 Browser')}</div>
+      <div class="ptotal">${P.total}</div><div class="plabel">${L('總積分 TOTAL POINTS', 'TOTAL POINTS')}</div>
       <div class="pgrid">
-        <div><b>${P.card}</b>複習</div><div><b>${P.goal}</b>每週目標</div>
-        <div><b>${P.quizOnly}</b>挑戰</div><div><b>${P.master}</b>單元精熟</div>
-        <div><b>${P.streak}</b>連續獎勵</div><div><b>🔥 ${streakNow()} 週</b>目前連續</div>
-        <div><b>${totalCards}</b>總複習張數</div><div><b>${acc}</b>挑戰正確率</div>
+        <div><b>${P.card}</b>${L('複習', 'Review')}</div><div><b>${P.goal}</b>${L('每週目標', 'Weekly goal')}</div>
+        <div><b>${P.quizOnly}</b>${L('挑戰', 'Quiz')}</div><div><b>${P.master}</b>${L('單元精熟', 'Mastery')}</div>
+        <div><b>${P.streak}</b>${L('連續獎勵', 'Streak bonus')}</div><div><b>🔥 ${streakNow()} ${L('週', 'wk')}</b>${L('目前連續', 'Current streak')}</div>
+        <div><b>${totalCards}</b>${L('總複習張數', 'Cards reviewed')}</div><div><b>${acc}</b>${L('挑戰正確率', 'Quiz accuracy')}</div>
       </div>
-      <div class="pfoot"><span>學習 ${active} 天<br><span class="clock" id="clock"></span></span>
-        <span style="text-align:right">驗證碼<br><span class="code">${proofCode(P.total)}</span></span></div>
+      <div class="pfoot"><span>${L(`學習 ${active} 天`, `${active} days of practice`)}<br><span class="clock" id="clock"></span></span>
+        <span style="text-align:right">${L('驗證碼', 'Code')}<br><span class="code">${proofCode(P.total)}</span></span></div>
       ${(st.ledger.moves || []).length ? `<div class="moved">🔁 從其他裝置轉入 ${st.ledger.moves.length} 次（最近：${new Date(st.ledger.moves[st.ledger.moves.length - 1]).toLocaleDateString('zh-TW')}）</div>` : ''}
       ${st.ledger.clockBad ? '<div class="warnbox">⏰ 手機時間曾被調整過</div>' : ''}
       ${st.tampered ? '<div class="warnbox">⚠️ 積分資料異常，請找老師確認</div>' : ''}
     </div>
-    <div class="btnrow" style="margin-top:14px"><button class="btn ghost" data-close="1">關閉</button></div>`;
+    <div class="btnrow" style="margin-top:14px"><button class="btn ghost" data-close="1">${L('關閉', 'Close')}</button></div>`;
   $('modal').classList.add('show');
   const tick = () => { const c = $('clock'); if (!c) return clearInterval(openProof._i); c.textContent = new Date().toLocaleString('zh-TW', { hour12: false }); };
   clearInterval(openProof._i); tick(); openProof._i = setInterval(tick, 1000);
@@ -1332,6 +1352,11 @@ function showView(id) {
 // 10 題：單字 6 題（含拼字 2）、聽力 2 題（句型＋例句）、文法 2 題；沒有資料的單元自動補單字題
 const QUIZ_PLAN = ['en2zh', 'listen', 'gram', 'cloze', 'match', 'ltalk', 'spell', 'gram', 'lsent', 'spell'];
 const Q_PTS = 2, SPELL_PTS = 3, COMBO_PTS = 1, PERFECT_PTS = 5, MASTER_PTS = 50, MASTER_PCT = 90;   // 一次最多 35 分
+const QTYPE_EN = {
+  en2zh: 'Choose the meaning', zh2en: 'Choose the word', listen: 'Listen and choose', cloze: 'Fill in the blank', match: 'Match the pairs',
+  spell: 'Spell the word', lsent: 'Which word is in the sentence?', choice: 'Grammar', order: 'Build the sentence', reply: 'Choose the best reply',
+  lfill: 'Listen and fill in', lpick: 'Which one did you hear?', lorder: 'Listen and build',
+};
 const QTYPE = {
   en2zh: '選出正確的中文 Choose the meaning', zh2en: '選出正確的英文 Choose the word', listen: '聽音選字 Listen and choose',
   cloze: '選字填空 Fill in the blank', match: '配對 Match the pairs', spell: '拼出這個字 Spell the word',
@@ -1403,10 +1428,10 @@ function startQuiz(unit) {
       const g = gpool.shift(); if (g) q = makeG(g);
     } else if (type === 'ltalk') {
       const g = lpool.shift(); if (g) q = makeG(g);
-    } else if (type === 'lsent') {   // 播放整句例句，選中文意思
+    } else if (type === 'lsent') {   // 播放整句例句：中文模式選中文意思；英文模式選句子裡出現的字
       const w = take((x) => x.ex && x.exzh);
       if (w) {
-        const others = shuffle(pool.filter((x) => x.id !== w.id && x.exzh)).slice(0, 3);
+        const others = EN() ? distract(w) : shuffle(pool.filter((x) => x.id !== w.id && x.exzh)).slice(0, 3);
         q = { type, w, opts: shuffle([w, ...others]) };
       }
     } else {
@@ -1428,53 +1453,53 @@ function renderQuiz() {
   if (!qz.qs.length) return renderQuizHome();
   if (qz.i >= qz.qs.length) return renderQuizResult();
   const q = qz.qs[qz.i]; qz.answered = false;
-  const head = `<div class="qhead"><button class="undo" data-act="qquit">✕ 離開</button><span>${qz.i + 1} / ${qz.qs.length}</span>
+  const head = `<div class="qhead"><button class="undo" data-act="qquit">✕ ${L('離開', 'Quit')}</button><span>${qz.i + 1} / ${qz.qs.length}</span>
     <div class="track"><i style="width:${qz.i / qz.qs.length * 100}%"></i></div><span class="combo">${qz.combo >= 3 ? '×' + qz.combo : ''}</span><b class="qpts">+${qz.pts}</b></div>`;
   const spk = (t) => `<button class="spk small" data-say="${esc(t)}" aria-label="發音">🔊</button>`;
   const ears = (t) => `<button class="spk" data-say="${esc(t)}" aria-label="再聽一次">🔊</button><button class="spk turtle" data-say="${esc(t)}" data-slow="1" aria-label="慢速">🐢</button>`;
   const opt = (w, label, en) => `<button class="opt ${en ? 'en' : ''}" data-opt="${esc(w.id)}">${label}</button>`;
   let body = '';
   if (q.type === 'en2zh') body = `<div class="qword">${esc(q.w.word)}</div><div class="qmid">${spk(q.w.word)}</div>
-    <div class="opts">${q.opts.map((w) => opt(w, esc(w.zh))).join('')}</div>`;
-  else if (q.type === 'zh2en') body = `<div class="qzh">${esc(q.w.zh)}</div><div class="qmid"><span class="pos">${esc(q.w.pos)}</span></div>
+    <div class="opts">${q.opts.map((w) => opt(w, esc(meaning(w)))).join('')}</div>`;
+  else if (q.type === 'zh2en') body = `<div class="qzh" ${EN() ? 'style="font-size:18px;color:var(--ink)"' : ''}>${esc(meaning(q.w))}</div><div class="qmid"><span class="pos">${esc(q.w.pos)}</span></div>
     <div class="opts">${q.opts.map((w) => opt(w, esc(w.word), 1)).join('')}</div>`;
   else if (q.type === 'listen') body = `<div class="qmid"><button class="spk" data-say="${esc(q.w.word)}" aria-label="再聽一次">🔊</button></div>
-    <div class="hint" style="margin-top:8px">點喇叭可以再聽一次</div><div class="opts">${q.opts.map((w) => opt(w, esc(w.word), 1)).join('')}</div>`;
+    <div class="hint" style="margin-top:8px">${L('點喇叭可以再聽一次', 'Tap the speaker to listen again')}</div><div class="opts">${q.opts.map((w) => opt(w, esc(w.word), 1)).join('')}</div>`;
   else if (q.type === 'cloze') body = `<div class="qsent">${esc(q.text).replace('\u0000', '<u>______</u>')}</div>
-    ${q.w.exzh ? `<div class="exzh" style="text-align:left">${esc(q.w.exzh)}</div>` : ''}
+    ${q.w.exzh && !EN() ? `<div class="exzh" style="text-align:left">${esc(q.w.exzh)}</div>` : ''}
     <div class="opts">${q.opts.map((w) => opt(w, esc(w.word), 1)).join('')}</div>`;
   else if (q.type === 'match') body = `<div class="mgrid">
       <div class="col">${q.left.map((w) => `<button class="mt en" data-ml="${esc(w.id)}">${esc(w.word)}</button>`).join('')}</div>
-      <div class="col">${q.right.map((w) => `<button class="mt" data-mr="${esc(w.id)}">${esc(w.zh)}</button>`).join('')}</div></div>`;
+      <div class="col">${q.right.map((w) => `<button class="mt" data-mr="${esc(w.id)}" ${EN() ? 'style="font-size:12px;line-height:1.35"' : ''}>${esc(meaning(w))}</button>`).join('')}</div></div>`;
   else if (q.type === 'lsent') body = `<div class="qmid"><button class="spk" data-say="${esc(q.w.ex)}" aria-label="再聽一次">🔊</button>
       <button class="spk turtle" data-say="${esc(q.w.ex)}" data-slow="1" aria-label="慢速">🐢</button></div>
-    <div class="hint" style="margin-top:8px">聽不清楚可以按 🐢 慢速</div>
-    <div class="opts">${q.opts.map((w) => opt(w, esc(w.exzh))).join('')}</div>`;
+    <div class="hint" style="margin-top:8px">${L('聽不清楚可以按 🐢 慢速', 'Tap 🐢 to hear it slowly')}</div>
+    <div class="opts">${q.opts.map((w) => (EN() ? opt(w, esc(w.word), 1) : opt(w, esc(w.exzh)))).join('')}</div>`;
   else if (q.type === 'choice') body = `<div class="gq">${esc(q.g.q).replace('___', '<u>____</u>')}</div>
     <div class="opts">${q.opts.map((o) => `<button class="opt en" data-gopt="${o.i}">${esc(o.t)}</button>`).join('')}</div>`;
   else if (q.type === 'reply') body = `<div class="qmid"><button class="spk" data-say="${esc(q.g.q)}" aria-label="再聽一次">🔊</button>
       <button class="spk turtle" data-say="${esc(q.g.q)}" data-slow="1" aria-label="慢速">🐢</button></div>
-    <div class="hint" style="margin-top:8px">聽句子，選出最適合的回答</div>
+    <div class="hint" style="margin-top:8px">${L('聽句子，選出最適合的回答', 'Listen and choose the best reply')}</div>
     <div class="opts">${q.opts.map((o) => `<button class="opt en" data-gopt="${o.i}">${esc(o.t)}</button>`).join('')}</div>`;
   else if (q.type === 'lfill') body = `<div class="qmid">${ears(sayOf(q.g))}</div>
     <div class="gq" style="margin-top:12px">${esc(q.g.q).replace('___', '<u>____</u>')}</div>
     <div class="opts">${q.opts.map((o) => `<button class="opt en" data-gopt="${o.i}">${esc(o.t)}</button>`).join('')}</div>`;
   else if (q.type === 'lpick') body = `<div class="qmid">${ears(sayOf(q.g))}</div>
     <div class="opts">${q.opts.map((o) => `<button class="opt en" data-gopt="${o.i}">${esc(o.t)}</button>`).join('')}</div>`;
-  else if (q.type === 'lorder') body = `<div class="qmid">${ears(sayOf(q.g))}</div><div class="hint" style="margin-top:8px">聽句子，依順序點單字排出來</div>
+  else if (q.type === 'lorder') body = `<div class="qmid">${ears(sayOf(q.g))}</div><div class="hint" style="margin-top:8px">${L('聽句子，依順序點單字排出來', 'Listen, then tap the words in order')}</div>
     <div class="otray" id="otray"></div><div class="opool" id="opool"></div>
-    <button class="btn wide" style="margin-top:12px" data-act="gorder">確認 Check</button>`;
-  else if (q.type === 'order') body = `<div class="hint">依順序點單字，排成正確的句子（點上面的字可以拿掉）</div>
+    <button class="btn wide" style="margin-top:12px" data-act="gorder">${L('確認 Check', 'Check')}</button>`;
+  else if (q.type === 'order') body = `<div class="hint">${L('依順序點單字，排成正確的句子（點上面的字可以拿掉）', 'Tap the words in order to build the sentence (tap a word above to remove it)')}</div>
     <div class="otray" id="otray"></div><div class="opool" id="opool"></div>
-    <button class="btn wide" style="margin-top:12px" data-act="gorder">確認 Check</button>`;
+    <button class="btn wide" style="margin-top:12px" data-act="gorder">${L('確認 Check', 'Check')}</button>`;
   else if (q.type === 'spell') {
     const a = answersOf(q.w)[0];
-    body = `<div class="qzh">${esc(q.w.zh)}</div><div class="qmid"><span class="pos">${esc(q.w.pos)}</span>${spk(q.w.word)}</div>
+    body = `<div class="qzh" ${EN() ? 'style="font-size:18px;color:var(--ink)"' : ''}>${esc(meaning(q.w))}</div><div class="qmid"><span class="pos">${esc(q.w.pos)}</span>${spk(q.w.word)}</div>
       <div class="hintw">${esc(a[0])} ${a.slice(1).replace(/[^ -]/g, '_ ').replace(/-/g, '- ')}</div>
       <input class="spellin" id="spellIn" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="type here">
-      <button class="btn wide" style="margin-top:10px" data-act="qspell">確認 Check</button>`;
+      <button class="btn wide" style="margin-top:10px" data-act="qspell">${L('確認 Check', 'Check')}</button>`;
   }
-  box.innerHTML = head + `<div class="qcard"><div class="qtype">${QTYPE[q.type]}</div>${body}<div id="qfb"></div></div>`;
+  box.innerHTML = head + `<div class="qcard"><div class="qtype">${EN() ? QTYPE_EN[q.type] : QTYPE[q.type]}</div>${body}<div id="qfb"></div></div>`;
   if (q.type === 'order' || q.type === 'lorder') drawOrder();
   if (q.type === 'lfill' || q.type === 'lpick' || q.type === 'lorder') speak(sayOf(q.g));
   if (q.type === 'listen' || (q.type === 'en2zh' && st.set.autoSpeak)) speak(q.w.word);
@@ -1501,8 +1526,8 @@ function scoreQ(correct, wrongWords) {
 function showFeedback(correct, w, extra) {   // 結果和「下一題」固定在畫面底部，不用往下滑
   const last = qz.i === qz.qs.length - 1;
   $('qfb').innerHTML = `<div class="qbar"><div class="in ${correct ? 'ok' : 'bad'}">
-      <div class="txt">${correct ? '✓ Correct! 答對了' : '✕ ' + (extra || '正確答案')}${w ? `<br><b>${esc(w.word)}</b>　${esc(w.zh)}` : ''}</div>
-      <button class="btn" data-act="qnext">${last ? '看結果 ▶' : 'Next ▶'}</button></div></div>`;
+      <div class="txt">${correct ? L('✓ Correct! 答對了', '✓ Correct!') : '✕ ' + (extra || L('正確答案', 'Answer'))}${w ? `<br><b>${esc(w.word)}</b>　${esc(meaning(w))}` : ''}</div>
+      <button class="btn" data-act="qnext">${last ? L('看結果 ▶', 'Results ▶') : 'Next ▶'}</button></div></div>`;
   if (w && !correct) speak(w.word);
 }
 function pickOpt(btn) {
@@ -1528,7 +1553,7 @@ function pickMatch(btn) {
     if (q.done.length === q.ws.length) {
       const ok = q.miss === 0;
       scoreQ(ok, q.missed || []);
-      showFeedback(ok, null, ok ? '' : `配對完成，但錯了 ${q.miss} 次：${(q.missed || []).map((w) => esc(w.word)).join('、')}`);
+      showFeedback(ok, null, ok ? '' : L(`配對完成，但錯了 ${q.miss} 次：`, `Done, but ${q.miss} mistake(s): `) + (q.missed || []).map((w) => esc(w.word)).join(', '));
     }
   } else {
     q.miss++; q.missed = q.missed || [];
@@ -1542,7 +1567,7 @@ function gramFeedback(ok, right) {   // 文法題不加入單字複習，只顯�
   const g = qz.qs[qz.i].g, last = qz.i === qz.qs.length - 1;
   $('qfb').innerHTML = `<div class="qbar"><div class="in ${ok ? 'ok' : 'bad'}">
       <div class="txt">${ok ? '✓ Correct!' : '✕ ' + esc(right)}<br><small>💡 ${esc(g.tip || '')}</small></div>
-      <button class="btn" data-act="qnext">${last ? '看結果 ▶' : 'Next ▶'}</button></div></div>`;
+      <button class="btn" data-act="qnext">${last ? L('看結果 ▶', 'Results ▶') : 'Next ▶'}</button></div></div>`;
 }
 function pickGOpt(btn) {
   if (qz.answered) return;
@@ -1555,7 +1580,7 @@ function pickGOpt(btn) {
 }
 function drawOrder() {
   const q = qz.qs[qz.i];
-  $('otray').innerHTML = q.picked.map((k, j) => `<button class="tok" data-otray="${j}">${esc(q.pool[k].t)}</button>`).join('') || '<span class="hint">↓ 點下面的字</span>';
+  $('otray').innerHTML = q.picked.map((k, j) => `<button class="tok" data-otray="${j}">${esc(q.pool[k].t)}</button>`).join('') || `<span class="hint">${L('↓ 點下面的字', '↓ Tap the words below')}</span>`;
   $('opool').innerHTML = q.pool.map((o, k) => `<button class="tok ${q.picked.includes(k) ? 'gone' : ''}" data-opool="${k}">${esc(o.t)}</button>`).join('');
 }
 function tapOrder(btn) {
@@ -1566,7 +1591,7 @@ function tapOrder(btn) {
 }
 function checkOrder() {
   const q = qz.qs[qz.i]; if (qz.answered) return;
-  if (q.picked.length < q.pool.length) return toast('還有字沒排進去');
+  if (q.picked.length < q.pool.length) return toast(L('還有字沒排進去', 'Use all the words'));
   const said = q.picked.map((k) => q.pool[k].t).join(' '), right = q.g.words.join(' ');
   const ok = said === right;
   $('otray').classList.add(ok ? 'ok' : 'bad');
@@ -1628,7 +1653,7 @@ function openGrammar(unit) {
   const c = (GRAM.cards || {})[unit], e = (GRAM.everyday || {})[unit];
   if (!c && !e) return toast('這個單元還沒有文法小卡');
   $('sheet').innerHTML = (c ? cardHTMLg(c, `📘 ${esc(unit)} 文法 GRAMMAR`) : '') + (e ? cardHTMLg(e, `🗣️ ${esc(unit)} 生活句型 EVERYDAY ENGLISH（聽力題）`) : '') + `
-    <div class="btnrow"><button class="btn" data-qunit="${esc(unit)}">去挑戰 ${esc(unit)} ▶</button><button class="btn ghost" data-close="1">關閉</button></div>`;
+    <div class="btnrow"><button class="btn" data-qunit="${esc(unit)}">${L('去挑戰', 'Quiz')} ${esc(unit)} ▶</button><button class="btn ghost" data-close="1">${L('關閉', 'Close')}</button></div>`;
   $('modal').classList.add('show');
 }
 function checkSpell() {
@@ -1675,35 +1700,35 @@ function renderQuizResult() {
   const r = finishQuiz(), n = qz.qs.length;
   const wrong = qz.wrong.map((id) => st.byId[id]).filter(Boolean);
   $('quizBox').innerHTML = `<div class="qcard qres">
-      <div class="qtype">${esc(qz.unit)} 挑戰結果 RESULT</div>
-      <div class="pct">${r.pct}%</div><div class="note" style="margin-top:4px">答對 ${qz.right} / ${n} 題${r.record && r.oldBest != null ? '・🆕 新紀錄！' : ''}</div>
+      <div class="qtype">${esc(qz.unit)} ${L('挑戰結果 RESULT', 'RESULT')}</div>
+      <div class="pct">${r.pct}%</div><div class="note" style="margin-top:4px">${L(`答對 ${qz.right} / ${n} 題`, `${qz.right} / ${n} correct`)}${r.record && r.oldBest != null ? L('・🆕 新紀錄！', ' · 🆕 New record!') : ''}</div>
       ${r.gain ? `<div class="gain">+${r.gain} ⭐</div>`
-        : `<div class="gain zero">本週 ${esc(qz.unit)} 已經拿過 ${r.prevBest} 分，超過才會再加分</div>`}
-      ${r.gain && r.prevBest ? `<div class="note" style="margin-top:6px">打破本週紀錄（${r.prevBest} → ${qz.pts}），補上差額</div>` : ''}
-      ${r.master ? `<div class="banner">🏅 ${esc(qz.unit)} 單元精熟！+${MASTER_PTS} ⭐</div>` : ''}
+        : `<div class="gain zero">${L(`本週 ${esc(qz.unit)} 已經拿過 ${r.prevBest} 分，超過才會再加分`, `You already have ${r.prevBest} for ${esc(qz.unit)} this week — beat it to earn more`)}</div>`}
+      ${r.gain && r.prevBest ? `<div class="note" style="margin-top:6px">${L(`打破本週紀錄（${r.prevBest} → ${qz.pts}），補上差額`, `New weekly best (${r.prevBest} → ${qz.pts})`)}</div>` : ''}
+      ${r.master ? `<div class="banner">🏅 ${esc(qz.unit)} ${L('單元精熟！', 'mastered!')} +${MASTER_PTS} ⭐</div>` : ''}
     </div>
-    ${wrong.length ? `<h3>答錯的字 <small>已加入複習</small></h3><div class="list">${wrong.map(rowHTML).join('')}</div>` : ''}
+    ${wrong.length ? `<h3>${L('答錯的字 <small>已加入複習</small>', 'Words to review <small>added to Review</small>')}</h3><div class="list">${wrong.map(rowHTML).join('')}</div>` : ''}
     <div class="btnrow" style="margin-top:16px">
-      <button class="btn" data-act="qagain">再挑戰一次</button>
-      ${wrong.length ? '<button class="btn ghost" data-act="qwrong">複習答錯的字</button>' : ''}
-      ${qz.gwrong && GRAM.cards[qz.unit] ? `<button class="btn ghost" data-gcard="${esc(qz.unit)}">📘 文法錯了 ${qz.gwrong} 題，看文法小卡</button>` : ''}
-      <button class="btn ghost" data-act="qhome">選其他單元</button>
+      <button class="btn" data-act="qagain">${L('再挑戰一次', 'Try again')}</button>
+      ${wrong.length ? `<button class="btn ghost" data-act="qwrong">${L('複習答錯的字', 'Review mistakes')}</button>` : ''}
+      ${qz.gwrong && GRAM.cards[qz.unit] ? `<button class="btn ghost" data-gcard="${esc(qz.unit)}">📘 ${L(`文法錯了 ${qz.gwrong} 題，看文法小卡`, `Grammar card (${qz.gwrong} wrong)`)}</button>` : ''}
+      <button class="btn ghost" data-act="qhome">${L('選其他單元', 'Other units')}</button>
     </div>`;
 }
 function renderQuizHome() {
   const qb = (weeks()[thisWeek()] || { qb: {} }).qb;
   const best = st.meta.quizBest || {};
   $('quizBox').innerHTML = `<div class="hero" style="display:block">
-      <h2>Unit Challenge 🎯<small>每次 10 題：單字、聽力、文法、拼字</small></h2>
-      <div class="sub" style="margin-top:8px">答對 +${Q_PTS}、拼字 +${SPELL_PTS}、連對加成、全對 +${PERFECT_PTS}<br>第一次拿到 ${MASTER_PCT}% 以上：單元精熟 +${MASTER_PTS}</div>
+      <h2>Unit Challenge 🎯<small>${L('每次 10 題：單字、聽力、文法、拼字', '10 questions: words, listening, grammar, spelling')}</small></h2>
+      <div class="sub" style="margin-top:8px">${L(`答對 +${Q_PTS}、拼字 +${SPELL_PTS}、連對加成、全對 +${PERFECT_PTS}<br>第一次拿到 ${MASTER_PCT}% 以上：單元精熟 +${MASTER_PTS}`, `Correct +${Q_PTS} · spelling +${SPELL_PTS} · combo bonus · perfect +${PERFECT_PTS}<br>First ${MASTER_PCT}%+: unit mastery +${MASTER_PTS}`)}</div>
     </div>
     <div class="qlist">${allUnits().map((u) => {
       const n = st.words.filter((w) => w.unit === u).length;
       const mastered = st.ledger.bonus.some((b) => b.k === 'master:' + u);
       return `<div class="qunit"><span class="u">${esc(u)}</span>
-        <span class="m"><b>${mastered ? (faded(u) ? '<span style="color:var(--muted)">🏅 需要複習</span>' : '🏅 已精熟') : n + ' 個字'}</b><br>最佳 ${best[u] != null ? best[u] + '%' : '—'}・本週 ${qb[u] ? '+' + qb[u] + ' ⭐' : '還沒挑戰'}</span>
-        <span class="acts">${(GRAM.cards || {})[u] ? `<button class="gbtn" data-gcard="${esc(u)}">📘</button>` : ''}<button class="go" data-qunit="${esc(u)}">挑戰 ▶</button></span></div>`;
-    }).join('') + lockedRows('qunitl') || '<p class="hint">載入中…</p>'}</div>`;
+        <span class="m"><b>${mastered ? (faded(u) ? `<span style="color:var(--muted)">🏅 ${L('需要複習', 'Review me')}</span>` : L('🏅 已精熟', '🏅 Mastered')) : n + L(' 個字', ' words')}</b><br>${L('最佳', 'Best')} ${best[u] != null ? best[u] + '%' : '—'}・${L('本週', 'This week')} ${qb[u] ? '+' + qb[u] + ' ⭐' : L('還沒挑戰', 'not yet')}</span>
+        <span class="acts">${(GRAM.cards || {})[u] ? `<button class="gbtn" data-gcard="${esc(u)}">📘</button>` : ''}<button class="go" data-qunit="${esc(u)}">${L('挑戰 ▶', 'Go ▶')}</button></span></div>`;
+    }).join('') + lockedRows('qunitl') || `<p class="hint">${L('載入中…', 'Loading…')}</p>`}</div>`;
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1760,6 +1785,7 @@ document.addEventListener('click', (e) => {
   if (t.dataset.act === 'codein') return openCodeIn();
   if (t.dataset.act === 'codecopy') return copyCode();
   if (t.dataset.act === 'codeapply') return applyCode();
+  if (t.dataset.act === 'showzh') { e.stopPropagation(); const c = t.closest('.card,.sheet'); c.querySelectorAll('.zhhide').forEach((x) => (x.style.display = '')); t.remove(); updateRail(); return; }
   if (t.dataset.act === 'go') { showView('v-review'); return; }
   if (t.dataset.act === 'start') return buildQueue();
   if (t.dataset.act === 'more') return buildQueue(5);
@@ -1782,7 +1808,7 @@ document.addEventListener('click', (e) => {
   if (t.dataset.ml || t.dataset.mr) return pickMatch(t);
   if (t.dataset.act === 'qspell') return checkSpell();
   if (t.dataset.act === 'qnext') { qz.i++; return renderQuiz(); }
-  if (t.dataset.act === 'qquit') { if (confirm('離開這次挑戰？這次不會計分。')) { qz.qs = []; renderQuiz(); } return; }
+  if (t.dataset.act === 'qquit') { if (confirm(L('離開這次挑戰？這次不會計分。', 'Quit this quiz? It won\'t be scored.'))) { qz.qs = []; renderQuiz(); } return; }
   if (t.dataset.act === 'qagain') return startQuiz(qz.unit);
   if (t.dataset.act === 'qhome') { qz.qs = []; return renderQuiz(); }
   if (t.dataset.act === 'qwrong') { const ids = qz.wrong.slice(); qz.qs = []; showView('v-review'); return startQueue(ids); }
@@ -1795,6 +1821,13 @@ $('undoBtn').onclick = undo;
 $('fToggle').onclick = () => $('fPanel').classList.toggle('open');
 $('search').oninput = renderList;
 $('sAuto').onclick = () => { st.set.autoSpeak = !st.set.autoSpeak; saveSet(); renderMe(); };
+$('sLang').onclick = () => {   // 切換英文模式：重畫所有畫面
+  st.set.lang = EN() ? 'zh' : 'en'; saveSet(); applyLang();
+  renderHeader(); renderFilters(); renderHome(); renderMe();
+  if (st.cur) renderCard();
+  if (qz.qs.length && !qz.answered) renderQuiz();
+  toast(EN() ? 'English mode on 🌐' : '已切回中文');
+};
 $('btnSync').onclick = async () => { if (await syncCSV(true)) { renderFilters(); renderMe(); if (!st.cur) buildQueue(); } };
 $('btnTtsTest').onclick = async () => {
   const d = $('ttsDiag'); d.style.display = 'block'; d.textContent = '呼叫中…';
@@ -1917,6 +1950,7 @@ document.addEventListener('keydown', (e) => {
   if (words && words.length) setWords(words);
 
   const last = st.meta.lastActive;
+  applyLang();
   renderHeader(); renderFilters(); renderHome();
   checkLock();
   loadGrammar();
