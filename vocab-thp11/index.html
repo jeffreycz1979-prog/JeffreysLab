@@ -22,6 +22,7 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%}
+body{height:100vh;height:100dvh}   /* dvh：扣掉 Safari 上下工具列的實際可見高度 */
 body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--bg);color:var(--ink);
   overscroll-behavior:none;display:flex;flex-direction:column}
 button{font-family:inherit;cursor:pointer;color:inherit}
@@ -273,6 +274,18 @@ nav button.on{color:var(--lime);font-weight:700}
 .spellin:focus{outline:none;border-color:var(--lime)}
 .spellin.ok{border-color:var(--mint);color:var(--mint)}.spellin.bad{border-color:var(--coral);color:var(--coral)}
 .fb{margin-top:14px;border-radius:16px;padding:12px 14px;text-align:left;font-size:14px;line-height:1.5}
+#quizBox{padding-bottom:84px}
+.qbar{position:fixed;left:0;right:0;bottom:calc(58px + var(--safe-b));z-index:60;padding:10px 16px;
+  background:linear-gradient(0deg,var(--bg) 70%,transparent);animation:up .2s}
+@keyframes up{from{transform:translateY(20px);opacity:0}}
+.qbar .in{max-width:528px;margin:0 auto;display:flex;align-items:center;gap:10px;border-radius:18px;padding:10px 10px 10px 14px}
+.qbar .in.ok{background:#123a37;color:var(--mint)}.qbar .in.bad{background:#3a1c18;color:#ffd2cb}
+.qbar .txt{flex:1;min-width:0;text-align:left;font-size:13px;line-height:1.4}
+.qbar .txt b{font-family:'Syne',sans-serif;font-size:15px}
+.qbar .btn{flex:none;padding:12px 16px}
+.tip{background:#1b2236;border:1px dashed var(--mint);border-radius:16px;padding:12px 14px;margin-bottom:12px;font-size:13px;line-height:1.6;position:relative}
+.tip b{color:var(--mint)}
+.tip button{position:absolute;top:6px;right:8px;border:none;background:none;color:var(--muted);font-size:16px}
 .fb.ok{background:#123a37;color:var(--mint)}.fb.bad{background:#3a1c18;color:#ffd2cb}
 .fb b{font-family:'Syne',sans-serif}
 .qres{text-align:center}
@@ -297,6 +310,7 @@ nav button.on{color:var(--lime);font-weight:700}
 <main>
   <!-- ═══ 首頁 ═══ -->
   <section class="view active" id="v-home">
+    <div id="installTip"></div>
     <div class="hero">
       <div class="ring" id="ring"></div>
       <div>
@@ -1042,7 +1056,15 @@ function renderHeader(bump) {
   $('hPts').textContent = '⭐ ' + pts;
   if (bump) { const p = $('hPts'); p.classList.remove('bump'); void p.offsetWidth; p.classList.add('bump'); }
 }
+function renderInstallTip() {
+  const standalone = navigator.standalone || matchMedia('(display-mode: standalone)').matches;
+  let hide = false; try { hide = localStorage.getItem('thp11-tip-off') === '1'; } catch (e) {}
+  const ios = /iPhone|iPad|iPod/.test(navigator.userAgent);
+  $('installTip').innerHTML = standalone || hide ? '' : `<div class="tip"><button data-act="tipoff" aria-label="關閉">✕</button>
+    📲 <b>加到主畫面，畫面更大、更好用</b><br>${ios ? 'Safari 下方按 <b>分享</b> ⬆️ → <b>加入主畫面</b>' : '瀏覽器右上角 <b>⋮</b> → <b>加到主畫面</b>'}</div>`;
+}
 function renderHome() {
+  renderInstallTip();
   const today = dayCards(todayKey()), r = 50, C = 2 * Math.PI * r, pct = Math.min(1, today / DAILY_GOAL);
   $('ring').innerHTML = `<svg width="118" height="118" viewBox="0 0 118 118">
       <circle cx="59" cy="59" r="${r}" fill="none" stroke="#232a3c" stroke-width="11"/>
@@ -1151,7 +1173,7 @@ function showView(id) {
   if (id === 'v-home') renderHome();
   if (id === 'v-list') renderList();
   if (id === 'v-me') renderMe();
-  if (id === 'v-quiz') renderQuiz();
+  if (id === 'v-quiz') renderQuiz(); else if ($('qfb')) $('qfb').innerHTML = '';
   if (id === 'v-review') { if (!st.cur) buildQueue(); else if (st.set.autoSpeak) speak(st.cur.word); }
   document.querySelector('main').scrollTo(0, 0);
 }
@@ -1264,11 +1286,11 @@ function scoreQ(correct, wrongWords) {
   }
   const c = $('quizBox').querySelector('.combo'); if (c) c.textContent = qz.combo >= 3 ? '×' + qz.combo : '';
 }
-function showFeedback(correct, w) {
+function showFeedback(correct, w, extra) {   // 結果和「下一題」固定在畫面底部，不用往下滑
   const last = qz.i === qz.qs.length - 1;
-  $('qfb').innerHTML = `<div class="fb ${correct ? 'ok' : 'bad'}">${correct ? '✓ Correct! 答對了' : '✕ 正確答案'}
-      ${w ? `<br><b>${esc(w.word)}</b>　${esc(w.zh)}` : ''}</div>
-    <button class="btn wide" style="margin-top:10px" data-act="qnext">${last ? '看結果 See results' : '下一題 Next ▶'}</button>`;
+  $('qfb').innerHTML = `<div class="qbar"><div class="in ${correct ? 'ok' : 'bad'}">
+      <div class="txt">${correct ? '✓ Correct! 答對了' : '✕ ' + (extra || '正確答案')}${w ? `<br><b>${esc(w.word)}</b>　${esc(w.zh)}` : ''}</div>
+      <button class="btn" data-act="qnext">${last ? '看結果 ▶' : 'Next ▶'}</button></div></div>`;
   if (w && !correct) speak(w.word);
 }
 function pickOpt(btn) {
@@ -1294,8 +1316,7 @@ function pickMatch(btn) {
     if (q.done.length === q.ws.length) {
       const ok = q.miss === 0;
       scoreQ(ok, q.missed || []);
-      showFeedback(ok, null);
-      if (!ok) $('qfb').querySelector('.fb').innerHTML = `配對完成，但錯了 ${q.miss} 次。<br>${(q.missed || []).map((w) => `<b>${esc(w.word)}</b> ${esc(w.zh)}`).join('<br>')}`;
+      showFeedback(ok, null, ok ? '' : `配對完成，但錯了 ${q.miss} 次：${(q.missed || []).map((w) => esc(w.word)).join('、')}`);
     }
   } else {
     q.miss++; q.missed = q.missed || [];
@@ -1418,6 +1439,7 @@ document.addEventListener('click', (e) => {
   if (t.dataset.st) { st.listStatus = t.dataset.st; return renderList(); }
   if (t.dataset.luSet) { st.listUnit = t.dataset.lu; return renderList(); }
   if (t.dataset.unit) { st.set.units = [t.dataset.unit]; st.set.lessons = []; saveSet(); renderFilters(); showView('v-review'); return buildQueue(); }
+  if (t.dataset.act === 'tipoff') { try { localStorage.setItem('thp11-tip-off', '1'); } catch (e) {} return renderInstallTip(); }
   if (t.dataset.act === 'go') { showView('v-review'); return; }
   if (t.dataset.act === 'start') return buildQueue();
   if (t.dataset.act === 'more') return buildQueue(5);

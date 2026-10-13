@@ -1,6 +1,6 @@
 // THP11 單字挑戰 - Service Worker（scope：/JeffreysLab/vocab-thp11/）
 // 改了 index.html 之後把版本號 +1，舊快取會自動清除
-const CACHE_NAME = 'thp11-v2';
+const CACHE_NAME = 'thp11-v3';
 
 const PRECACHE_URLS = [
   '/JeffreysLab/vocab-thp11/',
