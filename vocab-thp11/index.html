@@ -327,13 +327,13 @@ nav button.on{color:var(--lime);font-weight:700}
     <div class="hero">
       <div class="ring" id="ring"></div>
       <div>
-        <h2 id="heroTitle">Today's Goal<small>今日目標</small></h2>
+        <h2 id="heroTitle">Weekly Goal<small>本週目標</small></h2>
         <div class="sub" id="heroSub"></div>
         <button class="btn" data-act="go">開始複習 Start ▶</button>
       </div>
     </div>
     <div class="trio">
-      <div class="tile o"><b id="tStreak">0</b><span>🔥 連續天數</span></div>
+      <div class="tile o"><b id="tStreak">0</b><span>🔥 連續週數</span></div>
       <div class="tile l"><b id="tPts">0</b><span>⭐ 總積分</span></div>
       <div class="tile m"><b id="tKnown">0</b><span>✅ 已掌握</span></div>
     </div>
@@ -409,7 +409,7 @@ nav button.on{color:var(--lime);font-weight:700}
         </div>
       </div>
     </div>
-    <p class="hint">Jeffrey's Lab · THP11 Word Quest v2.1</p>
+    <p class="hint">Jeffrey's Lab · THP11 Word Quest v3</p>
   </section>
 </main>
 
@@ -466,10 +466,13 @@ const NEW_PER_DAY = 15;     // 每日新字
 const KNOWN_DAYS = 7;       // 穩定度 ≥ 7 天算「已掌握」
 const HARD_FAILS = 3;       // 不熟 ≥ 3 次算「頑固字」
 // 積分規則
-const DAILY_GOAL = 20;      // 每日目標：複習 20 張
-const CARD_CAP = 50;        // 每天複習最多拿 50 分
-const GOAL_BONUS = 10;      // 完成每日目標 +10
-const STREAK_BONUS = { 3: 20, 7: 50, 14: 100, 30: 200, 60: 300, 100: 500 };
+// 以「週」計算（週一到週日）：家長限制手機時間，一週練 2～3 次也能拿滿
+const WEEK_GOAL = 50;       // 每週目標：複習 50 張
+const CARD_CAP = 60;        // 每週複習最多拿 60 分
+const GOAL_BONUS = 10;      // 完成每週目標 +10
+const STREAK_BONUS = { 2: 10, 4: 30, 6: 60 };   // 連續 N 週完成每週目標
+const FADE_DAYS = 14;       // 精熟單元 14 天沒碰，徽章褪色
+const CLOCK_SLACK = 2 * 3600000;   // 時間倒退超過 2 小時視為調過時間
 const TITLES = [
   [0, 'Rookie', '新手'], [100, 'Explorer', '探險家'], [300, 'Word Hunter', '單字獵人'],
   [600, 'Word Warrior', '單字戰士'], [1000, 'Word Master', '單字大師'], [1600, 'Legend', '傳奇'],
@@ -483,7 +486,7 @@ const LINES = {
   hello:   [['Nice to meet you, {n}! Let\'s start!', '{n}，很高興認識你！開始吧！']],
   greet:   [['Hi {n}! Ready for today\'s words?', '嗨 {n}！準備好今天的單字了嗎？'],
             ['Welcome back, {n}! Let\'s level up.', '歡迎回來，{n}！一起升級吧。'],
-            ['Good to see you, {n}! 20 cards today?', '{n}，今天來挑戰 20 張吧？']],
+            ['Good to see you, {n}! A few cards today?', '{n}，今天來練幾張吧？']],
   comeback:[['We missed you, {n}! Let\'s warm up.', '{n}，好久不見！先來暖身一下。'],
             ['Welcome back, {n}! Every day counts.', '{n} 歡迎回來！每天一點點就很棒。']],
   combo3:  [['Nice combo, {n}! 🔥', '{n}，連續答對 3 張！'], ['Three in a row!', '連對 3 張！']],
@@ -492,8 +495,8 @@ const LINES = {
   miss:    [['No worries — mistakes help you learn.', '沒關係，錯了才記得更牢。'],
             ['You\'ll see it again soon. You got this!', '等一下還會再出現，你可以的！'],
             ['Tricky one! Try saying it out loud.', '這個有點難，唸出來會更好記。']],
-  goal:    [['Daily goal complete! Great job, {n}! 🎉', '{n} 完成今日目標！+' + GOAL_BONUS + ' ⭐'],
-            ['Goal crushed! See you tomorrow, {n}!', '今日目標達成！+' + GOAL_BONUS + ' ⭐ 明天見！']],
+  goal:    [['Weekly goal complete! Great job, {n}! 🎉', '{n} 完成本週目標！+' + GOAL_BONUS + ' ⭐'],
+            ['Goal crushed! See you next week, {n}!', '本週目標達成！+' + GOAL_BONUS + ' ⭐']],
   sess:    [['Round complete! Nice work, {n}.', '這輪完成，{n} 做得好！'], ['Done! Your brain is getting stronger.', '完成！你的單字力又變強了。']],
   qperfect:[['PERFECT! You\'re a champion, {n}! 🏆', '全對！{n} 太厲害了！']],
   qgood:   [['Great job, {n}! Almost perfect.', '{n} 表現很棒，差一點就全對！'], ['Strong work! Keep it up.', '很強！繼續保持。']],
@@ -596,25 +599,50 @@ const ledgerSig = () => hash(SALT + '|' + (st.profile ? st.profile.createdAt : '
 // 一旦發現被改過就不再重新簽章，異常標記會一直留著
 async function saveLedger() { await db.set('ledger', st.ledger); await db.set('sig', st.tampered ? 'TAMPERED' : ledgerSig()); }
 const dayCards = (k) => (st.ledger.days[k] && st.ledger.days[k].cards) || 0;
-function points() {
-  let card = 0, goal = 0, quiz = 0, streak = 0;
-  for (const k in st.ledger.days) {
-    const d = st.ledger.days[k];
-    card += Math.min(d.cards || 0, CARD_CAP);
-    if ((d.cards || 0) >= DAILY_GOAL) goal += GOAL_BONUS;
-    if (d.qbest) for (const u in d.qbest) quiz += d.qbest[u];   // 測驗：每單元只算當天最高分
-  }
-  st.ledger.bonus.forEach((b) => { if (b.k.startsWith('streak')) streak += b.p; else quiz += b.p; });
-  return { card, goal, streak, quiz, total: card + goal + streak + quiz };
+function weekOf(k) {   // 日期 → 該週週一的日期
+  const [y, m, d] = k.split('-').map(Number), dt = new Date(y, m - 1, d);
+  dt.setDate(dt.getDate() - ((dt.getDay() + 6) % 7));
+  return keyOf(dt);
 }
-const goalDays = () => Object.keys(st.ledger.days).filter((k) => dayCards(k) >= DAILY_GOAL);
-function streakNow() {   // 連續完成每日目標的天數（今天還沒完成不會斷）
-  const set = new Set(goalDays());
-  let n = 0; const d = new Date();
-  if (!set.has(keyOf(d))) d.setDate(d.getDate() - 1);
-  while (set.has(keyOf(d))) { n++; d.setDate(d.getDate() - 1); }
+const thisWeek = () => weekOf(todayKey());
+function weeks() {   // 每週彙總：複習張數、各單元挑戰最高分
+  const W = {};
+  for (const k in st.ledger.days) {
+    const d = st.ledger.days[k], w = W[weekOf(k)] || (W[weekOf(k)] = { cards: 0, qb: {} });
+    w.cards += d.cards || 0;
+    if (d.qbest) for (const u in d.qbest) w.qb[u] = Math.max(w.qb[u] || 0, d.qbest[u]);
+  }
+  return W;
+}
+const weekCards = () => (weeks()[thisWeek()] || { cards: 0 }).cards;
+const weekBest = (u) => ((weeks()[thisWeek()] || { qb: {} }).qb[u]) || 0;
+function points() {
+  let card = 0, goal = 0, quiz = 0, streak = 0, master = 0;
+  const W = weeks();
+  for (const k in W) {
+    card += Math.min(W[k].cards, CARD_CAP);
+    if (W[k].cards >= WEEK_GOAL) goal += GOAL_BONUS;
+    for (const u in W[k].qb) quiz += W[k].qb[u];   // 挑戰：每單元每週只算最高分
+  }
+  st.ledger.bonus.forEach((b) => { if (b.k.startsWith('wk') || b.k.startsWith('streak')) streak += b.p; else master += b.p; });
+  return { card, goal, streak, quiz: quiz + master, quizOnly: quiz, master, total: card + goal + streak + quiz + master };
+}
+function streakNow() {   // 連續完成每週目標的週數（這週還沒完成不會斷）
+  const W = weeks(); let n = 0;
+  const d = new Date(); d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+  const met = (dt) => (W[keyOf(dt)] || { cards: 0 }).cards >= WEEK_GOAL;
+  if (!met(d)) d.setDate(d.getDate() - 7);
+  while (met(d)) { n++; d.setDate(d.getDate() - 7); }
   return n;
 }
+// 時間異常：時間倒退（maxSeen 比現在晚）或紀錄出現未來日期 → 永久標記
+function clockCheck() {
+  const now = Date.now(), L = st.ledger;
+  if ((L.maxSeen && now < L.maxSeen - CLOCK_SLACK) || Object.keys(L.days).some((k) => k > todayKey())) L.clockBad = true;
+  L.maxSeen = Math.max(L.maxSeen || 0, now);
+}
+const touchUnit = (u) => { if (!u) return; st.meta.unitSeen = st.meta.unitSeen || {}; st.meta.unitSeen[u] = Date.now(); };
+const faded = (u) => { const t = (st.meta.unitSeen || {})[u]; return !t || Date.now() - t > FADE_DAYS * DAY; };
 const titleOf = (pts) => { let t = TITLES[0], i = 0; TITLES.forEach((x, j) => { if (pts >= x[0]) { t = x; i = j; } }); return { t, next: TITLES[i + 1] }; };
 const studentId = () => st.profile ? hash('ID|' + st.profile.createdAt + '|' + SALT).replace(/[^A-Z0-9]/g, '').slice(-4).padStart(4, 'X') : '----';
 const proofCode = (total) => hash(SALT + '|' + studentId() + '|' + total + '|' + todayKey()).slice(-4);
@@ -914,15 +942,17 @@ function rate(g) {
   st.prog[w.id] = p;
 
   // 積分紀錄
+  clockCheck(); touchUnit(w.unit);
   const day = st.ledger.days[k] || (st.ledger.days[k] = { cards: 0 });
   day.cards++;
-  if (day.cards <= CARD_CAP) plusOne('+1');
-  if (day.cards === DAILY_GOAL && st.meta.celebrated !== k) {
-    st.meta.celebrated = k;
+  const wc = weekCards();
+  if (wc <= CARD_CAP) plusOne('+1');
+  st.justGoal = wc === WEEK_GOAL && st.meta.celebrated !== thisWeek();
+  if (st.justGoal) {
+    st.meta.celebrated = thisWeek();
     setTimeout(() => { confetti(); coach('goal'); }, 250);
     checkStreakBonus();
   }
-  st.justGoal = day.cards === DAILY_GOAL;
   st.celebrateSess = true;
   saveProg(); saveMeta(); saveLedger();
   afterPoints(ptsBefore);
@@ -931,10 +961,10 @@ function rate(g) {
 function checkStreakBonus() {
   const s = streakNow();
   Object.entries(STREAK_BONUS).forEach(([d, pts]) => {
-    const key = 'streak' + d;
+    const key = 'wk' + d;
     if (s >= +d && !st.ledger.bonus.some((b) => b.k === key)) {
       st.ledger.bonus.push({ t: Date.now(), k: key, p: pts });
-      setTimeout(() => { confetti(90); toast(`🔥 連續 ${d} 天！+${pts} ⭐`); }, 2900);
+      setTimeout(() => { confetti(90); toast(`🔥 連續 ${d} 週達成目標！+${pts} ⭐`); }, 2900);
     }
   });
 }
@@ -997,17 +1027,17 @@ function renderCard() {
   if (!st.cur) {
     const c = countDue(), pool = st.words.filter(inFilter);
     const hasNew = pool.some((w) => !st.prog[w.id]);
-    const today = dayCards(todayKey()), left = Math.max(0, DAILY_GOAL - today);
+    const left = Math.max(0, WEEK_GOAL - weekCards());
     stage.innerHTML = !st.words.length
       ? `<div class="done"><div class="big">⏳</div><h2>載入單字中…</h2><p>第一次使用需要連上網路。</p></div>`
       : !pool.length
       ? `<div class="done"><div class="big">🔍</div><h2>這個範圍沒有單字</h2><p>點上方「範圍」換一個單元。</p></div>`
       : `<div class="done"><div class="big">${left ? '💪' : '🎉'}</div>
-          <h2>${left ? `Almost there!<br><small style="font-size:14px;color:var(--muted)">再 ${left} 張就達成今日目標</small>` : 'Goal complete!<br><small style="font-size:14px;color:var(--muted)">今日目標已達成</small>'}</h2>
+          <h2>${left ? `Almost there!<br><small style="font-size:14px;color:var(--muted)">再 ${left} 張就達成本週目標</small>` : 'Goal complete!<br><small style="font-size:14px;color:var(--muted)">本週目標已達成</small>'}</h2>
           <p>${st.sess.total ? `這輪完成 ${st.sess.done} 張，不熟 ${st.sess.again} 次。<br>` : ''}${c.due ? `還有 ${c.due} 個字到期。` : '到期的字都複習完了。'}</p>
           <div class="btnrow">
             ${c.due || c.fresh ? '<button class="btn" data-act="start">繼續複習</button>'
-              : left ? `<button class="btn" data-act="fill" data-n="${left}">補滿今日目標（${left} 張）</button>` : ''}
+              : left ? `<button class="btn" data-act="fill" data-n="${Math.min(left, 20)}">多練 ${Math.min(left, 20)} 張</button>` : ''}
             ${hasNew ? '<button class="btn ghost" data-act="more">再學 5 個新字</button>' : ''}
             ${!left || c.due || c.fresh ? '<button class="btn ghost" data-act="extra">多練 10 張</button>' : ''}
             <button class="btn ghost" data-act="hard">練習不熟的字</button>
@@ -1093,7 +1123,7 @@ function renderHeader(bump) {
   const pts = points().total, s = streakNow(), t = titleOf(pts).t;
   if (st.profile) { $('hAva').textContent = st.profile.avatar; $('hName').textContent = st.profile.name; }
   $('hTitle').textContent = t[1].toUpperCase();
-  $('hStreak').textContent = '🔥 ' + s;
+  $('hStreak').textContent = '🔥 ' + s + '週';
   $('hPts').textContent = '⭐ ' + pts;
   if (bump) { const p = $('hPts'); p.classList.remove('bump'); void p.offsetWidth; p.classList.add('bump'); }
 }
@@ -1108,14 +1138,14 @@ function renderInstallTip() {   // 用瀏覽器開啟時的警告；按 ✕ 只�
 }
 function renderHome() {
   renderInstallTip();
-  const today = dayCards(todayKey()), r = 50, C = 2 * Math.PI * r, pct = Math.min(1, today / DAILY_GOAL);
+  const today = weekCards(), r = 50, C = 2 * Math.PI * r, pct = Math.min(1, today / WEEK_GOAL);
   $('ring').innerHTML = `<svg width="118" height="118" viewBox="0 0 118 118">
       <circle cx="59" cy="59" r="${r}" fill="none" stroke="#232a3c" stroke-width="11"/>
       <circle cx="59" cy="59" r="${r}" fill="none" stroke="${pct >= 1 ? 'var(--mint)' : 'var(--lime)'}" stroke-width="11" stroke-linecap="round"
         stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - pct)}" style="transition:stroke-dashoffset .6s"/></svg>
-      <div class="num"><b>${Math.min(today, DAILY_GOAL)}</b><span>/ ${DAILY_GOAL} 張</span></div>`;
+      <div class="num"><b>${Math.min(today, WEEK_GOAL)}</b><span>/ ${WEEK_GOAL} 張</span></div>`;
   const c = countDue();
-  $('heroTitle').innerHTML = pct >= 1 ? 'Goal complete! 🎉<small>今日目標達成，可以繼續多練</small>' : `Hi ${esc(st.profile ? st.profile.name : '')}!<small>今天的目標：複習 ${DAILY_GOAL} 張</small>`;
+  $('heroTitle').innerHTML = pct >= 1 ? 'Goal complete! 🎉<small>本週目標達成，可以去挑戰拿分</small>' : `Hi ${esc(st.profile ? st.profile.name : '')}!<small>本週目標：複習 ${WEEK_GOAL} 張（週一重新計算）</small>`;
   $('heroSub').textContent = `待複習 ${c.due}・新字 ${c.fresh}`;
   $('tStreak').textContent = streakNow();
   $('tPts').textContent = points().total;
@@ -1125,7 +1155,7 @@ function renderHome() {
     const k = { known: 0, learn: 0, hard: 0, new: 0 }; ws.forEach((w) => k[statusOf(w)]++);
     const seg = (v, col) => v ? `<i style="width:${v / n * 100}%;background:${col}"></i>` : '';
     return `<button class="unit" data-unit="${esc(u)}"><span class="u">${esc(u)}</span>
-      <div><div class="t">${n} 個字・已掌握 ${k.known}${st.meta.quizBest && st.meta.quizBest[u] != null ? `・挑戰最佳 ${st.meta.quizBest[u]}%` : ''}</div><div class="stack">${seg(k.known, 'var(--mint)')}${seg(k.learn + k.hard, 'var(--amber)')}</div></div>
+      <div><div class="t">${n} 個字・已掌握 ${k.known}${st.meta.quizBest && st.meta.quizBest[u] != null ? `・挑戰最佳 ${st.meta.quizBest[u]}%` : ''}${st.ledger.bonus.some((b) => b.k === 'master:' + u) ? (faded(u) ? '・<span style="color:var(--muted)">🏅 需要複習</span>' : '・🏅') : ''}</div><div class="stack">${seg(k.known, 'var(--mint)')}${seg(k.learn + k.hard, 'var(--amber)')}</div></div>
       <span class="pct">${Math.round(k.known / n * 100)}%</span></button>`;
   }).join('') + lockedRows('unitl') || '<p class="hint">載入中…</p>';
 }
@@ -1175,13 +1205,14 @@ function renderMe() {
     <div class="track" style="margin-top:10px;height:8px"><i style="width:${Math.min(100, got / span * 100)}%;background:var(--lime)"></i></div>
     <div class="note" style="margin-top:6px">${next ? `再 ${next[0] - P.total} 分升級為 ${next[1]}（${next[2]}）` : '已經是最高等級！'}</div>`;
   $('rules').innerHTML = `
-    <div class="srow"><div>每複習 1 張<small>每天最多 ${CARD_CAP} 分</small></div><b>+1</b></div>
-    <div class="srow"><div>完成每日目標<small>一天複習 ${DAILY_GOAL} 張</small></div><b>+${GOAL_BONUS}</b></div>
-    <div class="srow"><div>連續天數獎勵<small>連續 3／7／14／30 天完成目標</small></div><b>+20～200</b></div>
+    <div class="srow"><div>每複習 1 張<small>每週最多 ${CARD_CAP} 分（週一重新計算）</small></div><b>+1</b></div>
+    <div class="srow"><div>完成每週目標<small>一週複習 ${WEEK_GOAL} 張</small></div><b>+${GOAL_BONUS}</b></div>
+    <div class="srow"><div>連續週數獎勵<small>連續 2／4／6 週完成每週目標</small></div><b>+10／30／60</b></div>
     <div class="srow"><div>挑戰答對 1 題<small>拼字題 +${SPELL_PTS}；連對 3 題以上每題再 +${COMBO_PTS}</small></div><b>+${Q_PTS}</b></div>
     <div class="srow"><div>挑戰全對<small>10 題全部答對</small></div><b>+${PERFECT_PTS}</b></div>
     <div class="srow"><div>單元精熟<small>某單元第一次拿到 ${MASTER_PCT}% 以上（每單元一次）</small></div><b>+${MASTER_PTS}</b></div>
-    <div class="srow"><div>同一單元重複挑戰<small>每天只算最高的一次，打破當天紀錄才會補差額</small></div><b>📈</b></div>`;
+    <div class="srow"><div>同一單元重複挑戰<small>每週只算最高的一次，打破本週紀錄才會補差額</small></div><b>📈</b></div>
+    <div class="srow"><div>精熟要維持<small>🏅 單元 ${FADE_DAYS} 天沒練會褪色，不扣分，回來練就恢復</small></div><b>🏅</b></div>`;
   $('meName').textContent = st.profile ? st.profile.avatar + ' ' + st.profile.name : '—';
   $('sAuto').classList.toggle('on', st.set.autoSpeak);
   $('syncInfo').textContent = `${st.words.length} 個字・上次同步 ${st.set.syncedAt ? new Date(st.set.syncedAt).toLocaleString('zh-TW') : '—'}`;
@@ -1190,6 +1221,8 @@ function openProof() {
   const P = points(), { t } = titleOf(P.total);
   const known = st.words.filter((w) => statusOf(w) === 'known').length;
   const active = Object.keys(st.ledger.days).filter((k) => dayCards(k) > 0).length;
+  const totalCards = Object.values(st.ledger.days).reduce((a, d) => a + (d.cards || 0), 0);
+  const qs = st.ledger.qstat, acc = qs && qs.total ? Math.round(qs.right / qs.total * 100) + '%' : '—';
   $('sheet').innerHTML = `<div class="proof">
       <div class="pava">${esc(st.profile.avatar)}</div>
       <div class="pname">${esc(st.profile.name)}</div>
@@ -1198,13 +1231,15 @@ function openProof() {
       <div class="mode">${isStandalone() ? '📱 主畫面 App' : '🌐 瀏覽器開啟'}</div>
       <div class="ptotal">${P.total}</div><div class="plabel">總積分 TOTAL POINTS</div>
       <div class="pgrid">
-        <div><b>${P.card}</b>複習</div><div><b>${P.goal}</b>每日目標</div>
-        <div><b>${P.streak}</b>連續獎勵</div><div><b>${P.quiz}</b>測驗挑戰</div>
-        <div><b>🔥 ${streakNow()}</b>目前連續天數</div><div><b>${known}</b>已掌握單字</div>
+        <div><b>${P.card}</b>複習</div><div><b>${P.goal}</b>每週目標</div>
+        <div><b>${P.quizOnly}</b>挑戰</div><div><b>${P.master}</b>單元精熟</div>
+        <div><b>${P.streak}</b>連續獎勵</div><div><b>🔥 ${streakNow()} 週</b>目前連續</div>
+        <div><b>${totalCards}</b>總複習張數</div><div><b>${acc}</b>挑戰正確率</div>
       </div>
       <div class="pfoot"><span>學習 ${active} 天<br><span class="clock" id="clock"></span></span>
         <span style="text-align:right">驗證碼<br><span class="code">${proofCode(P.total)}</span></span></div>
       ${(st.ledger.moves || []).length ? `<div class="moved">🔁 從其他裝置轉入 ${st.ledger.moves.length} 次（最近：${new Date(st.ledger.moves[st.ledger.moves.length - 1]).toLocaleDateString('zh-TW')}）</div>` : ''}
+      ${st.ledger.clockBad ? '<div class="warnbox">⏰ 手機時間曾被調整過</div>' : ''}
       ${st.tampered ? '<div class="warnbox">⚠️ 積分資料異常，請找老師確認</div>' : ''}
     </div>
     <div class="btnrow" style="margin-top:14px"><button class="btn ghost" data-close="1">關閉</button></div>`;
@@ -1228,7 +1263,7 @@ function showView(id) {
 //  挑戰（測驗）：每單元 10 題，題型混合
 // ═══════════════════════════════════════════════════════
 const QUIZ_PLAN = ['en2zh', 'listen', 'zh2en', 'cloze', 'match', 'en2zh', 'spell', 'listen', 'cloze', 'spell'];
-const Q_PTS = 5, SPELL_PTS = 8, COMBO_PTS = 2, PERFECT_PTS = 10, MASTER_PTS = 50, MASTER_PCT = 90;
+const Q_PTS = 2, SPELL_PTS = 3, COMBO_PTS = 1, PERFECT_PTS = 5, MASTER_PTS = 50, MASTER_PCT = 90;   // 一次最多 35 分
 const QTYPE = {
   en2zh: '選出正確的中文 Choose the meaning', zh2en: '選出正確的英文 Choose the word', listen: '聽音選字 Listen and choose',
   cloze: '選字填空 Fill in the blank', match: '配對 Match the pairs', spell: '拼出這個字 Spell the word',
@@ -1385,10 +1420,13 @@ function finishQuiz() {
   if (qz.result) return qz.result;
   const n = qz.qs.length, pct = Math.round(qz.right / n * 100), k = todayKey();
   if (qz.right === n) qz.pts += PERFECT_PTS;
+  clockCheck(); touchUnit(qz.unit);
+  const prevBest = weekBest(qz.unit), gain = Math.max(0, qz.pts - prevBest);   // 每單元每週只算最高分
   const day = st.ledger.days[k] || (st.ledger.days[k] = { cards: 0 });
   day.qbest = day.qbest || {};
-  const prevBest = day.qbest[qz.unit] || 0, gain = Math.max(0, qz.pts - prevBest);
-  if (qz.pts > prevBest) day.qbest[qz.unit] = qz.pts;
+  if (qz.pts > (day.qbest[qz.unit] || 0)) day.qbest[qz.unit] = qz.pts;
+  const qs = st.ledger.qstat || (st.ledger.qstat = { n: 0, right: 0, total: 0 });   // 正確率，給老師比同分用
+  qs.n++; qs.right += qz.right; qs.total += n;
   let master = false;
   if (pct >= MASTER_PCT && !st.ledger.bonus.some((b) => b.k === 'master:' + qz.unit)) {
     st.ledger.bonus.push({ t: Date.now(), k: 'master:' + qz.unit, p: MASTER_PTS }); master = true;
@@ -1414,8 +1452,8 @@ function renderQuizResult() {
       <div class="qtype">${esc(qz.unit)} 挑戰結果 RESULT</div>
       <div class="pct">${r.pct}%</div><div class="note" style="margin-top:4px">答對 ${qz.right} / ${n} 題${r.record && r.oldBest != null ? '・🆕 新紀錄！' : ''}</div>
       ${r.gain ? `<div class="gain">+${r.gain} ⭐</div>`
-        : `<div class="gain zero">今天 ${esc(qz.unit)} 已經拿過 ${r.prevBest} 分，超過才會再加分</div>`}
-      ${r.gain && r.prevBest ? `<div class="note" style="margin-top:6px">打破今天紀錄（${r.prevBest} → ${qz.pts}），補上差額</div>` : ''}
+        : `<div class="gain zero">本週 ${esc(qz.unit)} 已經拿過 ${r.prevBest} 分，超過才會再加分</div>`}
+      ${r.gain && r.prevBest ? `<div class="note" style="margin-top:6px">打破本週紀錄（${r.prevBest} → ${qz.pts}），補上差額</div>` : ''}
       ${r.master ? `<div class="banner">🏅 ${esc(qz.unit)} 單元精熟！+${MASTER_PTS} ⭐</div>` : ''}
     </div>
     ${wrong.length ? `<h3>答錯的字 <small>已加入複習</small></h3><div class="list">${wrong.map(rowHTML).join('')}</div>` : ''}
@@ -1426,7 +1464,7 @@ function renderQuizResult() {
     </div>`;
 }
 function renderQuizHome() {
-  const k = todayKey(), qb = (st.ledger.days[k] && st.ledger.days[k].qbest) || {};
+  const qb = (weeks()[thisWeek()] || { qb: {} }).qb;
   const best = st.meta.quizBest || {};
   $('quizBox').innerHTML = `<div class="hero" style="display:block">
       <h2>Unit Challenge 🎯<small>每次 10 題：選擇、聽音、填空、配對、拼字</small></h2>
@@ -1436,7 +1474,7 @@ function renderQuizHome() {
       const n = st.words.filter((w) => w.unit === u).length;
       const mastered = st.ledger.bonus.some((b) => b.k === 'master:' + u);
       return `<button class="qunit" data-qunit="${esc(u)}"><span class="u">${esc(u)}</span>
-        <span class="m"><b>${mastered ? '🏅 已精熟' : n + ' 個字'}</b><br>最佳 ${best[u] != null ? best[u] + '%' : '—'}・今天 ${qb[u] ? '+' + qb[u] + ' ⭐' : '還沒挑戰'}</span>
+        <span class="m"><b>${mastered ? (faded(u) ? '<span style="color:var(--muted)">🏅 需要複習</span>' : '🏅 已精熟') : n + ' 個字'}</b><br>最佳 ${best[u] != null ? best[u] + '%' : '—'}・本週 ${qb[u] ? '+' + qb[u] + ' ⭐' : '還沒挑戰'}</span>
         <span class="go">挑戰 ▶</span></button>`;
     }).join('') + lockedRows('qunitl') || '<p class="hint">載入中…</p>'}</div>`;
 }
@@ -1646,6 +1684,7 @@ document.addEventListener('keydown', (e) => {
   const last = st.meta.lastActive;
   renderHeader(); renderFilters(); renderHome();
   checkLock();
+  if (st.profile) { clockCheck(); saveLedger(); }   // 每次開啟都檢查手機時間
   if (!st.profile) openOnboarding(false);
   else if (last && daysBetween(last, todayKey()) >= 2) setTimeout(() => coach('comeback'), 600);
   else if (st.meta.day !== todayKey()) setTimeout(() => coach('greet'), 600);
