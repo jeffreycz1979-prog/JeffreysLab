@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0a0a14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="THP11 單字">
+<title>THP11 單字挑戰 Word Quest</title>
+<link rel="manifest" href="/JeffreysLab/vocab-thp11/manifest.json">
+<link rel="apple-touch-icon" href="/JeffreysLab/icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --green:#1a3a1a; --lime:#CCFF00; --mint:#4ECDC4;
+  --bg:#0a0a14; --panel:#131826; --card:#171d2d; --line:#262d40;
+  --ink:#eef2e6; --muted:#8a93a6; --coral:#ff6b57; --amber:#ffb547;
+  --safe-b:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--bg);color:var(--ink);
+  overscroll-behavior:none;display:flex;flex-direction:column}
+button{font-family:inherit;cursor:pointer;color:inherit}
+.en{font-family:'Syne',system-ui,sans-serif}
+
+/* ── 頂部 ── */
+header{padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 10px;display:flex;align-items:center;gap:10px;
+  background:linear-gradient(180deg,#10182a,var(--bg))}
+.me{display:flex;align-items:center;gap:8px;min-width:0;border:none;background:none;text-align:left}
+.ava{width:38px;height:38px;border-radius:50%;background:var(--panel);border:2px solid var(--lime);
+  display:flex;align-items:center;justify-content:center;font-size:22px;flex:none}
+.me b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px}
+.me small{display:block;font-family:'Syne',sans-serif;font-size:10px;color:var(--lime);letter-spacing:.5px}
+header .sp{flex:1}
+.pill{font-size:13px;font-weight:700;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:5px 10px;white-space:nowrap}
+.pill.pts{color:var(--lime)}
+.pill.bump{animation:bump .5s}
+@keyframes bump{40%{transform:scale(1.25)}}
+
+main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.view{display:none;padding:6px 16px calc(84px + var(--safe-b));max-width:560px;margin:0 auto}
+.view.active{display:block}
+#v-review.active{display:flex;flex-direction:column;height:100%}
+
+/* ── 首頁 ── */
+.hero{background:radial-gradient(120% 120% at 0% 0%,#1f3a1f 0%,var(--panel) 55%);border:1px solid var(--line);
+  border-radius:24px;padding:18px;display:flex;align-items:center;gap:16px}
+.ring{position:relative;width:118px;height:118px;flex:none}
+.ring svg{transform:rotate(-90deg)}
+.ring .num{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring .num b{font-family:'Syne',sans-serif;font-size:30px;line-height:1}
+.ring .num span{font-size:11px;color:var(--muted)}
+.hero h2{font-size:18px;line-height:1.3}
+.hero h2 small,.sub{display:block;font-size:12px;color:var(--muted);font-weight:400;margin-top:2px}
+.hero .btn{margin-top:12px}
+.trio{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.tile{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:12px 10px;text-align:center}
+.tile b{display:block;font-family:'Syne',sans-serif;font-size:24px}
+.tile span{font-size:11px;color:var(--muted)}
+.tile.l b{color:var(--lime)} .tile.o b{color:var(--amber)} .tile.m b{color:var(--mint)}
+h3{font-size:14px;margin:20px 0 8px;display:flex;align-items:baseline;gap:6px}
+h3 small{font-family:'Syne',sans-serif;font-size:11px;color:var(--muted);font-weight:600}
+.units{display:flex;flex-direction:column;gap:8px}
+.unit{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px 14px;display:grid;
+  grid-template-columns:44px 1fr auto;align-items:center;gap:10px;text-align:left;width:100%}
+.unit .u{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:var(--lime)}
+.unit .t{font-size:12px;color:var(--muted);margin-bottom:6px}
+.unit .pct{font-family:'Syne',sans-serif;font-weight:700;font-size:15px}
+.stack{height:9px;border-radius:6px;overflow:hidden;display:flex;background:#232a3c}
+.stack i{display:block;height:100%}
+.legend{display:flex;gap:12px;font-size:11px;color:var(--muted);margin-top:8px;flex-wrap:wrap}
+.legend span{display:flex;align-items:center;gap:4px}
+.dot{width:9px;height:9px;border-radius:50%;flex:none;display:inline-block}
+.d-new{background:#4a5266}.d-learn{background:var(--amber)}.d-known{background:var(--mint)}.d-hard{background:var(--coral)}
+
+/* ── 篩選 ── */
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1.5px solid var(--line);background:var(--panel);color:var(--muted);border-radius:20px;padding:5px 12px;font-size:12px;font-weight:500}
+.chip.on{background:var(--lime);border-color:var(--lime);color:#10140a;font-weight:700}
+.flabel{font-size:11px;color:var(--muted);margin:10px 0 4px;font-weight:700;letter-spacing:.5px}
+.ftoggle{width:100%;border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:9px 12px;font-size:13px;color:var(--muted);
+  display:flex;align-items:center;gap:4px;text-align:left}
+.ftoggle b{color:var(--lime);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fpanel{display:none}.fpanel.open{display:block}
+
+/* ── 進度條 ── */
+.sessbar{display:flex;align-items:center;gap:10px;margin:12px 0 10px;font-size:12px;color:var(--muted)}
+.track{flex:1;height:6px;background:#232a3c;border-radius:6px;overflow:hidden}
+.track i{display:block;height:100%;background:var(--mint);width:0;transition:width .3s}
+.combo{font-family:'Syne',sans-serif;font-weight:800;color:var(--amber);min-width:44px;text-align:right}
+.undo{border:none;background:none;color:var(--mint);font-size:12px;font-weight:700;padding:4px 0}
+.undo:disabled{color:#3d4558}
+
+/* ── 卡片 ── */
+.stage{position:relative;flex:1;min-height:260px;display:flex;align-items:stretch;justify-content:center;touch-action:pan-y}
+.card{position:absolute;inset:0;background:var(--card);border:1px solid var(--line);border-radius:24px;box-shadow:0 10px 30px rgba(0,0,0,.45);
+  padding:22px 20px;display:flex;flex-direction:column;user-select:none;-webkit-user-select:none;will-change:transform}
+.card.anim{transition:transform .28s ease, opacity .28s ease}
+.card.pop{animation:pop .35s}
+@keyframes pop{0%{transform:scale(.92);opacity:.4}100%{transform:scale(1);opacity:1}}
+.tags{display:flex;gap:6px;flex-wrap:wrap}
+.tag{font-size:11px;font-weight:700;border-radius:8px;padding:3px 8px;background:#222a3d;color:var(--mint)}
+.tag.u{background:var(--lime);color:#10140a}
+.tag.warn{background:#3a2e12;color:var(--amber)}
+.tag.stub{background:#3a1c18;color:var(--coral)}
+.front{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px}
+.word{font-family:'Syne',sans-serif;font-size:clamp(28px,8.5vw,42px);font-weight:800;line-height:1.15;word-break:break-word;color:var(--ink)}
+.ipa{font-size:16px;color:var(--muted)}
+.pos{font-size:13px;color:var(--muted);font-style:italic}
+.spk{width:52px;height:52px;border-radius:50%;border:none;background:var(--lime);color:#10140a;font-size:22px;
+  display:flex;align-items:center;justify-content:center;box-shadow:0 0 18px rgba(204,255,0,.35)}
+.spk.small{width:34px;height:34px;font-size:15px;box-shadow:none;flex:none}
+.spk.busy{opacity:.5}
+.hint{font-size:12px;color:#5d667a;text-align:center}
+.back{display:none;flex:1;min-height:0;flex-direction:column;gap:12px;overflow-y:auto;margin-top:12px;border-top:1.5px dashed var(--line);padding:14px 14px 4px 0;scrollbar-width:none;touch-action:pan-y}
+.back::-webkit-scrollbar{display:none}
+.rail{position:absolute;right:8px;width:5px;border-radius:5px;background:rgba(78,205,196,.2);display:none;pointer-events:none}
+.rail i{position:absolute;left:0;right:0;border-radius:5px;background:var(--mint)}
+.card.flipped .rail.on{display:block}
+.card.flipped .back{display:flex}
+.card.flipped .front{flex:none;padding-top:6px;gap:4px}
+.card.flipped .word{font-size:clamp(22px,6.5vw,30px)}
+.card.flipped .hint,.card.flipped .pos{display:none}
+.card.flipped .ipa{font-size:14px}
+.card.flipped .front .spk{width:38px;height:38px;font-size:17px;box-shadow:none}
+.zh{font-size:22px;font-weight:700;text-align:center;color:var(--lime)}
+.sec{font-size:11px;font-weight:700;color:var(--mint);letter-spacing:.6px;margin-bottom:3px;font-family:'Syne',sans-serif}
+.def{font-size:15px;line-height:1.5}
+.ex{font-size:15px;line-height:1.55;font-style:italic;display:flex;gap:8px;align-items:flex-start}
+.exzh{font-size:13px;color:var(--muted);margin-top:3px}
+.ex mark{background:rgba(204,255,0,.25);color:var(--lime);font-style:normal;font-weight:700;padding:0 2px;border-radius:3px}
+.note{font-size:12px;color:var(--muted)}
+.stamp{position:absolute;top:22px;font-family:'Syne',sans-serif;font-weight:800;font-size:22px;border:3px solid;border-radius:10px;padding:2px 10px;opacity:0;pointer-events:none}
+.stamp.l{right:20px;color:var(--coral);transform:rotate(12deg)}
+.stamp.r{left:20px;color:var(--lime);transform:rotate(-12deg)}
+
+/* ── 評分按鈕 ── */
+.rate{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:14px;position:relative}
+.rbtn{border:none;border-radius:16px;padding:12px 4px;font-size:15px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:2px}
+.rbtn span{font-size:11px;font-weight:500;opacity:.8}
+.r1{background:#3a1c18;color:var(--coral)}
+.r3{background:var(--lime);color:#10140a}
+.r4{background:#123a37;color:var(--mint)}
+.plus{position:absolute;left:50%;top:-6px;transform:translateX(-50%);font-family:'Syne',sans-serif;font-weight:800;color:var(--lime);
+  pointer-events:none;animation:rise .9s forwards}
+@keyframes rise{to{transform:translate(-50%,-40px);opacity:0}}
+
+/* ── 共用 ── */
+.done{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:12px;padding:30px 10px}
+.done .big{font-size:46px}
+.done h2{font-size:20px}
+.done p{color:var(--muted);font-size:14px;line-height:1.6}
+.btn{border:none;border-radius:14px;padding:11px 18px;font-size:14px;font-weight:700;background:var(--lime);color:#10140a}
+.btn.ghost{background:var(--panel);color:var(--ink);border:1.5px solid var(--line)}
+.btn.danger{background:#3a1c18;color:var(--coral)}
+.btn.wide{width:100%;padding:14px}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+
+/* ── 單字列表 ── */
+.search{width:100%;border:1.5px solid var(--line);border-radius:14px;padding:11px 14px;font-size:15px;background:var(--panel);color:var(--ink);font-family:inherit}
+.search:focus{outline:none;border-color:var(--mint)}
+.list{margin-top:12px;display:flex;flex-direction:column;gap:6px}
+.row{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:11px 12px;display:flex;align-items:center;gap:10px}
+.row .main{flex:1;min-width:0}
+.row .w{font-family:'Syne',sans-serif;font-weight:700;font-size:16px}
+.row .z{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .meta{text-align:right;font-size:11px;color:var(--muted);flex:none}
+.count{font-size:12px;color:var(--muted);margin-top:10px}
+
+/* ── 我的／積分證明 ── */
+.rank{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:16px}
+.rank .top{display:flex;justify-content:space-between;align-items:baseline}
+.rank .top b{font-family:'Syne',sans-serif;font-size:18px;color:var(--lime)}
+.rank .top span{font-size:12px;color:var(--muted)}
+.set{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:4px 14px;margin-bottom:12px}
+.srow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 0;border-bottom:1px solid var(--line);font-size:14px}
+.srow:last-child{border-bottom:none}
+.srow small{display:block;font-size:11px;color:var(--muted);margin-top:2px}
+.sw{width:46px;height:28px;border-radius:14px;background:#2c3447;position:relative;border:none;flex:none;transition:background .2s}
+.sw::after{content:'';position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:left .2s}
+.sw.on{background:var(--mint)}.sw.on::after{left:21px}
+.diag{font-size:11px;font-family:monospace;color:var(--muted);white-space:pre-wrap;word-break:break-all;background:#0e1220;border-radius:10px;padding:8px;margin:8px 0;display:none}
+
+.proof{position:relative;overflow:hidden;border-radius:26px;padding:22px 20px;text-align:center;
+  background:linear-gradient(135deg,#1a3a1a,#0f2a2a 50%,#1a1a3a);border:2px solid var(--lime)}
+.proof::before{content:'';position:absolute;inset:-50%;background:conic-gradient(from 0deg,transparent 0 70%,rgba(204,255,0,.18) 80%,transparent 90%);
+  animation:spin 4s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.proof > *{position:relative}
+.proof .pava{font-size:54px;line-height:1}
+.proof .pname{font-size:22px;font-weight:700;margin-top:6px}
+.proof .ptitle{font-family:'Syne',sans-serif;color:var(--lime);font-size:13px;letter-spacing:1px}
+.proof .ptotal{font-family:'Syne',sans-serif;font-weight:800;font-size:56px;color:var(--lime);line-height:1.05;margin-top:10px;text-shadow:0 0 24px rgba(204,255,0,.45)}
+.proof .plabel{font-size:12px;color:#c6d1c6}
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;text-align:left}
+.pgrid div{background:rgba(0,0,0,.28);border-radius:12px;padding:8px 10px;font-size:12px;color:#c6d1c6}
+.pgrid b{display:block;font-family:'Syne',sans-serif;font-size:18px;color:#fff}
+.pfoot{margin-top:14px;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#c6d1c6}
+.pfoot .code{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:#fff;letter-spacing:2px}
+.clock{font-family:monospace;font-size:13px;color:#fff}
+.warnbox{margin-top:12px;background:#3a1c18;color:var(--coral);border-radius:12px;padding:8px;font-size:12px}
+
+/* ── 底部分頁 ── */
+nav{position:fixed;left:0;right:0;bottom:0;background:#0d1120;border-top:1px solid var(--line);display:flex;padding-bottom:var(--safe-b);z-index:50}
+nav button{flex:1;border:none;background:none;padding:8px 0 9px;font-size:11px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px}
+nav button i{font-style:normal;font-size:20px;line-height:1.1}
+nav button.on{color:var(--lime);font-weight:700}
+
+/* ── 彈窗、教練泡泡、彩帶 ── */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:flex-end;justify-content:center;z-index:80}
+.modal.show{display:flex}
+.sheet{background:var(--bg);border-top:1px solid var(--line);width:100%;max-width:560px;max-height:88vh;overflow-y:auto;border-radius:24px 24px 0 0;padding:18px 18px calc(18px + var(--safe-b))}
+.onb{position:fixed;inset:0;background:var(--bg);z-index:100;display:none;overflow-y:auto;padding:calc(env(safe-area-inset-top,0px) + 30px) 20px 30px}
+.onb.show{display:block}
+.onb .inner{max-width:420px;margin:0 auto;text-align:center}
+.onb h1{font-family:'Syne',sans-serif;font-size:30px;color:var(--lime);line-height:1.1}
+.onb p{color:var(--muted);font-size:14px;margin-top:6px}
+.onb label{display:block;text-align:left;font-size:13px;font-weight:700;margin:22px 0 8px}
+.onb label small{font-weight:400;color:var(--muted)}
+.agrid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.agrid button{aspect-ratio:1;border-radius:14px;border:2px solid var(--line);background:var(--panel);font-size:24px}
+.agrid button.on{border-color:var(--lime);background:#26331a;transform:scale(1.08)}
+.coach{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 62px);transform:translate(-50%,-20px);width:min(92vw,420px);
+  background:#1b2236;border:1px solid var(--lime);border-radius:18px;padding:10px 14px;display:flex;gap:10px;align-items:center;
+  opacity:0;transition:all .3s;pointer-events:none;z-index:90;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.coach.show{opacity:1;transform:translate(-50%,0)}
+.coach .ce{font-size:28px;flex:none}
+.coach b{display:block;font-size:14px}
+.coach small{display:block;font-size:12px;color:var(--muted);margin-top:1px}
+.confetti{position:fixed;top:-12px;width:9px;height:14px;z-index:95;pointer-events:none;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(105vh) rotate(720deg)}}
+.toast{position:fixed;left:50%;bottom:calc(92px + var(--safe-b));transform:translateX(-50%);background:var(--mint);color:#06201e;
+  font-size:13px;font-weight:700;padding:9px 16px;border-radius:20px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:90;white-space:nowrap}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<header>
+  <button class="me" data-v="v-me"><div class="ava" id="hAva">🦊</div><div><b id="hName">—</b><small id="hTitle">ROOKIE</small></div></button>
+  <div class="sp"></div>
+  <div class="pill" id="hStreak">🔥 0</div>
+  <div class="pill pts" id="hPts">⭐ 0</div>
+</header>
+
+<main>
+  <!-- ═══ 首頁 ═══ -->
+  <section class="view active" id="v-home">
+    <div class="hero">
+      <div class="ring" id="ring"></div>
+      <div>
+        <h2 id="heroTitle">Today's Goal<small>今日目標</small></h2>
+        <div class="sub" id="heroSub"></div>
+        <button class="btn" data-act="go">開始複習 Start ▶</button>
+      </div>
+    </div>
+    <div class="trio">
+      <div class="tile o"><b id="tStreak">0</b><span>🔥 連續天數</span></div>
+      <div class="tile l"><b id="tPts">0</b><span>⭐ 總積分</span></div>
+      <div class="tile m"><b id="tKnown">0</b><span>✅ 已掌握</span></div>
+    </div>
+    <h3>單元進度 <small>UNITS</small></h3>
+    <div class="units" id="units"></div>
+    <div class="legend">
+      <span><i class="dot d-known"></i>已掌握</span><span><i class="dot d-learn"></i>學習中</span><span><i class="dot d-new"></i>未學</span>
+    </div>
+  </section>
+
+  <!-- ═══ 複習 ═══ -->
+  <section class="view" id="v-review">
+    <button class="ftoggle" id="fToggle">🔍 範圍：<b id="fSummary">全部</b><span>▾</span></button>
+    <div class="fpanel" id="fPanel">
+      <div id="fBookWrap"><div class="flabel">教材 BOOK</div><div class="chips" id="fBook"></div></div>
+      <div class="flabel">單元 UNIT</div><div class="chips" id="fUnit"></div>
+      <div class="flabel">課次 LESSON</div><div class="chips" id="fLesson"></div>
+    </div>
+    <div class="sessbar">
+      <span id="sessTxt">0 / 0</span>
+      <div class="track"><i id="sessBar"></i></div>
+      <span class="combo" id="combo"></span>
+      <button class="undo" id="undoBtn" disabled>↶ 復原</button>
+    </div>
+    <div class="stage" id="stage"></div>
+    <div class="rate" id="rateBtns">
+      <button class="rbtn r1" data-g="1">✕ 不熟<span>← 左滑</span></button>
+      <button class="rbtn r3" data-g="3">✓ 記得<span>右滑 →</span></button>
+      <button class="rbtn r4" data-g="4">★ 太簡單<span>點按</span></button>
+    </div>
+  </section>
+
+  <!-- ═══ 單字 ═══ -->
+  <section class="view" id="v-list">
+    <input class="search" id="search" type="search" placeholder="搜尋英文或中文…">
+    <div class="flabel">單元</div><div class="chips" id="lUnit"></div>
+    <div class="flabel">狀態</div><div class="chips" id="fStatus"></div>
+    <div class="count" id="listCount"></div>
+    <div class="list" id="list"></div>
+  </section>
+
+  <!-- ═══ 我的 ═══ -->
+  <section class="view" id="v-me">
+    <button class="btn wide" data-act="proof">🏆 出示積分證明 Show my points</button>
+    <h3>我的等級 <small>RANK</small></h3>
+    <div class="rank" id="rank"></div>
+    <h3>積分怎麼拿 <small>HOW TO EARN</small></h3>
+    <div class="set" id="rules"></div>
+    <h3>設定 <small>SETTINGS</small></h3>
+    <div class="set">
+      <div class="srow"><div>暱稱與頭像<small id="meName">—</small></div><button class="btn ghost" data-act="profile">修改</button></div>
+      <div class="srow"><div>自動發音<small>卡片出現時自動朗讀</small></div><button class="sw" id="sAuto"></button></div>
+      <div class="srow"><div>同步單字<small id="syncInfo">—</small></div><button class="btn ghost" id="btnSync">同步</button></div>
+      <div class="srow" style="display:block"><div>語音測試<small>聽不到聲音時按這裡</small></div>
+        <div class="diag" id="ttsDiag"></div>
+        <div class="btnrow" style="justify-content:flex-start;margin-top:8px"><button class="btn ghost" id="btnTtsTest">測試語音</button></div></div>
+    </div>
+    <div class="set">
+      <div class="srow" style="display:block">
+        <div>備份進度<small>進度和積分只存在這支手機，換手機前請先匯出</small></div>
+        <div class="btnrow" style="justify-content:flex-start;margin-top:8px">
+          <button class="btn ghost" id="btnExport">匯出</button>
+          <button class="btn ghost" id="btnImport">匯入</button>
+          <button class="btn danger" id="btnReset">全部重來</button>
+        </div>
+        <input type="file" id="fileImport" accept="application/json,.json" hidden>
+      </div>
+    </div>
+    <p class="hint">Jeffrey's Lab · THP11 Word Quest v1</p>
+  </section>
+</main>
+
+<nav id="nav">
+  <button data-v="v-home" class="on"><i>🏠</i>首頁</button>
+  <button data-v="v-review"><i>🃏</i>複習</button>
+  <button data-v="v-list"><i>📚</i>單字</button>
+  <button data-v="v-me"><i>🏆</i>我的</button>
+</nav>
+
+<!-- 第一次使用：暱稱＋頭像 -->
+<div class="onb" id="onb">
+  <div class="inner">
+    <div style="font-size:54px" id="onbAva">🦊</div>
+    <h1>Welcome to<br>Word Quest!</h1>
+    <p>THP11 單字挑戰：每天複習、累積積分</p>
+    <label>What should I call you? <small>你想要我怎麼稱呼你？</small></label>
+    <input class="search" id="onbName" maxlength="12" placeholder="例如：Kevin、小安" autocomplete="off">
+    <label>Pick your buddy <small>選一個頭像</small></label>
+    <div class="agrid" id="onbGrid"></div>
+    <button class="btn wide" id="onbGo" style="margin-top:24px">Let's go! 開始 ▶</button>
+    <p style="font-size:12px;margin-top:12px">學習進度只存在這支手機上</p>
+  </div>
+</div>
+
+<div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
+<div class="coach" id="coach"><div class="ce" id="coachAva">🦊</div><div><b id="coachEn"></b><small id="coachZh"></small></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  設定常數
+// ═══════════════════════════════════════════════════════
+const DEFAULT_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT_RDSP7cX66J-_fEkEGiDT5hHjnOi5_f9ToRZKVDqMHj6i12xvfpqcSBtSgziSBi-K_rEuT0eYBVC4/pub?output=csv';
+const GATEWAY_URL   = 'https://script.google.com/macros/s/AKfycbz0O6eB9fVC3Xp7g0Kt4U-32Inmf9ieDYJygEf3jW78xaWx10glPscEefEQwgB0jCioug/exec';
+const GATEWAY_TOKEN = 'MYVIEWBOARDgoogleAPI';
+const DB_NAME = 'vocab-thp11';     // 不能和個人版 vocab-memory 相同，否則進度互相覆蓋
+const APP_ID  = 'vocab-thp11';
+const SALT    = 'THP11·JeffreysLab·2026';   // 積分簽章用
+const DAY = 86400000;
+const RETENTION = 0.9;
+const NEW_PER_DAY = 15;     // 每日新字
+const KNOWN_DAYS = 7;       // 穩定度 ≥ 7 天算「已掌握」
+const HARD_FAILS = 3;       // 不熟 ≥ 3 次算「頑固字」
+// 積分規則
+const DAILY_GOAL = 20;      // 每日目標：複習 20 張
+const CARD_CAP = 50;        // 每天複習最多拿 50 分
+const GOAL_BONUS = 10;      // 完成每日目標 +10
+const STREAK_BONUS = { 3: 20, 7: 50, 14: 100, 30: 200, 60: 300, 100: 500 };
+const TITLES = [
+  [0, 'Rookie', '新手'], [100, 'Explorer', '探險家'], [300, 'Word Hunter', '單字獵人'],
+  [600, 'Word Warrior', '單字戰士'], [1000, 'Word Master', '單字大師'], [1600, 'Legend', '傳奇'],
+];
+const AVATARS = ['🦊','🐼','🐯','🐸','🐙','🦄','🐲','🐧','🦁','🐨','🐵','🦖','🐱','🐶','🤖','👾','🚀','⚽'];
+
+// ═══════════════════════════════════════════════════════
+//  回饋話語（英文為主、中文小字；{n} = 暱稱）
+// ═══════════════════════════════════════════════════════
+const LINES = {
+  hello:   [['Nice to meet you, {n}! Let\'s start!', '{n}，很高興認識你！開始吧！']],
+  greet:   [['Hi {n}! Ready for today\'s words?', '嗨 {n}！準備好今天的單字了嗎？'],
+            ['Welcome back, {n}! Let\'s level up.', '歡迎回來，{n}！一起升級吧。'],
+            ['Good to see you, {n}! 20 cards today?', '{n}，今天來挑戰 20 張吧？']],
+  comeback:[['We missed you, {n}! Let\'s warm up.', '{n}，好久不見！先來暖身一下。'],
+            ['Welcome back, {n}! Every day counts.', '{n} 歡迎回來！每天一點點就很棒。']],
+  combo3:  [['Nice combo, {n}! 🔥', '{n}，連續答對 3 張！'], ['Three in a row!', '連對 3 張！']],
+  combo5:  [['You\'re on fire, {n}! 🔥🔥', '{n} 手感超好！連對 5 張'], ['Five in a row — amazing!', '連對 5 張，太強了！']],
+  combo10: [['Unstoppable! 10 in a row! 🚀', '連對 10 張，勢不可擋！'], ['{n} is a word machine! 🤖', '{n} 根本是單字機器！']],
+  miss:    [['No worries — mistakes help you learn.', '沒關係，錯了才記得更牢。'],
+            ['You\'ll see it again soon. You got this!', '等一下還會再出現，你可以的！'],
+            ['Tricky one! Try saying it out loud.', '這個有點難，唸出來會更好記。']],
+  goal:    [['Daily goal complete! Great job, {n}! 🎉', '{n} 完成今日目標！+' + GOAL_BONUS + ' ⭐'],
+            ['Goal crushed! See you tomorrow, {n}!', '今日目標達成！+' + GOAL_BONUS + ' ⭐ 明天見！']],
+  sess:    [['Round complete! Nice work, {n}.', '這輪完成，{n} 做得好！'], ['Done! Your brain is getting stronger.', '完成！你的單字力又變強了。']],
+  title:   [['Level up! You\'re now a {t}! 🏅', '升級！你現在是「{tz}」了！']],
+};
+const pick = (a) => a[Math.floor(Math.random() * a.length)];
+
+// ═══════════════════════════════════════════════════════
+//  IndexedDB
+// ═══════════════════════════════════════════════════════
+const db = (() => {
+  let p;
+  const open = () => p || (p = new Promise((res, rej) => {
+    const r = indexedDB.open(DB_NAME, 1);
+    r.onupgradeneeded = () => r.result.createObjectStore('kv');
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+  }));
+  const tx = async (mode, fn) => {
+    const d = await open();
+    return new Promise((res, rej) => {
+      const t = d.transaction('kv', mode), s = t.objectStore('kv');
+      const req = fn(s);
+      t.oncomplete = () => res(req && req.result);
+      t.onerror = () => rej(t.error);
+    });
+  };
+  return {
+    get: (k) => tx('readonly', (s) => s.get(k)),
+    set: (k, v) => tx('readwrite', (s) => s.put(v, k)),
+    del: (k) => tx('readwrite', (s) => s.delete(k)),
+    keys: () => tx('readonly', (s) => s.getAllKeys()),
+  };
+})();
+
+// ═══════════════════════════════════════════════════════
+//  FSRS-4.5（預設參數）
+// ═══════════════════════════════════════════════════════
+const FSRS = (() => {
+  const w = [0.4872,1.4003,3.7145,13.8206,5.1618,1.2298,0.8975,0.031,1.6474,0.1367,1.0461,2.1072,0.0793,0.3246,1.587,0.2272,2.8755];
+  const DECAY = -0.5, FACTOR = 19 / 81;
+  const clampD = (d) => Math.min(10, Math.max(1, d));
+  const d0 = (g) => clampD(w[4] - (g - 3) * w[5]);
+  const retr = (t, s) => Math.pow(1 + FACTOR * t / s, DECAY);
+  const interval = (s, r) => Math.min(36500, Math.max(1, Math.round(s / FACTOR * (Math.pow(r, 1 / DECAY) - 1))));
+  function next(card, g, now) {
+    if (!card) return { S: w[g - 1], D: d0(g), last: now };
+    const t = Math.max(0, (now - card.last) / DAY);
+    const R = retr(t, card.S);
+    const D = clampD(w[7] * d0(3) + (1 - w[7]) * (card.D - w[6] * (g - 3)));
+    let S;
+    if (g === 1) {
+      S = w[11] * Math.pow(card.D, -w[12]) * (Math.pow(card.S + 1, w[13]) - 1) * Math.exp(w[14] * (1 - R));
+      S = Math.min(S, card.S);
+    } else {
+      S = card.S * (Math.exp(w[8]) * (11 - card.D) * Math.pow(card.S, -w[9]) * (Math.exp(w[10] * (1 - R)) - 1) * (g === 4 ? w[16] : 1) + 1);
+    }
+    return { S: Math.max(0.1, S), D, last: now };
+  }
+  return { next, interval };
+})();
+
+// ═══════════════════════════════════════════════════════
+//  狀態
+// ═══════════════════════════════════════════════════════
+const st = {
+  words: [], byId: {},
+  profile: null,                     // {name, avatar, createdAt}
+  prog: {},                          // id → {S,D,last,due,reps,fails}
+  meta: { day: '', newToday: 0, lastActive: '', celebrated: '' },
+  ledger: { days: {}, bonus: [] },   // days[日期] = {cards, quiz}；bonus = [{t,k,p}]
+  tampered: false,
+  set: { autoSpeak: true, books: [], units: [], lessons: [], csvUrl: DEFAULT_CSV, syncedAt: 0 },
+  queue: [], cur: null, flipped: false,
+  sess: { total: 0, done: 0, again: 0, combo: 0 }, undoStack: [],
+  listStatus: 'all', listUnit: '',
+};
+const keyOf = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+const todayKey = () => keyOf(new Date());
+const daysBetween = (a, b) => Math.round((new Date(b) - new Date(a)) / DAY);
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 2200); }
+const saveProg = () => db.set('prog', st.prog);
+const saveMeta = () => db.set('meta', st.meta);
+const saveSet = () => db.set('settings', st.set);
+
+// ═══════════════════════════════════════════════════════
+//  積分：依每日紀錄計算，並用簽章偵測資料被改過
+// ═══════════════════════════════════════════════════════
+function hash(str) {   // cyrb53
+  let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+  for (let i = 0; i < str.length; i++) { const c = str.charCodeAt(i); h1 = Math.imul(h1 ^ c, 2654435761); h2 = Math.imul(h2 ^ c, 1597334677); }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36).toUpperCase();
+}
+const ledgerSig = () => hash(SALT + '|' + (st.profile ? st.profile.createdAt : '') + '|' + JSON.stringify(st.ledger));
+// 一旦發現被改過就不再重新簽章，異常標記會一直留著
+async function saveLedger() { await db.set('ledger', st.ledger); await db.set('sig', st.tampered ? 'TAMPERED' : ledgerSig()); }
+const dayCards = (k) => (st.ledger.days[k] && st.ledger.days[k].cards) || 0;
+function points() {
+  let card = 0, goal = 0, quiz = 0, streak = 0;
+  for (const k in st.ledger.days) {
+    const d = st.ledger.days[k];
+    card += Math.min(d.cards || 0, CARD_CAP);
+    if ((d.cards || 0) >= DAILY_GOAL) goal += GOAL_BONUS;
+    quiz += d.quiz || 0;
+  }
+  st.ledger.bonus.forEach((b) => { if (b.k.startsWith('streak')) streak += b.p; else quiz += b.p; });
+  return { card, goal, streak, quiz, total: card + goal + streak + quiz };
+}
+const goalDays = () => Object.keys(st.ledger.days).filter((k) => dayCards(k) >= DAILY_GOAL);
+function streakNow() {   // 連續完成每日目標的天數（今天還沒完成不會斷）
+  const set = new Set(goalDays());
+  let n = 0; const d = new Date();
+  if (!set.has(keyOf(d))) d.setDate(d.getDate() - 1);
+  while (set.has(keyOf(d))) { n++; d.setDate(d.getDate() - 1); }
+  return n;
+}
+const titleOf = (pts) => { let t = TITLES[0], i = 0; TITLES.forEach((x, j) => { if (pts >= x[0]) { t = x; i = j; } }); return { t, next: TITLES[i + 1] }; };
+const proofCode = (total) => hash(SALT + '|' + (st.profile ? st.profile.name : '') + '|' + total + '|' + todayKey()).slice(-4);
+
+// ═══════════════════════════════════════════════════════
+//  CSV
+// ═══════════════════════════════════════════════════════
+function parseCSV(text) {
+  const rows = []; let row = [], f = '', q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) { if (c === '"') { if (text[i + 1] === '"') { f += '"'; i++; } else q = false; } else f += c; }
+    else if (c === '"') q = true;
+    else if (c === ',') { row.push(f); f = ''; }
+    else if (c === '\n') { row.push(f); rows.push(row); row = []; f = ''; }
+    else if (c !== '\r') f += c;
+  }
+  if (f || row.length) { row.push(f); rows.push(row); }
+  return rows;
+}
+function rowsToWords(rows) {
+  const h = rows[0].map((x) => x.trim());
+  const col = (n) => h.indexOf(n);
+  const C = { id: col('ID'), w: col('單字'), type: col('類型'), pos: col('詞性'), ipa: col('音標'), zh: col('中文'), def: col('英文定義'),
+    ex: col('例句'), exzh: col('例句中文'), book: col('教材'), unit: col('單元'), lesson: col('課次'), lv: col('CEFR'), status: col('狀態'), note: col('備註') };
+  if (C.w < 0) throw new Error('CSV 找不到「單字」欄');
+  const g = (r, i) => (i >= 0 && r[i] != null ? r[i].trim() : '');
+  return rows.slice(1).filter((r) => g(r, C.w)).map((r, i) => ({
+    id: g(r, C.id) || ('W' + i + ':' + g(r, C.w).toLowerCase()),
+    word: g(r, C.w), type: g(r, C.type), pos: g(r, C.pos), ipa: g(r, C.ipa), zh: g(r, C.zh), def: g(r, C.def),
+    ex: g(r, C.ex), exzh: g(r, C.exzh), books: g(r, C.book).split(/[,，、]/).map((s) => s.trim()).filter(Boolean),
+    unit: g(r, C.unit).toUpperCase(), lesson: g(r, C.lesson).toUpperCase(), lv: g(r, C.lv).toUpperCase(), status: g(r, C.status), note: g(r, C.note),
+  }));
+}
+function setWords(words) { st.words = words; st.byId = {}; words.forEach((w) => (st.byId[w.id] = w)); }
+const natSort = (a, b) => a.localeCompare(b, 'en', { numeric: true });
+const allUnits = () => [...new Set(st.words.map((w) => w.unit).filter(Boolean))].sort((a, b) => (a[0] === 'U' ? 0 : 1) - (b[0] === 'U' ? 0 : 1) || natSort(a, b));
+const allLessons = () => [...new Set(st.words.map((w) => w.lesson).filter(Boolean))].sort(natSort);
+const allBooks = () => [...new Set(st.words.flatMap((w) => w.books))];
+async function syncCSV(manual) {
+  try {
+    const res = await fetch(st.set.csvUrl, { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const words = rowsToWords(parseCSV(await res.text()));
+    if (!words.length) throw new Error('沒有讀到任何單字');
+    const added = words.filter((w) => !st.byId[w.id]).length;
+    setWords(words);
+    await db.set('words', words);
+    st.set.syncedAt = Date.now(); saveSet();
+    if (manual) toast('已同步 ' + words.length + ' 個字' + (added ? '，新增 ' + added + ' 個' : ''));
+    return true;
+  } catch (e) {
+    if (manual || !st.words.length) toast('同步失敗：' + e.message + (st.words.length ? '（使用離線資料）' : ''));
+    return false;
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  語音：Gateway generate_tts → 快取 → 失敗改用瀏覽器語音
+// ═══════════════════════════════════════════════════════
+const tts = { audio: new Audio(), inflight: {}, lastDiag: '', fails: 0 };
+const useFreeKey = (localStorage.getItem('newcore_tools_plan') !== 'pro');
+// 唸出時去掉括號、斜線只唸第一種：lend (someone) a hand → lend someone a hand
+const sayText = (w) => w.replace(/[()]/g, '').replace(/\s+\/\s+/g, ', ').replace(/(\S+)\/\S+/g, '$1').replace(/\s+/g, ' ').trim();
+function b64ToBytes(b64) { const bin = atob(b64.replace(/\s/g, '')); const u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u; }
+function pcmToWav(pcm, rate) {
+  const h = new ArrayBuffer(44), v = new DataView(h);
+  const ws = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  ws(0, 'RIFF'); v.setUint32(4, 36 + pcm.length, true); ws(8, 'WAVE'); ws(12, 'fmt ');
+  v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, rate, true); v.setUint32(28, rate * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+  ws(36, 'data'); v.setUint32(40, pcm.length, true);
+  return new Blob([h, pcm], { type: 'audio/wav' });
+}
+function findAudio(obj, depth = 0) {
+  if (!obj || depth > 6) return null;
+  if (typeof obj === 'string') {
+    if (/^https?:\/\//.test(obj)) return { url: obj };
+    const m = obj.match(/^data:([^;]+);base64,(.+)$/s);
+    return m ? { b64: m[2], mime: m[1] } : null;
+  }
+  if (typeof obj !== 'object') return null;
+  for (const k of ['audioContent', 'audio', 'audioBase64', 'base64', 'audioData']) {
+    if (typeof obj[k] === 'string' && obj[k].length > 100) {
+      const inner = findAudio(obj[k], depth + 1);
+      return inner || { b64: obj[k], mime: obj.mimeType || obj.mime || 'audio/mpeg' };
+    }
+  }
+  if (obj.inlineData && typeof obj.inlineData.data === 'string') return { b64: obj.inlineData.data, mime: obj.inlineData.mimeType || 'audio/L16;rate=24000' };
+  if (typeof obj.data === 'string' && obj.data.length > 100 && obj.mimeType) return { b64: obj.data, mime: obj.mimeType };
+  if (typeof obj.url === 'string' && /^https?:/.test(obj.url)) return { url: obj.url };
+  for (const k of Object.keys(obj)) { const r = findAudio(obj[k], depth + 1); if (r) return r; }
+  return null;
+}
+function describe(obj, depth = 0) {
+  if (typeof obj === 'string') return obj.length > 40 ? '"' + obj.slice(0, 30) + '…" (' + obj.length + ' 字)' : JSON.stringify(obj);
+  if (!obj || typeof obj !== 'object' || depth > 3) return JSON.stringify(obj);
+  return '{ ' + Object.keys(obj).map((k) => k + ': ' + describe(obj[k], depth + 1)).join(', ') + ' }';
+}
+async function fetchTTS(text) {
+  const res = await fetch(GATEWAY_URL, {
+    method: 'POST',
+    redirect: 'follow',          // 鐵律：一定要加；且不加 Content-Type
+    body: JSON.stringify({ auth: GATEWAY_TOKEN, action: 'generate_tts', params: { text, prompt: text, languageCode: 'en-US', useFreeKey } }),
+  });
+  const gw = await res.json();
+  tts.lastDiag = describe(gw);
+  if (!gw.ok) throw new Error(gw.error || 'Gateway 失敗');
+  const a = findAudio(gw);
+  if (!a) throw new Error('回應中找不到音訊');
+  if (a.url) { const r = await fetch(a.url); return await r.blob(); }
+  const bytes = b64ToBytes(a.b64);
+  const mime = (a.mime || '').toLowerCase();
+  if (mime.includes('l16') || mime.includes('pcm')) return pcmToWav(bytes, parseInt((mime.match(/rate=(\d+)/) || [])[1] || '24000', 10));
+  const isWav = bytes[0] === 0x52 && bytes[1] === 0x49;
+  return new Blob([bytes], { type: isWav ? 'audio/wav' : (mime || 'audio/mpeg') });
+}
+async function getAudio(text) {
+  const key = 'tts:' + text.toLowerCase();
+  const hit = await db.get(key);
+  if (hit) return hit;
+  if (!navigator.onLine) throw new Error('離線');
+  if (tts.fails >= 2) throw new Error('Gateway 連續失敗，本次改用瀏覽器語音');
+  if (!tts.inflight[key]) {
+    tts.inflight[key] = fetchTTS(text)
+      .then(async (blob) => { tts.fails = 0; await db.set(key, blob); return blob; })
+      .catch((e) => { tts.fails++; throw e; })
+      .finally(() => delete tts.inflight[key]);
+  }
+  return tts.inflight[key];
+}
+function browserSpeak(text) {
+  if (!('speechSynthesis' in window)) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text); u.lang = 'en-US'; u.rate = 0.9;
+  const v = speechSynthesis.getVoices().find((x) => /en-US/.test(x.lang) && /(Samantha|Google|Natural|Neural)/.test(x.name));
+  if (v) u.voice = v;
+  speechSynthesis.speak(u);
+}
+async function speak(text, btn) {
+  if (!text) return;
+  text = sayText(text);
+  tts.audio.pause();
+  if ('speechSynthesis' in window) speechSynthesis.cancel();
+  btn && btn.classList.add('busy');
+  try {
+    const blob = await getAudio(text);
+    if (tts.audio.src) URL.revokeObjectURL(tts.audio.src);
+    tts.audio.src = URL.createObjectURL(blob);
+    await tts.audio.play().catch(() => {});
+  } catch (e) { browserSpeak(text); }
+  finally { btn && btn.classList.remove('busy'); }
+}
+const prefetch = (text) => { if (text && navigator.onLine) getAudio(sayText(text)).catch(() => {}); };
+
+// ═══════════════════════════════════════════════════════
+//  回饋：教練泡泡、彩帶、+1
+// ═══════════════════════════════════════════════════════
+function coach(key, vars = {}) {
+  const [en, zh] = pick(LINES[key]);
+  const fill = (s) => s.replace(/\{n\}/g, st.profile ? st.profile.name : '').replace(/\{t\}/g, vars.t || '').replace(/\{tz\}/g, vars.tz || '');
+  $('coachAva').textContent = st.profile ? st.profile.avatar : '🦊';
+  $('coachEn').textContent = fill(en); $('coachZh').textContent = fill(zh);
+  const c = $('coach'); c.classList.add('show');
+  clearTimeout(coach._t); coach._t = setTimeout(() => c.classList.remove('show'), 2600);
+}
+function confetti(n = 60) {
+  const cols = ['#CCFF00', '#4ECDC4', '#ffb547', '#ff6b57', '#ffffff'];
+  for (let i = 0; i < n; i++) {
+    const d = document.createElement('div'); d.className = 'confetti';
+    d.style.left = Math.random() * 100 + 'vw'; d.style.background = cols[i % cols.length];
+    d.style.animationDuration = (1.4 + Math.random() * 1.4) + 's'; d.style.animationDelay = Math.random() * .3 + 's';
+    d.style.borderRadius = Math.random() > .5 ? '50%' : '2px';
+    document.body.appendChild(d); setTimeout(() => d.remove(), 3200);
+  }
+}
+function plusOne(txt) {
+  const p = document.createElement('div'); p.className = 'plus'; p.textContent = txt;
+  $('rateBtns').appendChild(p); setTimeout(() => p.remove(), 950);
+}
+
+// ═══════════════════════════════════════════════════════
+//  狀態判定與篩選
+// ═══════════════════════════════════════════════════════
+function statusOf(w) {
+  const p = st.prog[w.id];
+  if (!p) return 'new';
+  if (p.fails >= HARD_FAILS && p.S < KNOWN_DAYS) return 'hard';
+  return p.S >= KNOWN_DAYS ? 'known' : 'learn';
+}
+const STATUS = { new: ['未學', 'd-new'], learn: ['學習中', 'd-learn'], known: ['已掌握', 'd-known'], hard: ['頑固字', 'd-hard'] };
+function inFilter(w) {
+  const { books, units, lessons } = st.set;
+  return (!books.length || w.books.some((b) => books.includes(b))) && (!units.length || units.includes(w.unit)) && (!lessons.length || lessons.includes(w.lesson));
+}
+function dueLabel(p) {
+  if (!p) return '';
+  if (p.due <= Date.now()) return '待複習';
+  const d = Math.round((p.due - Date.now()) / DAY);
+  return d < 1 ? '今天稍後' : d === 1 ? '明天' : d + ' 天後';
+}
+
+// ═══════════════════════════════════════════════════════
+//  複習佇列
+// ═══════════════════════════════════════════════════════
+function rollDay() {
+  const k = todayKey();
+  if (st.meta.day !== k) { st.meta.day = k; st.meta.newToday = 0; saveMeta(); }
+}
+function countDue() {
+  const now = Date.now(), pool = st.words.filter(inFilter);
+  const due = pool.filter((w) => st.prog[w.id] && st.prog[w.id].due <= now).length;
+  const fresh = Math.min(pool.filter((w) => !st.prog[w.id]).length, Math.max(0, NEW_PER_DAY - st.meta.newToday));
+  return { due, fresh };
+}
+function buildQueue(extraNew = 0) {
+  rollDay();
+  const now = Date.now(), pool = st.words.filter(inFilter);
+  const due = pool.filter((w) => st.prog[w.id] && st.prog[w.id].due <= now).sort((a, b) => st.prog[a.id].due - st.prog[b.id].due);
+  const fresh = pool.filter((w) => !st.prog[w.id]).slice(0, Math.max(0, NEW_PER_DAY - st.meta.newToday) + extraNew);
+  const q = []; let i = 0, j = 0;   // 每 3 個複習字穿插 1 個新字
+  while (i < due.length || j < fresh.length) {
+    for (let k = 0; k < 3 && i < due.length; k++) q.push(due[i++]);
+    if (j < fresh.length) q.push(fresh[j++]);
+  }
+  startQueue(q.map((w) => w.id));
+}
+function startQueue(ids) {
+  st.queue = ids;
+  st.sess = { total: ids.length, done: 0, again: 0, combo: 0 };
+  st.undoStack = [];
+  nextCard();
+}
+function practiceHard() {
+  const ids = st.words.filter(inFilter).filter((w) => { const p = st.prog[w.id]; return p && p.fails > 0 && statusOf(w) !== 'known'; }).map((w) => w.id);
+  if (!ids.length) return toast('這個範圍裡沒有不熟的字 👍');
+  showView('v-review'); startQueue(ids.sort(() => Math.random() - 0.5));
+}
+function extraPractice(n = 10) {   // 多練 n 張：先抽學過的字，不夠再補新字
+  const pool = st.words.filter(inFilter);
+  const learned = pool.filter((w) => st.prog[w.id]).map((w) => w.id).sort(() => Math.random() - 0.5);
+  const fresh = pool.filter((w) => !st.prog[w.id]).map((w) => w.id);
+  const ids = [...learned, ...fresh].slice(0, n);
+  if (!ids.length) return toast('這個範圍沒有單字');
+  showView('v-review'); startQueue(ids);
+}
+function nextCard() {
+  st.cur = st.queue.length ? st.byId[st.queue.shift()] : null;
+  if (st.cur === undefined) return nextCard();
+  st.flipped = false;
+  renderCard(); renderSess();
+  if (st.cur) {
+    if (st.set.autoSpeak && $('v-review').classList.contains('active')) speak(st.cur.word);
+    if (st.queue.length) prefetch(st.byId[st.queue[0]] && st.byId[st.queue[0]].word);
+  } else if (st.sess.total && $('v-review').classList.contains('active') && st.celebrateSess) {
+    st.celebrateSess = false;
+    if (!st.justGoal) coach('sess');   // 剛達成目標時讓「目標達成」的話優先
+  }
+}
+
+function rate(g) {
+  const w = st.cur; if (!w) return;
+  const now = Date.now(), k = todayKey();
+  const prev = st.prog[w.id] ? { ...st.prog[w.id] } : null;
+  const ptsBefore = points().total;
+  st.undoStack.push({ id: w.id, prev, queue: st.queue.slice(), sess: { ...st.sess }, newToday: st.meta.newToday, day: k });
+  if (st.undoStack.length > 20) st.undoStack.shift();
+
+  const p = { ...(prev || { reps: 0, fails: 0 }), ...FSRS.next(prev, g, now) };
+  p.reps++;
+  if (g === 1) {
+    p.fails++; p.due = now + 10 * 60000;
+    st.queue.splice(Math.min(3, st.queue.length), 0, w.id);   // 本輪 3 張後再考一次
+    st.sess.again++; st.sess.combo = 0;
+    if (Math.random() < 0.35) coach('miss');
+  } else {
+    p.due = now + FSRS.interval(p.S, RETENTION) * DAY;
+    st.sess.done++; st.sess.combo++;
+    const c = st.sess.combo;
+    if (c === 3) coach('combo3'); else if (c === 5) coach('combo5'); else if (c === 10 || (c > 10 && c % 10 === 0)) coach('combo10');
+  }
+  if (!prev) st.meta.newToday++;
+  st.meta.lastActive = k;
+  st.prog[w.id] = p;
+
+  // 積分紀錄
+  const day = st.ledger.days[k] || (st.ledger.days[k] = { cards: 0 });
+  day.cards++;
+  if (day.cards <= CARD_CAP) plusOne('+1');
+  if (day.cards === DAILY_GOAL && st.meta.celebrated !== k) {
+    st.meta.celebrated = k;
+    setTimeout(() => { confetti(); coach('goal'); }, 250);
+    checkStreakBonus();
+  }
+  st.justGoal = day.cards === DAILY_GOAL;
+  st.celebrateSess = true;
+  saveProg(); saveMeta(); saveLedger();
+  afterPoints(ptsBefore);
+  nextCard();
+}
+function checkStreakBonus() {
+  const s = streakNow();
+  Object.entries(STREAK_BONUS).forEach(([d, pts]) => {
+    const key = 'streak' + d;
+    if (s >= +d && !st.ledger.bonus.some((b) => b.k === key)) {
+      st.ledger.bonus.push({ t: Date.now(), k: key, p: pts });
+      setTimeout(() => { confetti(90); toast(`🔥 連續 ${d} 天！+${pts} ⭐`); }, 2900);
+    }
+  });
+}
+function afterPoints(before) {
+  const after = points().total;
+  const a = titleOf(before).t, b = titleOf(after).t;
+  if (b[0] > a[0]) setTimeout(() => { confetti(100); coach('title', { t: b[1], tz: b[2] }); }, 3000);
+  renderHeader(after > before);
+}
+function undo() {
+  const u = st.undoStack.pop(); if (!u) return;
+  if (u.prev) st.prog[u.id] = u.prev; else delete st.prog[u.id];
+  st.queue = u.queue; st.sess = u.sess; st.meta.newToday = u.newToday;
+  const d = st.ledger.days[u.day]; if (d && d.cards > 0) d.cards--;
+  st.cur = st.byId[u.id]; st.flipped = false;
+  saveProg(); saveMeta(); saveLedger();
+  renderCard(); renderSess(); renderHeader();
+}
+
+// ═══════════════════════════════════════════════════════
+//  卡片與手勢
+// ═══════════════════════════════════════════════════════
+function highlight(ex, word) {
+  const e = esc(ex);
+  if (!word || /[()/]/.test(word)) return e;
+  const base = word.length > 4 && !word.includes(' ') ? word.replace(/(e|y)$/i, '') : word;
+  const re = new RegExp('\\b(' + base.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + (word.includes(' ') ? '' : '\\w*') + ')', 'gi');
+  return e.replace(re, '<mark>$1</mark>');
+}
+function cardHTML(w) {
+  const p = st.prog[w.id], s = statusOf(w);
+  return `
+    <div class="tags">
+      ${w.unit ? `<span class="tag u">${esc(w.unit)}${w.lesson ? ' · ' + esc(w.lesson) : ''}</span>` : ''}
+      ${w.lv ? `<span class="tag">${esc(w.lv)}</span>` : ''}
+      ${w.books.includes('GEPT') ? '<span class="tag">GEPT</span>' : ''}
+      ${!p ? '<span class="tag warn">NEW</span>' : ''}
+      ${s === 'hard' ? '<span class="tag stub">頑固字</span>' : ''}
+    </div>
+    <div class="front">
+      <div class="word">${esc(w.word)}</div>
+      ${w.ipa ? `<div class="ipa">${esc(w.ipa)}</div>` : ''}
+      ${w.pos ? `<div class="pos">${esc(w.pos)}</div>` : ''}
+      <button class="spk" data-say="${esc(w.word)}" aria-label="發音">🔊</button>
+      <div class="hint">點卡片翻面看解釋 Tap to flip</div>
+    </div>
+    <div class="back">
+      <div class="zh">${esc(w.zh)}</div>
+      ${w.def ? `<div><div class="sec">DEFINITION</div><div class="def">${esc(w.def)}</div></div>` : ''}
+      ${w.ex ? `<div><div class="sec">EXAMPLE</div><div class="ex"><span>${highlight(w.ex, w.word)}</span>
+        <button class="spk small" data-say="${esc(w.ex)}" aria-label="朗讀例句">🔊</button></div>
+        ${w.exzh ? `<div class="exzh">${esc(w.exzh)}</div>` : ''}</div>` : ''}
+      ${w.note ? `<div class="note">📝 ${esc(w.note)}</div>` : ''}
+    </div>
+    <div class="stamp l">不熟</div><div class="stamp r">記得</div><div class="rail"><i></i></div>`;
+}
+function renderCard() {
+  const stage = $('stage');
+  $('rateBtns').style.visibility = st.cur ? 'visible' : 'hidden';
+  if (!st.cur) {
+    const c = countDue(), pool = st.words.filter(inFilter);
+    const hasNew = pool.some((w) => !st.prog[w.id]);
+    const today = dayCards(todayKey()), left = Math.max(0, DAILY_GOAL - today);
+    stage.innerHTML = !st.words.length
+      ? `<div class="done"><div class="big">⏳</div><h2>載入單字中…</h2><p>第一次使用需要連上網路。</p></div>`
+      : !pool.length
+      ? `<div class="done"><div class="big">🔍</div><h2>這個範圍沒有單字</h2><p>點上方「範圍」換一個單元。</p></div>`
+      : `<div class="done"><div class="big">${left ? '💪' : '🎉'}</div>
+          <h2>${left ? `Almost there!<br><small style="font-size:14px;color:var(--muted)">再 ${left} 張就達成今日目標</small>` : 'Goal complete!<br><small style="font-size:14px;color:var(--muted)">今日目標已達成</small>'}</h2>
+          <p>${st.sess.total ? `這輪完成 ${st.sess.done} 張，不熟 ${st.sess.again} 次。<br>` : ''}${c.due ? `還有 ${c.due} 個字到期。` : '到期的字都複習完了。'}</p>
+          <div class="btnrow">
+            ${c.due || c.fresh ? '<button class="btn" data-act="start">繼續複習</button>'
+              : left ? `<button class="btn" data-act="fill" data-n="${left}">補滿今日目標（${left} 張）</button>` : ''}
+            ${hasNew ? '<button class="btn ghost" data-act="more">再學 5 個新字</button>' : ''}
+            ${!left || c.due || c.fresh ? '<button class="btn ghost" data-act="extra">多練 10 張</button>' : ''}
+            <button class="btn ghost" data-act="hard">練習不熟的字</button>
+          </div></div>`;
+    return;
+  }
+  stage.innerHTML = `<div class="card pop" id="card">${cardHTML(st.cur)}</div>`;
+  bindSwipe($('card'));
+  $('card').querySelector('.back').addEventListener('scroll', updateRail, { passive: true });
+}
+function updateRail() {
+  const card = $('card'); if (!card) return;
+  const back = card.querySelector('.back'), rail = card.querySelector('.rail');
+  const over = st.flipped && back.scrollHeight > back.clientHeight + 4;
+  rail.classList.toggle('on', over);
+  if (!over) return;
+  const h = back.clientHeight, th = Math.max(24, h * h / back.scrollHeight);
+  rail.style.top = back.offsetTop + 'px'; rail.style.height = h + 'px';
+  const t = rail.querySelector('i'); t.style.height = th + 'px';
+  t.style.top = (back.scrollTop / (back.scrollHeight - h)) * (h - th) + 'px';
+}
+window.addEventListener('resize', updateRail);
+function renderSess() {
+  const { total, done, combo } = st.sess;
+  const remain = st.queue.length + (st.cur ? 1 : 0);
+  $('sessTxt').textContent = total ? `${done} / ${done + remain}` : '—';
+  $('sessBar').style.width = total ? (done / (done + remain) * 100) + '%' : '0';
+  $('combo').textContent = combo >= 3 ? `×${combo}` : '';
+  $('undoBtn').disabled = !st.undoStack.length;
+}
+function flip() {
+  if (!st.cur) return;
+  st.flipped = !st.flipped;
+  const c = $('card'); c.classList.remove('pop'); c.classList.toggle('flipped', st.flipped);
+  updateRail();
+}
+function flyOut(g) {
+  if (!st.cur || st.flying) return;
+  const card = $('card'); if (!card) return rate(g);
+  st.flying = true;
+  const dx = g === 1 ? -1 : g === 3 ? 1 : 0;
+  card.classList.remove('pop'); card.classList.add('anim');
+  card.style.transform = g === 4 ? 'translateY(-120%)' : `translateX(${dx * 130}%) rotate(${dx * 18}deg)`;
+  card.style.opacity = '0';
+  setTimeout(() => { st.flying = false; rate(g); }, 220);
+}
+function bindSwipe(card) {
+  let sx = 0, sy = 0, dx = 0, down = false, moved = false, axis = '';
+  const stamps = { l: card.querySelector('.stamp.l'), r: card.querySelector('.stamp.r') };
+  card.addEventListener('pointerdown', (e) => {
+    if (e.target.closest('button')) return;
+    down = true; moved = false; axis = ''; sx = e.clientX; sy = e.clientY; dx = 0;
+    card.classList.remove('anim', 'pop');
+  });
+  card.addEventListener('pointermove', (e) => {
+    if (!down) return;
+    dx = e.clientX - sx; const dy = e.clientY - sy;
+    if (!axis && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) {
+      moved = true; axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';   // 上下 = 捲動，左右 = 評分
+      if (axis === 'x') card.setPointerCapture(e.pointerId);
+    }
+    if (axis !== 'x') return;
+    card.style.transform = `translateX(${dx}px) rotate(${dx / 18}deg)`;
+    stamps.l.style.opacity = Math.min(1, Math.max(0, -dx / 90));
+    stamps.r.style.opacity = Math.min(1, Math.max(0, dx / 90));
+  });
+  const end = () => {
+    if (!down) return; down = false;
+    if (!moved) { card.style.transform = ''; flip(); return; }
+    if (axis === 'x' && dx < -90) return flyOut(1);
+    if (axis === 'x' && dx > 90) return flyOut(3);
+    card.classList.add('anim'); card.style.transform = '';
+    Object.values(stamps).forEach((s) => (s.style.opacity = 0));
+  };
+  card.addEventListener('pointerup', end);
+  card.addEventListener('pointercancel', end);
+}
+
+// ═══════════════════════════════════════════════════════
+//  畫面：頁首、首頁、篩選、列表、我的
+// ═══════════════════════════════════════════════════════
+function renderHeader(bump) {
+  const pts = points().total, s = streakNow(), t = titleOf(pts).t;
+  if (st.profile) { $('hAva').textContent = st.profile.avatar; $('hName').textContent = st.profile.name; }
+  $('hTitle').textContent = t[1].toUpperCase();
+  $('hStreak').textContent = '🔥 ' + s;
+  $('hPts').textContent = '⭐ ' + pts;
+  if (bump) { const p = $('hPts'); p.classList.remove('bump'); void p.offsetWidth; p.classList.add('bump'); }
+}
+function renderHome() {
+  const today = dayCards(todayKey()), r = 50, C = 2 * Math.PI * r, pct = Math.min(1, today / DAILY_GOAL);
+  $('ring').innerHTML = `<svg width="118" height="118" viewBox="0 0 118 118">
+      <circle cx="59" cy="59" r="${r}" fill="none" stroke="#232a3c" stroke-width="11"/>
+      <circle cx="59" cy="59" r="${r}" fill="none" stroke="${pct >= 1 ? 'var(--mint)' : 'var(--lime)'}" stroke-width="11" stroke-linecap="round"
+        stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - pct)}" style="transition:stroke-dashoffset .6s"/></svg>
+      <div class="num"><b>${Math.min(today, DAILY_GOAL)}</b><span>/ ${DAILY_GOAL} 張</span></div>`;
+  const c = countDue();
+  $('heroTitle').innerHTML = pct >= 1 ? 'Goal complete! 🎉<small>今日目標達成，可以繼續多練</small>' : `Hi ${esc(st.profile ? st.profile.name : '')}!<small>今天的目標：複習 ${DAILY_GOAL} 張</small>`;
+  $('heroSub').textContent = `待複習 ${c.due}・新字 ${c.fresh}`;
+  $('tStreak').textContent = streakNow();
+  $('tPts').textContent = points().total;
+  $('tKnown').textContent = st.words.filter((w) => statusOf(w) === 'known').length;
+  $('units').innerHTML = allUnits().map((u) => {
+    const ws = st.words.filter((w) => w.unit === u), n = ws.length;
+    const k = { known: 0, learn: 0, hard: 0, new: 0 }; ws.forEach((w) => k[statusOf(w)]++);
+    const seg = (v, col) => v ? `<i style="width:${v / n * 100}%;background:${col}"></i>` : '';
+    return `<button class="unit" data-unit="${esc(u)}"><span class="u">${esc(u)}</span>
+      <div><div class="t">${n} 個字・已掌握 ${k.known}</div><div class="stack">${seg(k.known, 'var(--mint)')}${seg(k.learn + k.hard, 'var(--amber)')}</div></div>
+      <span class="pct">${Math.round(k.known / n * 100)}%</span></button>`;
+  }).join('') || '<p class="hint">載入中…</p>';
+}
+function renderFilters() {
+  const chip = (val, on, grp, label) => `<button class="chip ${on ? 'on' : ''}" data-grp="${grp}" data-val="${esc(val)}">${esc(label || val || '全部')}</button>`;
+  const books = allBooks();
+  $('fBookWrap').style.display = books.length > 1 ? '' : 'none';
+  $('fBook').innerHTML = chip('', !st.set.books.length, 'books') + books.map((b) => chip(b, st.set.books.includes(b), 'books')).join('');
+  $('fUnit').innerHTML = chip('', !st.set.units.length, 'units') + allUnits().map((u) => chip(u, st.set.units.includes(u), 'units')).join('');
+  const LN = { L1: 'L1 Everyday English', L3: 'L3 Word Bank' };
+  $('fLesson').innerHTML = chip('', !st.set.lessons.length, 'lessons') + allLessons().map((l) => chip(l, st.set.lessons.includes(l), 'lessons', LN[l] || l)).join('');
+  $('fSummary').textContent = [...st.set.books, ...st.set.units, ...st.set.lessons].join('、') || '全部單元';
+}
+function toggleFilter(grp, val) {
+  if (!val) st.set[grp] = [];
+  else st.set[grp] = st.set[grp].includes(val) ? st.set[grp].filter((x) => x !== val) : [...st.set[grp], val];
+  saveSet(); renderFilters(); buildQueue();
+}
+function renderList() {
+  const q = $('search').value.trim().toLowerCase();
+  $('lUnit').innerHTML = ['', ...allUnits()].map((u) => `<button class="chip ${st.listUnit === u ? 'on' : ''}" data-lu="${esc(u)}" data-lu-set="1">${esc(u || '全部')}</button>`).join('');
+  const sts = [['all', '全部'], ['new', '未學'], ['learn', '學習中'], ['known', '已掌握'], ['hard', '頑固字']];
+  $('fStatus').innerHTML = sts.map(([k, l]) => `<button class="chip ${st.listStatus === k ? 'on' : ''}" data-st="${k}">${l}</button>`).join('');
+  const items = st.words.filter((w) => (!st.listUnit || w.unit === st.listUnit) &&
+    (st.listStatus === 'all' || statusOf(w) === st.listStatus || (st.listStatus === 'learn' && statusOf(w) === 'hard')) &&
+    (!q || w.word.toLowerCase().includes(q) || w.zh.includes(q)));
+  $('listCount').textContent = `共 ${items.length} 個字`;
+  $('list').innerHTML = items.map(rowHTML).join('') || '<p class="hint" style="margin-top:20px">沒有符合的單字</p>';
+}
+function rowHTML(w) {
+  const s = statusOf(w), p = st.prog[w.id];
+  return `<div class="row" data-id="${esc(w.id)}"><i class="dot ${STATUS[s][1]}"></i>
+    <div class="main"><div class="w">${esc(w.word)}</div><div class="z">${esc(w.zh)}</div></div>
+    <div class="meta">${esc(w.unit)} ${esc(w.lesson)}<br>${p ? dueLabel(p) : ''}</div>
+    <button class="spk small" data-say="${esc(w.word)}">🔊</button></div>`;
+}
+function openDetail(id) {
+  const w = st.byId[id]; if (!w) return;
+  $('sheet').innerHTML = `<div class="card flipped" style="position:relative;inset:auto;box-shadow:none">${cardHTML(w)}</div>
+    <div class="btnrow" style="margin-top:12px"><button class="btn ghost" data-close="1">關閉</button></div>`;
+  $('modal').classList.add('show');
+}
+function renderMe() {
+  const P = points(), { t, next } = titleOf(P.total);
+  const span = next ? next[0] - t[0] : 1, got = next ? P.total - t[0] : 1;
+  $('rank').innerHTML = `<div class="top"><b>${t[1]}</b><span>${t[2]}・${P.total} ⭐</span></div>
+    <div class="track" style="margin-top:10px;height:8px"><i style="width:${Math.min(100, got / span * 100)}%;background:var(--lime)"></i></div>
+    <div class="note" style="margin-top:6px">${next ? `再 ${next[0] - P.total} 分升級為 ${next[1]}（${next[2]}）` : '已經是最高等級！'}</div>`;
+  $('rules').innerHTML = `
+    <div class="srow"><div>每複習 1 張<small>每天最多 ${CARD_CAP} 分</small></div><b>+1</b></div>
+    <div class="srow"><div>完成每日目標<small>一天複習 ${DAILY_GOAL} 張</small></div><b>+${GOAL_BONUS}</b></div>
+    <div class="srow"><div>連續天數獎勵<small>連續 3／7／14／30 天完成目標</small></div><b>+20～200</b></div>
+    <div class="srow"><div>單元測驗與挑戰<small>下一版開放，分數最高</small></div><b>🔒</b></div>`;
+  $('meName').textContent = st.profile ? st.profile.avatar + ' ' + st.profile.name : '—';
+  $('sAuto').classList.toggle('on', st.set.autoSpeak);
+  $('syncInfo').textContent = `${st.words.length} 個字・上次同步 ${st.set.syncedAt ? new Date(st.set.syncedAt).toLocaleString('zh-TW') : '—'}`;
+}
+function openProof() {
+  const P = points(), { t } = titleOf(P.total);
+  const known = st.words.filter((w) => statusOf(w) === 'known').length;
+  const active = Object.keys(st.ledger.days).filter((k) => dayCards(k) > 0).length;
+  $('sheet').innerHTML = `<div class="proof">
+      <div class="pava">${esc(st.profile.avatar)}</div>
+      <div class="pname">${esc(st.profile.name)}</div>
+      <div class="ptitle">${esc(t[1].toUpperCase())} · ${esc(t[2])}</div>
+      <div class="ptotal">${P.total}</div><div class="plabel">總積分 TOTAL POINTS</div>
+      <div class="pgrid">
+        <div><b>${P.card}</b>複習</div><div><b>${P.goal}</b>每日目標</div>
+        <div><b>${P.streak}</b>連續獎勵</div><div><b>${P.quiz}</b>測驗挑戰</div>
+        <div><b>🔥 ${streakNow()}</b>目前連續天數</div><div><b>${known}</b>已掌握單字</div>
+      </div>
+      <div class="pfoot"><span>學習 ${active} 天<br><span class="clock" id="clock"></span></span>
+        <span style="text-align:right">驗證碼<br><span class="code">${proofCode(P.total)}</span></span></div>
+      ${st.tampered ? '<div class="warnbox">⚠️ 積分資料異常，請找老師確認</div>' : ''}
+    </div>
+    <div class="btnrow" style="margin-top:14px"><button class="btn ghost" data-close="1">關閉</button></div>`;
+  $('modal').classList.add('show');
+  const tick = () => { const c = $('clock'); if (!c) return clearInterval(openProof._i); c.textContent = new Date().toLocaleString('zh-TW', { hour12: false }); };
+  clearInterval(openProof._i); tick(); openProof._i = setInterval(tick, 1000);
+}
+
+function showView(id) {
+  document.querySelectorAll('.view').forEach((v) => v.classList.toggle('active', v.id === id));
+  document.querySelectorAll('nav button').forEach((b) => b.classList.toggle('on', b.dataset.v === id));
+  if (id === 'v-home') renderHome();
+  if (id === 'v-list') renderList();
+  if (id === 'v-me') renderMe();
+  if (id === 'v-review') { if (!st.cur) buildQueue(); else if (st.set.autoSpeak) speak(st.cur.word); }
+  document.querySelector('main').scrollTo(0, 0);
+}
+
+// ═══════════════════════════════════════════════════════
+//  暱稱＋頭像
+// ═══════════════════════════════════════════════════════
+let onbPick = '🦊';
+function openOnboarding(edit) {
+  onbPick = (st.profile && st.profile.avatar) || AVATARS[Math.floor(Math.random() * AVATARS.length)];
+  $('onbName').value = (st.profile && st.profile.name) || '';
+  const draw = () => {
+    $('onbGrid').innerHTML = AVATARS.map((a) => `<button class="${a === onbPick ? 'on' : ''}" data-ava="${a}">${a}</button>`).join('');
+    $('onbAva').textContent = onbPick;
+  };
+  draw(); openOnboarding.draw = draw;
+  $('onbGo').textContent = edit ? '儲存 Save' : "Let's go! 開始 ▶";
+  $('onb').classList.add('show');
+}
+$('onbGrid').addEventListener('click', (e) => { const b = e.target.closest('[data-ava]'); if (b) { onbPick = b.dataset.ava; openOnboarding.draw(); } });
+$('onbGo').onclick = async () => {
+  const name = $('onbName').value.trim();
+  if (!name) { $('onbName').focus(); return toast('先輸入你的稱呼喔'); }
+  const first = !st.profile;
+  if (first) {
+    st.profile = { name, avatar: onbPick, createdAt: Date.now() };
+  } else {
+    st.profile = { ...st.profile, name, avatar: onbPick };
+  }
+  await db.set('profile', st.profile);
+  await saveLedger();   // createdAt 參與簽章，重新簽一次
+  $('onb').classList.remove('show');
+  renderHeader(); renderHome(); renderMe();
+  if (first) { confetti(); setTimeout(() => coach('hello'), 400); }
+};
+
+// ═══════════════════════════════════════════════════════
+//  事件
+// ═══════════════════════════════════════════════════════
+document.addEventListener('click', (e) => {
+  const t = e.target.closest('button,[data-id]'); if (!t) return;
+  if (t.dataset.say) { e.stopPropagation(); return speak(t.dataset.say, t); }
+  if (t.dataset.v) return showView(t.dataset.v);
+  if (t.dataset.grp) return toggleFilter(t.dataset.grp, t.dataset.val);
+  if (t.dataset.g) return flyOut(+t.dataset.g);
+  if (t.dataset.st) { st.listStatus = t.dataset.st; return renderList(); }
+  if (t.dataset.luSet) { st.listUnit = t.dataset.lu; return renderList(); }
+  if (t.dataset.unit) { st.set.units = [t.dataset.unit]; st.set.lessons = []; saveSet(); renderFilters(); showView('v-review'); return buildQueue(); }
+  if (t.dataset.act === 'go') { showView('v-review'); return; }
+  if (t.dataset.act === 'start') return buildQueue();
+  if (t.dataset.act === 'more') return buildQueue(5);
+  if (t.dataset.act === 'extra') return extraPractice(10);
+  if (t.dataset.act === 'fill') return extraPractice(+t.dataset.n);
+  if (t.dataset.act === 'hard') return practiceHard();
+  if (t.dataset.act === 'proof') return openProof();
+  if (t.dataset.act === 'profile') return openOnboarding(true);
+  if (t.dataset.close) { clearInterval(openProof._i); return $('modal').classList.remove('show'); }
+  if (t.dataset.id && t.classList.contains('row')) return openDetail(t.dataset.id);
+});
+$('modal').addEventListener('click', (e) => { if (e.target.id === 'modal') { clearInterval(openProof._i); $('modal').classList.remove('show'); } });
+$('undoBtn').onclick = undo;
+$('fToggle').onclick = () => $('fPanel').classList.toggle('open');
+$('search').oninput = renderList;
+$('sAuto').onclick = () => { st.set.autoSpeak = !st.set.autoSpeak; saveSet(); renderMe(); };
+$('btnSync').onclick = async () => { if (await syncCSV(true)) { renderFilters(); renderMe(); if (!st.cur) buildQueue(); } };
+$('btnTtsTest').onclick = async () => {
+  const d = $('ttsDiag'); d.style.display = 'block'; d.textContent = '呼叫中…';
+  try {
+    await db.del('tts:hello'); tts.fails = 0;
+    const blob = await getAudio('Hello');
+    tts.audio.src = URL.createObjectURL(blob); tts.audio.play().catch(() => {});
+    d.textContent = '✅ 語音正常';
+  } catch (err) {
+    d.textContent = '❌ ' + err.message + '\n→ 目前會改用手機內建語音';
+    browserSpeak('Hello');
+  }
+};
+$('btnExport').onclick = () => {
+  const data = { app: APP_ID, version: 1, exportedAt: new Date().toISOString(), profile: st.profile, prog: st.prog, meta: st.meta, ledger: st.ledger, sig: ledgerSig(), settings: st.set };
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(data)], { type: 'application/json' }));
+  a.download = 'thp11-' + (st.profile ? st.profile.name : 'me') + '-' + todayKey() + '.json'; a.click();
+};
+$('btnImport').onclick = () => $('fileImport').click();
+$('fileImport').onchange = async (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  try {
+    const data = JSON.parse(await f.text());
+    if (data.app !== APP_ID || !data.prog) throw new Error('不是 THP11 的備份檔');
+    if (!confirm(`匯入 ${data.profile ? data.profile.name : ''} 的進度？這支手機目前的進度會被取代。`)) return;
+    st.profile = data.profile || st.profile; st.prog = data.prog; st.meta = { ...st.meta, ...data.meta };
+    st.ledger = data.ledger || { days: {}, bonus: [] };
+    st.tampered = data.sig !== ledgerSig();
+    await db.set('profile', st.profile); await saveProg(); await saveMeta();
+    await db.set('ledger', st.ledger); await db.set('sig', data.sig);   // 保留原簽章，被改過的檔案仍會顯示異常
+    toast('匯入完成'); renderHeader(); renderHome(); renderMe(); buildQueue();
+  } catch (err) { toast('匯入失敗：' + err.message); }
+  e.target.value = '';
+};
+$('btnReset').onclick = async () => {
+  if (prompt('全部進度和積分都會歸零，無法復原。\n確定的話請輸入「重來」') !== '重來') return;
+  st.prog = {}; st.meta = { day: todayKey(), newToday: 0, lastActive: '', celebrated: '' }; st.ledger = { days: {}, bonus: [] }; st.tampered = false;
+  await saveProg(); await saveMeta(); await saveLedger();
+  toast('已重設'); renderHeader(); renderHome(); renderMe(); buildQueue();
+};
+document.addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT' || !$('v-review').classList.contains('active')) return;
+  const k = e.key;
+  if (k === ' ') { e.preventDefault(); flip(); }
+  else if (k === 'ArrowLeft') flyOut(1);
+  else if (k === 'ArrowRight') flyOut(3);
+  else if (k === 'ArrowUp') { e.preventDefault(); flyOut(4); }
+  else if (k === 'p' || k === 'P') st.cur && speak(st.cur.word);
+  else if (k === 'z' || k === 'Z') undo();
+});
+
+// ═══════════════════════════════════════════════════════
+//  啟動
+// ═══════════════════════════════════════════════════════
+(async function init() {
+  const qs = new URLSearchParams(location.search).get('csv');   // 測試用：?csv=其他網址
+  const [profile, prog, meta, set, words, ledger, sig] = await Promise.all(
+    ['profile', 'prog', 'meta', 'settings', 'words', 'ledger', 'sig'].map((k) => db.get(k)));
+  if (profile) st.profile = profile;
+  if (prog) st.prog = prog;
+  if (meta) st.meta = { ...st.meta, ...meta };
+  if (set) st.set = { ...st.set, ...set };
+  if (qs) st.set.csvUrl = qs;
+  if (ledger) { st.ledger = ledger; st.tampered = !!sig && sig !== ledgerSig(); }
+  if (words && words.length) setWords(words);
+
+  const last = st.meta.lastActive;
+  renderHeader(); renderFilters(); renderHome();
+  if (!st.profile) openOnboarding(false);
+  else if (last && daysBetween(last, todayKey()) >= 2) setTimeout(() => coach('comeback'), 600);
+  else if (st.meta.day !== todayKey()) setTimeout(() => coach('greet'), 600);
+  rollDay();
+
+  const before = st.words.length;
+  if (await syncCSV(false)) {
+    renderFilters(); renderHome();
+    if (!before && $('v-review').classList.contains('active')) buildQueue();
+  }
+  if ('serviceWorker' in navigator && !qs) {
+    navigator.serviceWorker.register('/JeffreysLab/vocab-thp11/sw.js', { scope: '/JeffreysLab/vocab-thp11/' }).catch(() => {});
+  }
+})();
+</script>
+</body>
+</html>
