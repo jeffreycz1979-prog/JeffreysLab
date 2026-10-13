@@ -244,7 +244,7 @@ nav button.on{color:var(--lime);font-weight:700}
 .qunit .u{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;color:var(--lime);width:40px}
 .qunit .m{flex:1;min-width:0;font-size:12px;color:var(--muted);line-height:1.5}
 .qunit .m b{color:var(--ink);font-size:14px}
-.qunit .go{background:var(--lime);color:#10140a;font-weight:700;font-size:13px;border-radius:12px;padding:8px 12px;flex:none}
+.qunit .go{border:none;background:var(--lime);color:#10140a;font-weight:700;font-size:13px;border-radius:12px;padding:8px 12px;flex:none}
 .qhead{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--muted);margin:4px 0 14px}
 .qhead .track{flex:1}
 .qpts{font-family:'Syne',sans-serif;color:var(--lime);min-width:38px;text-align:right;display:inline-block}
@@ -270,6 +270,30 @@ nav button.on{color:var(--lime);font-weight:700}
 .mt.ok{border-color:var(--mint);background:#123a37;color:var(--mint);opacity:.55}
 .mt.bad{border-color:var(--coral);background:#3a1c18;animation:shake .3s}
 @keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.spk.turtle{background:var(--panel);border:1.5px solid var(--line);color:var(--ink);box-shadow:none}
+.gq{font-size:18px;line-height:1.5;font-weight:600;margin-top:4px}
+.gq u{text-decoration:none;color:var(--lime);letter-spacing:2px}
+.otray{min-height:56px;border:2px dashed var(--line);border-radius:14px;padding:8px;display:flex;flex-wrap:wrap;gap:6px;margin-top:14px;align-items:center;justify-content:center}
+.otray.ok{border-color:var(--mint)}.otray.bad{border-color:var(--coral)}
+.opool{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:12px}
+.tok{border:1.5px solid var(--line);background:var(--panel);border-radius:12px;padding:9px 12px;font-family:'Syne',sans-serif;font-weight:700;font-size:15px}
+.otray .tok{background:#26331a;border-color:var(--lime)}
+.tok.gone{visibility:hidden}
+.gcard{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:12px}
+.gcard h4{font-family:'Syne',sans-serif;font-size:18px;color:var(--lime)}
+.gcard .gzh{font-size:13px;color:var(--muted);margin:2px 0 10px}
+.grule{background:var(--panel);border-radius:12px;padding:10px 12px;margin-top:8px}
+.grule b{display:block;color:var(--mint);font-size:13px;margin-bottom:3px}
+.grule i{font-family:'Syne',sans-serif;font-style:normal;font-size:15px}
+.gmis{display:grid;grid-template-columns:1fr;gap:2px;font-size:14px;margin-top:8px;background:var(--panel);border-radius:12px;padding:10px 12px}
+.gmis .x{color:var(--coral);text-decoration:line-through}.gmis .o{color:var(--mint);font-weight:700}.gmis small{color:var(--muted)}
+.qunit .acts{display:flex;gap:6px;flex:none}
+.qunit .gbtn{background:var(--panel);border:1.5px solid var(--line);color:var(--ink);font-weight:700;font-size:13px;border-radius:12px;padding:8px 10px}
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:10px}
+.days button{border:1.5px solid var(--line);background:var(--panel);border-radius:12px;padding:10px 0;font-weight:700}
+.days button.on,.times button.on{background:var(--lime);border-color:var(--lime);color:#10140a}
+.times{display:flex;gap:8px;margin-top:10px}
+.times button{flex:1;border:1.5px solid var(--line);background:var(--panel);border-radius:12px;padding:10px;font-weight:700}
 .hintw{font-family:monospace;font-size:20px;letter-spacing:4px;color:var(--muted);margin-top:12px}
 .spellin{width:100%;margin-top:14px;border:2px solid var(--line);border-radius:14px;padding:13px;font-size:20px;text-align:center;
   background:var(--panel);color:var(--ink);font-family:'Syne',sans-serif;font-weight:700}
@@ -388,6 +412,7 @@ nav button.on{color:var(--lime);font-weight:700}
     <h3>設定 <small>SETTINGS</small></h3>
     <div class="set">
       <div class="srow"><div>暱稱與頭像<small id="meName">—</small></div><button class="btn ghost" data-act="profile">修改</button></div>
+      <div class="srow"><div>⏰ 練習提醒<small id="remindInfo">加到手機行事曆，時間到會提醒你</small></div><button class="btn ghost" data-act="remind">設定</button></div>
       <div class="srow"><div>自動發音<small>卡片出現時自動朗讀</small></div><button class="sw" id="sAuto"></button></div>
       <div class="srow"><div>同步單字<small id="syncInfo">—</small></div><button class="btn ghost" id="btnSync">同步</button></div>
       <div class="srow" style="display:block"><div>語音測試<small>聽不到聲音時按這裡</small></div>
@@ -409,7 +434,7 @@ nav button.on{color:var(--lime);font-weight:700}
         </div>
       </div>
     </div>
-    <p class="hint">Jeffrey's Lab · THP11 Word Quest v3</p>
+    <p class="hint">Jeffrey's Lab · THP11 Word Quest v3.1</p>
   </section>
 </main>
 
@@ -787,15 +812,15 @@ async function getAudio(text) {
   }
   return tts.inflight[key];
 }
-function browserSpeak(text) {
+function browserSpeak(text, slow) {
   if (!('speechSynthesis' in window)) return;
   speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text); u.lang = 'en-US'; u.rate = 0.9;
+  const u = new SpeechSynthesisUtterance(text); u.lang = 'en-US'; u.rate = slow ? 0.6 : 0.9;
   const v = speechSynthesis.getVoices().find((x) => /en-US/.test(x.lang) && /(Samantha|Google|Natural|Neural)/.test(x.name));
   if (v) u.voice = v;
   speechSynthesis.speak(u);
 }
-async function speak(text, btn) {
+async function speak(text, btn, slow) {
   if (!text) return;
   text = sayText(text);
   tts.audio.pause();
@@ -805,8 +830,9 @@ async function speak(text, btn) {
     const blob = await getAudio(text);
     if (tts.audio.src) URL.revokeObjectURL(tts.audio.src);
     tts.audio.src = URL.createObjectURL(blob);
+    tts.audio.playbackRate = slow ? 0.7 : 1;   // 🐢 慢速
     await tts.audio.play().catch(() => {});
-  } catch (e) { browserSpeak(text); }
+  } catch (e) { browserSpeak(text, slow); }
   finally { btn && btn.classList.remove('busy'); }
 }
 const prefetch = (text) => { if (text && navigator.onLine) getAudio(sayText(text)).catch(() => {}); };
@@ -1214,6 +1240,8 @@ function renderMe() {
     <div class="srow"><div>同一單元重複挑戰<small>每週只算最高的一次，打破本週紀錄才會補差額</small></div><b>📈</b></div>
     <div class="srow"><div>精熟要維持<small>🏅 單元 ${FADE_DAYS} 天沒練會褪色，不扣分，回來練就恢復</small></div><b>🏅</b></div>`;
   $('meName').textContent = st.profile ? st.profile.avatar + ' ' + st.profile.name : '—';
+  const rm = st.set.remind;
+  $('remindInfo').textContent = rm && rm.addedAt ? `已設定：每週${rm.days.map((d) => DAYN[d]).join('、')} ${rm.time}` : '加到手機行事曆，時間到會提醒你';
   $('sAuto').classList.toggle('on', st.set.autoSpeak);
   $('syncInfo').textContent = `${st.words.length} 個字・上次同步 ${st.set.syncedAt ? new Date(st.set.syncedAt).toLocaleString('zh-TW') : '—'}`;
 }
@@ -1262,12 +1290,23 @@ function showView(id) {
 // ═══════════════════════════════════════════════════════
 //  挑戰（測驗）：每單元 10 題，題型混合
 // ═══════════════════════════════════════════════════════
-const QUIZ_PLAN = ['en2zh', 'listen', 'zh2en', 'cloze', 'match', 'en2zh', 'spell', 'listen', 'cloze', 'spell'];
+// 10 題：單字 6 題（含拼字 2）、聽力 2 題、文法 2 題；沒有文法資料的單元自動補單字題
+const QUIZ_PLAN = ['en2zh', 'listen', 'gram', 'cloze', 'match', 'lsent', 'spell', 'gram', 'zh2en', 'spell'];
 const Q_PTS = 2, SPELL_PTS = 3, COMBO_PTS = 1, PERFECT_PTS = 5, MASTER_PTS = 50, MASTER_PCT = 90;   // 一次最多 35 分
 const QTYPE = {
   en2zh: '選出正確的中文 Choose the meaning', zh2en: '選出正確的英文 Choose the word', listen: '聽音選字 Listen and choose',
   cloze: '選字填空 Fill in the blank', match: '配對 Match the pairs', spell: '拼出這個字 Spell the word',
+  lsent: '聽句子選意思 Listen to the sentence', choice: '文法 Grammar', reply: '聽句子選回應 Choose the best reply', order: '排出句子 Build the sentence',
 };
+// 文法資料（grammar.json）：小卡 + 題庫；離線時用快取
+let GRAM = { cards: {}, questions: {} };
+async function loadGrammar() {
+  try {
+    const res = await fetch('grammar.json', { cache: 'no-store' });
+    if (!res.ok) throw new Error(res.status);
+    GRAM = await res.json(); db.set('grammar', GRAM);
+  } catch (e) { const c = await db.get('grammar'); if (c) GRAM = c; }
+}
 const qz = { unit: '', qs: [], i: 0, right: 0, combo: 0, pts: 0, wrong: [], answered: false, result: null };
 const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const norm = (s) => s.toLowerCase().replace(/[’‘]/g, "'").replace(/\s+/g, ' ').trim();
@@ -1298,6 +1337,7 @@ function startQuiz(unit) {
   const used = new Set();
   const take = (ok) => { const w = order.find((x) => !used.has(x.id) && ok(x)); if (w) used.add(w.id); return w; };
   const choice = (type, w) => ({ type, w, opts: shuffle([w, ...distract(w)]) });
+  const gpool = shuffle((GRAM.questions || {})[unit] || []);
   const qs = [];
   for (const type of QUIZ_PLAN) {
     let q = null;
@@ -1309,13 +1349,24 @@ function startQuiz(unit) {
       const w = take((x) => x.type !== '片語' && !/[ ()/]/.test(x.word)); if (w) q = { type, w };
     } else if (type === 'cloze') {
       const w = take((x) => clozeOf(x)); if (w) q = { ...choice(type, w), text: clozeOf(w) };
+    } else if (type === 'gram') {
+      const g = gpool.shift();
+      if (g) q = g.type === 'order'
+        ? { type: 'order', g, pool: (() => { let o; do { o = shuffle(g.words.map((t, i) => ({ t, i }))); } while (o.every((x, k) => x.i === k) && o.length > 2); return o; })(), picked: [] }
+        : { type: g.type, g, opts: shuffle(g.opts.map((t, i) => ({ t, i }))) };
+    } else if (type === 'lsent') {   // 播放整句例句，選中文意思
+      const w = take((x) => x.ex && x.exzh);
+      if (w) {
+        const others = shuffle(pool.filter((x) => x.id !== w.id && x.exzh)).slice(0, 3);
+        q = { type, w, opts: shuffle([w, ...others]) };
+      }
     } else {
       const w = take(() => true); if (w) q = choice(type, w);
     }
     if (!q) { const w = take(() => true); if (w) q = choice('en2zh', w); }
     if (q) qs.push(q);
   }
-  Object.assign(qz, { unit, qs, i: 0, right: 0, combo: 0, pts: 0, wrong: [], answered: false, result: null, before: points().total });
+  Object.assign(qz, { unit, qs, i: 0, right: 0, combo: 0, pts: 0, wrong: [], gwrong: 0, answered: false, result: null, before: points().total });
   showView('v-quiz');
 }
 function renderQuiz() {
@@ -1340,6 +1391,19 @@ function renderQuiz() {
   else if (q.type === 'match') body = `<div class="mgrid">
       <div class="col">${q.left.map((w) => `<button class="mt en" data-ml="${esc(w.id)}">${esc(w.word)}</button>`).join('')}</div>
       <div class="col">${q.right.map((w) => `<button class="mt" data-mr="${esc(w.id)}">${esc(w.zh)}</button>`).join('')}</div></div>`;
+  else if (q.type === 'lsent') body = `<div class="qmid"><button class="spk" data-say="${esc(q.w.ex)}" aria-label="再聽一次">🔊</button>
+      <button class="spk turtle" data-say="${esc(q.w.ex)}" data-slow="1" aria-label="慢速">🐢</button></div>
+    <div class="hint" style="margin-top:8px">聽不清楚可以按 🐢 慢速</div>
+    <div class="opts">${q.opts.map((w) => opt(w, esc(w.exzh))).join('')}</div>`;
+  else if (q.type === 'choice') body = `<div class="gq">${esc(q.g.q).replace('___', '<u>____</u>')}</div>
+    <div class="opts">${q.opts.map((o) => `<button class="opt en" data-gopt="${o.i}">${esc(o.t)}</button>`).join('')}</div>`;
+  else if (q.type === 'reply') body = `<div class="qmid"><button class="spk" data-say="${esc(q.g.q)}" aria-label="再聽一次">🔊</button>
+      <button class="spk turtle" data-say="${esc(q.g.q)}" data-slow="1" aria-label="慢速">🐢</button></div>
+    <div class="hint" style="margin-top:8px">聽句子，選出最適合的回答</div>
+    <div class="opts">${q.opts.map((o) => `<button class="opt en" data-gopt="${o.i}">${esc(o.t)}</button>`).join('')}</div>`;
+  else if (q.type === 'order') body = `<div class="hint">依順序點單字，排成正確的句子（點上面的字可以拿掉）</div>
+    <div class="otray" id="otray"></div><div class="opool" id="opool"></div>
+    <button class="btn wide" style="margin-top:12px" data-act="gorder">確認 Check</button>`;
   else if (q.type === 'spell') {
     const a = answersOf(q.w)[0];
     body = `<div class="qzh">${esc(q.w.zh)}</div><div class="qmid"><span class="pos">${esc(q.w.pos)}</span>${spk(q.w.word)}</div>
@@ -1348,7 +1412,10 @@ function renderQuiz() {
       <button class="btn wide" style="margin-top:10px" data-act="qspell">確認 Check</button>`;
   }
   box.innerHTML = head + `<div class="qcard"><div class="qtype">${QTYPE[q.type]}</div>${body}<div id="qfb"></div></div>`;
+  if (q.type === 'order') drawOrder();
   if (q.type === 'listen' || (q.type === 'en2zh' && st.set.autoSpeak)) speak(q.w.word);
+  if (q.type === 'lsent') speak(q.w.ex);
+  if (q.type === 'reply') speak(q.g.q);
   if (qz.qs[qz.i + 1]) { const n = qz.qs[qz.i + 1]; prefetch(n.w ? n.w.word : ''); }
 }
 function scoreQ(correct, wrongWords) {
@@ -1405,6 +1472,97 @@ function pickMatch(btn) {
     [L, Rt].forEach((b) => { b.classList.remove('sel'); b.classList.add('bad'); setTimeout(() => b.classList.remove('bad'), 350); });
   }
 }
+function gramFeedback(ok, right) {   // 文法題不加入單字複習，只顯示正確句子和規則
+  scoreQ(ok, []);
+  qz.gwrong = qz.gwrong || 0; if (!ok) qz.gwrong++;
+  const g = qz.qs[qz.i].g, last = qz.i === qz.qs.length - 1;
+  $('qfb').innerHTML = `<div class="qbar"><div class="in ${ok ? 'ok' : 'bad'}">
+      <div class="txt">${ok ? '✓ Correct!' : '✕ ' + esc(right)}<br><small>💡 ${esc(g.tip || '')}</small></div>
+      <button class="btn" data-act="qnext">${last ? '看結果 ▶' : 'Next ▶'}</button></div></div>`;
+}
+function pickGOpt(btn) {
+  if (qz.answered) return;
+  const q = qz.qs[qz.i], ok = +btn.dataset.gopt === q.g.a;
+  document.querySelectorAll('[data-gopt]').forEach((b) => { b.disabled = true; if (+b.dataset.gopt === q.g.a) b.classList.add('ok'); });
+  if (!ok) btn.classList.add('bad');
+  gramFeedback(ok, q.g.opts[q.g.a]);
+  if (q.type === 'reply' && !ok) speak(q.g.opts[q.g.a]);
+}
+function drawOrder() {
+  const q = qz.qs[qz.i];
+  $('otray').innerHTML = q.picked.map((k, j) => `<button class="tok" data-otray="${j}">${esc(q.pool[k].t)}</button>`).join('') || '<span class="hint">↓ 點下面的字</span>';
+  $('opool').innerHTML = q.pool.map((o, k) => `<button class="tok ${q.picked.includes(k) ? 'gone' : ''}" data-opool="${k}">${esc(o.t)}</button>`).join('');
+}
+function tapOrder(btn) {
+  const q = qz.qs[qz.i]; if (qz.answered) return;
+  if (btn.dataset.opool != null) { const k = +btn.dataset.opool; if (!q.picked.includes(k)) q.picked.push(k); }
+  else q.picked.splice(+btn.dataset.otray, 1);
+  drawOrder();
+}
+function checkOrder() {
+  const q = qz.qs[qz.i]; if (qz.answered) return;
+  if (q.picked.length < q.pool.length) return toast('還有字沒排進去');
+  const said = q.picked.map((k) => q.pool[k].t).join(' '), right = q.g.words.join(' ');
+  const ok = said === right;
+  $('otray').classList.add(ok ? 'ok' : 'bad');
+  document.querySelector('[data-act="gorder"]').remove();
+  gramFeedback(ok, right);
+  speak(right.replace(/,/g, ''));
+}
+// 行事曆提醒：產生每週重複的 .ics，由手機內建行事曆提醒（不需要伺服器）
+const DAYN = ['日', '一', '二', '三', '四', '五', '六'], ICSD = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
+const remindSet = () => ({ days: [2, 4, 6], time: '17:00', ...(st.set.remind || {}) });
+function toggleDay(d) {
+  const r = remindSet(); r.days = r.days.includes(d) ? r.days.filter((x) => x !== d) : [...r.days, d].sort();
+  st.set.remind = r; saveSet(); openRemind();
+}
+function openRemind() {
+  const r = remindSet();
+  $('sheet').innerHTML = `<h3 style="margin-top:0">⏰ 練習提醒 <small>REMINDER</small></h3>
+    <p class="note">選一週要練習的日子，建議 2～3 天，每次 15 分鐘就夠。按「加到行事曆」後，手機行事曆會在時間到時提醒你。</p>
+    <div class="flabel" style="margin-top:14px">星期</div>
+    <div class="days">${[1, 2, 3, 4, 5, 6, 0].map((d) => `<button class="${r.days.includes(d) ? 'on' : ''}" data-day="${d}">${DAYN[d]}</button>`).join('')}</div>
+    <div class="flabel" style="margin-top:14px">時間</div>
+    <div class="times">${['12:00', '17:00'].map((t) => `<button class="${r.time === t ? 'on' : ''}" data-time="${t}">${t === '12:00' ? '中午 12:00' : '下午 5:00'}</button>`).join('')}</div>
+    <p class="note" style="margin-top:12px">提醒會持續 10 週。之後想改時間，先在行事曆刪掉舊的，再回來重新加。</p>
+    <div class="btnrow" style="margin-top:12px"><button class="btn" data-act="ics">📅 加到行事曆</button><button class="btn ghost" data-close="1">關閉</button></div>`;
+  $('modal').classList.add('show');
+}
+function makeIcs() {
+  const r = remindSet();
+  if (!r.days.length) return toast('至少選一天');
+  const [hh, mm] = r.time.split(':').map(Number);
+  const start = new Date(); start.setHours(hh, mm, 0, 0);
+  while (!r.days.includes(start.getDay()) || start < new Date()) start.setDate(start.getDate() + 1);   // 第一個符合的日子
+  const p2 = (n) => String(n).padStart(2, '0');
+  const dt = (d) => `${d.getFullYear()}${p2(d.getMonth() + 1)}${p2(d.getDate())}T${p2(d.getHours())}${p2(d.getMinutes())}00`;
+  const url = 'https://jeffreycz1979-prog.github.io/JeffreysLab/vocab-thp11/';
+  const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//JeffreysLab//THP11 Word Quest//ZH', 'CALSCALE:GREGORIAN',
+    'BEGIN:VEVENT', `UID:thp11-${Date.now()}@jeffreyslab`, `DTSTAMP:${dt(new Date())}`, `DTSTART:${dt(start)}`, 'DURATION:PT15M',
+    `RRULE:FREQ=WEEKLY;BYDAY=${r.days.map((d) => ICSD[d]).join(',')};COUNT=${r.days.length * 10}`,
+    'SUMMARY:📚 THP11 單字練習', `DESCRIPTION:打開 THP11 Word Quest 練 15 分鐘！\\n${url}`, `URL:${url}`,
+    'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:📚 THP11 單字練習時間到了！', 'TRIGGER:PT0M', 'END:VALARM',
+    'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' }));
+  a.download = 'THP11-練習提醒.ics'; document.body.appendChild(a); a.click(); a.remove();
+  st.set.remind = { ...r, addedAt: Date.now() }; saveSet(); renderMe();
+  toast('打開檔案後，按「加入」就完成了');
+}
+function openGrammar(unit) {
+  const c = (GRAM.cards || {})[unit];
+  if (!c) return toast('這個單元還沒有文法小卡');
+  $('sheet').innerHTML = `<div class="gcard"><div class="qtype" style="text-align:left;margin-bottom:4px">📘 ${esc(unit)} 文法小卡 GRAMMAR</div>
+      <h4>${esc(c.title)}</h4><div class="gzh">${esc(c.zh)}</div>
+      ${(c.rules || []).map(([r, ex]) => `<div class="grule"><b>${esc(r)}</b><i>${esc(ex)}</i>
+        <button class="spk small" style="float:right;margin-top:-26px" data-say="${esc(ex)}">🔊</button></div>`).join('')}
+      ${(c.phrases || []).map(([k, v]) => `<div class="grule"><b>${esc(k)}</b><span style="font-size:14px">${esc(v)}</span></div>`).join('')}
+      ${(c.mistakes || []).length ? `<div class="sec" style="margin-top:14px">常見錯誤 COMMON MISTAKES</div>` : ''}
+      ${(c.mistakes || []).map(([x, o, why]) => `<div class="gmis"><span class="x">✕ ${esc(x)}</span><span class="o">✓ ${esc(o)}</span><small>${esc(why)}</small></div>`).join('')}
+    </div>
+    <div class="btnrow"><button class="btn" data-qunit="${esc(unit)}">去挑戰 ${esc(unit)} ▶</button><button class="btn ghost" data-close="1">關閉</button></div>`;
+  $('modal').classList.add('show');
+}
 function checkSpell() {
   if (qz.answered) return;
   const q = qz.qs[qz.i], inp = $('spellIn'); if (!inp) return;
@@ -1460,6 +1618,7 @@ function renderQuizResult() {
     <div class="btnrow" style="margin-top:16px">
       <button class="btn" data-act="qagain">再挑戰一次</button>
       ${wrong.length ? '<button class="btn ghost" data-act="qwrong">複習答錯的字</button>' : ''}
+      ${qz.gwrong && GRAM.cards[qz.unit] ? `<button class="btn ghost" data-gcard="${esc(qz.unit)}">📘 文法錯了 ${qz.gwrong} 題，看文法小卡</button>` : ''}
       <button class="btn ghost" data-act="qhome">選其他單元</button>
     </div>`;
 }
@@ -1467,15 +1626,15 @@ function renderQuizHome() {
   const qb = (weeks()[thisWeek()] || { qb: {} }).qb;
   const best = st.meta.quizBest || {};
   $('quizBox').innerHTML = `<div class="hero" style="display:block">
-      <h2>Unit Challenge 🎯<small>每次 10 題：選擇、聽音、填空、配對、拼字</small></h2>
+      <h2>Unit Challenge 🎯<small>每次 10 題：單字、聽力、文法、拼字</small></h2>
       <div class="sub" style="margin-top:8px">答對 +${Q_PTS}、拼字 +${SPELL_PTS}、連對加成、全對 +${PERFECT_PTS}<br>第一次拿到 ${MASTER_PCT}% 以上：單元精熟 +${MASTER_PTS}</div>
     </div>
     <div class="qlist">${allUnits().map((u) => {
       const n = st.words.filter((w) => w.unit === u).length;
       const mastered = st.ledger.bonus.some((b) => b.k === 'master:' + u);
-      return `<button class="qunit" data-qunit="${esc(u)}"><span class="u">${esc(u)}</span>
+      return `<div class="qunit"><span class="u">${esc(u)}</span>
         <span class="m"><b>${mastered ? (faded(u) ? '<span style="color:var(--muted)">🏅 需要複習</span>' : '🏅 已精熟') : n + ' 個字'}</b><br>最佳 ${best[u] != null ? best[u] + '%' : '—'}・本週 ${qb[u] ? '+' + qb[u] + ' ⭐' : '還沒挑戰'}</span>
-        <span class="go">挑戰 ▶</span></button>`;
+        <span class="acts">${(GRAM.cards || {})[u] ? `<button class="gbtn" data-gcard="${esc(u)}">📘</button>` : ''}<button class="go" data-qunit="${esc(u)}">挑戰 ▶</button></span></div>`;
     }).join('') + lockedRows('qunitl') || '<p class="hint">載入中…</p>'}</div>`;
 }
 
@@ -1521,7 +1680,7 @@ $('onbGo').onclick = async () => {
 // ═══════════════════════════════════════════════════════
 document.addEventListener('click', (e) => {
   const t = e.target.closest('button,[data-id]'); if (!t) return;
-  if (t.dataset.say) { e.stopPropagation(); return speak(t.dataset.say, t); }
+  if (t.dataset.say) { e.stopPropagation(); return speak(t.dataset.say, t, t.dataset.slow === '1'); }
   if (t.dataset.v) return showView(t.dataset.v);
   if (t.dataset.grp) return toggleFilter(t.dataset.grp, t.dataset.val);
   if (t.dataset.g) return flyOut(+t.dataset.g);
@@ -1542,7 +1701,15 @@ document.addEventListener('click', (e) => {
   if (t.dataset.act === 'proof') return openProof();
   if (t.dataset.act === 'profile') return openOnboarding(true);
   if (t.dataset.close) { clearInterval(openProof._i); $('modal').classList.remove('show'); return checkLock(); }
-  if (t.dataset.qunit) return startQuiz(t.dataset.qunit);
+  if (t.dataset.qunit) { $('modal').classList.remove('show'); return startQuiz(t.dataset.qunit); }
+  if (t.dataset.gcard) return openGrammar(t.dataset.gcard);
+  if (t.dataset.gopt != null) return pickGOpt(t);
+  if (t.dataset.opool != null || t.dataset.otray != null) return tapOrder(t);
+  if (t.dataset.act === 'gorder') return checkOrder();
+  if (t.dataset.day) { toggleDay(+t.dataset.day); return; }
+  if (t.dataset.time) { st.set.remind = { ...remindSet(), time: t.dataset.time }; saveSet(); return openRemind(); }
+  if (t.dataset.act === 'remind') return openRemind();
+  if (t.dataset.act === 'ics') return makeIcs();
   if (t.dataset.opt) return pickOpt(t);
   if (t.dataset.ml || t.dataset.mr) return pickMatch(t);
   if (t.dataset.act === 'qspell') return checkSpell();
@@ -1684,6 +1851,7 @@ document.addEventListener('keydown', (e) => {
   const last = st.meta.lastActive;
   renderHeader(); renderFilters(); renderHome();
   checkLock();
+  loadGrammar();
   if (st.profile) { clockCheck(); saveLedger(); }   // 每次開啟都檢查手機時間
   if (!st.profile) openOnboarding(false);
   else if (last && daysBetween(last, todayKey()) >= 2) setTimeout(() => coach('comeback'), 600);

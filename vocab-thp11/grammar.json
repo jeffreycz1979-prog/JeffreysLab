@@ -1,0 +1,101 @@
+{
+  "_說明": "THP11 文法小卡與文法題。type：choice＝選擇、reply＝聽句子選回應、order＝排出句子（words 依正確順序填寫，App 會打亂）。a＝正確選項的位置（從 0 開始）。",
+  "cards": {
+    "U1": {
+      "title": "Talking About Trends",
+      "zh": "描述流行：用形容詞或名詞說東西看起來怎麼樣",
+      "rules": [
+        ["(n.) is/are + 形容詞", "Roller skates are old-fashioned."],
+        ["(n.) look/seem + 形容詞", "Roller skating seems fun."],
+        ["(n.) look/seem like + 名詞", "Roller skates look like rollerblades."]
+      ],
+      "mistakes": [
+        ["These shoes look like old.", "These shoes look old.", "形容詞前面不加 like"],
+        ["Sneakers is popular.", "Sneakers are popular.", "複數名詞用 are"]
+      ]
+    },
+    "U2": {
+      "title": "Asking People to Help",
+      "zh": "請求幫忙：禮貌地請別人做事，以及怎麼回答",
+      "rules": [
+        ["Please + 原形動詞…", "Please give me that pencil."],
+        ["Can / Could / Would you + 原形動詞…?", "Could you help me with my homework, please?"],
+        ["please 可以放句首、句尾或 you 後面", "Would you please give me a cookie?"]
+      ],
+      "phrases": [
+        ["答應", "Okay. ／ Sure! ／ No problem! ／ Just a second. ／ Here you go. ／ One moment, please."],
+        ["拒絕", "Sorry + 原因或建議：Sorry, I don't have any extra money. Maybe you can ask Jeff."]
+      ],
+      "mistakes": [
+        ["Could you helping me?", "Could you help me?", "you 後面用原形動詞"],
+        ["Please gives me a pen.", "Please give me a pen.", "Please 後面用原形動詞"]
+      ]
+    },
+    "U3": {
+      "title": "Talking About Directions",
+      "zh": "問路：問附近有沒有某個地方、怎麼走",
+      "rules": [
+        ["Is there a (n.) nearby?", "Yes, there's a drugstore next to the bank."],
+        ["Could you tell me how to get to (n.)?", "Sure, go straight down 2nd Street."]
+      ],
+      "phrases": [
+        ["位置", "next to 在旁邊 ／ across from 在對面 ／ between A and B 在 A 和 B 之間 ／ on the corner of A and B 在 A 和 B 的轉角"],
+        ["指路", "go straight down 沿著…直走 ／ go past 經過 ／ turn right/left at 在…右轉／左轉"]
+      ],
+      "mistakes": [
+        ["between the bank or the hotel", "between the bank and the hotel", "between 要搭配 and"],
+        ["how to get the park", "how to get to the park", "get 後面要加 to"]
+      ]
+    }
+  },
+  "questions": {
+    "U1": [
+      { "type": "choice", "q": "Roller skating ___ fun.", "opts": ["seems", "seems like", "look like"], "a": 0, "tip": "seem 後面接形容詞（fun）" },
+      { "type": "choice", "q": "This jacket ___ old-fashioned.", "opts": ["looks", "looks like", "look like"], "a": 0, "tip": "look 後面接形容詞，不加 like" },
+      { "type": "choice", "q": "Rollerblades ___ popular now.", "opts": ["are", "is", "be"], "a": 0, "tip": "複數名詞用 are" },
+      { "type": "choice", "q": "This T-shirt looks ___.", "opts": ["stylish", "like stylish", "a stylish"], "a": 0, "tip": "look + 形容詞" },
+      { "type": "choice", "q": "Her dress looks like ___.", "opts": ["a princess dress", "beautiful", "fancy"], "a": 0, "tip": "look like 後面接名詞" },
+      { "type": "choice", "q": "Fidget spinners were a fad. They ___ boring now.", "opts": ["seem", "seem like", "seems like"], "a": 0, "tip": "seem + 形容詞（boring）" },
+      { "type": "choice", "q": "選出正確的句子", "opts": ["Roller skates look like rollerblades.", "Roller skates look rollerblades.", "Roller skates looks like rollerblades."], "a": 0, "tip": "look like + 名詞；複數主詞用 look" },
+      { "type": "choice", "q": "選出正確的句子", "opts": ["Sneakers are in style.", "Sneakers is in style.", "Sneakers look like in style."], "a": 0, "tip": "複數名詞用 are" },
+      { "type": "choice", "q": "選出正確的句子", "opts": ["That song seems like a classic.", "That song seems a classic.", "That song seem like a classic."], "a": 0, "tip": "seem like + 名詞（a classic）" },
+      { "type": "order", "words": ["Roller", "skates", "are", "old-fashioned."], "tip": "(n.) are + 形容詞" },
+      { "type": "order", "words": ["This", "hat", "looks", "like", "a", "bucket."], "tip": "look like + 名詞" },
+      { "type": "order", "words": ["Rollerblading", "seems", "fun."], "tip": "seem + 形容詞" },
+      { "type": "order", "words": ["My", "jeans", "look", "very", "casual."], "tip": "look + 形容詞" }
+    ],
+    "U2": [
+      { "type": "choice", "q": "Could you ___ me with my homework?", "opts": ["help", "helping", "to help"], "a": 0, "tip": "Could you + 原形動詞" },
+      { "type": "choice", "q": "Please ___ me that pencil.", "opts": ["give", "gives", "giving"], "a": 0, "tip": "Please + 原形動詞" },
+      { "type": "choice", "q": "哪一句最有禮貌？", "opts": ["Would you please close the window?", "Close the window!", "You close the window."], "a": 0, "tip": "Would you please… 是很有禮貌的請求" },
+      { "type": "choice", "q": "選出正確的句子", "opts": ["Could you lend me a hand?", "Could you lending me a hand?", "Could you to lend me a hand?"], "a": 0, "tip": "you 後面用原形動詞" },
+      { "type": "choice", "q": "please 放在哪裡是對的？", "opts": ["Give me a cookie, please.", "Give please me a cookie.", "Give me a please cookie."], "a": 0, "tip": "please 放句首、句尾，或 Would you 後面" },
+      { "type": "reply", "q": "Could you pass me the salt, please?", "opts": ["Sure! Here you go.", "Yes, I am.", "No, it isn't."], "a": 0, "tip": "答應並遞東西：Here you go." },
+      { "type": "reply", "q": "Can you wait for me?", "opts": ["Sure, no problem.", "Here you go.", "Nice to meet you."], "a": 0, "tip": "答應：Sure / No problem" },
+      { "type": "reply", "q": "Marco, could you lend me some money?", "opts": ["Sorry, I don't have any extra money.", "Sorry, here you go.", "Yes, I'm Marco."], "a": 0, "tip": "拒絕：Sorry + 原因" },
+      { "type": "reply", "q": "Can you help me carry this box?", "opts": ["Sorry, I'm busy. Maybe you can ask Tom.", "Sorry, yes.", "I'm fine, thank you."], "a": 0, "tip": "拒絕：Sorry + 原因 + 建議" },
+      { "type": "reply", "q": "Could you give me the remote, please?", "opts": ["Here you go.", "Go straight.", "See you."], "a": 0, "tip": "遞東西給人：Here you go." },
+      { "type": "reply", "q": "Would you open the door for me?", "opts": ["Okay! One moment, please.", "Yes, I would like.", "No, thank you."], "a": 0, "tip": "答應：Okay / One moment, please." },
+      { "type": "order", "words": ["Could", "you", "help", "me,", "please?"], "tip": "Could you + 原形動詞" },
+      { "type": "order", "words": ["Please", "give", "me", "a", "cookie."], "tip": "Please + 原形動詞" },
+      { "type": "order", "words": ["Would", "you", "please", "open", "the", "window?"], "tip": "Would you please + 原形動詞" }
+    ],
+    "U3": [
+      { "type": "choice", "q": "Is there a drugstore ___?", "opts": ["nearby", "near", "next"], "a": 0, "tip": "Is there a (n.) nearby?" },
+      { "type": "choice", "q": "The bank is ___ the bookstore and the pizza restaurant.", "opts": ["between", "across from", "next to"], "a": 0, "tip": "between A and B" },
+      { "type": "choice", "q": "The park is across ___ the shopping mall.", "opts": ["from", "to", "of"], "a": 0, "tip": "across from 在對面" },
+      { "type": "choice", "q": "The café is on the corner ___ 1st Street and Park Road.", "opts": ["of", "at", "in"], "a": 0, "tip": "on the corner of A and B" },
+      { "type": "choice", "q": "Could you tell me how to get ___ the train station?", "opts": ["to", "at", "in"], "a": 0, "tip": "get to 到達某地" },
+      { "type": "choice", "q": "Go straight ___ 2nd Street.", "opts": ["down", "on", "at"], "a": 0, "tip": "go straight down 沿著…直走" },
+      { "type": "choice", "q": "Turn left ___ the next traffic light.", "opts": ["at", "on", "in"], "a": 0, "tip": "turn left at 在…左轉" },
+      { "type": "choice", "q": "Go ___ the fast food restaurant, then turn right.", "opts": ["past", "pass", "passed"], "a": 0, "tip": "go past 經過" },
+      { "type": "choice", "q": "The library is next ___ the school.", "opts": ["to", "of", "from"], "a": 0, "tip": "next to 在旁邊" },
+      { "type": "choice", "q": "選出正確的句子", "opts": ["There's a convenience store between the bank and the hotel.", "There's a convenience store between the bank or the hotel.", "There's a convenience store between of the bank and the hotel."], "a": 0, "tip": "between A and B" },
+      { "type": "reply", "q": "Is there a parking lot nearby?", "opts": ["Yes, there's one in front of the mall.", "Yes, I'm nearby.", "No, thank you."], "a": 0, "tip": "Yes, there's a (n.) + 位置" },
+      { "type": "reply", "q": "Could you tell me how to get to the hospital?", "opts": ["Sure, go straight and turn right at the corner.", "Sure, it's very hot.", "Yes, I could."], "a": 0, "tip": "Sure, + 指路" },
+      { "type": "order", "words": ["Is", "there", "a", "bank", "nearby?"], "tip": "Is there a (n.) nearby?" },
+      { "type": "order", "words": ["Turn", "right", "at", "the", "next", "traffic", "light."], "tip": "turn right at" },
+      { "type": "order", "words": ["Go", "past", "the", "shopping", "mall."], "tip": "go past 經過" }
+    ]
+  }
+}
