@@ -364,7 +364,7 @@ nav button.on{color:var(--lime);font-weight:700}
     <h3>單元進度 <small>UNITS</small></h3>
     <div class="units" id="units"></div>
     <div class="legend">
-      <span><i class="dot d-known"></i>已掌握</span><span><i class="dot d-learn"></i>學習中</span><span><i class="dot d-new"></i>未學</span>
+      <span><i class="dot d-known"></i>已掌握（間隔複習多次都記得）</span><span><i class="dot d-learn"></i>學習中</span><span><i class="dot d-new"></i>未學</span>
     </div>
   </section>
 
@@ -501,6 +501,7 @@ const CLOCK_SLACK = 2 * 3600000;   // 時間倒退超過 2 小時視為調過時
 const TITLES = [
   [0, 'Rookie', '新手'], [100, 'Explorer', '探險家'], [300, 'Word Hunter', '單字獵人'],
   [600, 'Word Warrior', '單字戰士'], [1000, 'Word Master', '單字大師'], [1600, 'Legend', '傳奇'],
+  [2500, 'Grandmaster', '單字宗師'], [4000, 'Mythic', '神話'],
 ];
 const AVATARS = ['🦊','🐼','🐯','🐸','🐙','🦄','🐲','🐧','🦁','🐨','🐵','🦖','🐱','🐶','🤖','👾','🚀','⚽'];
 
@@ -1219,8 +1220,8 @@ function renderHome() {
     const k = { known: 0, learn: 0, hard: 0, new: 0 }; ws.forEach((w) => k[statusOf(w)]++);
     const seg = (v, col) => v ? `<i style="width:${v / n * 100}%;background:${col}"></i>` : '';
     return `<button class="unit" data-unit="${esc(u)}"><span class="u">${esc(u)}</span>
-      <div><div class="t">${n} 個字・已掌握 ${k.known}${st.meta.quizBest && st.meta.quizBest[u] != null ? `・挑戰最佳 ${st.meta.quizBest[u]}%` : ''}${st.ledger.bonus.some((b) => b.k === 'master:' + u) ? (faded(u) ? '・<span style="color:var(--muted)">🏅 需要複習</span>' : '・🏅') : ''}</div><div class="stack">${seg(k.known, 'var(--mint)')}${seg(k.learn + k.hard, 'var(--amber)')}</div></div>
-      <span class="pct">${Math.round(k.known / n * 100)}%</span></button>`;
+      <div><div class="t">${n} 個字・學過 ${n - k.new}・已掌握 ${k.known}${st.meta.quizBest && st.meta.quizBest[u] != null ? `・挑戰最佳 ${st.meta.quizBest[u]}%` : ''}${st.ledger.bonus.some((b) => b.k === 'master:' + u) ? (faded(u) ? '・<span style="color:var(--muted)">🏅 需要複習</span>' : '・🏅') : ''}</div><div class="stack">${seg(k.known, 'var(--mint)')}${seg(k.learn + k.hard, 'var(--amber)')}</div></div>
+      <span class="pct" style="text-align:right;line-height:1.1">${Math.round((n - k.new) / n * 100)}%<br><small style="font-size:10px;color:var(--muted);font-weight:500">學過</small></span></button>`;
   }).join('') + lockedRows('unitl') || '<p class="hint">載入中…</p>';
 }
 function renderFilters() {
@@ -1229,7 +1230,7 @@ function renderFilters() {
   $('fBookWrap').style.display = books.length > 1 ? '' : 'none';
   $('fBook').innerHTML = chip('', !st.set.books.length, 'books') + books.map((b) => chip(b, st.set.books.includes(b), 'books')).join('');
   $('fUnit').innerHTML = chip('', !st.set.units.length, 'units') + allUnits().map((u) => chip(u, st.set.units.includes(u), 'units')).join('');
-  const LN = { L1: 'L1 Everyday English', L3: 'L3 Word Bank' };
+  const LN = { L1: 'L1 Everyday English', L3: 'L3 Word Bank', '補充': '課堂補充' };
   $('fLesson').innerHTML = chip('', !st.set.lessons.length, 'lessons') + allLessons().map((l) => chip(l, st.set.lessons.includes(l), 'lessons', LN[l] || l)).join('');
   $('fSummary').textContent = [...st.set.books, ...st.set.units, ...st.set.lessons].join('、') || '全部單元';
 }
