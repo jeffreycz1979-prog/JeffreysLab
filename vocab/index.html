@@ -165,6 +165,72 @@ h3{font-size:14px;margin:20px 0 8px}
 .input{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:8px 10px;font-size:12px;font-family:monospace}
 .diag{font-size:11px;font-family:monospace;color:var(--muted);white-space:pre-wrap;word-break:break-all;background:#f7f5ef;border-radius:10px;padding:8px;margin:8px 0;display:none}
 
+
+/* ── 挑戰 ── */
+#quizBox{padding-bottom:96px}
+.qhero{background:var(--green);color:#fff;border-radius:20px;padding:18px 16px}
+.qhero h2{font-size:20px;line-height:1.2}
+.qhero h2 small{display:block;font-family:'Syne',sans-serif;font-size:11px;color:var(--lime);letter-spacing:.6px;margin-top:2px}
+.qhero p{font-size:13px;color:#cfe3cf;margin-top:8px;line-height:1.6}
+.qscope{margin-top:12px;font-size:13px;background:rgba(255,255,255,.1);border-radius:12px;padding:8px 10px}
+.qscope b{color:var(--lime)}
+.qhero .btn{margin-top:12px;background:var(--lime);color:var(--green);width:100%}
+.qhead{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--muted);margin:2px 0 12px}
+.qhead .track{flex:1}
+.qcard{background:#fff;border-radius:22px;padding:20px 18px;text-align:center;box-shadow:0 6px 24px rgba(26,58,26,.08)}
+.qtype{font-size:12px;color:#14958c;font-weight:700;letter-spacing:.4px;margin-bottom:12px}
+.qword{font-family:'Syne',sans-serif;font-size:clamp(26px,8vw,36px);font-weight:800;line-height:1.15;color:var(--green);word-break:break-word}
+.qzh{font-size:22px;font-weight:700;line-height:1.35}
+.qsent{font-size:17px;line-height:1.6;font-style:italic;text-align:left}
+.qsent u{text-decoration:none;color:var(--green2);font-style:normal;font-weight:800;letter-spacing:2px}
+.qmid{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:10px}
+.opts{display:flex;flex-direction:column;gap:8px;margin-top:16px}
+.opt{border:1.5px solid var(--line);background:#fbfaf6;border-radius:14px;padding:13px 14px;font-size:16px;font-weight:500;text-align:left;color:var(--ink)}
+.opt.en{font-family:'Syne',sans-serif;font-weight:700}
+.opt.ok{border-color:var(--mint);background:#dcf5f2;color:#0f6e66}
+.opt.bad{border-color:var(--coral);background:#fde7e2;color:#a83a26}
+.opt:disabled{opacity:1}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+.mgrid .col{display:flex;flex-direction:column;gap:8px}
+.mt{border:1.5px solid var(--line);background:#fbfaf6;border-radius:14px;padding:12px 8px;font-size:14px;min-height:52px;color:var(--ink)}
+.mt.en{font-family:'Syne',sans-serif;font-weight:700}
+.mt.sel{border-color:var(--green);background:#eef3ea}
+.mt.ok{border-color:var(--mint);background:#dcf5f2;color:#0f6e66;opacity:.6}
+.mt.bad{border-color:var(--coral);background:#fde7e2}
+.spk.turtle{background:#fff;border:1.5px solid var(--line);box-shadow:none}
+.hintw{font-family:monospace;font-size:20px;letter-spacing:4px;color:var(--muted);margin-top:12px}
+.spellin{width:100%;margin-top:14px;border:2px solid var(--line);border-radius:14px;padding:13px;font-size:20px;text-align:center;font-family:'Syne',sans-serif;background:#fbfaf6}
+.spellin:focus{outline:none;border-color:var(--green)}
+.spellin.ok{border-color:var(--mint);color:#0f6e66}.spellin.bad{border-color:var(--coral);color:#a83a26}
+.btn.wide{width:100%;margin-top:10px}
+.qbar{position:fixed;left:0;right:0;bottom:calc(62px + var(--safe-b));z-index:60;padding:8px 16px}
+.qbar .in{max-width:528px;margin:0 auto;display:flex;align-items:center;gap:10px;border-radius:18px;padding:10px 10px 10px 14px;box-shadow:0 6px 20px rgba(26,58,26,.18)}
+.qbar .in.ok{background:#dcf5f2;color:#0f6e66}.qbar .in.bad{background:#fde7e2;color:#a83a26}
+.qbar .txt{flex:1;min-width:0;text-align:left;font-size:13px;line-height:1.45}
+.qbar .txt b{font-family:'Syne',sans-serif;font-size:15px}
+.qbar .btn{flex:none;padding:12px 16px}
+.qres .pct{font-family:'Syne',sans-serif;font-weight:800;font-size:60px;color:var(--green);line-height:1}
+.qres .up{color:#0f6e66;font-weight:700}.qres .down{color:#a83a26;font-weight:700}
+.marks{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:14px}
+.marks span{font-size:11px;border-radius:8px;padding:4px 7px;display:flex;gap:4px;align-items:center}
+.marks .ok{background:#dcf5f2;color:#0f6e66}.marks .bad{background:#fde7e2;color:#a83a26}
+.minibar{width:70px;height:8px;border-radius:4px;background:#efebe2;overflow:hidden;flex:none}
+.minibar i{display:block;height:100%;background:var(--mint);border-radius:4px}
+/* ── 圖表 ── */
+.chart{background:#fff;border-radius:16px;padding:10px 8px 4px}
+.lc{width:100%;height:auto;display:block}
+.lc .gl{stroke:#ebe6da;stroke-width:1}
+.lc .ax{font-size:10px;fill:#8a8d80}
+.lc .lv{font-size:11px;font-weight:700;fill:var(--ink)}
+.lc .ln{fill:none;stroke:var(--green2);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.lc .dot{fill:var(--green2);stroke:#fff;stroke-width:2}
+.lc .hit{fill:transparent}
+.lc .pt:hover .dot{r:6}
+.bar small{color:var(--muted);font-size:10px}
+.lgd{display:flex;gap:14px;font-size:12px;color:var(--muted);padding:2px 6px 4px}
+.lgd span{display:flex;align-items:center;gap:5px}
+.lgd i{width:14px;height:3px;border-radius:2px;display:inline-block}
+
 /* ── 底部分頁 ── */
 nav{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);display:flex;
   padding-bottom:var(--safe-b);z-index:50}
@@ -215,6 +281,9 @@ nav button.on{color:var(--green);font-weight:700}
     </div>
   </section>
 
+  <!-- ═══ 挑戰 ═══ -->
+  <section class="view" id="v-quiz"><div id="quizBox"></div></section>
+
   <!-- ═══ 單字庫 ═══ -->
   <section class="view" id="v-list">
     <input class="search" id="search" type="search" placeholder="搜尋英文或中文…">
@@ -227,6 +296,14 @@ nav button.on{color:var(--green);font-weight:700}
   <!-- ═══ 進度 ═══ -->
   <section class="view" id="v-stats">
     <div class="stats" id="statCards"></div>
+    <h3>字數成長 <small style="color:var(--muted);font-weight:400">已記得＝穩定度 ≥ 21 天</small></h3>
+    <div class="chart" id="chGrow"></div>
+    <h3>挑戰正確率（最近 20 次）</h3>
+    <div class="chart" id="chQuiz"></div>
+    <h3>各題型正確率（累計題數）</h3>
+    <div class="bars" id="typeBars"></div>
+    <h3>挑戰中最常錯的字</h3>
+    <div class="list" id="missList"></div>
     <h3>各難度掌握度</h3>
     <div class="bars" id="lvBars"></div>
     <div class="legend">
@@ -286,6 +363,7 @@ nav button.on{color:var(--green);font-weight:700}
 
 <nav id="nav">
   <button data-v="v-review" class="on"><i>🃏</i>複習</button>
+  <button data-v="v-quiz"><i>🎯</i>挑戰</button>
   <button data-v="v-list"><i>📚</i>單字庫</button>
   <button data-v="v-stats"><i>📈</i>進度</button>
   <button data-v="v-set"><i>⚙️</i>設定</button>
@@ -371,6 +449,7 @@ const st = {
   meta: { day: '', newToday: 0, reviewDays: [] },
   set: { newPerDay: 10, retention: 0.9, autoSpeak: true, levels: [], domains: [], csvUrl: DEFAULT_CSV, syncedAt: 0 },
   queue: [], cur: null, flipped: false,
+  qlog: [], wstat: {},              // 挑戰紀錄、每個字的挑戰成績
   sess: { total: 0, done: 0, again: 0 }, undoStack: [],
   listStatus: 'all',
 };
@@ -404,13 +483,14 @@ function rowsToWords(rows) {
   const h = rows[0].map((x) => x.trim());
   const col = (name) => h.indexOf(name);
   const C = { id: col('ID'), w: col('單字'), type: col('類型'), pos: col('詞性'), ipa: col('音標'), zh: col('中文'),
-    def: col('英文定義'), ex: col('例句'), lv: col('難度'), dom: col('領域'), topic: col('原圖主題'), status: col('狀態'), note: col('備註') };
+    def: col('英文定義'), ex: col('例句'), lv: col('難度'), dom: col('領域'), topic: col('原圖主題'), status: col('狀態'), note: col('備註'), simple: col('簡單同義字'), group: col('語義群組') };
   if (C.w < 0) throw new Error('CSV 找不到「單字」欄');
   const g = (r, i) => (i >= 0 && r[i] != null ? r[i].trim() : '');
   return rows.slice(1).filter((r) => g(r, C.w)).map((r, i) => ({
     id: g(r, C.id) || ('W' + i + ':' + g(r, C.w).toLowerCase()),
     word: g(r, C.w), type: g(r, C.type), pos: g(r, C.pos), ipa: g(r, C.ipa), zh: g(r, C.zh), def: g(r, C.def),
     ex: g(r, C.ex), lv: g(r, C.lv).toUpperCase(), dom: g(r, C.dom), topic: g(r, C.topic), status: g(r, C.status), note: g(r, C.note),
+    simple: g(r, C.simple), group: g(r, C.group),
   }));
 }
 function setWords(words) {
@@ -523,16 +603,16 @@ async function getAudio(text) {
   }
   return tts.inflight[key];
 }
-function browserSpeak(text) {
+function browserSpeak(text, slow) {
   if (!('speechSynthesis' in window)) return;
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
-  u.lang = 'en-US'; u.rate = 0.9;
+  u.lang = 'en-US'; u.rate = slow ? 0.6 : 0.9;
   const v = speechSynthesis.getVoices().find((x) => /en-US/.test(x.lang) && /(Samantha|Google|Natural|Neural)/.test(x.name));
   if (v) u.voice = v;
   speechSynthesis.speak(u);
 }
-async function speak(text, btn) {
+async function speak(text, btn, slow) {
   if (!text) return;
   tts.audio.pause();
   if ('speechSynthesis' in window) speechSynthesis.cancel();
@@ -541,11 +621,12 @@ async function speak(text, btn) {
     const blob = await getAudio(text);
     if (tts.audio.src) URL.revokeObjectURL(tts.audio.src);
     tts.audio.src = URL.createObjectURL(blob);
+    tts.audio.defaultPlaybackRate = tts.audio.playbackRate = slow ? 0.7 : 1;
     await tts.audio.play().catch(() => {});   // iOS 未互動前可能拒絕自動播放
     tts.mode = 'gateway';
   } catch (e) {
     tts.mode = 'browser'; tts.lastError = e.message;
-    browserSpeak(text);
+    browserSpeak(text, slow);
   } finally { btn && btn.classList.remove('busy'); }
 }
 const prefetch = (text) => { if (text && navigator.onLine) getAudio(text).catch(() => {}); };
@@ -649,6 +730,7 @@ function rate(g) {
   const k = todayKey();
   if (!st.meta.reviewDays.includes(k)) st.meta.reviewDays.push(k);
   st.prog[w.id] = p;
+  snapshot();
   saveProg(); saveMeta();
   nextCard();
 }
@@ -837,7 +919,8 @@ function openDetail(id) {
   const p = st.prog[id];
   $('sheet').innerHTML = `<div class="card" style="position:relative;inset:auto;box-shadow:none">${cardHTML(w, true)}</div>
     <div class="note" style="margin:12px 4px">${esc(w.topic ? '原圖主題：' + w.topic : '')}
-      ${p ? `　下次複習：${dueLabel(p)}　穩定度 ${p.S.toFixed(1)} 天` : '　尚未學習'}</div>
+      ${p ? `　下次複習：${dueLabel(p)}　穩定度 ${p.S.toFixed(1)} 天` : '　尚未學習'}
+      ${st.wstat[id] ? `<br>挑戰：考 ${st.wstat[id].n} 次・答對 ${st.wstat[id].right} 次・最近 ${[...st.wstat[id].hist].map((c) => (c === '1' ? '✓' : '✕')).join('')}` : ''}</div>
     <div class="btnrow">${p ? `<button class="btn danger" data-reset="${esc(id)}">重設這個字</button>` : ''}
       <button class="btn ghost" data-close="1">關閉</button></div>`;
   $('sheet').querySelector('.card').classList.add('flipped');
@@ -862,7 +945,10 @@ function renderStats() {
     <div class="stat hl"><b>${c.due + c.fresh}</b><span>今日待學（含新字）</span></div>
     <div class="stat"><b>${streak}</b><span>連續學習天數</span></div>
     <div class="stat"><b>${counts.known}</b><span>已記得（≥${KNOWN_DAYS} 天）</span></div>
-    <div class="stat"><b>${counts.learn + counts.hard}</b><span>學習中</span></div>`;
+    <div class="stat"><b>${counts.learn + counts.hard}</b><span>學習中</span></div>
+    <div class="stat"><b>${avgRetention() == null ? '—' : avgRetention() + '%'}</b><span>平均記憶保持率（此刻估計）</span></div>
+    <div class="stat"><b>${st.qlog.length}</b><span>挑戰次數</span></div>`;
+  renderProgress();
   const lvs = LEVELS.filter((l) => st.words.some((w) => w.lv === l));
   $('lvBars').innerHTML = lvs.map((l) => {
     const ws = st.words.filter((w) => w.lv === l), n = ws.length;
@@ -891,7 +977,332 @@ function showView(id) {
   if (id === 'v-list') renderList();
   if (id === 'v-stats') renderStats();
   if (id === 'v-set') renderSettings();
+  if (id === 'v-quiz') renderQuiz();
   document.querySelector('main').scrollTo(0, 0);
+}
+
+// ═══════════════════════════════════════════════════════
+//  挑戰：從「學過的字＋目前篩選」出 10 題；答錯排回複習，答對只記錄
+// ═══════════════════════════════════════════════════════
+const QUIZ_PLAN = ['en2zh', 'listen', 'simple', 'cloze', 'match', 'group', 'spell', 'zh2en', 'lsent', 'spell'];
+const QUIZ_MIN = 6;
+const QTYPE = {
+  en2zh: '選出正確的中文 MEANING', zh2en: '選出正確的英文 WORD', listen: '聽音選字 LISTEN',
+  cloze: '例句填空 FILL IN THE BLANK', match: '配對 MATCH', spell: '拼出這個字 SPELL',
+  lsent: '聽例句，選出句子裡的字 LISTEN TO THE SENTENCE', simple: '最接近的簡單說法 PLAIN ENGLISH',
+  group: '哪個字和它同一組？（同義或反義）WORD FAMILY',
+};
+const QSHORT = { en2zh: '英選中', zh2en: '中選英', listen: '聽音選字', cloze: '例句填空', match: '配對', spell: '拼字', lsent: '聽例句', simple: '簡單說法', group: '語義群組' };
+const qz = { qs: [], i: 0, right: 0, wrong: [], answered: false, result: null, scope: '', byType: {}, marks: [] };
+const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const norm = (s) => String(s || '').toLowerCase().replace(/[’‘]/g, "'").replace(/\s+/g, ' ').trim();
+const isoDay = (t = Date.now()) => { const d = new Date(t); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+const scopeLabel = () => [...st.set.levels, ...st.set.domains].join('・') || '全部';
+const quizPool = () => st.words.filter((w) => st.prog[w.id] && inFilter(w));
+
+function answersOf(w) {   // 可接受的拼法：去括號、斜線兩種都算對
+  const base = w.word.replace(/\s*\([^)]*\)\s*/g, ' ');
+  if (/\s\/\s/.test(base)) return base.split(/\s\/\s/).map(norm);
+  const m = base.match(/^(.*?)(\S+)\/(\S+)(.*)$/);
+  return m ? [norm(m[1] + m[2] + m[4]), norm(m[1] + m[3] + m[4])] : [norm(base)];
+}
+function clozeOf(w) {
+  if (!w.ex || /[()/]/.test(w.word)) return null;
+  const base = w.word.length > 4 && !w.word.includes(' ') ? w.word.replace(/(e|y)$/i, '') : w.word;
+  const re = new RegExp('\\b' + base.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + (w.word.includes(' ') ? '' : '\\w*'), 'i');
+  return re.test(w.ex) ? w.ex.replace(re, '\u0000') : null;
+}
+function distract(w, n = 3, ok = () => true) {   // 干擾選項：同詞性、同領域優先，避開同語義群組
+  const seen = new Set([w.zh, w.word.toLowerCase()]);
+  const all = shuffle(st.words.filter((x) => x.id !== w.id && ok(x) && !(w.group && x.group === w.group)));
+  const cand = [...all.filter((x) => x.pos === w.pos && x.dom === w.dom), ...all.filter((x) => x.pos === w.pos), ...all];
+  return cand.filter((x) => { const a = x.word.toLowerCase(); if (seen.has(a) || seen.has(x.zh)) return false; seen.add(a); seen.add(x.zh); return true; }).slice(0, n);
+}
+const simpleOthers = (w) => { const c = shuffle(st.words.filter((x) => x.simple && x.id !== w.id && norm(x.simple) !== norm(w.simple) && !(w.group && x.group === w.group)));
+  return [...c.filter((x) => x.pos === w.pos), ...c.filter((x) => x.pos !== w.pos)]; };   // 同詞性的簡單說法優先，比較不好猜
+
+function startQuiz() {
+  const pool = quizPool();
+  if (pool.length < QUIZ_MIN) return toast(`先複習至少 ${QUIZ_MIN} 個字才能挑戰（這個範圍目前學過 ${pool.length} 個）`);
+  // 不熟、挑戰常錯、很久沒考的字比較容易被抽到
+  const weight = (w) => {
+    const p = st.prog[w.id], s = st.wstat[w.id];
+    const acc = s && s.n ? s.right / s.n : 0.5, age = s ? Math.min(30, (Date.now() - s.last) / DAY) : 30;
+    return p.fails * 1.5 + (statusOf(w) === 'known' ? 0 : 2) + (1 - acc) * 3 + age / 10 + Math.random() * 4;
+  };
+  const order = pool.slice().sort((a, b) => weight(b) - weight(a));
+  const used = new Set();
+  const take = (ok) => {   // 先用沒考過的字；範圍太小時允許同一個字換題型再考
+    const w = order.find((x) => !used.has(x.id) && ok(x)) || order.find(ok);
+    if (w) used.add(w.id); return w;
+  };
+  const choice = (type, w, ok) => ({ type, w, opts: shuffle([w, ...distract(w, 3, ok)]) });
+  const qs = [];
+  for (const type of QUIZ_PLAN) {
+    let q = null;
+    if (type === 'match') {
+      const ws = [];
+      for (let k = 0; k < 4; k++) { const w = order.find((x) => !used.has(x.id) && !ws.includes(x)) || order.find((x) => !ws.includes(x)); if (w) { ws.push(w); used.add(w.id); } }
+      if (ws.length === 4) q = { type, ws, left: shuffle(ws), right: shuffle(ws), done: [], miss: 0, missed: [] };
+    } else if (type === 'spell') {
+      const w = take((x) => x.type !== '片語' && !/[ ()/]/.test(x.word)); if (w) q = { type, w };
+    } else if (type === 'cloze') {
+      const w = take((x) => clozeOf(x)); if (w) q = { ...choice(type, w), text: clozeOf(w) };
+    } else if (type === 'simple') {
+      const w = take((x) => x.simple && simpleOthers(x).length >= 3);
+      if (w) {
+        const seen = new Set([norm(w.simple)]);
+        const others = simpleOthers(w).filter((x) => !seen.has(norm(x.simple)) && seen.add(norm(x.simple))).slice(0, 3);
+        q = { type, w, opts: shuffle([w, ...others]) };
+      }
+    } else if (type === 'group') {
+      const w = take((x) => x.group && st.words.some((y) => y.group === x.group && y.id !== x.id));
+      if (w) {
+        const ans = shuffle(st.words.filter((y) => y.group === w.group && y.id !== w.id))[0];
+        const seen = new Set([w.group]);
+        const ds = shuffle(st.words.filter((y) => y.id !== w.id && y.group !== w.group))
+          .filter((y) => !y.group || (!seen.has(y.group) && seen.add(y.group))).slice(0, 3);
+        if (ds.length === 3) q = { type, w, ans, opts: shuffle([ans, ...ds]) };
+        else used.delete(w.id);
+      }
+    } else if (type === 'lsent') {
+      const w = take((x) => x.ex);
+      if (w) q = choice(type, w, (x) => !norm(w.ex).includes(norm(x.word)));
+    } else {
+      const w = take(() => true); if (w) q = choice(type, w);
+    }
+    if (!q) { const w = take(() => true); if (w) q = choice('en2zh', w); }
+    if (q) qs.push(q);
+  }
+  Object.assign(qz, { qs, i: 0, right: 0, wrong: [], answered: false, result: null, scope: scopeLabel(), byType: {}, marks: [] });
+  // 背景依序預先下載聲音（一次一個，避免同時大量呼叫 Gateway）
+  const texts = [];
+  qs.forEach((q) => { if (q.type === 'lsent') texts.push(q.w.ex); });
+  qs.forEach((q) => (q.ws || [q.w]).forEach((w) => texts.push(w.word)));
+  (async () => { for (const t of texts) { if (!navigator.onLine) break; try { await getAudio(t); } catch (e) { break; } } })();
+  showView('v-quiz');
+}
+
+function renderQuiz() {
+  const box = $('quizBox');
+  if (!qz.qs.length) return renderQuizHome();
+  if (qz.i >= qz.qs.length) return renderQuizResult();
+  const q = qz.qs[qz.i]; qz.answered = false;
+  const head = `<div class="qhead"><button class="undo" data-act="qquit">✕ 離開</button><span>${qz.i + 1} / ${qz.qs.length}</span>
+    <div class="track"><i style="width:${qz.i / qz.qs.length * 100}%"></i></div><span>✓ ${qz.right}</span></div>`;
+  const spk = (t) => `<button class="spk small" data-say="${esc(t)}" aria-label="發音">🔊</button>`;
+  const ears = (t) => `<button class="spk" data-say="${esc(t)}" aria-label="再聽一次">🔊</button><button class="spk turtle" data-say="${esc(t)}" data-slow="1" aria-label="慢速">🐢</button>`;
+  const opt = (w, label, en) => `<button class="opt ${en ? 'en' : ''}" data-opt="${esc(w.id)}">${label}</button>`;
+  let body = '';
+  if (q.type === 'en2zh') body = `<div class="qword">${esc(q.w.word)}</div><div class="qmid">${spk(q.w.word)}</div>
+    <div class="opts">${q.opts.map((w) => opt(w, esc(w.zh))).join('')}</div>`;
+  else if (q.type === 'zh2en') body = `<div class="qzh">${esc(q.w.zh)}</div><div class="qmid"><span class="pos">${esc(q.w.pos)}</span></div>
+    <div class="opts">${q.opts.map((w) => opt(w, esc(w.word), 1)).join('')}</div>`;
+  else if (q.type === 'listen') body = `<div class="qmid">${ears(q.w.word)}</div><div class="hint" style="margin-top:8px">點喇叭可以再聽一次</div>
+    <div class="opts">${q.opts.map((w) => opt(w, esc(w.word), 1)).join('')}</div>`;
+  else if (q.type === 'cloze') body = `<div class="qsent">${esc(q.text).replace('\u0000', '<u>______</u>')}</div>
+    <div class="opts">${q.opts.map((w) => opt(w, esc(w.word), 1)).join('')}</div>`;
+  else if (q.type === 'simple') body = `<div class="qword">${esc(q.w.word)}</div><div class="qmid">${spk(q.w.word)}</div>
+    <div class="hint" style="margin-top:6px">這個字最接近哪個簡單說法？</div>
+    <div class="opts">${q.opts.map((w) => opt(w, esc(w.simple), 1)).join('')}</div>`;
+  else if (q.type === 'group') body = `<div class="qword">${esc(q.w.word)}</div><div class="qmid">${spk(q.w.word)}</div>
+    <div class="hint" style="margin-top:6px">下面哪個字和它屬於同一個語義群組？</div>
+    <div class="opts">${q.opts.map((w) => opt(w, esc(w.word), 1)).join('')}</div>`;
+  else if (q.type === 'match') body = `<div class="mgrid">
+      <div class="col">${q.left.map((w) => `<button class="mt en" data-ml="${esc(w.id)}">${esc(w.word)}</button>`).join('')}</div>
+      <div class="col">${q.right.map((w) => `<button class="mt" data-mr="${esc(w.id)}">${esc(w.zh)}</button>`).join('')}</div></div>`;
+  else if (q.type === 'lsent') body = `<div class="qmid">${ears(q.w.ex)}</div><div class="hint" style="margin-top:8px">聽不清楚可以按 🐢 慢速</div>
+    <div class="opts">${q.opts.map((w) => opt(w, esc(w.word), 1)).join('')}</div>`;
+  else if (q.type === 'spell') {
+    const a = answersOf(q.w)[0];
+    body = `<div class="qzh">${esc(q.w.zh)}</div><div class="qmid"><span class="pos">${esc(q.w.pos)}</span>${spk(q.w.word)}</div>
+      <div class="hintw">${esc(a[0])} ${a.slice(1).replace(/[^ -]/g, '_ ').replace(/-/g, '- ')}</div>
+      <input class="spellin" id="spellIn" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="type here">
+      <button class="btn wide" data-act="qspell">確認 Check</button>`;
+  }
+  box.innerHTML = head + `<div class="qcard"><div class="qtype">${QTYPE[q.type]}</div>${body}<div id="qfb"></div></div>`;
+  if (q.type === 'listen' || (q.type === 'en2zh' && st.set.autoSpeak)) speak(q.w.word);
+  if (q.type === 'lsent') speak(q.w.ex);
+}
+
+function noteWord(id, ok) {   // 每個字的挑戰紀錄：考幾次、對幾次、最近 10 次結果
+  const s = st.wstat[id] || (st.wstat[id] = { n: 0, right: 0, last: 0, hist: '' });
+  s.n++; if (ok) s.right++; s.last = Date.now(); s.hist = (s.hist + (ok ? '1' : '0')).slice(-10);
+}
+function scoreQ(correct, involved, wrongWords) {
+  const q = qz.qs[qz.i];
+  qz.answered = true;
+  const bt = qz.byType[q.type] || (qz.byType[q.type] = [0, 0]);
+  bt[1]++; if (correct) { bt[0]++; qz.right++; }
+  qz.marks.push(correct ? 1 : 0);
+  const wrongIds = wrongWords.map((w) => w.id);
+  involved.forEach((w) => noteWord(w.id, !wrongIds.includes(w.id)));
+  wrongIds.forEach((id) => { if (!qz.wrong.includes(id)) qz.wrong.push(id); });
+}
+function showFeedback(correct, w, extra) {   // 結果和「下一題」固定在畫面底部
+  const last = qz.i === qz.qs.length - 1;
+  $('qfb').innerHTML = `<div class="qbar"><div class="in ${correct ? 'ok' : 'bad'}">
+      <div class="txt">${correct ? '✓ 答對了' : '✕ ' + (extra || '正確答案')}${w ? `<br><b>${esc(w.word)}</b>　${esc(w.zh)}` : ''}</div>
+      <button class="btn" data-act="qnext">${last ? '看結果 ▶' : '下一題 ▶'}</button></div></div>`;
+  if (w && !correct) speak(w.word);
+}
+function pickOpt(btn) {
+  if (qz.answered) return;
+  const q = qz.qs[qz.i], right = (q.ans || q.w).id, ok = btn.dataset.opt === right;
+  document.querySelectorAll('.opt').forEach((b) => { b.disabled = true; if (b.dataset.opt === right) b.classList.add('ok'); });
+  if (!ok) btn.classList.add('bad');
+  scoreQ(ok, [q.w], ok ? [] : [q.w]);
+  showFeedback(ok, q.type === 'group' ? null : q.w);
+  const txt = $('qfb').querySelector('.txt');
+  if (q.type === 'group') txt.innerHTML = `${ok ? '✓ 答對了' : '✕ 正確答案'}<br><b>${esc(q.w.word)} ↔ ${esc(q.ans.word)}</b>　同屬「${esc(q.w.group)}」`;
+  if (q.type === 'simple') txt.innerHTML += `　≈ ${esc(q.w.simple)}`;
+}
+function pickMatch(btn) {
+  const q = qz.qs[qz.i];
+  if (qz.answered || btn.classList.contains('ok')) return;
+  const side = btn.dataset.ml ? 'ml' : 'mr';
+  document.querySelectorAll(`[data-${side}]`).forEach((b) => b.classList.remove('sel'));
+  btn.classList.add('sel');
+  if (side === 'ml') speak(st.byId[btn.dataset.ml].word);
+  const Lb = document.querySelector('.mt.sel[data-ml]'), Rb = document.querySelector('.mt.sel[data-mr]');
+  if (!Lb || !Rb) return;
+  if (Lb.dataset.ml === Rb.dataset.mr) {
+    [Lb, Rb].forEach((b) => { b.classList.remove('sel'); b.classList.add('ok'); b.disabled = true; });
+    q.done.push(Lb.dataset.ml);
+    if (q.done.length === q.ws.length) {
+      const ok = q.miss === 0;
+      scoreQ(ok, q.ws, q.missed);
+      showFeedback(ok, null, ok ? '' : `配對完成，但錯了 ${q.miss} 次：` + q.missed.map((w) => esc(w.word)).join('、'));
+    }
+  } else {
+    q.miss++;
+    const w = st.byId[Lb.dataset.ml]; if (!q.missed.includes(w)) q.missed.push(w);
+    [Lb, Rb].forEach((b) => { b.classList.remove('sel'); b.classList.add('bad'); setTimeout(() => b.classList.remove('bad'), 350); });
+  }
+}
+function checkSpell() {
+  if (qz.answered) return;
+  const q = qz.qs[qz.i], inp = $('spellIn'); if (!inp) return;
+  const v = norm(inp.value);
+  if (!v) return inp.focus();
+  const ok = answersOf(q.w).includes(v);
+  inp.classList.add(ok ? 'ok' : 'bad'); inp.disabled = true;
+  document.querySelector('[data-act="qspell"]').remove();
+  scoreQ(ok, [q.w], ok ? [] : [q.w]);
+  showFeedback(ok, q.w);
+}
+
+function finishQuiz() {
+  if (qz.result) return qz.result;
+  const n = qz.qs.length, pct = Math.round(qz.right / n * 100);
+  const prev = st.qlog.slice().reverse().find((s) => s.scope === qz.scope);
+  st.qlog.push({ t: Date.now(), scope: qz.scope, n, right: qz.right, byType: qz.byType, wrong: qz.wrong.slice() });
+  const now = Date.now();   // 答錯的字排回複習，馬上到期；答對只記錄，不改間隔
+  qz.wrong.forEach((id) => { const p = st.prog[id]; if (p) { p.due = now; p.fails++; } });
+  snapshot();
+  saveProg(); saveMeta(); db.set('qlog', st.qlog); db.set('wstat', st.wstat);
+  qz.result = { pct, prev: prev ? Math.round(prev.right / prev.n * 100) : null };
+  return qz.result;
+}
+function renderQuizResult() {
+  const r = finishQuiz(), n = qz.qs.length;
+  const wrong = qz.wrong.map((id) => st.byId[id]).filter(Boolean);
+  const diff = r.prev == null ? '' : r.pct > r.prev ? `<span class="up">▲ 比上次進步 ${r.pct - r.prev}%</span>`
+    : r.pct < r.prev ? `<span class="down">▼ 比上次少 ${r.prev - r.pct}%</span>` : '和上次一樣';
+  $('quizBox').innerHTML = `<div class="qcard qres">
+      <div class="qtype">挑戰結果 RESULT・${esc(qz.scope)}</div>
+      <div class="pct">${r.pct}%</div>
+      <div class="note" style="margin-top:6px">答對 ${qz.right} / ${n} 題${r.prev != null ? `・上次 ${r.prev}%` : '・這個範圍第一次挑戰'}</div>
+      ${diff ? `<div class="note" style="margin-top:4px">${diff}</div>` : ''}
+      <div class="marks">${qz.qs.map((q, k) => `<span class="${qz.marks[k] ? 'ok' : 'bad'}">${QSHORT[q.type]}<b>${qz.marks[k] ? '✓' : '✕'}</b></span>`).join('')}</div>
+    </div>
+    ${wrong.length ? `<h3>答錯的字 <small style="color:var(--muted);font-weight:400">已排回複習</small></h3><div class="list">${wrong.map(rowHTML).join('')}</div>` : '<p class="hint" style="margin-top:16px">全部答對 🎉 這些字的紀錄已更新</p>'}
+    <div class="btnrow" style="margin-top:16px">
+      <button class="btn" data-act="qagain">再挑戰一次</button>
+      ${wrong.length ? '<button class="btn ghost" data-act="qwrong">馬上複習答錯的字</button>' : ''}
+      <button class="btn ghost" data-v="v-stats">看進步曲線</button>
+    </div>`;
+}
+function renderQuizHome() {
+  const pool = quizPool();
+  const recent = st.qlog.slice(-8).reverse();
+  $('quizBox').innerHTML = `<div class="qhero">
+      <h2>挑戰 <small>CHALLENGE</small></h2>
+      <p>每次 10 題：英選中、聽音、例句填空、配對、簡單說法、語義群組、拼字、聽例句。<br>答錯的字會排回複習；答對只做紀錄。</p>
+      <div class="qscope">範圍：學過的字・<b>${esc(scopeLabel())}</b>（${pool.length} 個字）</div>
+      ${pool.length >= QUIZ_MIN ? '<button class="btn" data-act="qstart">開始挑戰 ▶</button>'
+        : `<p style="margin-top:10px">這個範圍學過的字還不到 ${QUIZ_MIN} 個，先去複習幾張，或到複習頁改篩選。</p>`}
+    </div>
+    <p class="hint" style="margin-top:8px;text-align:left">想換範圍：到「複習」頁打開 🔍 篩選，選難度或領域。</p>
+    <h3>最近的挑戰</h3>
+    <div class="list">${recent.map((s) => {
+      const pct = Math.round(s.right / s.n * 100), d = new Date(s.t);
+      return `<div class="row"><div class="main"><div class="w" style="font-size:15px">${pct}%</div>
+        <div class="z">${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}・${esc(s.scope)}</div></div>
+        <div class="minibar"><i style="width:${pct}%"></i></div></div>`;
+    }).join('') || '<p class="hint">還沒有挑戰紀錄</p>'}</div>`;
+}
+function reviewIds(ids) {
+  const list = ids.filter((id) => st.byId[id]);
+  if (!list.length) return;
+  st.queue = list.slice(); st.sess = { total: list.length, done: 0, again: 0 }; st.undoStack = [];
+  showView('v-review'); nextCard();
+}
+
+// ═══════════════════════════════════════════════════════
+//  進步紀錄：每天一筆快照＋圖表
+// ═══════════════════════════════════════════════════════
+function snapshot() {
+  let known = 0, seen = 0;
+  st.words.forEach((w) => { if (st.prog[w.id]) { seen++; if (statusOf(w) === 'known') known++; } });
+  st.meta.snap = st.meta.snap || {};
+  st.meta.snap[isoDay()] = [known, seen];
+}
+function avgRetention() {
+  const now = Date.now(), ps = Object.values(st.prog).filter((p) => p && p.S);
+  if (!ps.length) return null;
+  return Math.round(ps.reduce((a, p) => a + FSRS.retr(Math.max(0, (now - p.last) / DAY), p.S), 0) / ps.length * 100);
+}
+function lineChart(series, opt = {}) {   // 折線圖：同一個 y 軸，可放多條（單位相同）；滑過或長按圓點看數值
+  if (!Array.isArray(series[0] && series[0].pts)) series = [{ name: opt.title || '', color: 'var(--green2)', pts: series }];
+  const n = series[0].pts.length;
+  if (n < 2) return `<p class="hint">${opt.empty || '資料累積兩筆以上就會出現曲線'}</p>`;
+  const W = 320, H = 150, l = 40, r = 34, t = 14, b = 22, u = opt.unit || '';
+  const max = opt.max || Math.max(4, ...series.flatMap((s) => s.pts.map((p) => p.y)));
+  const step = (W - l - r) / (n - 1), X = (i) => l + i * step, Y = (v) => t + (H - t - b) * (1 - v / max);
+  const grid = [0, max / 2, max].map((v) => `<line x1="${l}" x2="${W - r}" y1="${Y(v)}" y2="${Y(v)}" class="gl"/><text x="${l - 6}" y="${Y(v) + 4}" class="ax" text-anchor="end">${Math.round(v)}${u}</text>`).join('');
+  const lines = series.map((s) => {
+    const path = s.pts.map((p, i) => `${i ? 'L' : 'M'}${X(i).toFixed(1)},${Y(p.y).toFixed(1)}`).join('');
+    const dots = s.pts.map((p, i) => `<g class="pt"><circle cx="${X(i)}" cy="${Y(p.y)}" r="11" class="hit"><title>${esc(p.label)}　${esc(s.name)}：${p.y}${u}</title></circle><circle cx="${X(i)}" cy="${Y(p.y)}" r="4" class="dot" style="fill:${s.color}"/></g>`).join('');
+    const last = s.pts[n - 1];
+    return `<path d="${path}" class="ln" style="stroke:${s.color}"/>${dots}<text x="${X(n - 1) + 8}" y="${Y(last.y) + 4}" class="lv">${last.y}${u}</text>`;
+  }).join('');
+  const xl = `<text x="${l}" y="${H - 6}" class="ax">${esc(series[0].pts[0].label)}</text><text x="${W - r}" y="${H - 6}" class="ax" text-anchor="end">${esc(series[0].pts[n - 1].label)}</text>`;
+  const legend = series.length > 1 ? `<div class="lgd">${series.map((s) => `<span><i style="background:${s.color}"></i>${esc(s.name)}</span>`).join('')}</div>` : '';
+  return legend + `<svg viewBox="0 0 ${W} ${H}" class="lc" role="img" aria-label="${esc(opt.title || '')}">${grid}${lines}${xl}</svg>`;
+}
+function renderProgress() {
+  const md = (k) => { const [, m, d] = k.split('-'); return +m + '/' + +d; };
+  const snap = st.meta.snap || {};
+  const days = Object.keys(snap).sort().slice(-60);
+  $('chGrow').innerHTML = lineChart([
+    { name: '學過', color: '#c0721f', pts: days.map((k) => ({ label: md(k), y: snap[k][1] })) },
+    { name: '已記得', color: '#11a39a', pts: days.map((k) => ({ label: md(k), y: snap[k][0] })) },
+  ], { title: '學過與已記得的字數', empty: '每天複習或挑戰後會記一筆，累積兩天以上就會出現曲線' });
+  const ql = st.qlog.slice(-20);
+  $('chQuiz').innerHTML = lineChart(ql.map((s) => { const d = new Date(s.t); return { label: `${d.getMonth() + 1}/${d.getDate()}`, y: Math.round(s.right / s.n * 100) }; }),
+    { max: 100, unit: '%', title: '挑戰正確率', empty: '挑戰兩次以上就會出現正確率曲線' });
+  const agg = {};
+  st.qlog.forEach((s) => Object.entries(s.byType || {}).forEach(([k, [a, n]]) => { const g = agg[k] || (agg[k] = [0, 0]); g[0] += a; g[1] += n; }));
+  const types = Object.keys(QSHORT).filter((k) => agg[k]);
+  $('typeBars').innerHTML = types.length ? types.map((k) => {
+    const [a, n] = agg[k], p = Math.round(a / n * 100);
+    return `<div class="bar"><b>${QSHORT[k]}</b><div class="stack"><i style="width:${p}%;background:var(--mint)"></i></div><span style="width:auto;white-space:nowrap">${p}%<small>（${n}）</small></span></div>`;
+  }).join('') : '<p class="hint">還沒有挑戰紀錄</p>';
+  const miss = st.words.filter((w) => { const s = st.wstat[w.id]; return s && s.n > s.right; })
+    .sort((a, b) => { const A = st.wstat[a.id], B = st.wstat[b.id]; return (B.n - B.right) - (A.n - A.right) || A.right / A.n - B.right / B.n; }).slice(0, 8);
+  $('missList').innerHTML = miss.length ? miss.map((w) => { const s = st.wstat[w.id]; return rowHTML(w).replace('<div class="meta">', `<div class="meta"><b style="color:#a83a26">錯 ${s.n - s.right}／考 ${s.n}</b><br>`); }).join('')
+    : '<p class="hint">挑戰中還沒有答錯的字</p>';
 }
 
 // ═══════════════════════════════════════════════════════
@@ -899,7 +1310,17 @@ function showView(id) {
 // ═══════════════════════════════════════════════════════
 document.addEventListener('click', (e) => {
   const t = e.target.closest('button,[data-id]'); if (!t) return;
-  if (t.dataset.say) { e.stopPropagation(); return speak(t.dataset.say, t); }
+  if (t.dataset.say) { e.stopPropagation(); return speak(t.dataset.say, t, !!t.dataset.slow); }
+  if (t.dataset.opt) return pickOpt(t);
+  if (t.dataset.ml || t.dataset.mr) return pickMatch(t);
+  if (t.dataset.act === 'qstart' || t.dataset.act === 'qagain') return startQuiz();
+  if (t.dataset.act === 'qnext') { qz.i++; renderQuiz(); return document.querySelector('main').scrollTo(0, 0); }
+  if (t.dataset.act === 'qspell') return checkSpell();
+  if (t.dataset.act === 'qwrong') return reviewIds(qz.wrong);
+  if (t.dataset.act === 'qquit') {
+    if (qz.i > 0 && !confirm('離開這次挑戰？已作答的題目不會留下紀錄。')) return;
+    qz.qs = []; return renderQuiz();
+  }
   if (t.dataset.v) return showView(t.dataset.v);
   if (t.dataset.grp) return toggleFilter(t.dataset.grp, t.dataset.val);
   if (t.dataset.g) return flyOut(+t.dataset.g);
@@ -943,7 +1364,7 @@ $('btnTtsClear').onclick = async () => {
   toast('已清除 ' + ks.length + ' 筆語音快取');
 };
 $('btnExport').onclick = () => {
-  const data = { app: 'vocab-memory', version: 1, exportedAt: new Date().toISOString(), prog: st.prog, meta: st.meta, settings: st.set };
+  const data = { app: 'vocab-memory', version: 1, exportedAt: new Date().toISOString(), prog: st.prog, meta: st.meta, settings: st.set, qlog: st.qlog, wstat: st.wstat };
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 1)], { type: 'application/json' }));
   a.download = 'vocab-progress-' + todayKey() + '.json'; a.click();
@@ -956,6 +1377,8 @@ $('fileImport').onchange = async (e) => {
     if (data.app !== 'vocab-memory' || !data.prog) throw new Error('不是單字庫的備份檔');
     if (!confirm(`匯入 ${Object.keys(data.prog).length} 筆進度？目前裝置上的進度會被取代。`)) return;
     st.prog = data.prog; st.meta = { ...st.meta, ...data.meta };
+    if (data.qlog) { st.qlog = data.qlog; db.set('qlog', st.qlog); }
+    if (data.wstat) { st.wstat = data.wstat; db.set('wstat', st.wstat); }
     await saveProg(); await saveMeta();
     toast('匯入完成'); buildQueue(); renderSettings();
   } catch (err) { toast('匯入失敗：' + err.message); }
@@ -964,9 +1387,15 @@ $('fileImport').onchange = async (e) => {
 $('btnReset').onclick = async () => {
   if (!confirm('確定重設全部學習進度？建議先匯出備份。')) return;
   st.prog = {}; st.meta = { day: todayKey(), newToday: 0, reviewDays: [] };
+  st.qlog = []; st.wstat = {}; db.set('qlog', []); db.set('wstat', {});
   await saveProg(); await saveMeta(); toast('已重設'); buildQueue();
 };
 document.addEventListener('keydown', (e) => {
+  if ($('v-quiz').classList.contains('active') && qz.qs.length && qz.i < qz.qs.length) {
+    if (e.key === 'Enter') { e.preventDefault(); if (qz.answered) document.querySelector('[data-act="qnext"]')?.click(); else checkSpell(); return; }
+    if (e.target.tagName !== 'INPUT' && /^[1-4]$/.test(e.key)) { const b = document.querySelectorAll('.opt')[+e.key - 1]; if (b && !b.disabled) b.click(); }
+    return;
+  }
   if (e.target.tagName === 'INPUT' || !$('v-review').classList.contains('active')) return;
   const k = e.key;
   if (k === ' ') { e.preventDefault(); flip(); }
@@ -981,7 +1410,9 @@ document.addEventListener('keydown', (e) => {
 //  啟動
 // ═══════════════════════════════════════════════════════
 (async function init() {
-  const [prog, meta, set, words] = await Promise.all([db.get('prog'), db.get('meta'), db.get('settings'), db.get('words')]);
+  const [prog, meta, set, words, qlog, wstat] = await Promise.all([db.get('prog'), db.get('meta'), db.get('settings'), db.get('words'), db.get('qlog'), db.get('wstat')]);
+  if (qlog) st.qlog = qlog;
+  if (wstat) st.wstat = wstat;
   if (prog) st.prog = prog;
   if (meta) st.meta = { ...st.meta, ...meta };
   if (set) st.set = { ...st.set, ...set };
@@ -992,6 +1423,7 @@ document.addEventListener('keydown', (e) => {
   const before = st.words.length;
   if (await syncCSV(false)) {
     renderFilters();
+    snapshot(); saveMeta();
     if (!st.cur || !before) buildQueue();
     else renderSess();
   }

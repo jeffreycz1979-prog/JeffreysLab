@@ -1,6 +1,6 @@
 // 單字記憶庫 - Service Worker（scope：/JeffreysLab/vocab/）
 // 改了 index.html 之後把版本號 +1，舊快取會自動清除
-const CACHE_NAME = 'vocab-v3';
+const CACHE_NAME = 'vocab-v4';
 
 const PRECACHE_URLS = [
   '/JeffreysLab/vocab/',
