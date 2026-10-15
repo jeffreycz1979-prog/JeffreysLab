@@ -1087,7 +1087,9 @@ function renderQuiz() {
   const box = $('quizBox');
   if (!qz.qs.length) return renderQuizHome();
   if (qz.i >= qz.qs.length) return renderQuizResult();
-  const q = qz.qs[qz.i]; qz.answered = false;
+  const q = qz.qs[qz.i];
+  if (q.scored) { qz.i++; return renderQuiz(); }   // 已作答：切分頁回來不能再答一次（防刷分）
+  qz.answered = false;
   const head = `<div class="qhead"><button class="undo" data-act="qquit">✕ 離開</button><span>${qz.i + 1} / ${qz.qs.length}</span>
     <div class="track"><i style="width:${qz.i / qz.qs.length * 100}%"></i></div><span>✓ ${qz.right}</span></div>`;
   const spk = (t) => `<button class="spk small" data-say="${esc(t)}" aria-label="發音">🔊</button>`;
@@ -1109,8 +1111,8 @@ function renderQuiz() {
     <div class="hint" style="margin-top:6px">下面哪個字和它屬於同一個語義群組？</div>
     <div class="opts">${q.opts.map((w) => opt(w, esc(w.word), 1)).join('')}</div>`;
   else if (q.type === 'match') body = `<div class="mgrid">
-      <div class="col">${q.left.map((w) => `<button class="mt en" data-ml="${esc(w.id)}">${esc(w.word)}</button>`).join('')}</div>
-      <div class="col">${q.right.map((w) => `<button class="mt" data-mr="${esc(w.id)}">${esc(w.zh)}</button>`).join('')}</div></div>`;
+      <div class="col">${q.left.map((w) => `<button class="mt en${q.done.includes(w.id) ? ' ok' : ''}" data-ml="${esc(w.id)}"${q.done.includes(w.id) ? ' disabled' : ''}>${esc(w.word)}</button>`).join('')}</div>
+      <div class="col">${q.right.map((w) => `<button class="mt${q.done.includes(w.id) ? ' ok' : ''}" data-mr="${esc(w.id)}"${q.done.includes(w.id) ? ' disabled' : ''}>${esc(w.zh)}</button>`).join('')}</div></div>`;
   else if (q.type === 'lsent') body = `<div class="qmid">${ears(q.w.ex)}</div><div class="hint" style="margin-top:8px">聽不清楚可以按 🐢 慢速</div>
     <div class="opts">${q.opts.map((w) => opt(w, esc(w.word), 1)).join('')}</div>`;
   else if (q.type === 'spell') {
@@ -1131,6 +1133,7 @@ function noteWord(id, ok) {   // 每個字的挑戰紀錄：考幾次、對幾�
 }
 function scoreQ(correct, involved, wrongWords) {
   const q = qz.qs[qz.i];
+  if (q.scored) return; q.scored = true;   // 每題只計一次
   qz.answered = true;
   const bt = qz.byType[q.type] || (qz.byType[q.type] = [0, 0]);
   bt[1]++; if (correct) { bt[0]++; qz.right++; }
@@ -1168,7 +1171,7 @@ function pickMatch(btn) {
   if (!Lb || !Rb) return;
   if (Lb.dataset.ml === Rb.dataset.mr) {
     [Lb, Rb].forEach((b) => { b.classList.remove('sel'); b.classList.add('ok'); b.disabled = true; });
-    q.done.push(Lb.dataset.ml);
+    if (!q.done.includes(Lb.dataset.ml)) q.done.push(Lb.dataset.ml);
     if (q.done.length === q.ws.length) {
       const ok = q.miss === 0;
       scoreQ(ok, q.ws, q.missed);
@@ -1194,7 +1197,7 @@ function checkSpell() {
 
 function finishQuiz() {
   if (qz.result) return qz.result;
-  const n = qz.qs.length, pct = Math.round(qz.right / n * 100);
+  const n = qz.qs.length, pct = Math.min(100, Math.round(qz.right / n * 100));
   const prev = st.qlog.slice().reverse().find((s) => s.scope === qz.scope);
   st.qlog.push({ t: Date.now(), scope: qz.scope, n, right: qz.right, byType: qz.byType, wrong: qz.wrong.slice() });
   const now = Date.now();   // 答錯的字排回複習，馬上到期；答對只記錄，不改間隔
