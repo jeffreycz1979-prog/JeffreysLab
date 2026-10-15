@@ -670,6 +670,26 @@ function points() {
   st.ledger.bonus.forEach((b) => { if (b.k.startsWith('wk') || b.k.startsWith('streak')) streak += b.p; else master += b.p; });
   return { card, goal, streak, quiz: quiz + master, quizOnly: quiz, master, total: card + goal + streak + quiz + master };
 }
+// 10/15 刷分漏洞修正：挑戰一次最多 35 分；最佳超過 100% 的單元收回精熟（可重新挑戰拿回）
+const QUIZ_MAX_PTS = 35;
+function repairQuizExploit() {
+  const L = st.ledger, qb = st.meta.quizBest || {};
+  const before = points().total;
+  let changed = false;
+  for (const k in L.days) {
+    const d = L.days[k];
+    if (d.qbest) for (const u in d.qbest) if (d.qbest[u] > QUIZ_MAX_PTS) { d.qbest[u] = QUIZ_MAX_PTS; changed = true; }
+  }
+  for (const u in qb) if (qb[u] > 100) {
+    L.bonus = L.bonus.filter((b) => b.k !== 'master:' + u);
+    delete qb[u]; changed = true;
+  }
+  if (L.qstat && L.qstat.right > L.qstat.total) { L.qstat.right = L.qstat.total; changed = true; }
+  if (!changed) return false;
+  const prev = L.fix1015;
+  L.fix1015 = { t: Date.now(), before: prev ? prev.before : before, after: points().total };
+  return true;
+}
 function streakNow() {   // 連續完成每週目標的週數（這週還沒完成不會斷）
   const W = weeks(); let n = 0;
   const d = new Date(); d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
@@ -1326,6 +1346,7 @@ function openProof() {
       <div class="pfoot"><span>${L(`學習 ${active} 天`, `${active} days of practice`)}<br><span class="clock" id="clock"></span></span>
         <span style="text-align:right">${L('驗證碼', 'Code')}<br><span class="code">${proofCode(P.total)}</span></span></div>
       ${(st.ledger.moves || []).length ? `<div class="moved">🔁 從其他裝置轉入 ${st.ledger.moves.length} 次（最近：${new Date(st.ledger.moves[st.ledger.moves.length - 1]).toLocaleDateString('zh-TW')}）</div>` : ''}
+      ${st.ledger.fix1015 ? `<div class="moved">🔧 10/15 挑戰計分修正：${st.ledger.fix1015.before} → ${st.ledger.fix1015.after} 分</div>` : ''}
       ${st.ledger.clockBad ? '<div class="warnbox">⏰ 手機時間曾被調整過</div>' : ''}
       ${st.tampered ? '<div class="warnbox">⚠️ 積分資料異常，請找老師確認</div>' : ''}
     </div>
@@ -1950,6 +1971,7 @@ document.addEventListener('keydown', (e) => {
   if (set) st.set = { ...st.set, ...set };
   if (qs) st.set.csvUrl = qs;
   if (ledger) { st.ledger = ledger; st.tampered = !!sig && sig !== ledgerSig(); }
+  if (ledger && repairQuizExploit()) { saveLedger(); db.set('meta', st.meta); st.fixedNotice = true; }   // 先驗證簽章再修正，修正後重新簽章
   if (words && words.length) setWords(words);
 
   const last = st.meta.lastActive;
@@ -1962,6 +1984,7 @@ document.addEventListener('keydown', (e) => {
   else if (last && daysBetween(last, todayKey()) >= 2) setTimeout(() => coach('comeback'), 600);
   else if (st.meta.day !== todayKey()) setTimeout(() => coach('greet'), 600);
   rollDay();
+  if (st.fixedNotice && st.ledger.fix1015) setTimeout(() => toast(`挑戰計分已修正：${st.ledger.fix1015.before} → ${st.ledger.fix1015.after} 分`), 1500);
 
   const before = st.words.length;
   if (await syncCSV(false)) {
