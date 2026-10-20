@@ -333,6 +333,32 @@ nav button.on{color:var(--lime);font-weight:700}
 .toast{position:fixed;left:50%;bottom:calc(92px + var(--safe-b));transform:translateX(-50%);background:var(--mint);color:#06201e;
   font-size:13px;font-weight:700;padding:9px 16px;border-radius:20px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:120;white-space:nowrap}
 .toast.show{opacity:1}
+/* ── 獎勵遊戲 ── */
+.gamecard{display:flex;align-items:center;gap:12px;margin-top:12px;border-radius:18px;padding:12px 14px;
+  background:linear-gradient(120deg,#26331a,#123a37);border:1.5px solid var(--lime)}
+.gamecard.off{background:var(--panel);border:1px dashed var(--line);opacity:.6}
+.gamecard .gc-ic{font-size:30px}.gamecard .gc-m{flex:1;min-width:0}
+.gamecard .gc-m b{font-family:'Syne',sans-serif;font-size:17px}.gamecard .gc-m small{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+.gamecard .go{border:none;background:var(--lime);color:#10140a;font-weight:700;font-size:13px;border-radius:12px;padding:9px 14px}
+.gamecard .go:disabled{background:var(--panel);color:var(--muted)}
+.wj{position:fixed;inset:0;z-index:130;background:#0a0a14;display:none;touch-action:none;user-select:none;-webkit-user-select:none}
+.wj.show{display:block}
+.wj canvas{position:absolute;inset:0;display:block}
+.wj-hud{position:absolute;left:0;right:0;top:0;padding:calc(env(safe-area-inset-top,0px) + 10px) 12px 8px;display:flex;gap:8px;align-items:center;pointer-events:none}
+.wj-hud span{background:rgba(0,0,0,.45);border:1px solid var(--line);border-radius:14px;padding:5px 10px;font-family:'Syne',sans-serif;font-weight:800;font-size:15px}
+.wj-t{margin-left:auto}.wj-t.low{color:var(--coral);border-color:var(--coral)}.wj-p{color:var(--lime)}
+.wj-x{pointer-events:auto;border:none;background:rgba(0,0,0,.45);color:#fff;border-radius:12px;width:36px;height:34px;font-size:15px}
+.wj-pane{position:absolute;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 58px);padding:0 16px;display:flex;justify-content:center}
+.wj-card{width:100%;max-width:400px;background:rgba(19,24,38,.96);border:1.5px solid var(--lime);border-radius:22px;padding:18px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.6)}
+.wj-card h2{font-family:'Syne',sans-serif;font-size:26px;color:var(--lime);margin:4px 0 6px}
+.wj-card p{font-size:14px;color:var(--ink);line-height:1.6}
+.wj-rules{text-align:left;background:var(--panel);border-radius:14px;padding:10px 12px;margin:12px 0;font-size:13px;line-height:1.9}
+.wj-small{font-size:12px;color:var(--muted);margin:8px 0}
+.wj-kicker{font-size:13px;font-weight:700;color:var(--amber);margin-bottom:6px}
+.wj-mean{font-size:22px;font-weight:700;color:var(--lime);line-height:1.4}
+.wj-big{font-family:'Syne',sans-serif;font-weight:800;font-size:52px;color:#fff;line-height:1.1}
+.wj-pts{font-family:'Syne',sans-serif;font-weight:800;font-size:26px;color:var(--lime);margin-top:6px}
+.wj-card.shake{animation:shake .3s}
 </style>
 </head>
 <body>
@@ -435,7 +461,7 @@ nav button.on{color:var(--lime);font-weight:700}
         </div>
       </div>
     </div>
-    <p class="hint">Jeffrey's Lab · THP11 Word Quest v3.3</p>
+    <p class="hint">Jeffrey's Lab · THP11 Word Quest v3.4</p>
   </section>
 </main>
 
@@ -651,24 +677,28 @@ const thisWeek = () => weekOf(todayKey());
 function weeks() {   // 每週彙總：複習張數、各單元挑戰最高分
   const W = {};
   for (const k in st.ledger.days) {
-    const d = st.ledger.days[k], w = W[weekOf(k)] || (W[weekOf(k)] = { cards: 0, qb: {} });
+    const d = st.ledger.days[k], w = W[weekOf(k)] || (W[weekOf(k)] = { cards: 0, qb: {}, gb: {} });
     w.cards += d.cards || 0;
     if (d.qbest) for (const u in d.qbest) w.qb[u] = Math.max(w.qb[u] || 0, d.qbest[u]);
+    if (d.gbest) for (const g in d.gbest) w.gb[g] = Math.max(w.gb[g] || 0, d.gbest[g]);   // 獎勵遊戲：每款每週最高一局
   }
   return W;
 }
 const weekCards = () => (weeks()[thisWeek()] || { cards: 0 }).cards;
 const weekBest = (u) => ((weeks()[thisWeek()] || { qb: {} }).qb[u]) || 0;
+const GAME_CAP = 20;
+const gameWeekBest = (g) => Math.min(GAME_CAP, ((weeks()[thisWeek()] || { gb: {} }).gb[g]) || 0);
 function points() {
-  let card = 0, goal = 0, quiz = 0, streak = 0, master = 0;
+  let card = 0, goal = 0, quiz = 0, streak = 0, master = 0, game = 0;
   const W = weeks();
   for (const k in W) {
     card += Math.min(W[k].cards, CARD_CAP);
     if (W[k].cards >= WEEK_GOAL) goal += GOAL_BONUS;
     for (const u in W[k].qb) quiz += W[k].qb[u];   // 挑戰：每單元每週只算最高分
+    for (const g in W[k].gb) game += Math.min(GAME_CAP, W[k].gb[g]);   // 遊戲：每款每週最多 20
   }
   st.ledger.bonus.forEach((b) => { if (b.k.startsWith('wk') || b.k.startsWith('streak')) streak += b.p; else master += b.p; });
-  return { card, goal, streak, quiz: quiz + master, quizOnly: quiz, master, total: card + goal + streak + quiz + master };
+  return { card, goal, streak, quiz: quiz + master, quizOnly: quiz, master, game, total: card + goal + streak + quiz + master + game };
 }
 // 10/15 刷分漏洞修正：挑戰一次最多 35 分；最佳超過 100% 的單元收回精熟（可重新挑戰拿回）
 const QUIZ_MAX_PTS = 35;
@@ -1315,6 +1345,7 @@ function renderMe() {
     <div class="srow"><div>${L('連續週數獎勵', 'Week streak bonus')}<small>${L('連續 2／4／6 週完成每週目標', 'Reach the goal 2 / 4 / 6 weeks in a row')}</small></div><b>+10／30／60</b></div>
     <div class="srow"><div>${L('挑戰答對 1 題', 'Each correct quiz answer')}<small>${L(`拼字題 +${SPELL_PTS}；連對 3 題以上每題再 +${COMBO_PTS}`, `Spelling +${SPELL_PTS}; 3 in a row: +${COMBO_PTS} each`)}</small></div><b>+${Q_PTS}</b></div>
     <div class="srow"><div>${L('挑戰全對', 'Perfect quiz')}<small>${L('10 題全部答對', 'All 10 correct')}</small></div><b>+${PERFECT_PTS}</b></div>
+    <div class="srow"><div>${L('🎮 獎勵遊戲', '🎮 Bonus game')}<small>${L('任一單元精熟後解鎖；每週只算最高一局', 'Unlocks after mastering a unit; best game each week counts')}</small></div><b>0～${GAME_CAP}</b></div>
     <div class="srow"><div>${L('單元精熟', 'Unit mastery')}<small>${L(`某單元第一次拿到 ${MASTER_PCT}% 以上（每單元一次）`, `First time scoring ${MASTER_PCT}%+ on a unit (once per unit)`)}</small></div><b>+${MASTER_PTS}</b></div>
     <div class="srow"><div>${L('同一單元重複挑戰', 'Retrying a unit')}<small>${L('每週只算最高的一次，打破本週紀錄才會補差額', 'Only your best score each week counts')}</small></div><b>📈</b></div>
     <div class="srow"><div>${L('精熟要維持', 'Keep your badge')}<small>${L(`🏅 單元 ${FADE_DAYS} 天沒練會褪色，不扣分，回來練就恢復`, `🏅 fades after ${FADE_DAYS} days without practice — no points lost`)}</small></div><b>🏅</b></div>`;
@@ -1342,6 +1373,7 @@ function openProof() {
         <div><b>${P.quizOnly}</b>${L('挑戰', 'Quiz')}</div><div><b>${P.master}</b>${L('單元精熟', 'Mastery')}</div>
         <div><b>${P.streak}</b>${L('連續獎勵', 'Streak bonus')}</div><div><b>🔥 ${streakNow()} ${L('週', 'wk')}</b>${L('目前連續', 'Current streak')}</div>
         <div><b>${totalCards}</b>${L('總複習張數', 'Cards reviewed')}</div><div><b>${acc}</b>${L('挑戰正確率', 'Quiz accuracy')}</div>
+        <div><b>${P.game}</b>${L('🎮 獎勵遊戲', '🎮 Bonus game')}</div><div><b>${(st.meta.games && st.meta.games.jump && st.meta.games.jump.bestM) || 0} m</b>${L('Word Jump 最高', 'Word Jump best')}</div>
       </div>
       <div class="pfoot"><span>${L(`學習 ${active} 天`, `${active} days of practice`)}<br><span class="clock" id="clock"></span></span>
         <span style="text-align:right">${L('驗證碼', 'Code')}<br><span class="code">${proofCode(P.total)}</span></span></div>
@@ -1746,6 +1778,7 @@ function renderQuizHome() {
       <h2>Unit Challenge 🎯<small>${L('每次 10 題：單字、聽力、文法、拼字', '10 questions: words, listening, grammar, spelling')}</small></h2>
       <div class="sub" style="margin-top:8px">${L(`答對 +${Q_PTS}、拼字 +${SPELL_PTS}、連對加成、全對 +${PERFECT_PTS}<br>第一次拿到 ${MASTER_PCT}% 以上：單元精熟 +${MASTER_PTS}`, `Correct +${Q_PTS} · spelling +${SPELL_PTS} · combo bonus · perfect +${PERFECT_PTS}<br>First ${MASTER_PCT}%+: unit mastery +${MASTER_PTS}`)}</div>
     </div>
+    ${typeof WJ !== 'undefined' ? WJ.card() : ''}
     <div class="qlist">${allUnits().map((u) => {
       const n = st.words.filter((w) => w.unit === u).length;
       const mastered = st.ledger.bonus.some((b) => b.k === 'master:' + u);
@@ -1809,6 +1842,7 @@ document.addEventListener('click', (e) => {
   if (t.dataset.act === 'codein') return openCodeIn();
   if (t.dataset.act === 'codecopy') return copyCode();
   if (t.dataset.act === 'codeapply') return applyCode();
+  if (t.dataset.act === 'game') return WJ.open();
   if (t.dataset.act === 'showzh') { e.stopPropagation(); const c = t.closest('.card,.sheet'); c.querySelectorAll('.zhhide').forEach((x) => (x.style.display = '')); t.remove(); updateRail(); return; }
   if (t.dataset.act === 'go') { showView('v-review'); return; }
   if (t.dataset.act === 'start') return buildQueue();
@@ -1996,5 +2030,6 @@ document.addEventListener('keydown', (e) => {
   }
 })();
 </script>
+<script src="games/jump.js"></script>
 </body>
 </html>
