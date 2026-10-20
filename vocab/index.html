@@ -483,14 +483,14 @@ function rowsToWords(rows) {
   const h = rows[0].map((x) => x.trim());
   const col = (name) => h.indexOf(name);
   const C = { id: col('ID'), w: col('單字'), type: col('類型'), pos: col('詞性'), ipa: col('音標'), zh: col('中文'),
-    def: col('英文定義'), ex: col('例句'), lv: col('難度'), dom: col('領域'), topic: col('原圖主題'), status: col('狀態'), note: col('備註'), simple: col('簡單同義字'), group: col('語義群組') };
+    def: col('英文定義'), ex: col('例句'), lv: col('難度'), dom: col('領域'), topic: col('原圖主題'), status: col('狀態'), note: col('備註'), simple: col('簡單同義字'), group: col('語義群組'), syn: col('同義反義') };
   if (C.w < 0) throw new Error('CSV 找不到「單字」欄');
   const g = (r, i) => (i >= 0 && r[i] != null ? r[i].trim() : '');
   return rows.slice(1).filter((r) => g(r, C.w)).map((r, i) => ({
     id: g(r, C.id) || ('W' + i + ':' + g(r, C.w).toLowerCase()),
     word: g(r, C.w), type: g(r, C.type), pos: g(r, C.pos), ipa: g(r, C.ipa), zh: g(r, C.zh), def: g(r, C.def),
     ex: g(r, C.ex), lv: g(r, C.lv).toUpperCase(), dom: g(r, C.dom), topic: g(r, C.topic), status: g(r, C.status), note: g(r, C.note),
-    simple: g(r, C.simple), group: g(r, C.group),
+    simple: g(r, C.simple), group: g(r, C.group), syn: g(r, C.syn),
   }));
 }
 function setWords(words) {
@@ -775,6 +775,7 @@ function cardHTML(w, flipped) {
       ${w.def ? `<div><div class="sec">DEFINITION</div><div class="def">${esc(w.def)}</div></div>` : ''}
       ${w.ex ? `<div><div class="sec">EXAMPLE</div><div class="ex"><span>${highlight(w.ex, w.word)}</span>
         <button class="spk small" data-say="${esc(w.ex)}" aria-label="朗讀例句">🔊</button></div></div>` : ''}
+      ${w.syn ? `<div><div class="sec">SYNONYMS / ANTONYMS</div><div class="def">${esc(w.syn)}</div></div>` : ''}
       ${w.note ? `<div class="note">📝 ${esc(w.note)}</div>` : ''}
       ${p ? `<div class="note">已複習 ${p.reps} 次・不熟 ${p.fails} 次</div>` : ''}
     </div>
