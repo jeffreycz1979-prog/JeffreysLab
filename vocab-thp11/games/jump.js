@@ -7,7 +7,7 @@
 //        todayKey, clockCheck, saveLedger, afterPoints, points, gameWeekBest, toast, coach, confetti
 // ═══════════════════════════════════════════════════════
 const WJ = (() => {
-  const ID = 'jump';
+  const ID = 'jump', NEED = 1;
   const TIME = 180;          // 秒
   const M_PER_PT = 60;       // 每 60 公尺 = 1 分（1200 m 滿分 20）；機器人實測：準 1390 m、普通 930 m、常失誤 780 m（不含真人拼字時間）
   const CAP = 20;
@@ -15,7 +15,7 @@ const WJ = (() => {
   const G = 0.38, JUMP = -11.5, SPRING = -19, RUN = 5.2;
   const PW = 66, PH = 12;
   const EDGE = 0.2;          // 手指模式：左右各 20% 是「穿牆區」，按著就一直往那邊跑
-  const VER = '1.3';
+  const VER = '1.4';
 
   let cv, cx, root, S = 1, VH = 640;   // S＝縮放；VH＝邏輯高度
   let game = null, raf = 0, keys = { l: false, r: false };
@@ -27,21 +27,14 @@ const WJ = (() => {
 
   // ── 解鎖與題庫 ──
   const masteredUnits = () => [...new Set(st.ledger.bonus.filter((b) => b.k.startsWith('master:')).map((b) => b.k.slice(7)))];
-  const unlocked = () => masteredUnits().some((u) => st.words.some((w) => w.unit === u));
+  const unlocked = () => masteredCount() >= NEED;
   // 拼字題：所有已開放單元的單字（不只精熟單元，還沒練熟的字也考）
   const wordPool = () => st.words.filter((w) => w.type !== '片語' && !/[ ()/]/.test(w.word) && w.word.length >= 3);
   const toPts = (m) => Math.min(CAP, Math.floor(m / M_PER_PT));
 
   // ── 挑戰頁上的入口卡片 ──
-  function card() {
-    const best = gameWeekBest(ID), ok = unlocked();
-    return `<div class="gamecard ${ok ? '' : 'off'}">
-      <div class="gc-ic">🚀</div>
-      <div class="gc-m"><b>Word Jump</b><small>${ok
-        ? L(`獎勵遊戲・本週最佳 ${best} / ${CAP} ⭐`, `Bonus game · best this week ${best} / ${CAP} ⭐`)
-        : L('任一單元挑戰 🏅 精熟後解鎖', 'Unlocks after you master a unit 🏅')}</small></div>
-      <button class="go" data-act="game" ${ok ? '' : 'disabled'}>${ok ? L('玩 ▶', 'Play ▶') : '🔒'}</button></div>`;
-  }
+  const card = () => gameCard({ id: ID, need: NEED, icon: '🚀', name: 'Word Jump' });
+  const bestText = () => { const m = st.meta.games && st.meta.games[ID] && st.meta.games[ID].bestM; return m ? `Word Jump ${m} m` : ''; };
 
   // ── 建立畫面 ──
   function mount() {
@@ -86,7 +79,7 @@ const WJ = (() => {
     if (!wordPool().length) return toast(L('精熟單元裡沒有可以拼的單字', 'No spelling words yet'));
     mount(); root.classList.add('show'); resize();
     document.body.style.overflow = 'hidden';
-    const best = gameWeekBest(ID), pb = (st.meta.games && st.meta.games[ID] && st.meta.games[ID].bestM) || 0;
+    const best = gameWeekBestAll(), pb = (st.meta.games && st.meta.games[ID] && st.meta.games[ID].bestM) || 0;
     pane(`<div class="wj-card">
       <div style="font-size:52px">${esc(st.profile.avatar)}</div>
       <h2>Word Jump 🚀</h2>
@@ -101,7 +94,7 @@ const WJ = (() => {
         <div>⭐ ${L(`每 ${M_PER_PT} 公尺 1 分，最多 ${CAP} 分`, `1 point per ${M_PER_PT} m, up to ${CAP}`)}</div>
         <div>📅 ${L('每週只算最高的一局', 'Only your best game each week counts')}</div>
       </div>
-      <p class="wj-small">${L(`本週最佳 ${best} / ${CAP} ⭐・個人最高 ${pb} m`, `This week ${best} / ${CAP} ⭐ · Personal best ${pb} m`)}<br><span style="opacity:.5">v${VER}</span></p>
+      <p class="wj-small">${L(`本週遊戲最佳 ${best} / ${CAP} ⭐・個人最高 ${pb} m`, `Best this week ${best} / ${CAP} ⭐ · Personal best ${pb} m`)}<br><span style="opacity:.5">v${VER}</span></p>
       <div class="btnrow"><button class="btn" data-wj="start">${L('開始 Start ▶', 'Start ▶')}</button><button class="btn ghost" data-wj="close">${L('離開', 'Exit')}</button></div>
     </div>`);
     draw(true);
@@ -268,7 +261,7 @@ const WJ = (() => {
     cancelAnimationFrame(raf);
     if (game.over) return; game.over = true; game.spell = null;
     const m = game.maxH, pts = toPts(m), k = todayKey();
-    const before = points().total, prev = gameWeekBest(ID);
+    const before = points().total, prev = gameWeekBestAll();   // 所有遊戲共用每週最高
     clockCheck();
     const day = st.ledger.days[k] || (st.ledger.days[k] = { cards: 0 });
     day.gbest = day.gbest || {};
@@ -379,5 +372,6 @@ const WJ = (() => {
   }
   // 測試用
   const _t = { get game() { return game; }, check, fall, end, toPts, fill, get fingerX() { return fingerX; } };
-  return { card, open, close, _t };
+  return { id: ID, need: NEED, card, bestText, open, close, _t };
 })();
+GAMES.push(WJ);

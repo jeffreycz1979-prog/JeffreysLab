@@ -366,6 +366,7 @@ nav button.on{color:var(--lime);font-weight:700}
 .wj-big{font-family:'Syne',sans-serif;font-weight:800;font-size:52px;color:#fff;line-height:1.1}
 .wj-pts{font-family:'Syne',sans-serif;font-weight:800;font-size:26px;color:var(--lime);margin-top:6px}
 .wj-card.shake{animation:shake .3s}
+.wb-pw{color:#fff;font-size:14px!important}.wb-pw small{font-size:10px;margin-left:1px;opacity:.75}
 .wj-ctl{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
 .wj-ctl button{border:1.5px solid var(--line);background:var(--panel);border-radius:14px;padding:10px 6px;font-weight:700;font-size:15px}
 .wj-ctl button small{display:block;font-size:11px;font-weight:400;color:var(--muted);margin-top:2px}
@@ -472,7 +473,7 @@ nav button.on{color:var(--lime);font-weight:700}
         </div>
       </div>
     </div>
-    <p class="hint">Jeffrey's Lab · THP11 Word Quest v3.5</p>
+    <p class="hint">Jeffrey's Lab · THP11 Word Quest v3.6</p>
   </section>
 </main>
 
@@ -702,6 +703,21 @@ const weekBest = (u) => ((weeks()[thisWeek()] || { qb: {} }).qb[u]) || 0;
 const GAME_CAP = 20;
 const SPOT_RATE = 0.2, SPOT_MAX_GAP = 8, SPOT_CAP = 15;   // 抽查：約每 5 張抽 1 張、最多隔 8 張；通過 +1，每週最多 15
 const gameWeekBest = (g) => Math.min(GAME_CAP, ((weeks()[thisWeek()] || { gb: {} }).gb[g]) || 0);
+// 所有遊戲共用每週 20 分：取本週所有遊戲裡最高的一局
+const bestOf = (gb) => Math.min(GAME_CAP, Math.max(0, ...Object.values(gb || {})));
+const gameWeekBestAll = () => bestOf((weeks()[thisWeek()] || {}).gb);
+// 遊戲註冊：精熟幾個單元就開放幾款（need＝需要的精熟單元數）
+const GAMES = [];
+const masteredCount = () => new Set(st.ledger.bonus.filter((b) => b.k.startsWith('master:')).map((b) => b.k.slice(7))).size;
+function gameCard(g) {
+  const ok = masteredCount() >= g.need, best = gameWeekBestAll();
+  return `<div class="gamecard ${ok ? '' : 'off'}">
+    <div class="gc-ic">${g.icon}</div>
+    <div class="gc-m"><b>${g.name}</b><small>${ok
+      ? L(`獎勵遊戲・本週遊戲最佳 ${best} / ${GAME_CAP} ⭐`, `Bonus game · best this week ${best} / ${GAME_CAP} ⭐`)
+      : L(`精熟 ${g.need} 個單元後解鎖（目前 ${masteredCount()} 個）`, `Master ${g.need} unit${g.need > 1 ? 's' : ''} to unlock (now ${masteredCount()})`)}</small></div>
+    <button class="go" data-act="game" data-gid="${g.id}" ${ok ? '' : 'disabled'}>${ok ? L('玩 ▶', 'Play ▶') : '🔒'}</button></div>`;
+}
 function points() {
   let card = 0, goal = 0, quiz = 0, streak = 0, master = 0, game = 0, spot = 0;
   const W = weeks();
@@ -709,7 +725,7 @@ function points() {
     card += Math.min(W[k].cards, CARD_CAP);
     if (W[k].cards >= WEEK_GOAL) goal += GOAL_BONUS;
     for (const u in W[k].qb) quiz += W[k].qb[u];   // 挑戰：每單元每週只算最高分
-    for (const g in W[k].gb) game += Math.min(GAME_CAP, W[k].gb[g]);   // 遊戲：每款每週最多 20
+    game += bestOf(W[k].gb);   // 遊戲：所有遊戲共用，每週取最高一局，最多 20
     spot += Math.min(SPOT_CAP, W[k].spot || 0);   // 抽查：每週最多 15
   }
   st.ledger.bonus.forEach((b) => { if (b.k.startsWith('wk') || b.k.startsWith('streak')) streak += b.p; else master += b.p; });
@@ -1429,7 +1445,7 @@ function renderMe() {
     <div class="srow"><div>${L('挑戰答對 1 題', 'Each correct quiz answer')}<small>${L(`拼字題 +${SPELL_PTS}；連對 3 題以上每題再 +${COMBO_PTS}`, `Spelling +${SPELL_PTS}; 3 in a row: +${COMBO_PTS} each`)}</small></div><b>+${Q_PTS}</b></div>
     <div class="srow"><div>${L('挑戰全對', 'Perfect quiz')}<small>${L('10 題全部答對', 'All 10 correct')}</small></div><b>+${PERFECT_PTS}</b></div>
     <div class="srow"><div>${L('🔍 抽查通過', '🔍 Quick check passed')}<small>${L(`按「記得／太簡單」時隨機抽查，意思和拼字都對；每週最多 ${SPOT_CAP} 分。答錯那張不算分`, `Random checks when you tap Got it / Easy; up to ${SPOT_CAP} a week. A miss doesn't count`)}</small></div><b>+1</b></div>
-    <div class="srow"><div>${L('🎮 獎勵遊戲', '🎮 Bonus game')}<small>${L('任一單元精熟後解鎖；每週只算最高一局', 'Unlocks after mastering a unit; best game each week counts')}</small></div><b>0～${GAME_CAP}</b></div>
+    <div class="srow"><div>${L('🎮 獎勵遊戲', '🎮 Bonus game')}<small>${L('精熟 1／2／3 個單元依序解鎖 3 款；所有遊戲每週共用，只算最高一局', 'Master 1 / 2 / 3 units to unlock 3 games; all games share one weekly best')}</small></div><b>0～${GAME_CAP}</b></div>
     <div class="srow"><div>${L('單元精熟', 'Unit mastery')}<small>${L(`某單元第一次拿到 ${MASTER_PCT}% 以上（每單元一次）`, `First time scoring ${MASTER_PCT}%+ on a unit (once per unit)`)}</small></div><b>+${MASTER_PTS}</b></div>
     <div class="srow"><div>${L('同一單元重複挑戰', 'Retrying a unit')}<small>${L('每週只算最高的一次，打破本週紀錄才會補差額', 'Only your best score each week counts')}</small></div><b>📈</b></div>
     <div class="srow"><div>${L('精熟要維持', 'Keep your badge')}<small>${L(`🏅 單元 ${FADE_DAYS} 天沒練會褪色，不扣分，回來練就恢復`, `🏅 fades after ${FADE_DAYS} days without practice — no points lost`)}</small></div><b>🏅</b></div>`;
@@ -1457,7 +1473,7 @@ function openProof() {
         <div><b>${P.quizOnly}</b>${L('挑戰', 'Quiz')}</div><div><b>${P.master}</b>${L('單元精熟', 'Mastery')}</div>
         <div><b>${P.streak}</b>${L('連續獎勵', 'Streak bonus')}</div><div><b>🔥 ${streakNow()} ${L('週', 'wk')}</b>${L('目前連續', 'Current streak')}</div>
         <div><b>${totalCards}</b>${L('總複習張數', 'Cards reviewed')}</div><div><b>${acc}</b>${L('挑戰正確率', 'Quiz accuracy')}</div>
-        <div><b>${P.game}</b>${L('🎮 獎勵遊戲', '🎮 Bonus game')}</div><div><b>${(st.meta.games && st.meta.games.jump && st.meta.games.jump.bestM) || 0} m</b>${L('Word Jump 最高', 'Word Jump best')}</div>
+        <div><b>${P.game}</b>${L('🎮 獎勵遊戲', '🎮 Bonus game')}</div><div><b style="font-size:13px;line-height:1.5">${GAMES.map((g) => g.bestText()).filter(Boolean).join('<br>') || '—'}</b>${L('各遊戲最高紀錄', 'Game records')}</div>
       </div>
       <div class="pfoot"><span>${L(`學習 ${active} 天`, `${active} days of practice`)}<br><span class="clock" id="clock"></span></span>
         <span style="text-align:right">${L('驗證碼', 'Code')}<br><span class="code">${proofCode(P.total)}</span></span></div>
@@ -1862,7 +1878,7 @@ function renderQuizHome() {
       <h2>Unit Challenge 🎯<small>${L('每次 10 題：單字、聽力、文法、拼字', '10 questions: words, listening, grammar, spelling')}</small></h2>
       <div class="sub" style="margin-top:8px">${L(`答對 +${Q_PTS}、拼字 +${SPELL_PTS}、連對加成、全對 +${PERFECT_PTS}<br>第一次拿到 ${MASTER_PCT}% 以上：單元精熟 +${MASTER_PTS}`, `Correct +${Q_PTS} · spelling +${SPELL_PTS} · combo bonus · perfect +${PERFECT_PTS}<br>First ${MASTER_PCT}%+: unit mastery +${MASTER_PTS}`)}</div>
     </div>
-    ${typeof WJ !== 'undefined' ? WJ.card() : ''}
+    ${GAMES.slice().sort((a, b) => a.need - b.need).map((g) => g.card()).join('')}
     <div class="qlist">${allUnits().map((u) => {
       const n = st.words.filter((w) => w.unit === u).length;
       const mastered = st.ledger.bonus.some((b) => b.k === 'master:' + u);
@@ -1926,7 +1942,7 @@ document.addEventListener('click', (e) => {
   if (t.dataset.act === 'codein') return openCodeIn();
   if (t.dataset.act === 'codecopy') return copyCode();
   if (t.dataset.act === 'codeapply') return applyCode();
-  if (t.dataset.act === 'game') return WJ.open();
+  if (t.dataset.act === 'game') { const g = GAMES.find((x) => x.id === t.dataset.gid); return g && g.open(); }
   if (t.dataset.spot) return spotPick(t);
   if (t.dataset.act === 'spotcheck') return spotCheck();
   if (t.dataset.act === 'spotok') return spotFinish(false);
@@ -2117,6 +2133,7 @@ document.addEventListener('keydown', (e) => {
   }
 })();
 </script>
-<script src="games/jump.js?v=1.3"></script>
+<script src="games/jump.js?v=1.4"></script>
+<script src="games/blaster.js?v=1.0"></script>
 </body>
 </html>
