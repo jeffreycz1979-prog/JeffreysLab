@@ -371,6 +371,18 @@ nav button.on{color:var(--lime);font-weight:700}
 .wj-pts{font-family:'Syne',sans-serif;font-weight:800;font-size:26px;color:var(--lime);margin-top:6px}
 .wj-card.shake{animation:shake .3s}
 .wb-pw{color:#fff;font-size:14px!important}.wb-pw small{font-size:10px;margin-left:1px;opacity:.75}
+.wb-bomb{position:absolute;right:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);z-index:3;border:2px solid var(--coral);background:rgba(58,28,24,.9);color:#fff;border-radius:50%;width:62px;height:62px;font-size:26px;box-shadow:0 0 18px rgba(255,107,87,.5)}
+.wb-bomb b{position:absolute;top:-4px;right:-4px;background:var(--coral);border-radius:10px;font-size:12px;padding:1px 6px;font-family:'Syne',sans-serif}
+.wb-st{border-color:var(--amber);padding-bottom:16px}
+.wb-st-top{display:flex;gap:8px;align-items:center;font-weight:700;color:var(--amber)}
+.wb-st-top span:first-child{margin-right:auto}
+.wb-st-sec,.wb-st-en{font-family:'Syne',sans-serif;font-weight:800;background:var(--panel);border-radius:12px;padding:3px 10px;color:#fff}
+.wb-st-sec.low{color:var(--coral)} .wb-st-en{color:var(--lime)}
+.wb-st .opt{padding:11px 12px;font-size:15px}
+.wb-shop{display:flex;flex-direction:column;gap:8px;margin:12px 0 4px}
+.wb-item{display:flex;align-items:center;gap:10px;border:1.5px solid var(--amber);background:var(--panel);border-radius:14px;padding:11px 12px;text-align:left;color:var(--ink)}
+.wb-item .ic{font-size:24px}.wb-item .nm{flex:1;font-weight:700;font-size:14px}.wb-item .co{font-family:'Syne',sans-serif;font-weight:800;color:var(--lime)}
+.wb-item:disabled{opacity:.4;border-color:var(--line)}
 .wj-ctl{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
 .wj-ctl button{border:1.5px solid var(--line);background:var(--panel);border-radius:14px;padding:10px 6px;font-weight:700;font-size:15px}
 .wj-ctl button small{display:block;font-size:11px;font-weight:400;color:var(--muted);margin-top:2px}
@@ -2138,6 +2150,6 @@ document.addEventListener('keydown', (e) => {
 })();
 </script>
 <script src="games/jump.js?v=1.5"></script>
-<script src="games/blaster.js?v=1.1"></script>
+<script src="games/blaster.js?v=1.2"></script>
 </body>
 </html>

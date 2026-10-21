@@ -8,10 +8,19 @@
 //        saveLedger, saveMeta, saveSet, afterPoints, points, gameWeekBestAll, gameCard, masteredCount, GAMES, toast, confetti
 // ═══════════════════════════════════════════════════════
 const WB = (() => {
-  const ID = 'blaster', NEED = 2, VER = '1.1';
+  const ID = 'blaster', NEED = 2, VER = '1.2';
   const TIME = 180, CAP = 20;
   const S_PER_PT = 200;      // 每 200 分 = 1 ⭐（4000 分滿 20）；機器人（瞬間拼字）3 分鐘約 5400～6100，真人含拼字時間預估 1300～4300
   const LW = 360;
+  // 後勤補充站：每清完 3 波出現；30 秒答題（遊戲時間暫停），答對 = 能量，用能量買裝備；能量可以存
+  const STATION_EVERY = 3, STATION_SEC = 30;
+  const SHOP = [
+    { k: 'spread', ic: '🔱', cost: 5, zh: '散彈槍（15 秒）', en: 'Spread gun (15s)' },
+    { k: 'time', ic: '⏱', cost: 7, zh: '延長時間 +20 秒', en: '+20 seconds' },
+    { k: 'bomb', ic: '💥', cost: 10, zh: '大轟炸（全畫面清光）', en: 'Mega bomb (clear the screen)' },
+  ];
+  // 擊落掉寶：每 50 隻依序掉 散彈 → 快速射擊 → 慢動作，循環
+  const KILL_STEP = 50, KILL_DROPS = ['spread', 'rapid', 'slow'];
   const PW_TIME = { rapid: 9000, spread: 9000, slow: 6000 };
   const PW_INFO = {
     rapid: { ic: '⚡', c: '#CCFF00', zh: '快速射擊', en: 'Rapid fire' },
@@ -36,6 +45,7 @@ const WB = (() => {
     root = document.createElement('div');
     root.className = 'wj';
     root.innerHTML = `<canvas></canvas>
+      <button class="wb-bomb" id="wbBomb" data-wb="bomb" style="display:none">💥<b id="wbBombN">1</b></button>
       <div class="wj-hud"><button class="wj-x" data-wb="quit">✕</button>
         <span class="wb-pw" id="wbPw" style="display:none"></span>
         <span class="wj-t" id="wbT">3:00</span><span class="wj-h" id="wbS">0</span><span class="wj-p" id="wbP">⭐ 0</span></div>
@@ -85,7 +95,8 @@ const WB = (() => {
         <div>⚡ ${L('快速射擊：射速變快', 'Rapid fire')}</div>
         <div>🔱 ${L('散彈：一次 3 發，再撿升級 5 發', 'Spread: 3 shots, 5 if you grab another')}</div>
         <div>⏳ ${L('慢動作：敵人和子彈變慢', 'Slow motion: enemies slow down')}</div>
-        <div>✨ ${L('金色外星人一定掉道具', 'Gold aliens always drop one')}</div>
+        <div>✨ ${L('金色外星人一定掉道具；每打下 50 隻也掉一個', 'Gold aliens always drop one; so does every 50th alien')}</div>
+        <div>🛰 ${L('每清完 3 波會飛來補給站：碰到就進站，30 秒答題換能量買裝備（時間暫停）', 'Every 3 waves a supply station flies in: touch it, answer for 30s, buy gear (clock paused)')}</div>
         <div>✏️ ${L('被打中要拼對一個單字才能繼續（時間不會停，道具會消失）', 'Get hit = spell a word to continue (clock keeps running, power-ups lost)')}</div>
         <div>⭐ ${L(`每 ${S_PER_PT} 分 1 顆星，最多 ${CAP}；所有遊戲每週只算最高一局`, `1 ⭐ per ${S_PER_PT} points, up to ${CAP}; best game of the week counts`)}</div>
       </div>
@@ -118,7 +129,7 @@ const WB = (() => {
       t0: Date.now(), last: performance.now(), clock: 0,
       ship: { x: LW / 2, y: VH - 90, inv: 2000 }, fireCd: 0,
       shots: [], eshots: [], foes: [], drops: [], fx: [],
-      pw: { rapid: 0, spread: 0, slow: 0 }, spreadLv: 1,
+      pw: { rapid: 0, spread: 0, slow: 0 }, spreadLv: 1, extra: 0, pauseAt: 0, energy: 0, bombs: 0, station: null, inStation: null, stations: 0, pendingWave: false,
       score: 0, wave: 0, hits: 0, kills: 0, used: new Set(), spell: null, over: false, nextDive: 2500,
       stars: Array.from({ length: 60 }, () => ({ x: Math.random() * LW, y: Math.random() * 1000, v: 0.4 + Math.random() * 1.4 })),
     };
@@ -144,12 +155,13 @@ const WB = (() => {
   function loop() {
     raf = requestAnimationFrame(loop);
     const now = performance.now(), dt = Math.min(3, (now - game.last) / (1000 / 60)); game.last = now;
-    const left = TIME - (Date.now() - game.t0) / 1000;
-    if (left <= 0) return end();
-    if (!game.spell) step(dt);
+    const left = timeLeft();
+    if (left <= 0 && !game.inStation) return end();
+    if (!game.spell && !game.inStation) step(dt);
     hud(left); draw();
   }
   const active = (k) => game.pw[k] > game.clock;
+  const timeLeft = () => TIME + game.extra - ((game.pauseAt || Date.now()) - game.t0) / 1000;
   function step(dt) {
     const g = game, sh = g.ship, ms = dt * 16.67;
     g.clock += ms;
@@ -225,7 +237,18 @@ const WB = (() => {
       if (hitB || hitF) return hit();
     }
     // 下一波
-    if (!g.foes.length) { g.score += 50; flash(L(`第 ${g.wave} 波完成 +50`, `Wave ${g.wave} clear +50`)); nextWave(); }
+    if (!g.foes.length && !g.pendingWave) {
+      g.score += 50; flash(L(`第 ${g.wave} 波完成 +50`, `Wave ${g.wave} clear +50`));
+      if (g.wave % STATION_EVERY === 0) {   // 補給站飛下來，等它離開或進站後才出下一波
+        g.station = { x: 60 + Math.random() * (LW - 120), y: -50, t: 0 }; g.pendingWave = true; g.eshots = [];
+        flash(L('🛰 補給站來了！碰它進站', '🛰 Supply station! Touch it'));
+      } else nextWave();
+    }
+    if (g.station) {
+      const sn = g.station; sn.t += dt; sn.y += 1.15 * dt; sn.x += Math.sin(sn.t / 40) * 0.8 * dt;
+      if (Math.hypot(sn.x - sh.x, sn.y - sh.y) < 40) { g.station = null; return enterStation(); }
+      if (sn.y > VH + 50) { g.station = null; g.pendingWave = false; flash(L('補給站飛走了', 'Station left')); nextWave(); }
+    }
     g.fx.forEach((p) => { p.x += p.vx * dt; p.y += p.vy * dt; p.a -= 0.03 * dt; });
     g.fx = g.fx.filter((p) => p.a > 0);
   }
@@ -236,10 +259,137 @@ const WB = (() => {
     const before = toPts(g.score); g.score += pts + bonus;
     if (toPts(g.score) > before) flash('+1 ⭐');
     boom(f.x, f.y, f.kind === 'gold' ? '#ffd23f' : f.kind === 'armor' ? '#ffb547' : '#4ECDC4', 10);
-    if (f.kind === 'gold' || Math.random() < 0.09) {
+    if (f.kind === 'gold') {
       const ks = Object.keys(PW_TIME);
       g.drops.push({ x: f.x, y: f.y, k: ks[Math.floor(Math.random() * ks.length)] });
     }
+    if (g.kills % KILL_STEP === 0) {   // 每 50 隻：散彈 → 快速 → 慢動作 循環
+      const k = KILL_DROPS[(g.kills / KILL_STEP - 1) % KILL_DROPS.length];
+      g.drops.push({ x: f.x, y: f.y, k, big: 1 });
+      flash(L(`擊落 ${g.kills} 隻！掉寶 ${PW_INFO[k].ic}`, `${g.kills} down! ${PW_INFO[k].ic} dropped`));
+    }
+  }
+  // ── 後勤補充站 ──
+  function enterStation() {
+    const g = game; g.stations++;
+    g.pauseAt = Date.now();                     // 遊戲時間暫停
+    keys = { l: 0, r: 0, u: 0, d: 0 }; finger = null;
+    g.inStation = { end: Date.now() + STATION_SEC * 1000, got: 0, n: 0, q: null, used: new Set(), shop: false };
+    nextQ(); stationTick();
+  }
+  const qPool = () => st.words.filter((w) => w.zh);
+  function pickW(n) {
+    const S = g2().used, pool = shuffle(qPool()), out = [];
+    for (const w of pool) { if (!S.has(w.id)) { out.push(w); S.add(w.id); } if (out.length >= n) break; }
+    if (out.length < n) { S.clear(); return pickW(n); }
+    return out;
+  }
+  const g2 = () => game.inStation;
+  function nextQ() {   // 選擇題、選擇題、配對題……輪流
+    const S = g2(); S.n++;
+    if (S.n % 3 === 0) {
+      const ws = pickW(3);
+      S.q = { type: 'match', ws, left: shuffle(ws), right: shuffle(ws), done: [], miss: 0 };
+    } else {
+      const w = pickW(1)[0];
+      S.q = { type: 'mc', w, opts: shuffle([w, ...distract(w)]) };
+    }
+    renderStation();
+  }
+  function renderStation(fb) {
+    const S = g2(); if (!S || S.shop) return;
+    const q = S.q, sec = Math.max(0, Math.ceil((S.end - Date.now()) / 1000));
+    let body = '';
+    if (q.type === 'mc') body = `<div class="qword" style="font-size:28px">${esc(q.w.word)}</div>
+      <div class="opts">${q.opts.map((o) => `<button class="opt" data-wb="smc" data-id="${esc(o.id)}">${esc(meaning(o))}</button>`).join('')}</div>`;
+    else body = `<div class="wj-small">${L('配對 3 組，全對 +3（錯一次少 1）', 'Match 3 pairs: +3 (−1 per mistake)')}</div>
+      <div class="mgrid">
+      <div class="col">${q.left.map((w) => `<button class="mt en ${q.done.includes(w.id) ? 'ok' : ''}" data-wb="sml" data-id="${esc(w.id)}" ${q.done.includes(w.id) ? 'disabled' : ''}>${esc(w.word)}</button>`).join('')}</div>
+      <div class="col">${q.right.map((w) => `<button class="mt ${q.done.includes(w.id) ? 'ok' : ''}" data-wb="smr" data-id="${esc(w.id)}" ${q.done.includes(w.id) ? 'disabled' : ''} ${EN() ? 'style="font-size:12px"' : ''}>${esc(meaning(w))}</button>`).join('')}</div></div>`;
+    pane(`<div class="wj-card wb-st">
+      <div class="wb-st-top"><span>🛰 ${L('後勤補充站', 'Supply station')}</span><span class="wb-st-sec ${sec <= 5 ? 'low' : ''}" id="wbStSec">${sec}s</span><span class="wb-st-en">🔋 ${game.energy + S.got}</span></div>
+      <div class="track" style="margin:8px 0 12px"><i id="wbStBar" style="width:${(sec / STATION_SEC) * 100}%;background:var(--amber)"></i></div>
+      ${body}${fb ? `<div class="fb ${fb.ok ? 'ok' : 'bad'}" style="margin-top:10px">${fb.html}</div>` : ''}
+    </div>`);
+  }
+  function stationTick() {
+    const S = g2(); if (!S || S.shop) return;
+    const sec = Math.max(0, Math.ceil((S.end - Date.now()) / 1000));
+    const el = $('wbStSec'); if (el) { el.textContent = sec + 's'; el.classList.toggle('low', sec <= 5); }
+    const bar = $('wbStBar'); if (bar) bar.style.width = ((S.end - Date.now()) / (STATION_SEC * 1000)) * 100 + '%';
+    if (Date.now() >= S.end) return openShop();
+    setTimeout(stationTick, 200);
+  }
+  function stationMC(btn) {
+    const S = g2(); if (!S || S.shop || S.lock) return;
+    const ok = btn.dataset.id === S.q.w.id;
+    if (ok) S.got++;
+    S.lock = true;
+    document.querySelectorAll('[data-wb="smc"]').forEach((b) => { b.disabled = true; if (b.dataset.id === S.q.w.id) b.classList.add('ok'); });
+    if (!ok) btn.classList.add('bad');
+    setTimeout(() => { S.lock = false; if (g2() && !g2().shop) nextQ(); }, ok ? 250 : 700);
+    const en = document.querySelector('.wb-st-en'); if (en) en.textContent = `🔋 ${game.energy + S.got}`;
+  }
+  function stationMatch(btn, side) {
+    const S = g2(); if (!S || S.shop) return;
+    const q = S.q;
+    document.querySelectorAll(`[data-wb="${side}"]`).forEach((b) => b.classList.remove('sel'));
+    btn.classList.add('sel');
+    const Lb = document.querySelector('.mt.sel[data-wb="sml"]'), Rb = document.querySelector('.mt.sel[data-wb="smr"]');
+    if (!Lb || !Rb) return;
+    if (Lb.dataset.id === Rb.dataset.id) {
+      q.done.push(Lb.dataset.id);
+      [Lb, Rb].forEach((b) => { b.classList.remove('sel'); b.classList.add('ok'); b.disabled = true; });
+      if (q.done.length === q.ws.length) {
+        const pts = Math.max(0, 3 - q.miss); S.got += pts;
+        const en = document.querySelector('.wb-st-en'); if (en) en.textContent = `🔋 ${game.energy + S.got}`;
+        setTimeout(() => { if (g2() && !g2().shop) nextQ(); }, 300);
+      }
+    } else {
+      q.miss++;
+      [Lb, Rb].forEach((b) => { b.classList.remove('sel'); b.classList.add('bad'); setTimeout(() => b.classList.remove('bad'), 350); });
+    }
+  }
+  function openShop() {
+    const S = g2(); S.shop = true;
+    game.energy += S.got;
+    renderShop(L(`答對換到 ${S.got} 點能量！`, `You earned ${S.got} energy!`));
+  }
+  function renderShop(msg) {
+    const g = game;
+    pane(`<div class="wj-card wb-st">
+      <div class="wb-st-top"><span>🛰 ${L('裝備商店', 'Gear shop')}</span><span class="wb-st-en">🔋 ${g.energy}</span></div>
+      ${msg ? `<div class="wj-small" style="color:var(--lime)">${msg}</div>` : ''}
+      <div class="wb-shop">${SHOP.map((it) => `<button class="wb-item" data-wb="buy" data-k="${it.k}" ${g.energy < it.cost ? 'disabled' : ''}>
+        <span class="ic">${it.ic}</span><span class="nm">${L(it.zh, it.en)}</span><span class="co">🔋${it.cost}</span></button>`).join('')}</div>
+      <div class="wj-small">${L('剩下的能量會保留到下一個補給站', 'Leftover energy is saved for the next station')}${g.bombs ? L(`・大轟炸庫存 ${g.bombs}`, ` · Bombs: ${g.bombs}`) : ''}</div>
+      <div class="btnrow"><button class="btn" data-wb="leave">${L('出發 ▶', 'Go ▶')}</button></div>
+    </div>`);
+  }
+  function buy(k) {
+    const g = game, it = SHOP.find((x) => x.k === k);
+    if (!it || g.energy < it.cost) return;
+    g.energy -= it.cost;
+    if (k === 'spread') { g.spreadLv = active('spread') ? 2 : 1; g.pw.spread = Math.max(g.pw.spread, g.clock) + 15000; }
+    if (k === 'time') g.extra += 20;
+    if (k === 'bomb') g.bombs++;
+    renderShop(`${it.ic} ${L('購買成功！', 'Bought!')}`);
+  }
+  function leaveStation() {
+    const g = game;
+    g.t0 += Date.now() - g.pauseAt; g.pauseAt = 0;   // 補回暫停的時間
+    g.inStation = null; g.pendingWave = false; g.last = performance.now();
+    g.ship.inv = Math.max(g.ship.inv, 1500);
+    pane(''); nextWave();
+    flash(L('出發！', 'Go!'));
+  }
+  function useBomb() {
+    const g = game; if (!g || !g.bombs || g.spell || g.inStation || g.over) return;
+    g.bombs--;
+    g.foes.forEach((f) => { if (!f.dead) kill(f); });
+    g.foes = g.foes.filter((f) => !f.dead); g.eshots = [];
+    g.bombFlash = 1;
+    flash(L('💥 大轟炸！', '💥 MEGA BOMB!'));
   }
   function power(k) {
     const g = game, info = PW_INFO[k];
@@ -313,7 +463,7 @@ const WB = (() => {
     pane(`<div class="wj-card">
       <div class="wj-kicker">${L('時間到！', "Time's up!")}</div>
       <div class="wj-big">${sc}</div>
-      <div class="wj-small">${record ? L('🆕 個人最高紀錄！', '🆕 New personal best!') : L(`個人最高 ${gm.best}`, `Personal best ${gm.best}`)}・${L(`第 ${game.wave} 波・打下 ${game.kills} 隻・被打中 ${game.hits} 次`, `Wave ${game.wave} · ${game.kills} aliens · hit ${game.hits}×`)}</div>
+      <div class="wj-small">${record ? L('🆕 個人最高紀錄！', '🆕 New personal best!') : L(`個人最高 ${gm.best}`, `Personal best ${gm.best}`)}・${L(`第 ${game.wave} 波・打下 ${game.kills} 隻・被打中 ${game.hits} 次・補給 ${game.stations} 次`, `Wave ${game.wave} · ${game.kills} aliens · hit ${game.hits}× · ${game.stations} stations`)}</div>
       <div class="wj-pts">⭐ ${pts} / ${CAP}</div>
       ${gain ? `<div class="gain">+${gain} ⭐</div>`
         : `<div class="gain zero">${prev >= CAP ? L('本週遊戲已經拿滿 20 分，現在純粹好玩 🎮', 'You already got 20 this week — just for fun now 🎮')
@@ -333,7 +483,10 @@ const WB = (() => {
       const sec = Math.ceil((game.pw[k] - game.clock) / 1000);
       return `${PW_INFO[k].ic}${k === 'spread' && game.spreadLv === 2 ? '×5' : ''}<small>${sec}</small>`;
     }).join(' ');
+    if (game.energy) $('wbPw').innerHTML += ` 🔋<small>${game.energy}</small>`;
     $('wbPw').style.display = $('wbPw').innerHTML ? '' : 'none';
+    $('wbBomb').style.display = game.bombs && !game.spell && !game.inStation && !game.over ? '' : 'none';
+    $('wbBombN').textContent = game.bombs;
   }
   let flashes = [];
   const flash = (t) => flashes.push({ t, a: 1, y: -26 * flashes.filter((f) => f.a > 0.6).length });   // 同時多個提示往下錯開
@@ -348,6 +501,16 @@ const WB = (() => {
     cx.fillStyle = '#0a0a14'; cx.beginPath(); cx.arc(-5, -1, 3.2, 0, 7); cx.arc(5, -1, 3.2, 0, 7); cx.fill();
     cx.fillStyle = '#fff'; cx.beginPath(); cx.arc(-4, -2, 1.1, 0, 7); cx.arc(6, -2, 1.1, 0, 7); cx.fill();
     if (f.kind === 'gold') { cx.strokeStyle = 'rgba(255,210,63,.6)'; cx.lineWidth = 2; cx.beginPath(); cx.arc(0, 0, 20 + Math.sin(f.t * 8) * 2, 0, 7); cx.stroke(); }
+    cx.restore();
+  }
+  function station(sn) {   // 補給站：本體＋太陽能板＋閃爍光圈
+    cx.save(); cx.translate(sn.x, sn.y);
+    const pulse = 1 + Math.sin(sn.t / 6) * 0.15;
+    cx.strokeStyle = 'rgba(255,181,71,.7)'; cx.lineWidth = 2; cx.beginPath(); cx.arc(0, 0, 34 * pulse, 0, 7); cx.stroke();
+    cx.fillStyle = '#4ECDC4'; cx.fillRect(-40, -6, 22, 12); cx.fillRect(18, -6, 22, 12);
+    cx.strokeStyle = '#0a0a14'; cx.lineWidth = 1; [-33, -26, 25, 32].forEach((x) => { cx.beginPath(); cx.moveTo(x, -6); cx.lineTo(x, 6); cx.stroke(); });
+    cx.fillStyle = '#ffb547'; cx.beginPath(); cx.arc(0, 0, 16, 0, 7); cx.fill();
+    cx.fillStyle = '#0a0a14'; cx.font = '800 9px Syne, sans-serif'; cx.textAlign = 'center'; cx.fillText('SUPPLY', 0, 3);
     cx.restore();
   }
   function ship(x, y, inv) {
@@ -374,9 +537,11 @@ const WB = (() => {
       g.eshots.forEach((b) => { cx.fillStyle = '#ff6b57'; cx.beginPath(); cx.arc(b.x, b.y, 4.5, 0, 7); cx.fill(); cx.fillStyle = '#ffd2cb'; cx.beginPath(); cx.arc(b.x, b.y, 2, 0, 7); cx.fill(); });
       g.drops.forEach((d) => {
         const i = PW_INFO[d.k];
-        cx.fillStyle = 'rgba(0,0,0,.55)'; cx.strokeStyle = i.c; cx.lineWidth = 2; cx.beginPath(); cx.arc(d.x, d.y, 14, 0, 7); cx.fill(); cx.stroke();
+        cx.fillStyle = 'rgba(0,0,0,.55)'; cx.strokeStyle = i.c; cx.lineWidth = d.big ? 3 : 2; cx.beginPath(); cx.arc(d.x, d.y, d.big ? 18 : 14, 0, 7); cx.fill(); cx.stroke();
         cx.font = '16px "Apple Color Emoji","Segoe UI Emoji",sans-serif'; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText(i.ic, d.x, d.y + 1); cx.textBaseline = 'alphabetic';
       });
+      if (g.station) station(g.station);
+      if (g.bombFlash > 0) { cx.fillStyle = `rgba(255,255,255,${g.bombFlash * 0.7})`; cx.fillRect(0, 0, LW, VH); g.bombFlash -= 0.04; }
       g.fx.forEach((p) => { cx.globalAlpha = Math.max(0, p.a); cx.fillStyle = p.c; cx.fillRect(p.x - 2, p.y - 2, 4, 4); });
       cx.globalAlpha = 1;
       if (!g.spell || g.over) ship(g.ship.x, g.ship.y, g.ship.inv);
@@ -401,12 +566,17 @@ const WB = (() => {
     if (a === 'ctl') { st.set.blasterCtl = t.dataset.c; saveSet(); open(); }
     if (a === 'close') close();
     if (a === 'check') check();
+    if (a === 'smc') stationMC(t);
+    if (a === 'sml' || a === 'smr') stationMatch(t, a);
+    if (a === 'buy') buy(t.dataset.k);
+    if (a === 'leave') leaveStation();
+    if (a === 'bomb') useBomb();
     if (a === 'quit') {
       if (game && !game.over && !confirm(L('離開這一局？這局不會計分。', "Quit this game? It won't be scored."))) return;
       close();
     }
   }
-  const _t = { get game() { return game; }, check, hit, end, toPts, power, get VH() { return VH; } };
+  const _t = { get game() { return game; }, check, hit, end, toPts, power, kill, enterStation, openShop, useBomb, timeLeft: () => timeLeft(), get VH() { return VH; } };
   return { id: ID, need: NEED, card, bestText, open, close, _t };
 })();
 GAMES.push(WB);
