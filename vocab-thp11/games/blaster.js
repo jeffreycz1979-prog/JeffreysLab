@@ -8,9 +8,9 @@
 //        saveLedger, saveMeta, saveSet, afterPoints, points, gameWeekBestAll, gameCard, masteredCount, GAMES, toast, confetti
 // ═══════════════════════════════════════════════════════
 const WB = (() => {
-  const ID = 'blaster', NEED = 2, VER = '1.3';
+  const ID = 'blaster', NEED = 2, VER = '1.4';
   const TIME = 180, CAP = 20;
-  const S_PER_PT = 200;      // 每 200 分 = 1 ⭐（4000 分滿 20）；機器人（瞬間拼字）3 分鐘約 5400～6100，真人含拼字時間預估 1300～4300
+  const S_PER_PT = 550;      // 每 550 分 = 1 ⭐（11000 分滿 20）；10/21 Jeffrey 實玩 v1.2 一局一萬多分，要求調到 10000～12000 才滿分
   const LW = 360;
   // 後勤補充站：每清完 3 波出現；30 秒答題（遊戲時間暫停），答對 = 能量，用能量買裝備；能量可以存
   const STATION_EVERY = 3, STATION_SEC = 30;
