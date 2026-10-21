@@ -1,13 +1,13 @@
 // THP11 單字挑戰 - Service Worker（scope：/JeffreysLab/vocab-thp11/）
-// 改了 index.html 之後把版本號 +1，舊快取會自動清除
-const CACHE_NAME = 'thp11-v19';
+// 頁面與程式改成網路優先；改了檔案仍建議把版本號 +1，舊快取會自動清除
+const CACHE_NAME = 'thp11-v20';
 
 const PRECACHE_URLS = [
   '/JeffreysLab/vocab-thp11/',
   '/JeffreysLab/vocab-thp11/index.html',
   '/JeffreysLab/vocab-thp11/manifest.json',
   '/JeffreysLab/vocab-thp11/grammar.json',
-  '/JeffreysLab/vocab-thp11/games/jump.js',
+  '/JeffreysLab/vocab-thp11/games/jump.js?v=1.3',
   '/JeffreysLab/icons/icon-192.png',
   '/JeffreysLab/icons/icon-512.png',
 ];
@@ -38,7 +38,23 @@ self.addEventListener('fetch', (event) => {
   if (url.includes('script.google.com')) return;
   if (url.includes('docs.google.com') || url.includes('googleusercontent.com')) return;
 
-  // 其餘（頁面、圖示、Google Fonts）：快取優先，背景更新
+  // 自己的頁面與程式（HTML、JS、JSON）：網路優先，3 秒沒回應或離線才用快取 → 更新開一次就生效
+  const own = url.includes('/JeffreysLab/vocab-thp11/') && (req.mode === 'navigate' || /\.(html|js|json)(\?|$)/.test(url) || url.endsWith('/'));
+  if (own) {
+    event.respondWith((async () => {
+      const cache = await caches.open(CACHE_NAME);
+      try {
+        const res = await Promise.race([fetch(req, { cache: 'no-store' }), new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 3000))]);
+        if (res && res.status === 200) cache.put(req, res.clone());
+        return res;
+      } catch (e) {
+        return (await cache.match(req)) || (await cache.match(req, { ignoreSearch: true })) || Response.error();
+      }
+    })());
+    return;
+  }
+
+  // 其餘（圖示、Google Fonts）：快取優先，背景更新
   event.respondWith(
     caches.match(req).then((cached) => {
       const network = fetch(req).then((res) => {

@@ -14,6 +14,8 @@ const WJ = (() => {
   const LW = 360;            // 邏輯寬度（實際畫面依比例縮放）
   const G = 0.38, JUMP = -11.5, SPRING = -19, RUN = 5.2;
   const PW = 66, PH = 12;
+  const EDGE = 0.2;          // 手指模式：左右各 20% 是「穿牆區」，按著就一直往那邊跑
+  const VER = '1.3';
 
   let cv, cx, root, S = 1, VH = 640;   // S＝縮放；VH＝邏輯高度
   let game = null, raf = 0, keys = { l: false, r: false };
@@ -54,7 +56,8 @@ const WJ = (() => {
     cv = root.querySelector('canvas'); cx = cv.getContext('2d');
     root.addEventListener('click', onClick);
     cv.addEventListener('pointerdown', onPtr); cv.addEventListener('pointermove', onPtr);
-    ['pointerup', 'pointercancel', 'pointerleave'].forEach((e) => cv.addEventListener(e, () => { fingerX = null; }));
+    ['pointerup', 'pointercancel'].forEach((e) => cv.addEventListener(e, () => { fingerX = null; }));
+    cv.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') fingerX = null; });
     addEventListener('resize', resize);
     addEventListener('keydown', onKey); addEventListener('keyup', onKey);
   }
@@ -90,7 +93,7 @@ const WJ = (() => {
       <p>${L('一直往上跳，看你能跳多高！', 'Jump as high as you can!')}</p>
       <div class="wj-ctl">
         <button class="${ctl() === 'tilt' ? 'on' : ''}" data-wj="ctl" data-c="tilt">📱 ${L('搖晃手機', 'Tilt')}<small>${L('左右傾斜手機', 'Tilt your phone')}</small></button>
-        <button class="${ctl() === 'touch' ? 'on' : ''}" data-wj="ctl" data-c="touch">👆 ${L('手指跟隨', 'Finger')}<small>${L('按住螢幕，角色跟著手指', 'Hold and slide')}</small></button>
+        <button class="${ctl() === 'touch' ? 'on' : ''}" data-wj="ctl" data-c="touch">👆 ${L('手指跟隨', 'Finger')}<small>${L('按住螢幕跟著走，按兩側穿牆', 'Follow finger · edges wrap')}</small></button>
       </div>
       <div class="wj-rules">
         <div>⏱ ${L('3 分鐘，時間到就結束', '3 minutes')}</div>
@@ -98,7 +101,7 @@ const WJ = (() => {
         <div>⭐ ${L(`每 ${M_PER_PT} 公尺 1 分，最多 ${CAP} 分`, `1 point per ${M_PER_PT} m, up to ${CAP}`)}</div>
         <div>📅 ${L('每週只算最高的一局', 'Only your best game each week counts')}</div>
       </div>
-      <p class="wj-small">${L(`本週最佳 ${best} / ${CAP} ⭐・個人最高 ${pb} m`, `This week ${best} / ${CAP} ⭐ · Personal best ${pb} m`)}</p>
+      <p class="wj-small">${L(`本週最佳 ${best} / ${CAP} ⭐・個人最高 ${pb} m`, `This week ${best} / ${CAP} ⭐ · Personal best ${pb} m`)}<br><span style="opacity:.5">v${VER}</span></p>
       <div class="btnrow"><button class="btn" data-wj="start">${L('開始 Start ▶', 'Start ▶')}</button><button class="btn ghost" data-wj="close">${L('離開', 'Exit')}</button></div>
     </div>`);
     draw(true);
@@ -181,8 +184,8 @@ const WJ = (() => {
       const g = Math.abs(tiltG) < 2 ? 0 : tiltG;          // 2° 以內不動
       target = Math.max(-1, Math.min(1, g / 20)) * RUN * 1.2;   // 傾斜 20° 就全速
     } else if (fingerX != null) {
-      if (fingerX < LW * 0.08) target = -RUN * 1.3;          // 手指在最左邊：一直往左跑，穿牆
-      else if (fingerX > LW * 0.92) target = RUN * 1.3;      // 手指在最右邊：一直往右跑，穿牆
+      if (fingerX < LW * EDGE) target = -RUN * 1.2;          // 按在左邊穿牆區：一直往左跑，穿過邊界
+      else if (fingerX > LW * (1 - EDGE)) target = RUN * 1.2; // 按在右邊穿牆區：一直往右跑，穿過邊界
       else {
         let dx = fingerX - p.x; const span = LW + 28;         // 走最近的路（必要時穿牆）
         if (dx > span / 2) dx -= span; else if (dx < -span / 2) dx += span;
@@ -339,6 +342,19 @@ const WJ = (() => {
         cx.fillText(f.t, LW / 2, VH * 0.3 - f.y); f.y += 0.8; f.a -= 0.015;
       });
       cx.globalAlpha = 1;
+      // 手指模式：畫出左右穿牆區（按著時亮起）
+      if (ctl() === 'touch' && !game.spell && !game.over) {
+        const zw = LW * EDGE, inL = fingerX != null && fingerX < zw, inR = fingerX != null && fingerX > LW - zw;
+        const early = Date.now() - game.t0 < 4000;
+        [[0, inL, '«'], [LW - zw, inR, '»']].forEach(([x, on, ar]) => {
+          if (!on && !early) return;
+          cx.fillStyle = on ? 'rgba(204,255,0,.12)' : 'rgba(255,255,255,.06)'; cx.fillRect(x, 0, zw, VH);
+          cx.fillStyle = on ? 'rgba(204,255,0,.7)' : 'rgba(255,255,255,.45)'; cx.font = '800 30px sans-serif'; cx.textAlign = 'center';
+          cx.fillText(ar, x + zw / 2, VH * 0.62);
+        });
+        if (early) { cx.font = '600 11px "Noto Sans TC", sans-serif'; cx.fillStyle = 'rgba(255,255,255,.6)';
+          cx.fillText(L('按這裡穿牆', 'Hold to wrap'), zw / 2, VH * 0.62 + 22); cx.fillText(L('按這裡穿牆', 'Hold to wrap'), LW - zw / 2, VH * 0.62 + 22); }
+      }
       // 操作提示（前 4 秒）
       if (!game.spell && !game.over && Date.now() - game.t0 < 4000) {
         cx.fillStyle = 'rgba(255,255,255,.75)'; cx.font = '700 16px "Noto Sans TC", sans-serif'; cx.textAlign = 'center';
