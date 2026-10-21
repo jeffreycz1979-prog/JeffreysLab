@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════════════
 //  THP11 獎勵遊戲 #1：Word Jump（往上跳）
 //  解鎖：至少一個單元 🏅 精熟
-//  規則：3 分鐘；掉下去要拼字（題目出自已精熟單元），拼錯就多提示一個字母，
+//  規則：3 分鐘；掉下去要拼字（題目出自所有已開放單元），拼錯就多提示一個字母，
 //        拼對才回到原高度繼續，時間不暫停。高度換算 0～20 分，每週只算最高一局。
 //  依賴 index.html 的全域：st, $, esc, L, EN, meaning, speak, answersOf, norm, shuffle,
 //        todayKey, clockCheck, saveLedger, afterPoints, points, gameWeekBest, toast, coach, confetti
@@ -26,10 +26,8 @@ const WJ = (() => {
   // ── 解鎖與題庫 ──
   const masteredUnits = () => [...new Set(st.ledger.bonus.filter((b) => b.k.startsWith('master:')).map((b) => b.k.slice(7)))];
   const unlocked = () => masteredUnits().some((u) => st.words.some((w) => w.unit === u));
-  const wordPool = () => {
-    const us = masteredUnits();
-    return st.words.filter((w) => us.includes(w.unit) && w.type !== '片語' && !/[ ()/]/.test(w.word) && w.word.length >= 3);
-  };
+  // 拼字題：所有已開放單元的單字（不只精熟單元，還沒練熟的字也考）
+  const wordPool = () => st.words.filter((w) => w.type !== '片語' && !/[ ()/]/.test(w.word) && w.word.length >= 3);
   const toPts = (m) => Math.min(CAP, Math.floor(m / M_PER_PT));
 
   // ── 挑戰頁上的入口卡片 ──
