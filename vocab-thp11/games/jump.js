@@ -183,8 +183,13 @@ const WJ = (() => {
       const g = Math.abs(tiltG) < 2 ? 0 : tiltG;          // 2° 以內不動
       target = Math.max(-1, Math.min(1, g / 20)) * RUN * 1.2;   // 傾斜 20° 就全速
     } else if (fingerX != null) {
-      const dx = fingerX - p.x;
-      target = Math.abs(dx) < 4 ? 0 : Math.max(-RUN * 1.3, Math.min(RUN * 1.3, dx * 0.18));
+      if (fingerX < LW * 0.08) target = -RUN * 1.3;          // 手指在最左邊：一直往左跑，穿牆
+      else if (fingerX > LW * 0.92) target = RUN * 1.3;      // 手指在最右邊：一直往右跑，穿牆
+      else {
+        let dx = fingerX - p.x; const span = LW + 28;         // 走最近的路（必要時穿牆）
+        if (dx > span / 2) dx -= span; else if (dx < -span / 2) dx += span;
+        target = Math.abs(dx) < 4 ? 0 : Math.max(-RUN * 1.3, Math.min(RUN * 1.3, dx * 0.18));
+      }
     }
     p.vx = target != null ? p.vx + (target - p.vx) * Math.min(1, 0.35 * dt) : p.vx * Math.pow(0.82, dt);
     p.x += p.vx * dt;
