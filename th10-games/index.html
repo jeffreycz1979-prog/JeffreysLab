@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0a0a14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TH10 Games">
+<title>TH10 Word Games</title>
+<link rel="apple-touch-icon" href="/JeffreysLab/icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --green:#1a3a1a; --lime:#CCFF00; --mint:#4ECDC4;
+  --bg:#0a0a14; --panel:#131826; --card:#171d2d; --line:#262d40;
+  --ink:#eef2e6; --muted:#8a93a6; --coral:#ff6b57; --amber:#ffb547;
+  --safe-b:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{height:100vh;height:100dvh}   /* dvh：扣掉 Safari 上下工具列的實際可見高度 */
+body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--bg);color:var(--ink);
+  overscroll-behavior:none;display:flex;flex-direction:column}
+button{font-family:inherit;cursor:pointer;color:inherit}
+.en{font-family:'Syne',system-ui,sans-serif}
+
+/* ── 頂部 ── */
+header{padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 10px;display:flex;align-items:center;gap:10px;
+  background:linear-gradient(180deg,#10182a,var(--bg))}
+.me{display:flex;align-items:center;gap:8px;min-width:0;border:none;background:none;text-align:left}
+.ava{width:38px;height:38px;border-radius:50%;background:var(--panel);border:2px solid var(--lime);
+  display:flex;align-items:center;justify-content:center;font-size:22px;flex:none}
+.me b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px}
+.me small{display:block;font-family:'Syne',sans-serif;font-size:10px;color:var(--lime);letter-spacing:.5px}
+header .sp{flex:1}
+.pill{font-size:13px;font-weight:700;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:5px 10px;white-space:nowrap}
+.pill.pts{color:var(--lime)}
+.pill.bump{animation:bump .5s}
+@keyframes bump{40%{transform:scale(1.25)}}
+
+main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.view{display:none;padding:6px 16px calc(84px + var(--safe-b));max-width:560px;margin:0 auto}
+.view.active{display:block}
+#v-review.active{display:flex;flex-direction:column;height:100%}
+
+/* ── 首頁 ── */
+.hero{background:radial-gradient(120% 120% at 0% 0%,#1f3a1f 0%,var(--panel) 55%);border:1px solid var(--line);
+  border-radius:24px;padding:18px;display:flex;align-items:center;gap:16px}
+.ring{position:relative;width:118px;height:118px;flex:none}
+.ring svg{transform:rotate(-90deg)}
+.ring .num{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring .num b{font-family:'Syne',sans-serif;font-size:30px;line-height:1}
+.ring .num span{font-size:11px;color:var(--muted)}
+.hero h2{font-size:18px;line-height:1.3}
+.hero h2 small,.sub{display:block;font-size:12px;color:var(--muted);font-weight:400;margin-top:2px}
+.hero .btn{margin-top:12px}
+.trio{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.tile{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:12px 10px;text-align:center}
+.tile b{display:block;font-family:'Syne',sans-serif;font-size:24px}
+.tile span{font-size:11px;color:var(--muted)}
+.tile.l b{color:var(--lime)} .tile.o b{color:var(--amber)} .tile.m b{color:var(--mint)}
+h3{font-size:14px;margin:20px 0 8px;display:flex;align-items:baseline;gap:6px}
+h3 small{font-family:'Syne',sans-serif;font-size:11px;color:var(--muted);font-weight:600}
+.units{display:flex;flex-direction:column;gap:8px}
+.unit{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px 14px;display:grid;
+  grid-template-columns:44px 1fr auto;align-items:center;gap:10px;text-align:left;width:100%}
+.locked{opacity:.4;display:flex;align-items:center;gap:12px;background:var(--panel);border:1px dashed var(--line);border-radius:16px;padding:12px 14px;font-size:13px;color:var(--muted)}
+.locked .u{font-size:18px;width:auto}
+.unit .u{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:var(--lime)}
+.unit .t{font-size:12px;color:var(--muted);margin-bottom:6px}
+.unit .pct{font-family:'Syne',sans-serif;font-weight:700;font-size:15px}
+.stack{height:9px;border-radius:6px;overflow:hidden;display:flex;background:#232a3c}
+.stack i{display:block;height:100%}
+.legend{display:flex;gap:12px;font-size:11px;color:var(--muted);margin-top:8px;flex-wrap:wrap}
+.legend span{display:flex;align-items:center;gap:4px}
+.dot{width:9px;height:9px;border-radius:50%;flex:none;display:inline-block}
+.d-new{background:#4a5266}.d-learn{background:var(--amber)}.d-known{background:var(--mint)}.d-hard{background:var(--coral)}
+
+/* ── 篩選 ── */
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1.5px solid var(--line);background:var(--panel);color:var(--muted);border-radius:20px;padding:5px 12px;font-size:12px;font-weight:500}
+.chip.on{background:var(--lime);border-color:var(--lime);color:#10140a;font-weight:700}
+.flabel{font-size:11px;color:var(--muted);margin:10px 0 4px;font-weight:700;letter-spacing:.5px}
+.ftoggle{width:100%;border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:9px 12px;font-size:13px;color:var(--muted);
+  display:flex;align-items:center;gap:4px;text-align:left}
+.ftoggle b{color:var(--lime);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fpanel{display:none}.fpanel.open{display:block}
+
+/* ── 進度條 ── */
+.sessbar{display:flex;align-items:center;gap:10px;margin:12px 0 10px;font-size:12px;color:var(--muted)}
+.track{flex:1;height:6px;background:#232a3c;border-radius:6px;overflow:hidden}
+.track i{display:block;height:100%;background:var(--mint);width:0;transition:width .3s}
+.combo{font-family:'Syne',sans-serif;font-weight:800;color:var(--amber);min-width:44px;text-align:right}
+.undo{border:none;background:none;color:var(--mint);font-size:12px;font-weight:700;padding:4px 0}
+.undo:disabled{color:#3d4558}
+
+/* ── 卡片 ── */
+.stage{position:relative;flex:1;min-height:260px;display:flex;align-items:stretch;justify-content:center;touch-action:pan-y}
+.card{position:absolute;inset:0;background:var(--card);border:1px solid var(--line);border-radius:24px;box-shadow:0 10px 30px rgba(0,0,0,.45);
+  padding:22px 20px;display:flex;flex-direction:column;user-select:none;-webkit-user-select:none;will-change:transform}
+.card.anim{transition:transform .28s ease, opacity .28s ease}
+.card.pop{animation:pop .35s}
+@keyframes pop{0%{transform:scale(.92);opacity:.4}100%{transform:scale(1);opacity:1}}
+.tags{display:flex;gap:6px;flex-wrap:wrap}
+.tag{font-size:11px;font-weight:700;border-radius:8px;padding:3px 8px;background:#222a3d;color:var(--mint)}
+.tag.u{background:var(--lime);color:#10140a}
+.tag.warn{background:#3a2e12;color:var(--amber)}
+.tag.stub{background:#3a1c18;color:var(--coral)}
+.front{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px}
+.word{font-family:'Syne',sans-serif;font-size:clamp(28px,8.5vw,42px);font-weight:800;line-height:1.15;word-break:break-word;color:var(--ink)}
+.ipa{font-size:16px;color:var(--muted)}
+.pos{font-size:13px;color:var(--muted);font-style:italic}
+.spk{width:52px;height:52px;border-radius:50%;border:none;background:var(--lime);color:#10140a;font-size:22px;
+  display:flex;align-items:center;justify-content:center;box-shadow:0 0 18px rgba(204,255,0,.35)}
+.spk.small{width:34px;height:34px;font-size:15px;box-shadow:none;flex:none}
+.spk.busy{opacity:.5}
+.hint{font-size:12px;color:#5d667a;text-align:center}
+.back{display:none;flex:1;min-height:0;flex-direction:column;gap:12px;overflow-y:auto;margin-top:12px;border-top:1.5px dashed var(--line);padding:14px 14px 4px 0;scrollbar-width:none;touch-action:pan-y}
+.back::-webkit-scrollbar{display:none}
+.rail{position:absolute;right:8px;width:5px;border-radius:5px;background:rgba(78,205,196,.2);display:none;pointer-events:none}
+.rail i{position:absolute;left:0;right:0;border-radius:5px;background:var(--mint)}
+.card.flipped .rail.on{display:block}
+.card.flipped .back{display:flex}
+.card.flipped .front{flex:none;padding-top:6px;gap:4px}
+.card.flipped .word{font-size:clamp(22px,6.5vw,30px)}
+.card.flipped .hint,.card.flipped .pos{display:none}
+.card.flipped .ipa{font-size:14px}
+.card.flipped .front .spk{width:38px;height:38px;font-size:17px;box-shadow:none}
+.zh{font-size:22px;font-weight:700;text-align:center;color:var(--lime)}
+.sec{font-size:11px;font-weight:700;color:var(--mint);letter-spacing:.6px;margin-bottom:3px;font-family:'Syne',sans-serif}
+.def{font-size:15px;line-height:1.5}
+.ex{font-size:15px;line-height:1.55;font-style:italic;display:flex;gap:8px;align-items:flex-start}
+.exzh{font-size:13px;color:var(--muted);margin-top:3px}
+.ex mark{background:rgba(204,255,0,.25);color:var(--lime);font-style:normal;font-weight:700;padding:0 2px;border-radius:3px}
+.note{font-size:12px;color:var(--muted)}
+.stamp{position:absolute;top:22px;font-family:'Syne',sans-serif;font-weight:800;font-size:22px;border:3px solid;border-radius:10px;padding:2px 10px;opacity:0;pointer-events:none}
+.stamp.l{right:20px;color:var(--coral);transform:rotate(12deg)}
+.stamp.r{left:20px;color:var(--lime);transform:rotate(-12deg)}
+
+/* ── 評分按鈕 ── */
+.rate{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:14px;position:relative}
+.rbtn{border:none;border-radius:16px;padding:12px 4px;font-size:15px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:2px}
+.rbtn span{font-size:11px;font-weight:500;opacity:.8}
+.r1{background:#3a1c18;color:var(--coral)}
+.r3{background:var(--lime);color:#10140a}
+.r4{background:#123a37;color:var(--mint)}
+.plus{position:absolute;left:50%;top:-6px;transform:translateX(-50%);font-family:'Syne',sans-serif;font-weight:800;color:var(--lime);
+  pointer-events:none;animation:rise .9s forwards}
+@keyframes rise{to{transform:translate(-50%,-40px);opacity:0}}
+
+/* ── 共用 ── */
+.done{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:12px;padding:30px 10px}
+.done .big{font-size:46px}
+.done h2{font-size:20px}
+.done p{color:var(--muted);font-size:14px;line-height:1.6}
+.btn{border:none;border-radius:14px;padding:11px 18px;font-size:14px;font-weight:700;background:var(--lime);color:#10140a}
+.btn.ghost{background:var(--panel);color:var(--ink);border:1.5px solid var(--line)}
+.btn.danger{background:#3a1c18;color:var(--coral)}
+.btn.wide{width:100%;padding:14px}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+
+/* ── 單字列表 ── */
+.search{width:100%;border:1.5px solid var(--line);border-radius:14px;padding:11px 14px;font-size:15px;background:var(--panel);color:var(--ink);font-family:inherit}
+.search:focus{outline:none;border-color:var(--mint)}
+.list{margin-top:12px;display:flex;flex-direction:column;gap:6px}
+.row{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:11px 12px;display:flex;align-items:center;gap:10px}
+.row .main{flex:1;min-width:0}
+.row .w{font-family:'Syne',sans-serif;font-weight:700;font-size:16px}
+.row .z{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .meta{text-align:right;font-size:11px;color:var(--muted);flex:none}
+.count{font-size:12px;color:var(--muted);margin-top:10px}
+
+/* ── 我的／積分證明 ── */
+.rank{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:16px}
+.rank .top{display:flex;justify-content:space-between;align-items:baseline}
+.rank .top b{font-family:'Syne',sans-serif;font-size:18px;color:var(--lime)}
+.rank .top span{font-size:12px;color:var(--muted)}
+.set{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:4px 14px;margin-bottom:12px}
+.srow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 0;border-bottom:1px solid var(--line);font-size:14px}
+.srow:last-child{border-bottom:none}
+.srow small{display:block;font-size:11px;color:var(--muted);margin-top:2px}
+.sw{width:46px;height:28px;border-radius:14px;background:#2c3447;position:relative;border:none;flex:none;transition:background .2s}
+.sw::after{content:'';position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:left .2s}
+.sw.on{background:var(--mint)}.sw.on::after{left:21px}
+.diag{font-size:11px;font-family:monospace;color:var(--muted);white-space:pre-wrap;word-break:break-all;background:#0e1220;border-radius:10px;padding:8px;margin:8px 0;display:none}
+
+.proof{position:relative;overflow:hidden;border-radius:26px;padding:22px 20px;text-align:center;
+  background:linear-gradient(135deg,#1a3a1a,#0f2a2a 50%,#1a1a3a);border:2px solid var(--lime)}
+.proof::before{content:'';position:absolute;inset:-50%;background:conic-gradient(from 0deg,transparent 0 70%,rgba(204,255,0,.18) 80%,transparent 90%);
+  animation:spin 4s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.proof > *{position:relative}
+.proof .pava{font-size:54px;line-height:1}
+.proof .pname{font-size:22px;font-weight:700;margin-top:6px}
+.proof .ptitle{font-family:'Syne',sans-serif;color:var(--lime);font-size:13px;letter-spacing:1px}
+.proof .ptotal{font-family:'Syne',sans-serif;font-weight:800;font-size:56px;color:var(--lime);line-height:1.05;margin-top:10px;text-shadow:0 0 24px rgba(204,255,0,.45)}
+.proof .plabel{font-size:12px;color:#c6d1c6}
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;text-align:left}
+.pgrid div{background:rgba(0,0,0,.28);border-radius:12px;padding:8px 10px;font-size:12px;color:#c6d1c6}
+.pgrid b{display:block;font-family:'Syne',sans-serif;font-size:18px;color:#fff}
+.pfoot{margin-top:14px;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#c6d1c6}
+.pfoot .code{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:#fff;letter-spacing:2px}
+.clock{font-family:monospace;font-size:13px;color:#fff}
+.warnbox{margin-top:12px;background:#3a1c18;color:var(--coral);border-radius:12px;padding:8px;font-size:12px}
+
+/* ── 底部分頁 ── */
+nav{position:fixed;left:0;right:0;bottom:0;background:#0d1120;border-top:1px solid var(--line);display:flex;padding-bottom:var(--safe-b);z-index:50}
+nav button{flex:1;border:none;background:none;padding:8px 0 9px;font-size:11px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px}
+nav button i{font-style:normal;font-size:20px;line-height:1.1}
+nav button.on{color:var(--lime);font-weight:700}
+
+/* ── 彈窗、教練泡泡、彩帶 ── */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:flex-end;justify-content:center;z-index:110}
+.modal.show{display:flex}
+.sheet{background:var(--bg);border-top:1px solid var(--line);width:100%;max-width:560px;max-height:88vh;overflow-y:auto;border-radius:24px 24px 0 0;padding:18px 18px calc(18px + var(--safe-b))}
+.onb{position:fixed;inset:0;background:var(--bg);z-index:100;display:none;overflow-y:auto;padding:calc(env(safe-area-inset-top,0px) + 30px) 20px 30px}
+.onb.show{display:block}
+.onb .inner{max-width:420px;margin:0 auto;text-align:center}
+.onb h1{font-family:'Syne',sans-serif;font-size:30px;color:var(--lime);line-height:1.1}
+.onb p{color:var(--muted);font-size:14px;margin-top:6px}
+.onb label{display:block;text-align:left;font-size:13px;font-weight:700;margin:22px 0 8px}
+.onb label small{font-weight:400;color:var(--muted)}
+.agrid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.agrid button{aspect-ratio:1;border-radius:14px;border:2px solid var(--line);background:var(--panel);font-size:24px}
+.agrid button.on{border-color:var(--lime);background:#26331a;transform:scale(1.08)}
+.coach{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 6px);   /* 蓋在頁首上，不擋到題目 */
+  transform:translate(-50%,-20px);width:min(92vw,420px);
+  background:#1b2236;border:1px solid var(--lime);border-radius:18px;padding:10px 14px;display:flex;gap:10px;align-items:center;
+  opacity:0;transition:all .3s;pointer-events:none;z-index:90;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.coach.show{opacity:1;transform:translate(-50%,0)}
+.coach .ce{font-size:28px;flex:none}
+.coach b{display:block;font-size:14px}
+.coach small{display:block;font-size:12px;color:var(--muted);margin-top:1px}
+.confetti{position:fixed;top:-12px;width:9px;height:14px;z-index:95;pointer-events:none;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(105vh) rotate(720deg)}}
+/* ── 測驗 ── */
+.qlist{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.qunit{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px 14px;display:flex;align-items:center;gap:12px;width:100%;text-align:left}
+.qunit .u{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;color:var(--lime);width:40px}
+.qunit .m{flex:1;min-width:0;font-size:12px;color:var(--muted);line-height:1.5}
+.qunit .m b{color:var(--ink);font-size:14px}
+.qunit .go{border:none;background:var(--lime);color:#10140a;font-weight:700;font-size:13px;border-radius:12px;padding:8px 12px;flex:none}
+.qhead{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--muted);margin:4px 0 14px}
+.qhead .track{flex:1}
+.qpts{font-family:'Syne',sans-serif;color:var(--lime);min-width:38px;text-align:right;display:inline-block}
+.qpts.bump{animation:bump .5s}
+.qcard{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:20px 18px;text-align:center}
+.qtype{font-size:12px;color:var(--mint);font-weight:700;letter-spacing:.4px;margin-bottom:12px}
+.qword{font-family:'Syne',sans-serif;font-size:clamp(26px,8vw,38px);font-weight:800;line-height:1.15;word-break:break-word}
+.qzh{font-size:24px;font-weight:700;color:var(--lime)}
+.qsent{font-size:17px;line-height:1.6;font-style:italic;text-align:left}
+.qsent u{text-decoration:none;color:var(--lime);font-style:normal;font-weight:800;letter-spacing:2px}
+.qmid{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:10px}
+.opts{display:flex;flex-direction:column;gap:8px;margin-top:16px}
+.opt{border:1.5px solid var(--line);background:var(--panel);border-radius:14px;padding:13px 14px;font-size:16px;font-weight:500;text-align:left}
+.opt.en{font-family:'Syne',sans-serif;font-weight:700}
+.opt.ok{border-color:var(--mint);background:#123a37;color:var(--mint)}
+.opt.bad{border-color:var(--coral);background:#3a1c18;color:var(--coral)}
+.opt:disabled{opacity:1}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}
+.mgrid .col{display:flex;flex-direction:column;gap:8px}
+.mt{border:1.5px solid var(--line);background:var(--panel);border-radius:14px;padding:12px 8px;font-size:14px;min-height:52px}
+.mt.en{font-family:'Syne',sans-serif;font-weight:700}
+.mt.sel{border-color:var(--lime);background:#26331a}
+.mt.ok{border-color:var(--mint);background:#123a37;color:var(--mint);opacity:.55}
+.mt.bad{border-color:var(--coral);background:#3a1c18;animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.spk.turtle{background:var(--panel);border:1.5px solid var(--line);color:var(--ink);box-shadow:none}
+.gq{font-size:18px;line-height:1.5;font-weight:600;margin-top:4px}
+.gq u{text-decoration:none;color:var(--lime);letter-spacing:2px}
+.otray{min-height:56px;border:2px dashed var(--line);border-radius:14px;padding:8px;display:flex;flex-wrap:wrap;gap:6px;margin-top:14px;align-items:center;justify-content:center}
+.otray.ok{border-color:var(--mint)}.otray.bad{border-color:var(--coral)}
+.opool{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:12px}
+.tok{border:1.5px solid var(--line);background:var(--panel);border-radius:12px;padding:9px 12px;font-family:'Syne',sans-serif;font-weight:700;font-size:15px}
+.otray .tok{background:#26331a;border-color:var(--lime)}
+.tok.gone{visibility:hidden}
+.gcard{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:12px}
+.gcard h4{font-family:'Syne',sans-serif;font-size:18px;color:var(--lime)}
+.gcard .gzh{font-size:13px;color:var(--muted);margin:2px 0 10px}
+.grule{background:var(--panel);border-radius:12px;padding:10px 12px;margin-top:8px}
+.grule b{display:block;color:var(--mint);font-size:13px;margin-bottom:3px}
+.grule i{font-family:'Syne',sans-serif;font-style:normal;font-size:15px}
+.gmis{display:grid;grid-template-columns:1fr;gap:2px;font-size:14px;margin-top:8px;background:var(--panel);border-radius:12px;padding:10px 12px}
+.gmis .x{color:var(--coral);text-decoration:line-through}.gmis .o{color:var(--mint);font-weight:700}.gmis small{color:var(--muted)}
+.qunit .acts{display:flex;gap:6px;flex:none}
+.qunit .gbtn{background:var(--panel);border:1.5px solid var(--line);color:var(--ink);font-weight:700;font-size:13px;border-radius:12px;padding:8px 10px}
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:10px}
+.days button{border:1.5px solid var(--line);background:var(--panel);border-radius:12px;padding:10px 0;font-weight:700}
+.days button.on,.times button.on{background:var(--lime);border-color:var(--lime);color:#10140a}
+.times{display:flex;gap:8px;margin-top:10px}
+.times button{flex:1;border:1.5px solid var(--line);background:var(--panel);border-radius:12px;padding:10px;font-weight:700}
+.hintw{font-family:monospace;font-size:20px;letter-spacing:4px;color:var(--muted);margin-top:12px}
+.spellin{width:100%;margin-top:14px;border:2px solid var(--line);border-radius:14px;padding:13px;font-size:20px;text-align:center;
+  background:var(--panel);color:var(--ink);font-family:'Syne',sans-serif;font-weight:700}
+.spellin:focus{outline:none;border-color:var(--lime)}
+.spellin.ok{border-color:var(--mint);color:var(--mint)}.spellin.bad{border-color:var(--coral);color:var(--coral)}
+.fb{margin-top:14px;border-radius:16px;padding:12px 14px;text-align:left;font-size:14px;line-height:1.5}
+#quizBox{padding-bottom:84px}
+.qbar{position:fixed;left:0;right:0;bottom:calc(58px + var(--safe-b));z-index:60;padding:10px 16px;
+  background:linear-gradient(0deg,var(--bg) 70%,transparent);animation:up .2s}
+@keyframes up{from{transform:translateY(20px);opacity:0}}
+.qbar .in{max-width:528px;margin:0 auto;display:flex;align-items:center;gap:10px;border-radius:18px;padding:10px 10px 10px 14px}
+.qbar .in.ok{background:#123a37;color:var(--mint)}.qbar .in.bad{background:#3a1c18;color:#ffd2cb}
+.qbar .txt{flex:1;min-width:0;text-align:left;font-size:13px;line-height:1.4}
+.qbar .txt b{font-family:'Syne',sans-serif;font-size:15px}
+.qbar .btn{flex:none;padding:12px 16px}
+.tip{background:#1b2236;border:1px dashed var(--mint);border-radius:16px;padding:12px 14px;margin-bottom:12px;font-size:13px;line-height:1.6;position:relative}
+.tip b{color:var(--mint)}
+.tip.warn{border:1.5px solid var(--amber);background:#2a2212}
+.tip.warn b{color:var(--amber)}
+.codebox{width:100%;height:120px;margin-top:10px;border:1.5px solid var(--line);border-radius:12px;padding:10px;background:var(--panel);
+  color:var(--ink);font-family:monospace;font-size:11px;word-break:break-all;resize:none}
+.pid{font-family:'Syne',sans-serif;font-weight:800;font-size:15px;letter-spacing:2px;color:#fff;background:rgba(0,0,0,.35);border-radius:10px;padding:3px 10px;display:inline-block;margin-top:8px}
+.moved{margin-top:10px;background:#3a2e12;color:var(--amber);border-radius:12px;padding:8px;font-size:12px}
+.lock{position:fixed;inset:0;background:var(--bg);z-index:105;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px 24px;gap:12px}
+.lock.show{display:flex}
+.lock h2{font-size:20px}.lock p{color:var(--muted);font-size:14px;line-height:1.7}
+.mode{display:inline-block;margin-top:6px;font-size:11px;border-radius:10px;padding:2px 8px;background:rgba(0,0,0,.3);color:#fff}
+.onb .btn.ghost{position:relative;z-index:1}
+.tip button{position:absolute;top:6px;right:8px;border:none;background:none;color:var(--muted);font-size:16px}
+.fb.ok{background:#123a37;color:var(--mint)}.fb.bad{background:#3a1c18;color:#ffd2cb}
+.fb b{font-family:'Syne',sans-serif}
+.qres{text-align:center}
+.qres .pct{font-family:'Syne',sans-serif;font-weight:800;font-size:64px;color:var(--lime);line-height:1}
+.qres .gain{display:inline-block;margin-top:10px;background:var(--lime);color:#10140a;font-weight:800;border-radius:20px;padding:6px 14px;font-size:16px}
+.qres .gain.zero{background:var(--panel);color:var(--muted);font-weight:500;font-size:13px}
+.banner{margin-top:12px;border:1.5px solid var(--amber);background:#3a2e12;color:var(--amber);border-radius:14px;padding:10px;font-weight:700}
+.toast{position:fixed;left:50%;bottom:calc(92px + var(--safe-b));transform:translateX(-50%);background:var(--mint);color:#06201e;
+  font-size:13px;font-weight:700;padding:9px 16px;border-radius:20px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:120;white-space:nowrap}
+.toast.show{opacity:1}
+.rate.nonew{grid-template-columns:1fr 1fr}.rate.nonew .r4{display:none}
+.spot{position:fixed;inset:0;z-index:112;background:rgba(5,8,16,.82);display:none;align-items:flex-start;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 40px) 16px 16px;overflow-y:auto}
+.spot.show{display:flex}
+.spot-card{width:100%;max-width:420px;background:var(--card);border:2px solid var(--amber);border-radius:22px;padding:18px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.6);animation:pop .3s}
+.spot-kick{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;color:var(--amber)}
+.spot-kick small{display:block;font-family:'Noto Sans TC',sans-serif;font-weight:400;font-size:12px;color:var(--muted);margin-top:4px}
+.spot-step{font-size:12px;color:var(--mint);font-weight:700;margin:12px 0 6px}
+/* ── 獎勵遊戲 ── */
+.gamecard{display:flex;align-items:center;gap:12px;margin-top:12px;border-radius:18px;padding:12px 14px;
+  background:linear-gradient(120deg,#26331a,#123a37);border:1.5px solid var(--lime)}
+.gamecard.off{background:var(--panel);border:1px dashed var(--line);opacity:.6}
+.gamecard .gc-ic{font-size:30px}.gamecard .gc-m{flex:1;min-width:0}
+.gamecard .gc-m b{font-family:'Syne',sans-serif;font-size:17px}.gamecard .gc-m small{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+.gamecard .go{border:none;background:var(--lime);color:#10140a;font-weight:700;font-size:13px;border-radius:12px;padding:9px 14px}
+.gamecard .go:disabled{background:var(--panel);color:var(--muted)}
+.wj{position:fixed;inset:0;z-index:130;background:#0a0a14;display:none;touch-action:none;user-select:none;-webkit-user-select:none}
+.wj.show{display:block}
+.wj canvas{position:absolute;inset:0;display:block}
+.wj-hud{position:absolute;left:0;right:0;top:0;padding:calc(env(safe-area-inset-top,0px) + 10px) 12px 8px;display:flex;gap:8px;align-items:center;pointer-events:none}
+.wj-hud span{background:rgba(0,0,0,.45);border:1px solid var(--line);border-radius:14px;padding:5px 10px;font-family:'Syne',sans-serif;font-weight:800;font-size:15px}
+.wj-t{margin-left:auto}.wj-t.low{color:var(--coral);border-color:var(--coral)}.wj-p{color:var(--lime)}
+.wj-x{pointer-events:auto;border:none;background:rgba(0,0,0,.45);color:#fff;border-radius:12px;width:36px;height:34px;font-size:15px}
+.wj-pane{position:absolute;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 58px);bottom:0;padding:0 16px calc(env(safe-area-inset-bottom,0px) + 16px);
+  display:flex;justify-content:center;align-items:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y}   /* 說明太長時可以捲動 */
+.wj-card{width:100%;max-width:400px;background:rgba(19,24,38,.98);border:1.5px solid var(--lime);border-radius:22px;padding:16px 16px 0;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.6)}
+.wj-card > .btnrow{position:sticky;bottom:0;background:rgba(19,24,38,.98);padding:12px 0 16px;margin-top:4px;border-radius:0 0 22px 22px}   /* 開始按鈕固定在底部 */
+.wj-card > .btn.wide:last-child{margin-bottom:16px}
+.wj-card .wj-ic{font-size:42px;line-height:1.1}
+.wj-card h2{font-family:'Syne',sans-serif;font-size:26px;color:var(--lime);margin:4px 0 6px}
+.wj-card p{font-size:14px;color:var(--ink);line-height:1.6}
+.wj-rules{text-align:left;background:var(--panel);border-radius:14px;padding:8px 12px;margin:10px 0;font-size:12px;line-height:1.75}
+.wj-small{font-size:12px;color:var(--muted);margin:8px 0}
+.wj-kicker{font-size:13px;font-weight:700;color:var(--amber);margin-bottom:6px}
+.wj-mean{font-size:22px;font-weight:700;color:var(--lime);line-height:1.4}
+.wj-big{font-family:'Syne',sans-serif;font-weight:800;font-size:52px;color:#fff;line-height:1.1}
+.wj-pts{font-family:'Syne',sans-serif;font-weight:800;font-size:26px;color:var(--lime);margin-top:6px}
+.wj-card.shake{animation:shake .3s}
+.wb-pw{position:absolute;left:12px;top:calc(env(safe-area-inset-top,0px) + 54px);display:flex;flex-direction:column;gap:6px;pointer-events:none;z-index:2}
+.wb-chip{position:relative;overflow:hidden;font-style:normal;font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:#fff;background:rgba(0,0,0,.6);border:2px solid var(--c);border-radius:14px;padding:4px 12px 7px;min-width:78px;box-shadow:0 0 12px var(--c)}
+.wb-chip i{position:absolute;left:0;bottom:0;height:4px;background:var(--c)}
+.wb-chip.new{animation:wbPop .5s ease-out 2}.wb-chip.end{animation:wbBlink .4s infinite}
+@keyframes wbPop{0%{transform:scale(1)}40%{transform:scale(1.35)}100%{transform:scale(1)}}
+@keyframes wbBlink{50%{opacity:.35}}
+.wj-hud .wb-en{color:var(--lime)}
+.wb-banner{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%) scale(.6);opacity:0;pointer-events:none;z-index:4;display:flex;align-items:center;gap:12px;
+  background:rgba(10,10,20,.92);border:3px solid var(--c);border-radius:20px;padding:12px 20px;box-shadow:0 0 30px var(--c);white-space:nowrap;transition:transform .18s,opacity .18s}
+.wb-banner.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.wb-banner .ic{font-size:40px}.wb-banner b{display:block;font-family:'Syne',sans-serif;font-size:22px;color:var(--c)}.wb-banner small{display:block;font-size:13px;color:#fff;opacity:.85;margin-top:2px}
+.wb-msg{margin:10px 0 2px;padding:10px 12px;border-radius:14px;background:#123a37;border:1.5px solid var(--mint);color:var(--mint);font-weight:800;font-size:15px}
+.wb-msg small{display:block;font-weight:400;font-size:12px;color:#fff;opacity:.85;margin-top:2px}
+.wb-msg.pop{animation:wbPop2 .4s ease-out}
+@keyframes wbPop2{0%{transform:scale(1)}40%{transform:scale(1.05)}100%{transform:scale(1)}}
+.wb-item.got{border-color:var(--mint);background:#123a37}
+.wb-item.pop{animation:wbPop2 .4s ease-out}
+.wb-own{display:inline-block;margin-left:8px;background:var(--mint);color:#06201e;border-radius:8px;padding:1px 7px;font-size:11px;vertical-align:1px}
+.wb-gear{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:10px 0 0;padding:8px 10px;border-radius:12px;background:var(--panel);font-size:13px}
+.wb-gear b{color:var(--amber);margin-right:4px}.wb-gear span{background:#06070f;border-radius:10px;padding:2px 8px;font-weight:700}.wb-gear .none{color:var(--muted);background:none}
+.wb-bomb i{position:absolute;left:50%;bottom:-18px;transform:translateX(-50%);font-style:normal;font-size:10px;font-weight:700;color:var(--coral);white-space:nowrap}
+.wb-bomb{animation:wbBomb 1.4s ease-in-out infinite}
+@keyframes wbBomb{50%{box-shadow:0 0 30px rgba(255,107,87,.9)}}
+.wb-bomb{position:absolute;right:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);z-index:3;border:2px solid var(--coral);background:rgba(58,28,24,.9);color:#fff;border-radius:50%;width:62px;height:62px;font-size:26px;box-shadow:0 0 18px rgba(255,107,87,.5)}
+.wb-bomb b{position:absolute;top:-4px;right:-4px;background:var(--coral);border-radius:10px;font-size:12px;padding:1px 6px;font-family:'Syne',sans-serif}
+.wb-st{border-color:var(--amber);padding-bottom:16px}
+.wb-st-top{display:flex;gap:8px;align-items:center;font-weight:700;color:var(--amber)}
+.wb-st-top span:first-child{margin-right:auto}
+.wb-st-sec,.wb-st-en{font-family:'Syne',sans-serif;font-weight:800;background:var(--panel);border-radius:12px;padding:3px 10px;color:#fff}
+.wb-st-sec.low{color:var(--coral)} .wb-st-en{color:var(--lime)}
+.wb-st .opt{padding:11px 12px;font-size:15px}
+.wb-shop{display:flex;flex-direction:column;gap:8px;margin:12px 0 4px}
+.wb-item{display:flex;align-items:center;gap:10px;border:1.5px solid var(--amber);background:var(--panel);border-radius:14px;padding:11px 12px;text-align:left;color:var(--ink)}
+.wb-item .ic{font-size:24px}.wb-item .nm{flex:1;font-weight:700;font-size:14px}.wb-item .co{font-family:'Syne',sans-serif;font-weight:800;color:var(--lime)}
+.wb-item:disabled{opacity:.4;border-color:var(--line)}
+.wj-ctl{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.wj-ctl button{border:1.5px solid var(--line);background:var(--panel);border-radius:14px;padding:10px 6px;font-weight:700;font-size:15px}
+.wj-ctl button small{display:block;font-size:11px;font-weight:400;color:var(--muted);margin-top:2px}
+.wj-ctl button.on{border-color:var(--lime);background:#26331a;color:var(--lime)}
+
+/* ── TH10 主頁 ── */
+body{display:block;height:auto;min-height:100dvh;overflow-x:hidden}
+.th-wrap{max-width:560px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 22px) 16px calc(env(safe-area-inset-bottom,0px) + 30px)}
+.th-head{display:block!important;position:static!important;background:none!important;border:0!important;padding:0!important;margin-bottom:18px}
+.th-kick{font-family:'Syne',sans-serif;font-weight:700;font-size:12px;letter-spacing:1.5px;color:var(--mint);text-transform:uppercase}
+.th-head h1{font-family:'Syne',sans-serif;font-weight:800;font-size:34px;color:var(--lime);line-height:1.1;margin:6px 0 8px}
+.th-head h1 span{display:block;font-family:'Noto Sans TC',sans-serif;font-size:16px;font-weight:700;color:var(--ink);margin-top:4px}
+.th-head p{font-size:14px;color:var(--muted);line-height:1.6}
+.th-sec{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:14px;margin-bottom:14px}
+.th-sec h3{font-size:15px;margin-bottom:10px}.th-sec h3 small{font-family:'Syne',sans-serif;font-size:11px;color:var(--muted);font-weight:600;margin-left:6px}
+.th-ava{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.th-ava button{border:2px solid var(--line);background:var(--card);border-radius:14px;font-size:26px;padding:6px 0}
+.th-ava button.on{border-color:var(--lime);background:#26331a}
+.th-games{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.th-game{border:2px solid var(--lime);background:var(--card);border-radius:18px;padding:16px 10px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center}
+.th-game:active{transform:scale(.97)}
+.th-game .ic{font-size:40px}.th-game b{font-family:'Syne',sans-serif;font-size:18px;color:var(--lime)}
+.th-game small{font-size:12px;color:var(--muted);line-height:1.4}.th-game em{font-style:normal;font-size:12px;font-weight:700;color:var(--amber);min-height:16px}
+.th-list{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.th-w{border:1px solid var(--line);background:var(--card);border-radius:12px;padding:8px 10px;text-align:left;display:flex;flex-direction:column;gap:1px}
+.th-w b{font-family:'Syne',sans-serif;font-size:13px}.th-w i{font-size:11px;color:var(--amber);font-style:normal}.th-w span{font-size:12px;color:var(--muted)}
+.th-gram{display:flex;flex-direction:column;gap:8px}
+.th-gram div{background:var(--card);border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.6}
+.th-gram b{display:block;color:var(--mint);margin-bottom:2px}.th-gram u{color:var(--lime);text-decoration:none;font-weight:700}
+.th-foot{text-align:center;font-size:11px;color:var(--muted);opacity:.6;margin-top:8px}
+/* 遊戲內：拼字題的片語提示、補給站文法題；不顯示積分星星 */
+.th-phr{font-family:'Syne',sans-serif;font-weight:700;font-size:17px;color:#fff}
+.th-phr u{text-decoration:none;color:var(--lime);letter-spacing:1px}.th-phr i{font-family:'Noto Sans TC',sans-serif;font-size:12px;color:var(--amber);font-style:normal}
+.th-gq{font-family:'Syne',sans-serif;font-weight:700;font-size:16px;line-height:1.5;text-align:left;margin-top:6px}
+.th-gq u{text-decoration:none;border-bottom:2px solid var(--lime)}
+.wb-tag{display:inline-block;font-size:11px;font-weight:700;color:#10140a;background:var(--mint);border-radius:8px;padding:2px 8px}
+.wb-st .opt.en{font-size:14px}
+#wjP,#wbP{display:none!important}
+</style>
+</head>
+<body>
+<div class="th-wrap">
+  <header class="th-head">
+    <div class="th-kick">DC5 · Tree House 10 · Unit 4</div>
+    <h1>Word Games <span>單字遊戲</span></h1>
+    <p>選一個頭像，挑一個遊戲開始！拼錯或答錯也沒關係，多玩幾次就記住了。</p>
+  </header>
+
+  <section class="th-sec">
+    <h3>1. 選你的頭像 <small>Pick your avatar</small></h3>
+    <div class="th-ava" id="ava"></div>
+  </section>
+
+  <section class="th-sec">
+    <h3>2. 選遊戲 <small>Choose a game</small></h3>
+    <div class="th-games">
+      <button class="th-game" data-go="jump"><span class="ic">🚀</span><b>Word Jump</b><small>一直往上跳，掉下去要拼字</small><em id="bestJump"></em></button>
+      <button class="th-game" data-go="blaster"><span class="ic">👾</span><b>Word Blaster</b><small>太空射擊，補給站考單字和文法</small><em id="bestBlaster"></em></button>
+    </div>
+  </section>
+
+  <section class="th-sec">
+    <h3>3. 先複習一下 <small>Word list · 點一下聽發音</small></h3>
+    <div class="th-list" id="list"></div>
+  </section>
+
+  <section class="th-sec">
+    <h3>文法重點 <small>Grammar</small></h3>
+    <div class="th-gram">
+      <div><b>1. Indirect Speech 間接引語</b>“I'm hurrying,” Becky said. → Becky said (that) she <u>was</u> hurrying.<br>“Can you help me?” he asked. → He asked <u>if / whether</u> I could help him.</div>
+      <div><b>2. take place / last for</b>take place＝什麼時候發生；last for＝持續多久<br>The game will <u>take place</u> on Monday. Dinner <u>lasts for</u> two hours.</div>
+      <div><b>3. could / might / must be</b>could／might＋if＝可能會；must be＝一定是（最好的猜測）<br>The police officer <u>must be</u> going to the traffic accident.</div>
+      <div><b>4. Phrasal Verbs</b>fall asleep 睡著・fall apart 散掉・fall open 打開掉出・fall over 倒下・fall out 掉出來<br>pick at 小口吃／一直摳・pick up 去接人・pick on 欺負・pick off 摘下・pick out 挑選</div>
+    </div>
+  </section>
+  <p class="th-foot">Jeffrey Lab · 分數只存在這支手機</p>
+</div>
+<div class="toast" id="toast"></div>
+
+<div id="v-quiz" class="active" hidden></div>
+<script>
+// ═══════════════════════════════════════════════════════
+//  DC5／TH10 Unit 4 單字遊戲：主頁＋遊戲需要的共用函式
+//  遊戲檔（games/jump.js、games/blaster.js）原本依賴 THP11 主程式的全域變數，這裡提供精簡版：
+//  不計積分、不用解鎖；個人最高分存在這支手機（localStorage）
+// ═══════════════════════════════════════════════════════
+// 單字：word＝整個片語（顯示、發音）；key＝掉下去／被打中時要拼的關鍵字；pos＝動詞變化提示
+const WORDS = [
+  ['board a ship', 'board', '登船；上船'],
+  ['ride a motorcycle', 'motorcycle', '騎摩托車', 'rode, ridden'],
+  ['take the subway', 'subway', '搭地鐵', 'took, taken'],
+  ['take a taxi', 'taxi', '搭計程車', 'took, taken'],
+  ['have a traffic accident', 'accident', '發生車禍', 'had'],
+  ['take the bullet train', 'bullet', '搭高鐵（子彈列車）', 'took, taken'],
+  ['increase speed', 'increase', '加速'],
+  ['decrease speed', 'decrease', '減速'],
+  ['make a bet', 'bet', '打賭', 'made'],
+  ['commit a crime', 'crime', '犯罪'],
+  ['airline passengers', 'passengers', '飛機乘客'],
+  ['a bank clerk', 'clerk', '銀行行員'],
+  ['ladies and gentlemen', 'gentlemen', '各位女士先生'],
+  ['a private detective', 'detective', '私家偵探'],
+  ['a successful businessman', 'successful', '成功的商人'],
+  ['a responsible servant', 'responsible', '負責任的僕人'],
+  ['a mysterious stranger', 'mysterious', '神秘的陌生人'],
+  ['a busy harbor', 'harbor', '繁忙的港口'],
+  ['a cruise ship dock', 'cruise', '郵輪碼頭'],
+  ['an international airport', 'international', '國際機場'],
+  ['a railway platform', 'platform', '火車月台'],
+  ['an army helicopter', 'helicopter', '軍用直升機'],
+  ['a strict law', 'strict', '嚴格的法律'],
+  ['as soon as possible', 'possible', '盡快'],
+].map(([word, key, zh, pos], i) => ({ id: 'T4-' + (i + 1), word, key, zh, pos: pos || '', unit: 'U4' }));
+
+// 文法題：o[0] 是正確答案；t＝題型標籤；tip＝答錯時的小提示
+const GRAMMAR = [
+  // 1. Indirect Speech
+  { t: 'Indirect Speech', q: '“I’ll take the bus,” Tim said. → Tim said that he ___ take the bus.', o: ['would', 'will', 'is', 'does'], tip: 'will 變 would（時態往前一格）' },
+  { t: 'Indirect Speech', q: '“I’m hurrying,” Becky said. → Becky said that she ___ hurrying.', o: ['was', 'is', 'am', 'were'], tip: 'am 變 was' },
+  { t: 'Indirect Speech', q: '“Where is Pam?” Susie asked. → Susie asked where Pam ___.', o: ['was', 'is', 'did', 'were'], tip: '問句變直述句：where + 主詞 + 動詞，is 變 was' },
+  { t: 'Indirect Speech', q: '“Can you help me?” he asked. → He asked ___ I could help him.', o: ['if', 'that', 'what', 'do'], tip: 'Yes/No 問句用 if 或 whether' },
+  { t: 'Indirect Speech', q: '“The police are coming,” the servant said. → The servant said that the police ___ coming.', o: ['were', 'are', 'is', 'be'], tip: 'are 變 were' },
+  { t: 'Indirect Speech', q: '“You can walk,” Mom told Becky. → Mom told Becky that she ___ walk.', o: ['could', 'can', 'will', 'must'], tip: 'can 變 could' },
+  { t: 'Indirect Speech', q: '“Is this the bullet train?” the old man asked. → The old man asked ___ that was the bullet train.', o: ['whether', 'what', 'where', 'who'], tip: 'Yes/No 問句用 whether 或 if' },
+  { t: 'Indirect Speech', q: '“I don’t know the stranger,” Wally said. → Wally said that he ___ know the stranger.', o: ['didn’t', 'doesn’t', 'don’t', 'isn’t'], tip: 'don’t 變 didn’t' },
+  { t: 'Indirect Speech', q: '“What can we do?” we asked. → We asked what we ___ do.', o: ['could', 'can', 'did', 'are'], tip: 'can 變 could，而且不用問號' },
+  { t: 'Indirect Speech', q: 'Which sentence is correct?', o: ['Susie asked where Pam was.', 'Susie asked where was Pam?', 'Susie asked where is Pam.', 'Susie asked was Pam where.'], tip: '間接問句：where + 主詞 + 動詞，沒有問號' },
+  { t: 'Indirect Speech', q: '“Are you OK?” Mom asked. → Mom asked ___ I was OK.', o: ['if', 'that', 'what', 'are'], tip: 'Yes/No 問句用 if' },
+  { t: 'Indirect Speech', q: 'A: What did you just say?  B: I said I ___ hungry. (I’m still hungry now.)', o: ['am', 'be', 'were', 'being'], tip: '現在還是真的，時態可以不用變（am 或 was 都可以）' },
+  // 2. take place / last for
+  { t: 'take place / last for', q: 'The baseball game will ___ on Monday.', o: ['take place', 'last for', 'take a taxi', 'fall over'], tip: 'take place＝在什麼時候發生' },
+  { t: 'take place / last for', q: 'Dinner on the cruise ship ___ two hours.', o: ['lasts for', 'takes place', 'falls apart', 'picks up'], tip: 'last for＋多久' },
+  { t: 'take place / last for', q: 'When did the accident ___?', o: ['take place', 'last for', 'pick at', 'make a bet'], tip: '問「什麼時候發生」用 take place' },
+  { t: 'take place / last for', q: 'Who knows how long the trip will ___?', o: ['last', 'take place', 'fall out', 'board'], tip: '問「多久」用 last' },
+  { t: 'take place / last for', q: 'The movie ___ three hours. I almost fell asleep!', o: ['lasted for', 'took place', 'picked on', 'fell open'], tip: '三個小時＝多久 → last for' },
+  { t: 'take place / last for', q: 'The school party will ___ in the gym on Friday.', o: ['take place', 'last for', 'pick off', 'decrease'], tip: '什麼時候、在哪裡發生 → take place' },
+  // 3. could / might / must be
+  { t: 'could / might / must be', q: 'Tim and his family ___ board the cruise ship if they wanted to.', o: ['could', 'must be', 'are', 'was'], tip: 'could ＋ if they wanted to＝可以（有可能）' },
+  { t: 'could / might / must be', q: 'The magician ___ do a magic trick if he feels like it.', o: ['might', 'must be', 'was', 'is'], tip: 'might ＋ if he feels like it＝可能會' },
+  { t: 'could / might / must be', q: 'The police officer riding a motorcycle ___ going to the traffic accident.', o: ['must be', 'could', 'might do', 'is to'], tip: 'must be＝最好的猜測：一定是' },
+  { t: 'could / might / must be', q: 'He has a magnifying glass and a funny hat. He ___ a private detective!', o: ['must be', 'could', 'might', 'was be'], tip: '看到線索做猜測 → must be' },
+  { t: 'could / might / must be', q: 'We ___ take the subway if we wanted to.', o: ['could', 'must be', 'are', 'did'], tip: 'could ＋ if we wanted to' },
+  { t: 'could / might / must be', q: 'That woman is counting a lot of money at the bank. She ___ a bank clerk.', o: ['must be', 'might do', 'could', 'is be'], tip: '猜身分 → must be' },
+  // 4. Phrasal verbs
+  { t: 'Phrasal Verbs', q: 'I was so tired that I ___ on the sofa.', o: ['fell asleep', 'fell apart', 'fell over', 'picked on'], tip: 'fall asleep＝睡著' },
+  { t: 'Phrasal Verbs', q: 'The old wooden toy ___ when I dropped it.', o: ['fell apart', 'fell asleep', 'picked up', 'fell open'], tip: 'fall apart＝散掉、解體' },
+  { t: 'Phrasal Verbs', q: 'My bag ___ and all my books dropped out.', o: ['fell open', 'fell asleep', 'picked at', 'took place'], tip: 'fall open＝（袋子、箱子）打開' },
+  { t: 'Phrasal Verbs', q: 'The paint cans ___ and the paint went everywhere.', o: ['fell over', 'fell asleep', 'picked out', 'lasted for'], tip: 'fall over＝倒下、翻倒' },
+  { t: 'Phrasal Verbs', q: 'My little brother’s tooth ___ today!', o: ['fell out', 'fell over', 'picked off', 'fell asleep'], tip: 'fall out＝掉出來' },
+  { t: 'Phrasal Verbs', q: 'Dad will ___ me ___ at school at five o’clock.', o: ['pick … up', 'pick … on', 'pick … at', 'fall … out'], tip: 'pick up＝開車去接人' },
+  { t: 'Phrasal Verbs', q: 'He wasn’t hungry, so he just ___ his food.', o: ['picked at', 'picked up', 'fell over', 'picked out'], tip: 'pick at＝不餓，小口小口慢慢吃' },
+  { t: 'Phrasal Verbs', q: 'Don’t ___ your little sister! It isn’t nice.', o: ['pick on', 'pick up', 'pick out', 'fall asleep'], tip: 'pick on＝欺負、找麻煩' },
+  { t: 'Phrasal Verbs', q: 'Grandma ___ some apples ___ the tree.', o: ['picked … off', 'picked … on', 'fell … asleep', 'picked … at'], tip: 'pick off＝摘下' },
+  { t: 'Phrasal Verbs', q: 'You can ___ one toy from the box.', o: ['pick out', 'pick on', 'fall out', 'fall apart'], tip: 'pick out＝挑選' },
+  // 動詞變化
+  { t: 'Verb Forms', q: 'Yesterday we ___ a taxi to the airport.', o: ['took', 'taked', 'taken', 'take'], tip: 'take → took → taken' },
+  { t: 'Verb Forms', q: 'Have you ever ___ a motorcycle?', o: ['ridden', 'rode', 'ride', 'rided'], tip: 'ride → rode → ridden' },
+  { t: 'Verb Forms', q: 'He ___ a traffic accident last week, but he is OK.', o: ['had', 'has', 'haved', 'having'], tip: 'have → had → had' },
+  { t: 'Verb Forms', q: 'My friend and I ___ a bet yesterday.', o: ['made', 'maked', 'make', 'making'], tip: 'make → made → made' },
+  { t: 'Verb Forms', q: 'I have never ___ the bullet train.', o: ['taken', 'took', 'take', 'taked'], tip: 'have ＋ 過去分詞 taken' },
+];
+
+// ── 遊戲需要的共用函式（THP11 主程式的精簡版） ──
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const norm = (s) => s.toLowerCase().replace(/[’‘]/g, "'").replace(/\s+/g, ' ').trim();
+const answersOf = (w) => [norm(w.key)];
+const meaning = (w) => w.zh;
+const EN = () => false;
+const L = (zh) => zh;
+const distract = (w, n = 3) => shuffle(st.words.filter((x) => x.id !== w.id)).slice(0, n);
+// 拼字題的提示：把片語裡的關鍵字挖空
+const phraseBlank = (w) => esc(w.word).replace(new RegExp('\\b' + w.key + '\\b'), '<u>' + '_'.repeat(Math.max(4, w.key.length)) + '</u>') + (w.pos ? ` <i>(${esc(w.pos)})</i>` : '');
+const LS = {
+  get(k, d) { try { const v = localStorage.getItem('th10-' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem('th10-' + k, JSON.stringify(v)); } catch (e) { /* 私密模式：不存也能玩 */ } },
+};
+const st = {
+  words: WORDS,
+  set: LS.get('set', {}),
+  meta: { games: LS.get('games', {}) },
+  profile: { avatar: LS.get('avatar', '🦊') },
+  ledger: { days: {}, bonus: [] },
+};
+const saveSet = () => LS.set('set', st.set);
+const saveMeta = () => { LS.set('games', st.meta.games); renderBest(); };
+const saveLedger = () => {};
+const todayKey = () => new Date().toISOString().slice(0, 10);
+const clockCheck = () => {};
+const points = () => ({ total: 0 });
+const afterPoints = () => {};
+const gameWeekBestAll = () => 0;
+const gameWeekBest = () => 0;
+const masteredCount = () => 9;
+const gameCard = () => '';
+const GAMES = [];
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 2200); }
+function confetti(n = 60) {
+  const cols = ['#CCFF00', '#4ECDC4', '#ffb547', '#ff6b57', '#ffffff'];
+  for (let i = 0; i < n; i++) {
+    const d = document.createElement('div'); d.className = 'confetti';
+    d.style.left = Math.random() * 100 + 'vw'; d.style.background = cols[i % cols.length];
+    d.style.animationDuration = (1.4 + Math.random() * 1.4) + 's'; d.style.animationDelay = Math.random() * .3 + 's';
+    document.body.appendChild(d); setTimeout(() => d.remove(), 3200);
+  }
+}
+const coach = () => {};
+// 發音：用手機內建的英文語音（不需要網路金鑰）
+let voice = null;
+function pickVoice() {
+  const vs = speechSynthesis.getVoices().filter((v) => /^en/i.test(v.lang));
+  voice = vs.find((v) => /en-US/i.test(v.lang) && /Samantha|Google|Aria|Jenny/i.test(v.name)) || vs.find((v) => /en-US/i.test(v.lang)) || vs[0] || null;
+}
+if ('speechSynthesis' in window) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+function speak(text, btn, slow) {
+  if (!text || !('speechSynthesis' in window)) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text.replace(/[()]/g, ''));
+  u.lang = 'en-US'; if (voice) u.voice = voice; u.rate = slow ? 0.6 : 0.9;
+  speechSynthesis.speak(u);
+}
+const speakQuick = speak;
+// iPhone 要在第一次點擊時「解鎖」語音，之後掉下去時才念得出來
+let audioOk = false;
+function unlockAudio() {
+  if (audioOk || !('speechSynthesis' in window)) return; audioOk = true;
+  try { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); } catch (e) { /* 不支援就算了 */ }
+}
+
+// ── 主頁 ──
+const AVAS = ['🦊', '🐼', '🐯', '🐸', '🐵', '🐧', '🦄', '🐙', '🐲', '🐱', '🐶', '🐰'];
+function renderAva() {
+  $('ava').innerHTML = AVAS.map((a) => `<button class="${a === st.profile.avatar ? 'on' : ''}" data-ava="${a}">${a}</button>`).join('');
+}
+function renderBest() {
+  const g = st.meta.games || {};
+  $('bestJump').textContent = g.jump && g.jump.bestM ? `🏆 最高 ${g.jump.bestM} m` : '';
+  $('bestBlaster').textContent = g.blaster && g.blaster.best ? `🏆 最高 ${g.blaster.best} 分` : '';
+}
+function renderList() {
+  $('list').innerHTML = WORDS.map((w) => `<button class="th-w" data-say="${esc(w.word)}"><b>${esc(w.word)}</b>${w.pos ? `<i>${esc(w.pos)}</i>` : ''}<span>${esc(w.zh)}</span></button>`).join('');
+}
+document.addEventListener('click', (e) => {
+  const t = e.target.closest('[data-say],[data-ava],[data-go]'); if (!t) return;
+  if (t.dataset.say) { e.stopPropagation(); return speak(t.dataset.say, t, t.dataset.slow === '1'); }
+  if (t.dataset.ava) { st.profile.avatar = t.dataset.ava; LS.set('avatar', t.dataset.ava); renderAva(); }
+  if (t.dataset.go === 'jump') WJ.open();
+  if (t.dataset.go === 'blaster') WB.open();
+});
+// 遊戲關掉時回到主頁要更新最高分
+const renderQuiz = () => renderBest();
+renderAva(); renderList(); renderBest();
+
+</script>
+<script src="games/jump.js?v=1"></script>
+<script src="games/blaster.js?v=1"></script>
+</body>
+</html>
