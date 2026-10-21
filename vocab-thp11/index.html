@@ -392,6 +392,15 @@ nav button.on{color:var(--lime);font-weight:700}
 .wb-gear b{color:var(--amber);margin-right:4px}.wb-gear span{background:#06070f;border-radius:10px;padding:2px 8px;font-weight:700}.wb-gear .none{color:var(--muted);background:none}
 .wb-bomb i{position:absolute;left:50%;bottom:-18px;transform:translateX(-50%);font-style:normal;font-size:10px;font-weight:700;color:var(--coral);white-space:nowrap}
 .wb-bomb{animation:wbBomb 1.4s ease-in-out infinite}
+/* Word Run：單字門題目固定在畫面上方，三格對齊三條跑道 */
+.wr .wj-hud .wr-coin{color:#ffd23f}
+.wr-gate{position:absolute;left:8px;right:8px;top:calc(env(safe-area-inset-top,0px) + 56px);z-index:3;pointer-events:none;text-align:center}
+.wr-q{display:inline-flex;align-items:center;gap:8px;background:rgba(10,20,12,.88);border:2px solid var(--lime);border-radius:16px;padding:6px 10px 6px 14px;font-size:15px;color:var(--lime)}
+.wr-q b{font-family:'Syne',sans-serif;font-size:24px;color:#fff}
+.wr-q .spk{pointer-events:auto}
+.wr-opts{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.wr-opts div{background:rgba(10,20,12,.85);border:2px solid var(--mint);border-radius:12px;padding:8px 4px;font-size:14px;font-weight:700;color:#fff;line-height:1.3;min-height:44px;display:flex;align-items:center;justify-content:center}
+.wr-opts div.on{border-color:var(--lime);background:rgba(204,255,0,.18);box-shadow:0 0 12px rgba(204,255,0,.5)}
 @keyframes wbBomb{50%{box-shadow:0 0 30px rgba(255,107,87,.9)}}
 .wb-bomb{position:absolute;right:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);z-index:3;border:2px solid var(--coral);background:rgba(58,28,24,.9);color:#fff;border-radius:50%;width:62px;height:62px;font-size:26px;box-shadow:0 0 18px rgba(255,107,87,.5)}
 .wb-bomb b{position:absolute;top:-4px;right:-4px;background:var(--coral);border-radius:10px;font-size:12px;padding:1px 6px;font-family:'Syne',sans-serif}
@@ -511,7 +520,7 @@ nav button.on{color:var(--lime);font-weight:700}
         </div>
       </div>
     </div>
-    <p class="hint">Jeffrey's Lab · THP11 Word Quest v3.6</p>
+    <p class="hint">Jeffrey's Lab · THP11 Word Quest v3.7</p>
   </section>
 </main>
 
@@ -2173,5 +2182,6 @@ document.addEventListener('keydown', (e) => {
 </script>
 <script src="games/jump.js?v=1.5"></script>
 <script src="games/blaster.js?v=1.5"></script>
+<script src="games/run.js?v=1.0"></script>
 </body>
 </html>
