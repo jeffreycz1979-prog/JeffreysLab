@@ -16,7 +16,12 @@ const WJ = (() => {
   const PW = 66, PH = 12;
 
   let cv, cx, root, S = 1, VH = 640;   // S＝縮放；VH＝邏輯高度
-  let game = null, raf = 0, keys = { l: false, r: false }, ptrs = new Map();
+  let game = null, raf = 0, keys = { l: false, r: false };
+  // 操作方式：tilt＝搖晃手機（陀螺儀）、touch＝手指跟隨；鍵盤方向鍵一律可用
+  let fingerX = null, tiltG = null, tiltSeen = 0;
+  const isTouch = () => matchMedia('(pointer: coarse)').matches;
+  const ctl = () => st.set.jumpCtl || (isTouch() && 'DeviceOrientationEvent' in window ? 'tilt' : 'touch');
+  addEventListener('deviceorientation', (e) => { if (e.gamma != null) { tiltG = e.gamma; tiltSeen = Date.now(); } });
 
   // ── 解鎖與題庫 ──
   const masteredUnits = () => [...new Set(st.ledger.bonus.filter((b) => b.k.startsWith('master:')).map((b) => b.k.slice(7)))];
@@ -51,7 +56,7 @@ const WJ = (() => {
     cv = root.querySelector('canvas'); cx = cv.getContext('2d');
     root.addEventListener('click', onClick);
     cv.addEventListener('pointerdown', onPtr); cv.addEventListener('pointermove', onPtr);
-    ['pointerup', 'pointercancel', 'pointerleave'].forEach((e) => cv.addEventListener(e, (ev) => { ptrs.delete(ev.pointerId); syncDir(); }));
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach((e) => cv.addEventListener(e, () => { fingerX = null; }));
     addEventListener('resize', resize);
     addEventListener('keydown', onKey); addEventListener('keyup', onKey);
   }
@@ -61,12 +66,12 @@ const WJ = (() => {
     cv.width = w * dpr; cv.height = h * dpr; cv.style.width = w + 'px'; cv.style.height = h + 'px';
     S = (w * dpr) / LW; VH = (h * dpr) / S;
   }
-  function onPtr(e) {
+  function onPtr(e) {   // 手指跟隨：手指在哪，角色就往哪（只有手指按著時）
     if (!game || game.spell || game.over) return;
-    if (e.type === 'pointermove' && !ptrs.has(e.pointerId)) return;
-    ptrs.set(e.pointerId, e.clientX < root.clientWidth / 2 ? 'l' : 'r'); syncDir();
+    if (e.type === 'pointermove' && fingerX == null && e.pointerType !== 'mouse') return;
+    if (e.type === 'pointermove' && e.pointerType === 'mouse' && !e.buttons) return;
+    fingerX = (e.clientX / root.clientWidth) * LW;
   }
-  function syncDir() { const v = [...ptrs.values()]; keys.l = v.includes('l'); keys.r = v.includes('r'); }
   function onKey(e) {
     if (!game || game.over || game.spell) return;
     const d = e.type === 'keydown';
@@ -84,7 +89,11 @@ const WJ = (() => {
     pane(`<div class="wj-card">
       <div style="font-size:52px">${esc(st.profile.avatar)}</div>
       <h2>Word Jump 🚀</h2>
-      <p>${L('點住<b>左半邊</b>往左、<b>右半邊</b>往右，一直往上跳！', 'Hold the <b>left</b> or <b>right</b> side to move. Jump as high as you can!')}</p>
+      <p>${L('一直往上跳，看你能跳多高！', 'Jump as high as you can!')}</p>
+      <div class="wj-ctl">
+        <button class="${ctl() === 'tilt' ? 'on' : ''}" data-wj="ctl" data-c="tilt">📱 ${L('搖晃手機', 'Tilt')}<small>${L('左右傾斜手機', 'Tilt your phone')}</small></button>
+        <button class="${ctl() === 'touch' ? 'on' : ''}" data-wj="ctl" data-c="touch">👆 ${L('手指跟隨', 'Finger')}<small>${L('按住螢幕，角色跟著手指', 'Hold and slide')}</small></button>
+      </div>
       <div class="wj-rules">
         <div>⏱ ${L('3 分鐘，時間到就結束', '3 minutes')}</div>
         <div>✏️ ${L('掉下去要拼對一個單字才能繼續（時間不會停）', 'Fall = spell a word to continue (the clock keeps running)')}</div>
@@ -105,7 +114,19 @@ const WJ = (() => {
   const pane = (html) => { const p = root.querySelector('#wjPane'); p.innerHTML = html; p.style.display = html ? '' : 'none'; };
 
   // ── 遊戲 ──
+  async function begin() {   // iPhone 的陀螺儀要在按鈕裡請求權限
+    if (ctl() === 'tilt' && typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+      try {
+        if ((await DeviceOrientationEvent.requestPermission()) !== 'granted') throw 0;
+      } catch (e) { st.set.jumpCtl = 'touch'; saveSet(); toast(L('沒有開啟動作感應，改用手指跟隨', 'Motion not allowed — using finger mode')); }
+    }
+    start();
+    if (ctl() === 'tilt') setTimeout(() => {   // 1.5 秒內沒收到陀螺儀資料 → 改用手指
+      if (game && Date.now() - tiltSeen > 1500) { st.set.jumpCtl = 'touch'; saveSet(); toast(L('這支手機不支援搖晃，改用手指跟隨', 'Tilt not supported — using finger mode')); }
+    }, 1500);
+  }
   function start() {
+    fingerX = null; keys.l = keys.r = false;
     const y0 = 0;
     game = {
       t0: Date.now(), p: { x: LW / 2, y: y0 - 40, vx: 0, vy: JUMP }, cam: y0 - VH * 0.7, top: y0,
@@ -119,18 +140,28 @@ const WJ = (() => {
     loop();
   }
   const height = () => Math.max(0, Math.round(-game.p.y / 10));
-  // 越高越難：間距變大（最大 165，跳躍極限約 174）、平台變小
+  // 越高越難：間距變大（主路最大 150，跳躍極限約 174）、平台變小
   const diff = (h) => Math.min(1, h / 1000);
-  function gapAt(h) { const k = diff(h); return [50 + 55 * k, 85 + 80 * k]; }
+  function gapAt(h) { const k = diff(h); return [50 + 45 * k, 85 + 65 * k]; }
   const widthAt = (h) => Math.round(66 - 22 * diff(h));
   function fill() {
     while (game.nextY > game.cam - 200) {
       const h = -game.nextY / 10, [a, b] = gapAt(h);
-      game.nextY -= a + Math.random() * (b - a);
-      const r = Math.random(), mv = Math.min(0.45, h / 700), br = h > 150 ? Math.min(0.25, (h - 150) / 1200) : 0;
-      const t = r < 0.05 ? 's' : r < 0.05 + mv ? 'm' : r < 0.05 + mv + br ? 'b' : 'n';
-      const w = widthAt(h);
-      game.plats.push({ x: Math.random() * (LW - w), y: game.nextY, t, w, vx: t === 'm' ? (Math.random() < 0.5 ? -1 : 1) * (1.2 + Math.min(2.3, h / 500)) : 0 });
+      const prevY = game.nextY;
+      const gap = a + Math.random() * (b - a);
+      game.nextY -= gap;
+      // 主路：一般／移動／彈簧，保證一定有一條路跳得上去
+      const r = Math.random(), mv = Math.min(0.4, h / 800);
+      const t = r < 0.05 ? 's' : r < 0.05 + mv ? 'm' : 'n';
+      const w = widthAt(h), x = Math.random() * (LW - w);
+      game.plats.push({ x, y: game.nextY, t, w, vx: t === 'm' ? (Math.random() < 0.5 ? -1 : 1) * (1.2 + Math.min(2, h / 550)) : 0 });
+      const other = () => { let ox; do { ox = Math.random() * (LW - w); } while (Math.abs(ox - x) < w + 20); return ox; };
+      // 會碎的平台：放在兩塊主路平台中間當陷阱或捷徑，不會擋住唯一的路
+      if (h > 150 && Math.random() < Math.min(0.35, (h - 150) / 900))
+        game.plats.push({ x: other(), y: prevY - gap * (0.4 + Math.random() * 0.2), t: 'b', w, vx: 0 });
+      // 第二條路：越高越常出現，同一高度附近多一塊一般平台可以選
+      if (Math.random() < 0.15 + 0.35 * diff(h))
+        game.plats.push({ x: other(), y: game.nextY + (Math.random() * 30 - 15), t: 'n', w, vx: 0 });
     }
     game.plats = game.plats.filter((p) => p.y < game.cam + VH + 60 && !p.gone);
   }
@@ -146,7 +177,16 @@ const WJ = (() => {
   function step(dt) {
     const p = game.p;
     const want = (keys.r ? 1 : 0) - (keys.l ? 1 : 0);
-    p.vx = want ? p.vx + (want * RUN - p.vx) * Math.min(1, 0.35 * dt) : p.vx * Math.pow(0.82, dt);
+    let target = null;
+    if (want) target = want * RUN;
+    else if (ctl() === 'tilt' && tiltG != null && Date.now() - tiltSeen < 1000) {
+      const g = Math.abs(tiltG) < 2 ? 0 : tiltG;          // 2° 以內不動
+      target = Math.max(-1, Math.min(1, g / 20)) * RUN * 1.2;   // 傾斜 20° 就全速
+    } else if (fingerX != null) {
+      const dx = fingerX - p.x;
+      target = Math.abs(dx) < 4 ? 0 : Math.max(-RUN * 1.3, Math.min(RUN * 1.3, dx * 0.18));
+    }
+    p.vx = target != null ? p.vx + (target - p.vx) * Math.min(1, 0.35 * dt) : p.vx * Math.pow(0.82, dt);
     p.x += p.vx * dt;
     if (p.x < -14) p.x += LW + 28; if (p.x > LW + 14) p.x -= LW + 28;   // 左右穿越
     const py = p.y;
@@ -178,7 +218,7 @@ const WJ = (() => {
   // ── 掉下去 → 拼字 ──
   function fall() {
     game.falls++;
-    keys.l = keys.r = false; ptrs.clear();
+    keys.l = keys.r = false; fingerX = null;
     const pool = wordPool(), fresh = pool.filter((w) => !game.used.has(w.id));
     const w = shuffle(fresh.length ? fresh : pool)[0]; game.used.add(w.id);
     game.spell = { w, ans: answersOf(w)[0], shown: 1, tries: 0 };
@@ -296,11 +336,10 @@ const WJ = (() => {
         cx.fillText(f.t, LW / 2, VH * 0.3 - f.y); f.y += 0.8; f.a -= 0.015;
       });
       cx.globalAlpha = 1;
-      // 左右提示
+      // 操作提示（前 4 秒）
       if (!game.spell && !game.over && Date.now() - game.t0 < 4000) {
-        cx.fillStyle = 'rgba(255,255,255,.08)'; cx.fillRect(0, VH - 90, LW / 2 - 2, 90); cx.fillRect(LW / 2 + 2, VH - 90, LW / 2 - 2, 90);
-        cx.fillStyle = 'rgba(255,255,255,.6)'; cx.font = '700 22px sans-serif'; cx.textAlign = 'center';
-        cx.fillText('◀', LW / 4, VH - 38); cx.fillText('▶', LW * 3 / 4, VH - 38);
+        cx.fillStyle = 'rgba(255,255,255,.75)'; cx.font = '700 16px "Noto Sans TC", sans-serif'; cx.textAlign = 'center';
+        cx.fillText(ctl() === 'tilt' ? L('📱 左右傾斜手機', '📱 Tilt your phone') : L('👆 按住螢幕，角色跟著手指走', '👆 Hold and slide your finger'), LW / 2, VH - 40);
       }
     }
     cx.restore();
@@ -310,7 +349,8 @@ const WJ = (() => {
   function onClick(e) {
     const t = e.target.closest('[data-wj]'); if (!t) return;
     const a = t.dataset.wj;
-    if (a === 'start') { unlockAudio && unlockAudio(); start(); }
+    if (a === 'start') { unlockAudio && unlockAudio(); begin(); }
+    if (a === 'ctl') { st.set.jumpCtl = t.dataset.c; saveSet(); open(); }
     if (a === 'close') close();
     if (a === 'check') check();
     if (a === 'quit') {
@@ -319,6 +359,6 @@ const WJ = (() => {
     }
   }
   // 測試用
-  const _t = { get game() { return game; }, check, fall, end, toPts };
+  const _t = { get game() { return game; }, check, fall, end, toPts, fill, get fingerX() { return fingerX; } };
   return { card, open, close, _t };
 })();
