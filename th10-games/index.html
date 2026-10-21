@@ -612,26 +612,142 @@ function confetti(n = 60) {
   }
 }
 const coach = () => {};
-// 發音：用手機內建的英文語音（不需要網路金鑰）
-let voice = null;
-function pickVoice() {
-  const vs = speechSynthesis.getVoices().filter((v) => /^en/i.test(v.lang));
-  voice = vs.find((v) => /en-US/i.test(v.lang) && /Samantha|Google|Aria|Jenny/i.test(v.name)) || vs.find((v) => /en-US/i.test(v.lang)) || vs[0] || null;
+// 發音：跟 THP11 一樣走 API Gateway 的語音（比較自然、iPhone 也穩定）；失敗或離線時改用手機內建語音
+const GATEWAY_URL   = 'https://script.google.com/macros/s/AKfycbz0O6eB9fVC3Xp7g0Kt4U-32Inmf9ieDYJygEf3jW78xaWx10glPscEefEQwgB0jCioug/exec';
+const GATEWAY_TOKEN = 'MYVIEWBOARDgoogleAPI';
+const memCache = new Map();
+const db = { get: async (k) => memCache.get(k), set: async (k, v) => { memCache.set(k, v); } };   // 這頁只在記憶體快取語音
+const tts = { audio: new Audio(), inflight: {}, lastDiag: '', fails: 0 };
+const useFreeKey = (localStorage.getItem('newcore_tools_plan') !== 'pro');
+// 唸出時去掉括號、斜線只唸第一種：lend (someone) a hand → lend someone a hand
+const sayText = (w) => w.replace(/[()]/g, '').replace(/\s+\/\s+/g, ', ').replace(/(\S+)\/\S+/g, '$1').replace(/\s+/g, ' ').trim();
+function b64ToBytes(b64) { const bin = atob(b64.replace(/\s/g, '')); const u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u; }
+function pcmToWav(pcm, rate) {
+  const h = new ArrayBuffer(44), v = new DataView(h);
+  const ws = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  ws(0, 'RIFF'); v.setUint32(4, 36 + pcm.length, true); ws(8, 'WAVE'); ws(12, 'fmt ');
+  v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, rate, true); v.setUint32(28, rate * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+  ws(36, 'data'); v.setUint32(40, pcm.length, true);
+  return new Blob([h, pcm], { type: 'audio/wav' });
 }
-if ('speechSynthesis' in window) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
-function speak(text, btn, slow) {
-  if (!text || !('speechSynthesis' in window)) return;
+function findAudio(obj, depth = 0) {
+  if (!obj || depth > 6) return null;
+  if (typeof obj === 'string') {
+    if (/^https?:\/\//.test(obj)) return { url: obj };
+    const m = obj.match(/^data:([^;]+);base64,(.+)$/s);
+    return m ? { b64: m[2], mime: m[1] } : null;
+  }
+  if (typeof obj !== 'object') return null;
+  for (const k of ['audioContent', 'audio', 'audioBase64', 'base64', 'audioData']) {
+    if (typeof obj[k] === 'string' && obj[k].length > 100) {
+      const inner = findAudio(obj[k], depth + 1);
+      return inner || { b64: obj[k], mime: obj.mimeType || obj.mime || 'audio/mpeg' };
+    }
+  }
+  if (obj.inlineData && typeof obj.inlineData.data === 'string') return { b64: obj.inlineData.data, mime: obj.inlineData.mimeType || 'audio/L16;rate=24000' };
+  if (typeof obj.data === 'string' && obj.data.length > 100 && obj.mimeType) return { b64: obj.data, mime: obj.mimeType };
+  if (typeof obj.url === 'string' && /^https?:/.test(obj.url)) return { url: obj.url };
+  for (const k of Object.keys(obj)) { const r = findAudio(obj[k], depth + 1); if (r) return r; }
+  return null;
+}
+function describe(obj, depth = 0) {
+  if (typeof obj === 'string') return obj.length > 40 ? '"' + obj.slice(0, 30) + '…" (' + obj.length + ' 字)' : JSON.stringify(obj);
+  if (!obj || typeof obj !== 'object' || depth > 3) return JSON.stringify(obj);
+  return '{ ' + Object.keys(obj).map((k) => k + ': ' + describe(obj[k], depth + 1)).join(', ') + ' }';
+}
+async function fetchTTS(text) {
+  const res = await fetch(GATEWAY_URL, {
+    method: 'POST',
+    redirect: 'follow',          // 鐵律：一定要加；且不加 Content-Type
+    body: JSON.stringify({ auth: GATEWAY_TOKEN, action: 'generate_tts', params: { text, prompt: text, languageCode: 'en-US', useFreeKey } }),
+  });
+  const gw = await res.json();
+  tts.lastDiag = describe(gw);
+  if (!gw.ok) throw new Error(gw.error || 'Gateway 失敗');
+  const a = findAudio(gw);
+  if (!a) throw new Error('回應中找不到音訊');
+  if (a.url) { const r = await fetch(a.url); return await r.blob(); }
+  const bytes = b64ToBytes(a.b64);
+  const mime = (a.mime || '').toLowerCase();
+  if (mime.includes('l16') || mime.includes('pcm')) return pcmToWav(bytes, parseInt((mime.match(/rate=(\d+)/) || [])[1] || '24000', 10));
+  const isWav = bytes[0] === 0x52 && bytes[1] === 0x49;
+  return new Blob([bytes], { type: isWav ? 'audio/wav' : (mime || 'audio/mpeg') });
+}
+// ── 語音請求排隊：一次只送一個，避免連點時被語音服務限流 ──
+// 使用者按的發音排最前面；背景預先下載排後面
+const ttsQ = { jobs: [], busy: false };
+function queueTTS(text, urgent) {
+  return new Promise((resolve, reject) => {
+    const job = { text, resolve, reject };
+    urgent ? ttsQ.jobs.unshift(job) : ttsQ.jobs.push(job);
+    pumpTTS();
+  });
+}
+async function pumpTTS() {
+  if (ttsQ.busy || !ttsQ.jobs.length) return;
+  ttsQ.busy = true;
+  const job = ttsQ.jobs.shift();
+  try { job.resolve(await fetchTTS(job.text)); } catch (e) { job.reject(e); }
+  ttsQ.busy = false;
+  setTimeout(pumpTTS, 300);
+}
+async function getAudio(text, urgent) {
+  const key = 'tts:' + text.toLowerCase();
+  const hit = await db.get(key);
+  if (hit) return hit;
+  if (!navigator.onLine) throw new Error('離線');
+  if (Date.now() < (tts.pauseUntil || 0)) throw new Error('語音服務暫停中，先用手機內建語音');
+  if (!tts.inflight[key]) {
+    tts.inflight[key] = queueTTS(text, urgent)
+      .then(async (blob) => { tts.fails = 0; await db.set(key, blob); return blob; })
+      .catch((e) => {   // 連續失敗 2 次 → 暫停 60 秒再試（不再整段停用）
+        if (++tts.fails >= 2) { tts.pauseUntil = Date.now() + 60000; tts.fails = 0; ttsQ.jobs.splice(0).forEach((j) => j.reject(e)); }
+        throw e;
+      })
+      .finally(() => delete tts.inflight[key]);
+  }
+  return tts.inflight[key];
+}
+function browserSpeak(text, slow) {
+  if (!('speechSynthesis' in window)) return;
   speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text.replace(/[()]/g, ''));
-  u.lang = 'en-US'; if (voice) u.voice = voice; u.rate = slow ? 0.6 : 0.9;
+  const u = new SpeechSynthesisUtterance(text); u.lang = 'en-US'; u.rate = slow ? 0.6 : 0.9;
+  const v = speechSynthesis.getVoices().find((x) => /en-US/.test(x.lang) && /(Samantha|Google|Natural|Neural)/.test(x.name));
+  if (v) u.voice = v;
   speechSynthesis.speak(u);
 }
-const speakQuick = speak;
-// iPhone 要在第一次點擊時「解鎖」語音，之後掉下去時才念得出來
-let audioOk = false;
+// iPhone 要求第一次播放必須由手指觸發：第一次點畫面時先「解鎖」音訊和內建語音
+const SILENT = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
 function unlockAudio() {
-  if (audioOk || !('speechSynthesis' in window)) return; audioOk = true;
-  try { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); } catch (e) { /* 不支援就算了 */ }
+  if (tts.unlocked) return; tts.unlocked = true;
+  try { tts.audio.src = SILENT; tts.audio.play().then(() => tts.audio.pause()).catch(() => {}); } catch (e) {}
+  try { if ('speechSynthesis' in window) { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); } } catch (e) {}
+}
+document.addEventListener('pointerdown', unlockAudio, { once: false, passive: true });
+async function speak(text, btn, slow) {
+  if (!text) return;
+  text = sayText(text);
+  const my = tts.seq = (tts.seq || 0) + 1;   // 只播最後一次按的，舊的請求回來就不播
+  tts.audio.pause();
+  if ('speechSynthesis' in window) speechSynthesis.cancel();
+  btn && btn.classList.add('busy');
+  try {
+    const blob = await getAudio(text, true);
+    if (my !== tts.seq) return;
+    if (tts.audio.src && tts.audio.src.startsWith('blob:')) URL.revokeObjectURL(tts.audio.src);
+    tts.audio.src = URL.createObjectURL(blob);
+    tts.audio.playbackRate = slow ? 0.7 : 1;   // 🐢 慢速
+    await tts.audio.play();
+  } catch (e) { if (my === tts.seq) browserSpeak(text, slow); }   // 播放被擋或服務失敗 → 內建語音
+  finally { btn && btn.classList.remove('busy'); }
+}
+// 快速發音（配對題連點用）：有快取就播，沒有就用內建語音，不送網路請求
+async function speakQuick(text) {
+  text = sayText(text);
+  const hit = await db.get('tts:' + text.toLowerCase());
+  if (hit) return speak(text);
+  tts.audio.pause(); browserSpeak(text);
 }
 
 // ── 主頁 ──
