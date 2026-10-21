@@ -8,7 +8,7 @@
 //        saveLedger, saveMeta, saveSet, afterPoints, points, gameWeekBestAll, gameCard, masteredCount, GAMES, toast, confetti
 // ═══════════════════════════════════════════════════════
 const WB = (() => {
-  const ID = 'blaster', NEED = 2, VER = '1.4';
+  const ID = 'blaster', NEED = 2, VER = '1.5';
   const TIME = 180, CAP = 20;
   const S_PER_PT = 550;      // 每 550 分 = 1 ⭐（11000 分滿 20）；10/21 Jeffrey 實玩 v1.2 一局一萬多分，要求調到 10000～12000 才滿分
   const LW = 360;
@@ -16,7 +16,7 @@ const WB = (() => {
   const STATION_EVERY = 3, STATION_SEC = 30;
   const SHOP = [
     { k: 'spread', ic: '🔱', cost: 5, zh: '散彈槍（15 秒）', en: 'Spread gun (15s)' },
-    { k: 'time', ic: '⏱', cost: 7, zh: '延長時間 +20 秒', en: '+20 seconds' },
+    { k: 'time', ic: '⏱', cost: 7, zh: '延長時間 +10 秒', en: '+10 seconds' },
     { k: 'bomb', ic: '💥', cost: 10, zh: '大轟炸（全畫面清光）', en: 'Mega bomb (clear the screen)' },
   ];
   // 擊落掉寶：每 50 隻依序掉 散彈 → 快速射擊 → 慢動作，循環
@@ -390,7 +390,7 @@ const WB = (() => {
     if (!it || g.energy < it.cost) return;
     g.energy -= it.cost;
     if (k === 'spread') { g.spreadLv = active('spread') ? 2 : 1; g.pw.spread = Math.max(g.pw.spread, g.clock) + 15000; g.pwTot = g.pwTot || {}; g.pwTot.spread = g.pw.spread - g.clock; }
-    if (k === 'time') g.extra += 20;
+    if (k === 'time') g.extra += 10;
     if (k === 'bomb') g.bombs++;
     const S = g.inStation; S.bought = S.bought || {}; S.bought[k] = (S.bought[k] || 0) + 1;
     const how = { spread: L('出發後立刻生效', 'Active as soon as you leave'), time: L('時間已加上去', 'Added to your clock'), bomb: L('出發後按右下角 💥 使用', 'Tap 💥 bottom-right to use') }[k];
