@@ -333,6 +333,13 @@ nav button.on{color:var(--lime);font-weight:700}
 .toast{position:fixed;left:50%;bottom:calc(92px + var(--safe-b));transform:translateX(-50%);background:var(--mint);color:#06201e;
   font-size:13px;font-weight:700;padding:9px 16px;border-radius:20px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:120;white-space:nowrap}
 .toast.show{opacity:1}
+.rate.nonew{grid-template-columns:1fr 1fr}.rate.nonew .r4{display:none}
+.spot{position:fixed;inset:0;z-index:112;background:rgba(5,8,16,.82);display:none;align-items:flex-start;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 40px) 16px 16px;overflow-y:auto}
+.spot.show{display:flex}
+.spot-card{width:100%;max-width:420px;background:var(--card);border:2px solid var(--amber);border-radius:22px;padding:18px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.6);animation:pop .3s}
+.spot-kick{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;color:var(--amber)}
+.spot-kick small{display:block;font-family:'Noto Sans TC',sans-serif;font-weight:400;font-size:12px;color:var(--muted);margin-top:4px}
+.spot-step{font-size:12px;color:var(--mint);font-weight:700;margin:12px 0 6px}
 /* ── 獎勵遊戲 ── */
 .gamecard{display:flex;align-items:center;gap:12px;margin-top:12px;border-radius:18px;padding:12px 14px;
   background:linear-gradient(120deg,#26331a,#123a37);border:1.5px solid var(--lime)}
@@ -465,7 +472,7 @@ nav button.on{color:var(--lime);font-weight:700}
         </div>
       </div>
     </div>
-    <p class="hint">Jeffrey's Lab · THP11 Word Quest v3.4</p>
+    <p class="hint">Jeffrey's Lab · THP11 Word Quest v3.5</p>
   </section>
 </main>
 
@@ -502,6 +509,7 @@ nav button.on{color:var(--lime);font-weight:700}
   <button class="btn" data-act="codein">貼上轉移碼</button>
 </div>
 
+<div class="spot" id="spot"><div id="spotBox"></div></div>
 <div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
 <div class="coach" id="coach"><div class="ce" id="coachAva">🦊</div><div><b id="coachEn"></b><small id="coachZh"></small></div></div>
 <div class="toast" id="toast"></div>
@@ -685,24 +693,27 @@ function weeks() {   // 每週彙總：複習張數、各單元挑戰最高分
     w.cards += d.cards || 0;
     if (d.qbest) for (const u in d.qbest) w.qb[u] = Math.max(w.qb[u] || 0, d.qbest[u]);
     if (d.gbest) for (const g in d.gbest) w.gb[g] = Math.max(w.gb[g] || 0, d.gbest[g]);   // 獎勵遊戲：每款每週最高一局
+    w.spot = (w.spot || 0) + (d.spot || 0);   // 抽查通過次數
   }
   return W;
 }
 const weekCards = () => (weeks()[thisWeek()] || { cards: 0 }).cards;
 const weekBest = (u) => ((weeks()[thisWeek()] || { qb: {} }).qb[u]) || 0;
 const GAME_CAP = 20;
+const SPOT_RATE = 0.2, SPOT_MAX_GAP = 8, SPOT_CAP = 15;   // 抽查：約每 5 張抽 1 張、最多隔 8 張；通過 +1，每週最多 15
 const gameWeekBest = (g) => Math.min(GAME_CAP, ((weeks()[thisWeek()] || { gb: {} }).gb[g]) || 0);
 function points() {
-  let card = 0, goal = 0, quiz = 0, streak = 0, master = 0, game = 0;
+  let card = 0, goal = 0, quiz = 0, streak = 0, master = 0, game = 0, spot = 0;
   const W = weeks();
   for (const k in W) {
     card += Math.min(W[k].cards, CARD_CAP);
     if (W[k].cards >= WEEK_GOAL) goal += GOAL_BONUS;
     for (const u in W[k].qb) quiz += W[k].qb[u];   // 挑戰：每單元每週只算最高分
     for (const g in W[k].gb) game += Math.min(GAME_CAP, W[k].gb[g]);   // 遊戲：每款每週最多 20
+    spot += Math.min(SPOT_CAP, W[k].spot || 0);   // 抽查：每週最多 15
   }
   st.ledger.bonus.forEach((b) => { if (b.k.startsWith('wk') || b.k.startsWith('streak')) streak += b.p; else master += b.p; });
-  return { card, goal, streak, quiz: quiz + master, quizOnly: quiz, master, game, total: card + goal + streak + quiz + master + game };
+  return { card, goal, streak, quiz: quiz + master, quizOnly: quiz, master, game, spot, total: card + goal + streak + quiz + master + game + spot };
 }
 // 10/15 刷分漏洞修正：挑戰一次最多 35 分；最佳超過 100% 的單元收回精熟（可重新挑戰拿回）
 const QUIZ_MAX_PTS = 35;
@@ -1052,12 +1063,14 @@ function nextCard() {
   }
 }
 
-function rate(g) {
+function rate(g, opt = {}) {
   const w = st.cur; if (!w) return;
+  if (g === 4 && !st.prog[w.id]) g = 3;                         // A：新字不能按太簡單
+  if (g >= 3 && !opt.checked && shouldSpot()) return openSpot(w, g);   // B：隨機抽查
   const now = Date.now(), k = todayKey();
   const prev = st.prog[w.id] ? { ...st.prog[w.id] } : null;
   const ptsBefore = points().total;
-  st.undoStack.push({ id: w.id, prev, queue: st.queue.slice(), sess: { ...st.sess }, newToday: st.meta.newToday, day: k });
+  st.undoStack.push({ id: w.id, prev, queue: st.queue.slice(), sess: { ...st.sess }, newToday: st.meta.newToday, day: k, counted: !opt.fail, pass: !!opt.pass });
   if (st.undoStack.length > 20) st.undoStack.shift();
 
   const p = { ...(prev || { reps: 0, fails: 0 }), ...FSRS.next(prev, g, now) };
@@ -1080,9 +1093,10 @@ function rate(g) {
   // 積分紀錄
   clockCheck(); touchUnit(w.unit);
   const day = st.ledger.days[k] || (st.ledger.days[k] = { cards: 0 });
-  day.cards++;
+  if (!opt.fail) day.cards++;                                   // 抽查答錯：這張不算分
+  if (opt.pass) day.spot = (day.spot || 0) + 1;                 // 抽查通過：多 +1
   const wc = weekCards();
-  if (wc <= CARD_CAP) plusOne('+1');
+  if (!opt.fail && wc <= CARD_CAP) plusOne(opt.pass ? '+2' : '+1');
   st.justGoal = wc === WEEK_GOAL && st.meta.celebrated !== thisWeek();
   if (st.justGoal) {
     st.meta.celebrated = thisWeek();
@@ -1093,6 +1107,68 @@ function rate(g) {
   saveProg(); saveMeta(); saveLedger();
   afterPoints(ptsBefore);
   nextCard();
+}
+// ── 抽查：按「記得／太簡單」時隨機出現，先選意思、再拼字，兩題都對 +1 ⭐ ──
+function shouldSpot() {
+  st.spotGap = (st.spotGap || 0) + 1;
+  if (Math.random() < SPOT_RATE || st.spotGap >= SPOT_MAX_GAP) { st.spotGap = 0; return true; }
+  return false;
+}
+let spot = null;
+function openSpot(w, g) {
+  spot = { w, g, opts: shuffle([w, ...distract(w)]) };
+  $('spotBox').innerHTML = `<div class="spot-card">
+      <div class="spot-kick">🔍 ${L('抽查！', 'Quick check!')}<small>${L('兩題都答對 +1 ⭐；答錯這張不算分，改成「不熟」', 'Get both right: +1 ⭐. Miss one: this card won\'t count and goes back to "Again".')}</small></div>
+      <div class="spot-step">1 / 2　${L('選出正確的意思', 'Choose the meaning')}</div>
+      <div class="qword" style="font-size:30px">${esc(w.word)}</div>
+      <div class="opts">${spot.opts.map((o) => `<button class="opt" data-spot="${esc(o.id)}">${esc(meaning(o))}</button>`).join('')}</div>
+      <div id="spotFb"></div></div>`;
+  $('spot').classList.add('show');
+}
+function spotPick(btn) {
+  if (!spot || spot.step1 != null) return;
+  const ok = btn.dataset.spot === spot.w.id; spot.step1 = ok;
+  document.querySelectorAll('[data-spot]').forEach((b) => { b.disabled = true; if (b.dataset.spot === spot.w.id) b.classList.add('ok'); });
+  if (!ok) { btn.classList.add('bad'); return spotFail(`<b>${esc(spot.w.word)}</b>　${esc(meaning(spot.w))}`); }
+  setTimeout(spotSpell, 450);
+}
+function spotSpell() {   // 第 2 題：看意思拼字（不顯示英文）
+  const w = spot.w, a = answersOf(w)[0];
+  $('spotBox').innerHTML = `<div class="spot-card">
+      <div class="spot-kick">🔍 ${L('抽查！', 'Quick check!')}</div>
+      <div class="spot-step">2 / 2　${L('拼出這個字', 'Spell the word')}</div>
+      <div class="qzh" ${EN() ? 'style="font-size:18px;color:var(--ink)"' : ''}>${esc(meaning(w))}</div>
+      <div class="hintw">${esc(a[0])} ${a.slice(1).replace(/[^ -]/g, '_ ').replace(/-/g, '- ')}</div>
+      <input class="spellin" id="spotIn" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="type here">
+      <button class="btn wide" style="margin-top:10px" data-act="spotcheck">${L('確認 Check', 'Check')}</button>
+      <div id="spotFb"></div></div>`;
+  const inp = $('spotIn'); inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); spotCheck(); } });
+  setTimeout(() => inp.focus(), 50);
+}
+function spotCheck() {
+  if (!spot || spot.done) return;
+  const inp = $('spotIn'), v = norm(inp.value || '');
+  if (!v) return inp.focus();
+  const ok = answersOf(spot.w).includes(v);
+  inp.classList.add(ok ? 'ok' : 'bad'); inp.disabled = true;
+  const btn = document.querySelector('[data-act="spotcheck"]'); if (btn) btn.remove();
+  if (!ok) return spotFail(`${L('正確拼法', 'Correct spelling')}：<b>${esc(spot.w.word)}</b>`);
+  spot.done = true;
+  $('spotFb').innerHTML = `<div class="fb ok">✓ ${L('兩題都答對！+1 ⭐', 'Both correct! +1 ⭐')}</div>`;
+  speak(spot.w.word);
+  setTimeout(() => spotFinish(true), 900);
+}
+function spotFail(html) {
+  spot.done = true;
+  $('spotFb').innerHTML = `<div class="fb bad">✕ ${html}<br><small>${L('這張改成「不熟」，等一下會再出現', 'Marked "Again" — you\'ll see it again soon')}</small></div>
+    <button class="btn wide" style="margin-top:10px" data-act="spotok">${L('知道了', 'OK')}</button>`;
+  speak(spot.w.word);
+}
+function spotFinish(pass) {
+  const g = spot.g; spot = null;
+  $('spot').classList.remove('show');
+  if (pass) { toast(L('🔍 抽查通過 +1 ⭐', '🔍 Check passed +1 ⭐')); rate(g, { checked: true, pass: true }); }
+  else rate(1, { checked: true, fail: true });
 }
 function checkStreakBonus() {
   const s = streakNow();
@@ -1114,7 +1190,9 @@ function undo() {
   const u = st.undoStack.pop(); if (!u) return;
   if (u.prev) st.prog[u.id] = u.prev; else delete st.prog[u.id];
   st.queue = u.queue; st.sess = u.sess; st.meta.newToday = u.newToday;
-  const d = st.ledger.days[u.day]; if (d && d.cards > 0) d.cards--;
+  const d = st.ledger.days[u.day];
+  if (d && u.counted !== false && d.cards > 0) d.cards--;
+  if (d && u.pass && d.spot > 0) d.spot--;
   st.cur = st.byId[u.id]; st.flipped = false;
   saveProg(); saveMeta(); saveLedger();
   renderCard(); renderSess(); renderHeader();
@@ -1184,6 +1262,7 @@ function renderCard() {
     return;
   }
   stage.innerHTML = `<div class="card pop" id="card">${cardHTML(st.cur)}</div>`;
+  $('rateBtns').classList.toggle('nonew', !st.prog[st.cur.id]);   // 新字只有「不熟／記得」
   bindSwipe($('card'));
   $('card').querySelector('.back').addEventListener('scroll', updateRail, { passive: true });
 }
@@ -1349,6 +1428,7 @@ function renderMe() {
     <div class="srow"><div>${L('連續週數獎勵', 'Week streak bonus')}<small>${L('連續 2／4／6 週完成每週目標', 'Reach the goal 2 / 4 / 6 weeks in a row')}</small></div><b>+10／30／60</b></div>
     <div class="srow"><div>${L('挑戰答對 1 題', 'Each correct quiz answer')}<small>${L(`拼字題 +${SPELL_PTS}；連對 3 題以上每題再 +${COMBO_PTS}`, `Spelling +${SPELL_PTS}; 3 in a row: +${COMBO_PTS} each`)}</small></div><b>+${Q_PTS}</b></div>
     <div class="srow"><div>${L('挑戰全對', 'Perfect quiz')}<small>${L('10 題全部答對', 'All 10 correct')}</small></div><b>+${PERFECT_PTS}</b></div>
+    <div class="srow"><div>${L('🔍 抽查通過', '🔍 Quick check passed')}<small>${L(`按「記得／太簡單」時隨機抽查，意思和拼字都對；每週最多 ${SPOT_CAP} 分。答錯那張不算分`, `Random checks when you tap Got it / Easy; up to ${SPOT_CAP} a week. A miss doesn't count`)}</small></div><b>+1</b></div>
     <div class="srow"><div>${L('🎮 獎勵遊戲', '🎮 Bonus game')}<small>${L('任一單元精熟後解鎖；每週只算最高一局', 'Unlocks after mastering a unit; best game each week counts')}</small></div><b>0～${GAME_CAP}</b></div>
     <div class="srow"><div>${L('單元精熟', 'Unit mastery')}<small>${L(`某單元第一次拿到 ${MASTER_PCT}% 以上（每單元一次）`, `First time scoring ${MASTER_PCT}%+ on a unit (once per unit)`)}</small></div><b>+${MASTER_PTS}</b></div>
     <div class="srow"><div>${L('同一單元重複挑戰', 'Retrying a unit')}<small>${L('每週只算最高的一次，打破本週紀錄才會補差額', 'Only your best score each week counts')}</small></div><b>📈</b></div>
@@ -1373,7 +1453,7 @@ function openProof() {
       <div class="mode">${isStandalone() ? L('📱 主畫面 App', '📱 Home-screen app') : L('🌐 瀏覽器開啟', '🌐 Browser')}</div>
       <div class="ptotal">${P.total}</div><div class="plabel">${L('總積分 TOTAL POINTS', 'TOTAL POINTS')}</div>
       <div class="pgrid">
-        <div><b>${P.card}</b>${L('複習', 'Review')}</div><div><b>${P.goal}</b>${L('每週目標', 'Weekly goal')}</div>
+        <div><b>${P.card}${P.spot ? ` <small style="font-size:12px;color:var(--amber)">+${P.spot}</small>` : ''}</b>${L('複習＋抽查', 'Review + checks')}</div><div><b>${P.goal}</b>${L('每週目標', 'Weekly goal')}</div>
         <div><b>${P.quizOnly}</b>${L('挑戰', 'Quiz')}</div><div><b>${P.master}</b>${L('單元精熟', 'Mastery')}</div>
         <div><b>${P.streak}</b>${L('連續獎勵', 'Streak bonus')}</div><div><b>🔥 ${streakNow()} ${L('週', 'wk')}</b>${L('目前連續', 'Current streak')}</div>
         <div><b>${totalCards}</b>${L('總複習張數', 'Cards reviewed')}</div><div><b>${acc}</b>${L('挑戰正確率', 'Quiz accuracy')}</div>
@@ -1847,6 +1927,9 @@ document.addEventListener('click', (e) => {
   if (t.dataset.act === 'codecopy') return copyCode();
   if (t.dataset.act === 'codeapply') return applyCode();
   if (t.dataset.act === 'game') return WJ.open();
+  if (t.dataset.spot) return spotPick(t);
+  if (t.dataset.act === 'spotcheck') return spotCheck();
+  if (t.dataset.act === 'spotok') return spotFinish(false);
   if (t.dataset.act === 'showzh') { e.stopPropagation(); const c = t.closest('.card,.sheet'); c.querySelectorAll('.zhhide').forEach((x) => (x.style.display = '')); t.remove(); updateRail(); return; }
   if (t.dataset.act === 'go') { showView('v-review'); return; }
   if (t.dataset.act === 'start') return buildQueue();
