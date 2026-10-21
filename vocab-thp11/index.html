@@ -401,6 +401,10 @@ nav button.on{color:var(--lime);font-weight:700}
 .wr-opts{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
 .wr-opts div{background:rgba(10,20,12,.85);border:2px solid var(--mint);border-radius:12px;padding:8px 4px;font-size:14px;font-weight:700;color:#fff;line-height:1.3;min-height:44px;display:flex;align-items:center;justify-content:center}
 .wr-opts div.on{border-color:var(--lime);background:rgba(204,255,0,.18);box-shadow:0 0 12px rgba(204,255,0,.5)}
+/* Word Run 的提示放在畫面最下方（角色腳下），不擋前方跑道 */
+.wr .wb-banner{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 10px);transform:translate(-50%,10px) scale(.9);padding:6px 14px;gap:8px;border-width:2px;border-radius:14px;box-shadow:0 0 14px var(--c);background:rgba(10,10,20,.8);max-width:94vw}
+.wr .wb-banner.on{transform:translate(-50%,0) scale(1)}
+.wr .wb-banner .ic{font-size:22px}.wr .wb-banner b{display:inline;font-size:16px}.wr .wb-banner small{display:inline;font-size:12px;margin:0 0 0 8px}
 @keyframes wbBomb{50%{box-shadow:0 0 30px rgba(255,107,87,.9)}}
 .wb-bomb{position:absolute;right:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);z-index:3;border:2px solid var(--coral);background:rgba(58,28,24,.9);color:#fff;border-radius:50%;width:62px;height:62px;font-size:26px;box-shadow:0 0 18px rgba(255,107,87,.5)}
 .wb-bomb b{position:absolute;top:-4px;right:-4px;background:var(--coral);border-radius:10px;font-size:12px;padding:1px 6px;font-family:'Syne',sans-serif}
@@ -2182,6 +2186,6 @@ document.addEventListener('keydown', (e) => {
 </script>
 <script src="games/jump.js?v=1.5"></script>
 <script src="games/blaster.js?v=1.5"></script>
-<script src="games/run.js?v=1.0"></script>
+<script src="games/run.js?v=1.1"></script>
 </body>
 </html>

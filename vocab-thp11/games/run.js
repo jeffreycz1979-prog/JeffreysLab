@@ -9,7 +9,7 @@
 //        saveLedger, saveMeta, saveSet, afterPoints, points, gameWeekBestAll, gameCard, masteredCount, GAMES, toast, confetti
 // ═══════════════════════════════════════════════════════
 const WR = (() => {
-  const ID = 'run', NEED = 3, VER = '1.0';
+  const ID = 'run', NEED = 3, VER = '1.1';
   const TIME = 180, CAP = 20;
   const S_PER_PT = 200;      // 每 200 分 = 1 ⭐（4000 分滿 20）；機器人（瞬間拼字）：單字門全對約 4200、答對 75% 約 3300、答對 55% 約 2700 — 待 Jeffrey 實玩後調整
   const LW = 360, LANE = 104;            // 邏輯寬度；跑道寬（玩家位置）
@@ -253,7 +253,7 @@ const WR = (() => {
     el.style.setProperty('--c', c);
     el.innerHTML = `<span class="ic">${ic}</span><div><b>${esc(title)}</b><small>${esc(sub || '')}</small></div>`;
     el.classList.remove('on'); void el.offsetWidth; el.classList.add('on');
-    clearTimeout(bannerT); bannerT = setTimeout(() => el.classList.remove('on'), 1500);
+    clearTimeout(bannerT); bannerT = setTimeout(() => el.classList.remove('on'), 1200);
   }
   // 單字門的題目：畫面上方固定顯示（三格對齊三條跑道），遠遠就能讀
   function showGate() {
@@ -301,7 +301,7 @@ const WR = (() => {
     if (answersOf(s.w).includes(v)) {
       const g = game; g.spell = null; pane('');
       g.objs = g.objs.filter((o) => o.t === 'gate' || o.t === 'coin' || o.z - g.dist > 16);   // 清掉前面的障礙
-      g.p.inv = 1500; g.p.jump = 0; g.p.slide = 0; g.last = performance.now();
+      g.p.inv = 2000; g.p.jump = 0; g.p.slide = 0; g.last = performance.now();
       showGate();
       banner('✓', L('答對！繼續跑', 'Correct! Run!'), '', '#CCFF00');
     } else {
