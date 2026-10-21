@@ -8,7 +8,7 @@
 //        saveLedger, saveMeta, saveSet, afterPoints, points, gameWeekBestAll, gameCard, masteredCount, GAMES, toast, confetti
 // ═══════════════════════════════════════════════════════
 const WB = (() => {
-  const ID = 'blaster', NEED = 2, VER = '1.0';
+  const ID = 'blaster', NEED = 2, VER = '1.1';
   const TIME = 180, CAP = 20;
   const S_PER_PT = 200;      // 每 200 分 = 1 ⭐（4000 分滿 20）；機器人（瞬間拼字）3 分鐘約 5400～6100，真人含拼字時間預估 1300～4300
   const LW = 360;
@@ -74,7 +74,7 @@ const WB = (() => {
     document.body.style.overflow = 'hidden';
     const best = gameWeekBestAll(), pb = (st.meta.games && st.meta.games[ID] && st.meta.games[ID].best) || 0;
     pane(`<div class="wj-card">
-      <div style="font-size:52px">👾</div>
+      <div class="wj-ic">👾</div>
       <h2>Word Blaster</h2>
       <p>${L('打下外星人，撿道具升級武器！', 'Blast the aliens and power up!')}</p>
       <div class="wj-ctl">
@@ -82,8 +82,10 @@ const WB = (() => {
         <button class="${ctl() === 'tilt' ? 'on' : ''}" data-wb="ctl" data-c="tilt">📱 ${L('搖晃手機', 'Tilt')}<small>${L('只能左右移動', 'Left and right only')}</small></button>
       </div>
       <div class="wj-rules">
-        <div>⚡ ${L('快速射擊：射速變快', 'Rapid fire')}　🔱 ${L('散彈：一次 3 發，再撿升級 5 發', 'Spread: 3 shots, 5 if you grab another')}</div>
-        <div>⏳ ${L('慢動作：敵人和子彈變慢', 'Slow motion: enemies slow down')}　✨ ${L('金色外星人一定掉道具', 'Gold aliens always drop one')}</div>
+        <div>⚡ ${L('快速射擊：射速變快', 'Rapid fire')}</div>
+        <div>🔱 ${L('散彈：一次 3 發，再撿升級 5 發', 'Spread: 3 shots, 5 if you grab another')}</div>
+        <div>⏳ ${L('慢動作：敵人和子彈變慢', 'Slow motion: enemies slow down')}</div>
+        <div>✨ ${L('金色外星人一定掉道具', 'Gold aliens always drop one')}</div>
         <div>✏️ ${L('被打中要拼對一個單字才能繼續（時間不會停，道具會消失）', 'Get hit = spell a word to continue (clock keeps running, power-ups lost)')}</div>
         <div>⭐ ${L(`每 ${S_PER_PT} 分 1 顆星，最多 ${CAP}；所有遊戲每週只算最高一局`, `1 ⭐ per ${S_PER_PT} points, up to ${CAP}; best game of the week counts`)}</div>
       </div>

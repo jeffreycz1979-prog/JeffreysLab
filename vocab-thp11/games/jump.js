@@ -15,7 +15,7 @@ const WJ = (() => {
   const G = 0.38, JUMP = -11.5, SPRING = -19, RUN = 5.2;
   const PW = 66, PH = 12;
   const EDGE = 0.2;          // 手指模式：左右各 20% 是「穿牆區」，按著就一直往那邊跑
-  const VER = '1.4';
+  const VER = '1.5';
 
   let cv, cx, root, S = 1, VH = 640;   // S＝縮放；VH＝邏輯高度
   let game = null, raf = 0, keys = { l: false, r: false };
@@ -81,7 +81,7 @@ const WJ = (() => {
     document.body.style.overflow = 'hidden';
     const best = gameWeekBestAll(), pb = (st.meta.games && st.meta.games[ID] && st.meta.games[ID].bestM) || 0;
     pane(`<div class="wj-card">
-      <div style="font-size:52px">${esc(st.profile.avatar)}</div>
+      <div class="wj-ic">${esc(st.profile.avatar)}</div>
       <h2>Word Jump 🚀</h2>
       <p>${L('一直往上跳，看你能跳多高！', 'Jump as high as you can!')}</p>
       <div class="wj-ctl">

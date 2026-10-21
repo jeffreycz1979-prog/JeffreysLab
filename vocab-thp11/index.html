@@ -355,11 +355,15 @@ nav button.on{color:var(--lime);font-weight:700}
 .wj-hud span{background:rgba(0,0,0,.45);border:1px solid var(--line);border-radius:14px;padding:5px 10px;font-family:'Syne',sans-serif;font-weight:800;font-size:15px}
 .wj-t{margin-left:auto}.wj-t.low{color:var(--coral);border-color:var(--coral)}.wj-p{color:var(--lime)}
 .wj-x{pointer-events:auto;border:none;background:rgba(0,0,0,.45);color:#fff;border-radius:12px;width:36px;height:34px;font-size:15px}
-.wj-pane{position:absolute;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 58px);padding:0 16px;display:flex;justify-content:center}
-.wj-card{width:100%;max-width:400px;background:rgba(19,24,38,.96);border:1.5px solid var(--lime);border-radius:22px;padding:18px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.6)}
+.wj-pane{position:absolute;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 58px);bottom:0;padding:0 16px calc(env(safe-area-inset-bottom,0px) + 16px);
+  display:flex;justify-content:center;align-items:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y}   /* 說明太長時可以捲動 */
+.wj-card{width:100%;max-width:400px;background:rgba(19,24,38,.98);border:1.5px solid var(--lime);border-radius:22px;padding:16px 16px 0;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.6)}
+.wj-card > .btnrow{position:sticky;bottom:0;background:rgba(19,24,38,.98);padding:12px 0 16px;margin-top:4px;border-radius:0 0 22px 22px}   /* 開始按鈕固定在底部 */
+.wj-card > .btn.wide:last-child{margin-bottom:16px}
+.wj-card .wj-ic{font-size:42px;line-height:1.1}
 .wj-card h2{font-family:'Syne',sans-serif;font-size:26px;color:var(--lime);margin:4px 0 6px}
 .wj-card p{font-size:14px;color:var(--ink);line-height:1.6}
-.wj-rules{text-align:left;background:var(--panel);border-radius:14px;padding:10px 12px;margin:12px 0;font-size:13px;line-height:1.9}
+.wj-rules{text-align:left;background:var(--panel);border-radius:14px;padding:8px 12px;margin:10px 0;font-size:12px;line-height:1.75}
 .wj-small{font-size:12px;color:var(--muted);margin:8px 0}
 .wj-kicker{font-size:13px;font-weight:700;color:var(--amber);margin-bottom:6px}
 .wj-mean{font-size:22px;font-weight:700;color:var(--lime);line-height:1.4}
@@ -2133,7 +2137,7 @@ document.addEventListener('keydown', (e) => {
   }
 })();
 </script>
-<script src="games/jump.js?v=1.4"></script>
-<script src="games/blaster.js?v=1.0"></script>
+<script src="games/jump.js?v=1.5"></script>
+<script src="games/blaster.js?v=1.1"></script>
 </body>
 </html>
