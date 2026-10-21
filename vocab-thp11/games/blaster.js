@@ -8,7 +8,7 @@
 //        saveLedger, saveMeta, saveSet, afterPoints, points, gameWeekBestAll, gameCard, masteredCount, GAMES, toast, confetti
 // ═══════════════════════════════════════════════════════
 const WB = (() => {
-  const ID = 'blaster', NEED = 2, VER = '1.2';
+  const ID = 'blaster', NEED = 2, VER = '1.3';
   const TIME = 180, CAP = 20;
   const S_PER_PT = 200;      // 每 200 分 = 1 ⭐（4000 分滿 20）；機器人（瞬間拼字）3 分鐘約 5400～6100，真人含拼字時間預估 1300～4300
   const LW = 360;
@@ -23,9 +23,9 @@ const WB = (() => {
   const KILL_STEP = 50, KILL_DROPS = ['spread', 'rapid', 'slow'];
   const PW_TIME = { rapid: 9000, spread: 9000, slow: 6000 };
   const PW_INFO = {
-    rapid: { ic: '⚡', c: '#CCFF00', zh: '快速射擊', en: 'Rapid fire' },
-    spread: { ic: '🔱', c: '#4ECDC4', zh: '散彈', en: 'Spread shot' },
-    slow: { ic: '⏳', c: '#ffb547', zh: '慢動作', en: 'Slow motion' },
+    rapid: { ic: '⚡', c: '#CCFF00', zh: '快速射擊', en: 'Rapid fire', dz: '射速變 2.5 倍', de: '2.5× fire rate' },
+    spread: { ic: '🔱', c: '#4ECDC4', zh: '散彈', en: 'Spread shot', dz: '一次射 3 發', de: '3 shots at once' },
+    slow: { ic: '⏳', c: '#ffb547', zh: '慢動作', en: 'Slow motion', dz: '敵人和子彈變慢', de: 'Enemies & bullets slow down' },
   };
   let cv, cx, root, S = 1, VH = 640;
   let game = null, raf = 0, keys = { l: 0, r: 0, u: 0, d: 0 };
@@ -45,9 +45,11 @@ const WB = (() => {
     root = document.createElement('div');
     root.className = 'wj';
     root.innerHTML = `<canvas></canvas>
-      <button class="wb-bomb" id="wbBomb" data-wb="bomb" style="display:none">💥<b id="wbBombN">1</b></button>
+      <button class="wb-bomb" id="wbBomb" data-wb="bomb" style="display:none">💥<b id="wbBombN">1</b><i>${L('點我', 'TAP')}</i></button>
+      <div class="wb-banner" id="wbBanner"></div>
+      <div class="wb-pw" id="wbPw" style="display:none"></div>
       <div class="wj-hud"><button class="wj-x" data-wb="quit">✕</button>
-        <span class="wb-pw" id="wbPw" style="display:none"></span>
+        <span class="wb-en" id="wbEn" style="display:none"></span>
         <span class="wj-t" id="wbT">3:00</span><span class="wj-h" id="wbS">0</span><span class="wj-p" id="wbP">⭐ 0</span></div>
       <div class="wj-pane" id="wbPane"></div>`;
     document.body.appendChild(root);
@@ -165,6 +167,14 @@ const WB = (() => {
   function step(dt) {
     const g = game, sh = g.ship, ms = dt * 16.67;
     g.clock += ms;
+    g.pwOn = g.pwOn || {};
+    for (const k of Object.keys(PW_INFO)) {          // 道具時間到 → 提示「結束」
+      const on = active(k);
+      if (g.pwOn[k] && !on) flash(`${PW_INFO[k].ic} ${L(PW_INFO[k].zh + '結束', PW_INFO[k].en + ' ended')}`);
+      g.pwOn[k] = on;
+    }
+    (g.rings || []).forEach((r) => { r.r += 3 * dt; r.a -= 0.035 * dt; });
+    if (g.rings) g.rings = g.rings.filter((r) => r.a > 0);
     const sf = active('slow') ? 0.4 : 1;          // 慢動作：敵人、子彈、道具變慢
     const lv = Math.min(6, g.wave);                 // 難度
     // 飛機移動
@@ -355,14 +365,23 @@ const WB = (() => {
     game.energy += S.got;
     renderShop(L(`答對換到 ${S.got} 點能量！`, `You earned ${S.got} energy!`));
   }
-  function renderShop(msg) {
-    const g = game;
+  function gearList() {   // 商店與出發時顯示：目前身上的裝備
+    const g = game, out = [];
+    if (active('spread')) out.push(`🔱 ${Math.round((g.pw.spread - g.clock) / 1000)}s`);
+    if (g.extra) out.push(`⏱ +${g.extra}s`);
+    if (g.bombs) out.push(`💥 ×${g.bombs}`);
+    return out.map((x) => `<span>${x}</span>`).join('');
+  }
+  function renderShop(msg, just) {
+    const g = game, bought = (g.inStation && g.inStation.bought) || {};
     pane(`<div class="wj-card wb-st">
       <div class="wb-st-top"><span>🛰 ${L('裝備商店', 'Gear shop')}</span><span class="wb-st-en">🔋 ${g.energy}</span></div>
-      ${msg ? `<div class="wj-small" style="color:var(--lime)">${msg}</div>` : ''}
-      <div class="wb-shop">${SHOP.map((it) => `<button class="wb-item" data-wb="buy" data-k="${it.k}" ${g.energy < it.cost ? 'disabled' : ''}>
-        <span class="ic">${it.ic}</span><span class="nm">${L(it.zh, it.en)}</span><span class="co">🔋${it.cost}</span></button>`).join('')}</div>
-      <div class="wj-small">${L('剩下的能量會保留到下一個補給站', 'Leftover energy is saved for the next station')}${g.bombs ? L(`・大轟炸庫存 ${g.bombs}`, ` · Bombs: ${g.bombs}`) : ''}</div>
+      ${msg ? `<div class="wb-msg ${just ? 'pop' : ''}">${msg}</div>` : ''}
+      <div class="wj-small" style="margin:4px 0 0">${L('點一下就買，能量夠可以買很多次', 'Tap to buy — buy as many as you can afford')}</div>
+      <div class="wb-shop">${SHOP.map((it) => { const n = bought[it.k] || 0; return `<button class="wb-item ${n ? 'got' : ''} ${just === it.k ? 'pop' : ''}" data-wb="buy" data-k="${it.k}" ${g.energy < it.cost ? 'disabled' : ''}>
+        <span class="ic">${it.ic}</span><span class="nm">${L(it.zh, it.en)}${n ? `<b class="wb-own">✓ ${L('已買', 'Got')} ×${n}</b>` : ''}</span><span class="co">🔋${it.cost}</span></button>`; }).join('')}</div>
+      <div class="wb-gear"><b>${L('你的裝備', 'Your gear')}</b>${gearList() || `<span class="none">${L('還沒買', 'Nothing yet')}</span>`}</div>
+      <div class="wj-small">${L('剩下的能量會保留到下一個補給站', 'Leftover energy is saved for the next station')}</div>
       <div class="btnrow"><button class="btn" data-wb="leave">${L('出發 ▶', 'Go ▶')}</button></div>
     </div>`);
   }
@@ -370,10 +389,12 @@ const WB = (() => {
     const g = game, it = SHOP.find((x) => x.k === k);
     if (!it || g.energy < it.cost) return;
     g.energy -= it.cost;
-    if (k === 'spread') { g.spreadLv = active('spread') ? 2 : 1; g.pw.spread = Math.max(g.pw.spread, g.clock) + 15000; }
+    if (k === 'spread') { g.spreadLv = active('spread') ? 2 : 1; g.pw.spread = Math.max(g.pw.spread, g.clock) + 15000; g.pwTot = g.pwTot || {}; g.pwTot.spread = g.pw.spread - g.clock; }
     if (k === 'time') g.extra += 20;
     if (k === 'bomb') g.bombs++;
-    renderShop(`${it.ic} ${L('購買成功！', 'Bought!')}`);
+    const S = g.inStation; S.bought = S.bought || {}; S.bought[k] = (S.bought[k] || 0) + 1;
+    const how = { spread: L('出發後立刻生效', 'Active as soon as you leave'), time: L('時間已加上去', 'Added to your clock'), bomb: L('出發後按右下角 💥 使用', 'Tap 💥 bottom-right to use') }[k];
+    renderShop(`✅ ${it.ic} ${L(it.zh, it.en)} ${L('買到了！', 'bought!')}<small>${how}</small>`, k);
   }
   function leaveStation() {
     const g = game;
@@ -381,23 +402,40 @@ const WB = (() => {
     g.inStation = null; g.pendingWave = false; g.last = performance.now();
     g.ship.inv = Math.max(g.ship.inv, 1500);
     pane(''); nextWave();
-    flash(L('出發！', 'Go!'));
+    const gear = [active('spread') && '🔱', g.extra && `⏱+${g.extra}s`, g.bombs && `💥×${g.bombs}`].filter(Boolean).join('  ');
+    banner('🚀', L('出發！', 'Go!'), gear ? L('裝備：', 'Gear: ') + gear : L('沒有買裝備', 'No gear this time'), '#ffb547');
+    if (active('spread')) { g.pwFresh = g.pwFresh || {}; g.pwFresh.spread = Date.now(); ring(g.ship.x, g.ship.y, PW_INFO.spread.c); }
   }
   function useBomb() {
     const g = game; if (!g || !g.bombs || g.spell || g.inStation || g.over) return;
     g.bombs--;
+    const n = g.foes.filter((f) => !f.dead).length;
     g.foes.forEach((f) => { if (!f.dead) kill(f); });
     g.foes = g.foes.filter((f) => !f.dead); g.eshots = [];
     g.bombFlash = 1;
-    flash(L('💥 大轟炸！', '💥 MEGA BOMB!'));
+    banner('💥', L('大轟炸！', 'MEGA BOMB!'), L(`清光 ${n} 隻敵人`, `${n} aliens wiped out`) + (g.bombs ? L(`・剩 ${g.bombs} 顆`, ` · ${g.bombs} left`) : ''), '#ff6b57');
   }
-  function power(k) {
+  function power(k, ms) {
     const g = game, info = PW_INFO[k];
     if (k === 'spread' && active('spread')) g.spreadLv = 2;
     if (k === 'spread' && !active('spread')) g.spreadLv = 1;
-    g.pw[k] = Math.max(g.pw[k], g.clock) + PW_TIME[k];
-    flash(`${info.ic} ${L(info.zh, info.en)}${k === 'spread' && g.spreadLv === 2 ? ' ×5' : ''}`);
+    g.pw[k] = Math.max(g.pw[k], g.clock) + (ms || PW_TIME[k]);
+    g.pwFresh = g.pwFresh || {}; g.pwFresh[k] = Date.now();
+    g.pwTot = g.pwTot || {}; g.pwTot[k] = g.pw[k] - g.clock;
+    ring(g.ship.x, g.ship.y, info.c);
+    if (k === 'spread' && g.spreadLv === 2) banner(info.ic, L('散彈升級 ×5！', 'Spread ×5!'), L('一次射 5 發', '5 shots at once'), info.c);
+    else banner(info.ic, L(info.zh + '！', info.en + '!'), L(info.dz, info.de) + ` · ${Math.round((ms || PW_TIME[k]) / 1000)}s`, info.c);
   }
+  // 撿到／買到東西時，畫面中央跳出大橫幅（1.4 秒）
+  let bannerT = 0;
+  function banner(ic, title, sub, c) {
+    const el = $('wbBanner'); if (!el) return;
+    el.style.setProperty('--c', c || 'var(--lime)');
+    el.innerHTML = `<span class="ic">${ic}</span><div><b>${title}</b><small>${sub || ''}</small></div>`;
+    el.classList.remove('on'); void el.offsetWidth; el.classList.add('on');
+    clearTimeout(bannerT); bannerT = setTimeout(() => el.classList.remove('on'), 1400);
+  }
+  function ring(x, y, c) { game.rings = game.rings || []; game.rings.push({ x, y, r: 10, a: 1, c }); }
   function boom(x, y, c, n) { for (let i = 0; i < n; i++) { const a = Math.random() * 6.28, v = 1 + Math.random() * 3; game.fx.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, a: 1, c }); } }
 
   // ── 被打中 → 拼字 ──
@@ -479,12 +517,14 @@ const WB = (() => {
     $('wbT').classList.toggle('low', s <= 20);
     if (!game) return;
     $('wbS').textContent = game.score; $('wbP').textContent = '⭐ ' + toPts(game.score);
+    const fresh = game.pwFresh || {};
     $('wbPw').innerHTML = Object.keys(PW_INFO).filter(active).map((k) => {
-      const sec = Math.ceil((game.pw[k] - game.clock) / 1000);
-      return `${PW_INFO[k].ic}${k === 'spread' && game.spreadLv === 2 ? '×5' : ''}<small>${sec}</small>`;
-    }).join(' ');
-    if (game.energy) $('wbPw').innerHTML += ` 🔋<small>${game.energy}</small>`;
-    $('wbPw').style.display = $('wbPw').innerHTML ? '' : 'none';
+      const rem = game.pw[k] - game.clock, sec = Math.ceil(rem / 1000), tot = game.pwTot && game.pwTot[k] || PW_TIME[k];
+      const cls = Date.now() - (fresh[k] || 0) < 900 ? 'new' : sec <= 3 ? 'end' : '';
+      return `<em class="wb-chip ${cls}" style="--c:${PW_INFO[k].c}">${PW_INFO[k].ic}${k === 'spread' && game.spreadLv === 2 ? '×5' : ''} ${sec}s<i style="width:${Math.min(100, (rem / tot) * 100)}%"></i></em>`;
+    }).join('');
+    $('wbPw').style.display = $('wbPw').innerHTML && !game.inStation && !game.spell ? '' : 'none';
+    $('wbEn').style.display = game.energy ? '' : 'none'; $('wbEn').textContent = '🔋' + game.energy;
     $('wbBomb').style.display = game.bombs && !game.spell && !game.inStation && !game.over ? '' : 'none';
     $('wbBombN').textContent = game.bombs;
   }
@@ -516,7 +556,9 @@ const WB = (() => {
   function ship(x, y, inv) {
     if (inv > 0 && Math.floor(inv / 120) % 2) return;     // 無敵時閃爍
     cx.save(); cx.translate(x, y);
-    if (active('slow')) { cx.strokeStyle = 'rgba(255,181,71,.5)'; cx.lineWidth = 2; cx.beginPath(); cx.arc(0, 0, 26, 0, 7); cx.stroke(); }
+    const aura = Object.keys(PW_INFO).filter(active);   // 每個生效中的道具一圈彩色光環
+    aura.forEach((k, i) => { cx.strokeStyle = PW_INFO[k].c; cx.globalAlpha = 0.55 + Math.sin(performance.now() / 150 + i) * 0.25; cx.lineWidth = 2.5; cx.beginPath(); cx.arc(0, 0, 27 + i * 6, 0, 7); cx.stroke(); });
+    cx.globalAlpha = 1;
     cx.fillStyle = '#ff6b57'; cx.beginPath(); cx.moveTo(-7, 16); cx.lineTo(0, 24 + Math.random() * 6); cx.lineTo(7, 16); cx.fill();   // 火焰
     cx.fillStyle = '#CCFF00'; cx.beginPath(); cx.moveTo(0, -22); cx.lineTo(18, 16); cx.lineTo(0, 9); cx.lineTo(-18, 16); cx.closePath(); cx.fill();
     cx.font = '20px "Apple Color Emoji","Segoe UI Emoji",sans-serif'; cx.textAlign = 'center'; cx.textBaseline = 'middle';
@@ -541,6 +583,8 @@ const WB = (() => {
         cx.font = '16px "Apple Color Emoji","Segoe UI Emoji",sans-serif'; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText(i.ic, d.x, d.y + 1); cx.textBaseline = 'alphabetic';
       });
       if (g.station) station(g.station);
+      (g.rings || []).forEach((r) => { cx.globalAlpha = Math.max(0, r.a); cx.strokeStyle = r.c; cx.lineWidth = 4; cx.beginPath(); cx.arc(r.x, r.y, r.r, 0, 7); cx.stroke(); });
+      cx.globalAlpha = 1;
       if (g.bombFlash > 0) { cx.fillStyle = `rgba(255,255,255,${g.bombFlash * 0.7})`; cx.fillRect(0, 0, LW, VH); g.bombFlash -= 0.04; }
       g.fx.forEach((p) => { cx.globalAlpha = Math.max(0, p.a); cx.fillStyle = p.c; cx.fillRect(p.x - 2, p.y - 2, 4, 4); });
       cx.globalAlpha = 1;
