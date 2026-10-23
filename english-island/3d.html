@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>英文島 3D 試作</title>
+<meta name="theme-color" content="#1a3a1a">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green:#1a3a1a;--lime:#CCFF00;--mint:#4ECDC4;--sand:#F4F1EB}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:#BFEAF0;font-family:'Noto Sans TC',system-ui,sans-serif;color:var(--green)}
+#scene{position:fixed;inset:0;touch-action:none}
+canvas{display:block}
+.top{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);left:12px;right:12px;display:flex;align-items:center;gap:8px;pointer-events:none}
+.top > *{pointer-events:auto}
+.title{background:rgba(255,255,255,.92);border:2px solid var(--green);border-radius:16px;padding:6px 12px;line-height:1.15}
+.title b{display:block;font-size:16px}
+.title small{font-family:'Syne',sans-serif;font-weight:800;font-size:10px;letter-spacing:1.4px;color:#2f5a2f}
+.sp{flex:1}
+.chip{height:40px;padding:0 12px;border-radius:14px;border:2px solid var(--green);background:#fff;color:var(--green);font:700 14px 'Noto Sans TC',sans-serif;display:inline-flex;align-items:center;gap:6px;text-decoration:none;cursor:pointer}
+.chip.on{background:var(--green);color:var(--lime)}
+#fps{font-family:'Syne',sans-serif;font-weight:800;font-size:12px;background:rgba(26,58,26,.88);color:var(--lime);border-radius:12px;padding:6px 10px;min-width:64px;text-align:center}
+.views{position:fixed;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);display:flex;flex-direction:column;gap:8px}
+.views .chip{justify-content:center;min-width:84px;height:44px}
+.hint{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);transform:translateX(-50%);background:rgba(26,58,26,.88);color:#fff;font-size:13px;padding:8px 14px;border-radius:20px;white-space:nowrap;transition:opacity .4s;pointer-events:none}
+.card{position:fixed;left:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);width:min(330px,calc(100% - 120px));background:#fff;border:2px solid var(--green);border-radius:20px;padding:12px 14px;transform:translateY(140%);transition:transform .35s cubic-bezier(.2,.8,.2,1);box-shadow:0 10px 30px rgba(26,58,26,.25)}
+.card.show{transform:none}
+.card .code{font-family:'Syne',sans-serif;font-weight:800;font-size:22px}
+.card .t{font-weight:700;font-size:17px}
+.card .s{font-size:13px;color:#3d4a3d;margin-top:2px}
+.card .row{display:flex;align-items:center;gap:8px}
+.card .x{margin-left:auto;width:36px;height:36px;border-radius:12px;border:2px solid var(--green);background:#fff;font-size:16px;cursor:pointer}
+.card .bar{height:8px;border-radius:4px;background:#E2DED4;margin-top:8px;overflow:hidden}
+.card .bar i{display:block;height:100%;background:var(--lime)}
+.fail{position:fixed;inset:0;display:none;align-items:center;justify-content:center;text-align:center;padding:24px;background:var(--sand)}
+.fail.show{display:flex}
+.fail p{margin:10px 0 16px;line-height:1.6}
+@media (max-width:420px){.title small{display:none}.title b{font-size:14px;white-space:nowrap}.chip{padding:0 9px;font-size:13px;white-space:nowrap}#fps{min-width:0}}
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<div id="scene"></div>
+
+<div class="top">
+  <div class="title"><b>英文島 3D 試作</b><small>ENGLISH ISLAND · 3D TEST</small></div>
+  <div class="sp"></div>
+  <span id="fps">— fps</span>
+  <button class="chip" id="btnQ" aria-label="切換畫質">高畫質</button>
+  <a class="chip" href="./">2D 版</a>
+</div>
+
+<div class="views">
+  <button class="chip on" data-view="bird">鳥瞰</button>
+  <button class="chip" data-view="top">俯視</button>
+  <button class="chip" data-view="low">平視</button>
+  <button class="chip" data-view="reset">↺ 重設</button>
+</div>
+
+<div class="hint" id="hint">單指拖曳轉動・雙指縮放・點一塊地</div>
+
+<div class="card" id="card" role="dialog" aria-live="polite">
+  <div class="row"><span class="code" id="cCode">U1</span><div><div class="t" id="cTitle">—</div><div class="s" id="cSub">—</div></div><button class="x" id="cClose" aria-label="關閉">✕</button></div>
+  <div class="bar"><i id="cBar"></i></div>
+</div>
+
+<div class="fail" id="fail"><div><h2>這台裝置不支援 3D</h2><p>瀏覽器沒有開啟 WebGL，或裝置效能不足。<br>正式版會自動改用 2D 地圖。</p><a class="chip on" href="./">回到 2D 版</a></div></div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// ═══════════════════════════════════════════════════════
+//  試作資料：沿用 2D 版的座標（SVG 390×460，換算成 3D：每 10px＝1 單位）
+// ═══════════════════════════════════════════════════════
+const W = (sx, sy) => [(sx - 195) / 10, (sy - 230) / 10];
+const UNITS = [
+  { code: 'U1', zh: '流行與穿搭', pos: [24, 320], floors: 4, state: 'full' },
+  { code: 'U2', zh: '小幫手與 AI', pos: [148, 282], floors: 2, state: 'started' },
+  { code: 'U3', zh: '問路與飯店', pos: [262, 214], floors: 0, state: 'fresh' },
+  { code: 'U4', zh: '偵探與外星人', pos: [150, 150], floors: 0, state: 'locked' },
+  { code: 'U5', zh: '用電與防詐', pos: [30, 88], floors: 0, state: 'locked' },
+  { code: 'U6', zh: '健康與科學', pos: [196, 14], floors: 0, state: 'locked' },
+];
+const ROAD_SVG = [[72, 386], ['Q', 130, 382, 196, 348], ['Q', 270, 318, 310, 280], ['Q', 300, 232, 198, 216], ['Q', 112, 206, 78, 154], ['Q', 92, 96, 244, 80]];
+const ISLAND = [[44, 432], [4, 372, 6, 262, 30, 196], [50, 132, 16, 70, 84, 34], [150, 2, 270, -4, 330, 34], [386, 72, 380, 160, 370, 228], [360, 300, 386, 382, 326, 430], [262, 470, 104, 474, 44, 432]];
+const GRASS = [[58, 418], [28, 366, 28, 270, 48, 206], [66, 144, 40, 86, 96, 52], [154, 22, 262, 18, 316, 50], [362, 82, 358, 160, 350, 226], [342, 296, 364, 372, 314, 414], [258, 450, 112, 452, 58, 418]];
+const C = {
+  ink: 0x1a3a1a, lime: 0xCCFF00, limeD: 0x9FCC00, mint: 0x4ECDC4, mintD: 0x2A8E86, sand: 0xF1E3BE, grass: 0x9BD06E, grassD: 0x7DB858,
+  white: 0xffffff, cream: 0xEFE8D8, locked: 0xC9C5BC, road: 0xE6D7B5, water: 0x5FC8DA, waterL: 0x8FDDEA, trunk: 0x8B5A2B,
+  leaf: 0x5FB35A, leafL: 0x86CF6E, pine: 0x3E9150, rock: 0xB7B2A6, mount: 0x8FB58C, mountL: 0xAECAA9, coral: 0xFF6B57,
+};
+
+// ═══════════════════════════════════════════════════════
+//  場景、相機、燈光
+// ═══════════════════════════════════════════════════════
+const $ = (id) => document.getElementById(id);
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+  if (!renderer.getContext()) throw new Error('no webgl');
+} catch (e) { $('fail').classList.add('show'); throw e; }
+let quality = 'high';
+try { quality = localStorage.getItem('eisland3d-q') || (devicePixelRatio > 2.5 && innerWidth < 500 ? 'low' : 'high'); } catch (e) {}
+renderer.setSize(innerWidth, innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+$('scene').appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xBFEAF0);
+scene.fog = new THREE.Fog(0xBFEAF0, 90, 170);
+const camera = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, 0.5, 400);
+
+scene.add(new THREE.HemisphereLight(0xffffff, 0x8fbf8f, 1.25));
+const sun = new THREE.DirectionalLight(0xfff2d6, 2.1);
+sun.position.set(-30, 45, 20);
+sun.shadow.mapSize.set(1024, 1024);
+Object.assign(sun.shadow.camera, { left: -30, right: 30, top: 30, bottom: -30, near: 1, far: 120 });
+sun.shadow.bias = -0.0015;
+scene.add(sun);
+
+function applyQuality() {
+  const hi = quality === 'high';
+  renderer.setPixelRatio(Math.min(devicePixelRatio, hi ? 2 : 1.25));
+  renderer.shadowMap.enabled = hi;
+  sun.castShadow = hi;
+  scene.traverse((o) => { if (o.material) o.material.needsUpdate = true; });
+  $('btnQ').textContent = hi ? '高畫質' : '低畫質';
+  try { localStorage.setItem('eisland3d-q', quality); } catch (e) {}
+}
+
+// 低多邊形材質（平面著色）
+const mats = {};
+const M = (color, opts = {}) => {
+  const k = color + JSON.stringify(opts);
+  return mats[k] || (mats[k] = new THREE.MeshLambertMaterial({ color, flatShading: true, ...opts }));
+};
+const mesh = (geo, mat, x = 0, y = 0, z = 0, cast = true) => {
+  const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = cast; m.receiveShadow = true; return m;
+};
+
+// ═══════════════════════════════════════════════════════
+//  島：沙灘＋草地（由 2D 版的輪廓擠出）
+// ═══════════════════════════════════════════════════════
+function shapeFrom(pts, inset = 1) {
+  const s = new THREE.Shape(); const P = (x, y) => { const [a, b] = W(x, y); return [a * inset, -b * inset]; };
+  s.moveTo(...P(pts[0][0], pts[0][1]));
+  for (let i = 1; i < pts.length; i++) { const p = pts[i]; s.bezierCurveTo(...P(p[0], p[1]), ...P(p[2], p[3]), ...P(p[4], p[5])); }
+  return s;
+}
+const flat = (geo) => { geo.rotateX(-Math.PI / 2); return geo; };
+const islandG = new THREE.Group(); scene.add(islandG);
+// 海底淺水圈
+islandG.add(mesh(flat(new THREE.ShapeGeometry(shapeFrom(ISLAND, 1.12), 24)), M(C.waterL), 0, -0.35, 0, false));
+// 沙灘（帶斜邊）
+const sandGeo = new THREE.ExtrudeGeometry(shapeFrom(ISLAND), { depth: 1.2, bevelEnabled: true, bevelThickness: 0.5, bevelSize: 0.8, bevelSegments: 1, curveSegments: 18 });
+sandGeo.rotateX(-Math.PI / 2);
+islandG.add(mesh(sandGeo, M(C.sand), 0, -1.2, 0, false));
+// 草地（稍高一點）
+const grassGeo = new THREE.ExtrudeGeometry(shapeFrom(GRASS), { depth: 0.5, bevelEnabled: true, bevelThickness: 0.2, bevelSize: 0.5, bevelSegments: 1, curveSegments: 18 });
+grassGeo.rotateX(-Math.PI / 2);
+islandG.add(mesh(grassGeo, M(C.grass), 0, 0.3, 0, false));
+const GROUND = 1.0;   // 草地表面高度
+
+// 海：有波浪的低多邊形平面
+const seaGeo = flat(new THREE.PlaneGeometry(260, 260, 48, 48));
+const seaBase = seaGeo.attributes.position.array.slice();
+const sea = mesh(seaGeo, M(C.water, { transparent: true, opacity: 0.94 }), 0, -0.6, 0, false);
+scene.add(sea);
+
+// ═══════════════════════════════════════════════════════
+//  小路（帶狀網格＋白色虛線）
+// ═══════════════════════════════════════════════════════
+const roadPath = new THREE.Path();
+(() => {
+  const [x0, z0] = W(...ROAD_SVG[0]); roadPath.moveTo(x0, z0);
+  ROAD_SVG.slice(1).forEach(([, cx, cy, x, y]) => { const a = W(cx, cy), b = W(x, y); roadPath.quadraticCurveTo(a[0], a[1], b[0], b[1]); });
+})();
+const ROAD_PTS = roadPath.getSpacedPoints(240);   // Vector2(x, z)
+const ROAD_LEN = [0]; for (let i = 1; i < ROAD_PTS.length; i++) ROAD_LEN.push(ROAD_LEN[i - 1] + ROAD_PTS[i].distanceTo(ROAD_PTS[i - 1]));
+function ribbon(pts, width, y) {
+  const pos = [], idx = [];
+  pts.forEach((p, i) => {
+    const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)];
+    const dx = b.x - a.x, dz = b.y - a.y, L = Math.hypot(dx, dz) || 1, nx = -dz / L * width / 2, nz = dx / L * width / 2;
+    pos.push(p.x + nx, y, p.y + nz, p.x - nx, y, p.y - nz);
+    if (i) { const k = i * 2; idx.push(k - 2, k - 1, k, k - 1, k + 1, k); }
+  });
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals(); return g;
+}
+scene.add(mesh(ribbon(ROAD_PTS, 1.5, GROUND + 0.04), M(C.road, { side: THREE.DoubleSide }), 0, 0, 0, false));
+for (let i = 4; i < ROAD_PTS.length - 2; i += 6) {
+  const p = ROAD_PTS[i], q = ROAD_PTS[i + 1];
+  const d = mesh(new THREE.BoxGeometry(0.42, 0.04, 0.16), M(C.white), p.x, GROUND + 0.08, p.y, false);
+  d.rotation.y = -Math.atan2(q.y - p.y, q.x - p.x); scene.add(d);
+}
+const roadAt = (l) => {   // 沿路長度 → 座標與方向
+  let i = ROAD_LEN.findIndex((v) => v >= l); if (i < 1) i = 1;
+  const t = (l - ROAD_LEN[i - 1]) / ((ROAD_LEN[i] - ROAD_LEN[i - 1]) || 1);
+  const a = ROAD_PTS[i - 1], b = ROAD_PTS[i];
+  return { x: a.x + (b.x - a.x) * t, z: a.y + (b.y - a.y) * t, ang: Math.atan2(b.x - a.x, b.y - a.y) };
+};
+
+// ═══════════════════════════════════════════════════════
+//  地塊：浮起的平台＋樓層＋旗子／鎖頭＋標籤
+// ═══════════════════════════════════════════════════════
+function label(text, dark) {
+  const cv = document.createElement('canvas'); cv.width = 160; cv.height = 72;
+  const g = cv.getContext('2d');
+  g.fillStyle = dark ? '#1a3a1a' : '#ffffff'; g.strokeStyle = '#1a3a1a'; g.lineWidth = 7;
+  g.beginPath(); g.roundRect(6, 6, 148, 60, 30); g.fill(); g.stroke();
+  g.fillStyle = dark ? '#CCFF00' : '#1a3a1a'; g.font = '800 38px Syne, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText(text, 80, 38);
+  const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace;
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false }));
+  sp.scale.set(2.6, 1.17, 1); sp.renderOrder = 5; return sp;
+}
+const tiles = [], pickables = [];
+UNITS.forEach((u) => {
+  const [x, z] = W(u.pos[0] + 48, u.pos[1] + 66);
+  const g = new THREE.Group(); g.position.set(x, GROUND, z); scene.add(g);
+  const top = { full: C.lime, started: C.mint, fresh: C.white, locked: C.locked }[u.state];
+  const side = { full: C.limeD, started: C.mintD, fresh: C.cream, locked: 0xB0ABA0 }[u.state];
+  const plat = new THREE.Group(); g.add(plat);
+  const base = mesh(new THREE.BoxGeometry(4.3, 1.0, 4.3), [M(side), M(side), M(top), M(side), M(side), M(side)], 0, 0.5, 0);
+  base.rotation.y = Math.PI / 4; plat.add(base);
+  const edge = new THREE.LineSegments(new THREE.EdgesGeometry(base.geometry), new THREE.LineBasicMaterial({ color: C.ink }));
+  edge.rotation.y = Math.PI / 4; edge.position.y = 0.5; plat.add(edge);
+  base.userData.unit = u.code; pickables.push(base);
+  for (let f = 0; f < u.floors; f++) {   // 每完成一站蓋一層樓
+    const fl = mesh(new THREE.BoxGeometry(1.5, 0.7, 1.5), M(u.state === 'full' ? C.lime : C.white), 0, 1.35 + f * 0.74, 0);
+    fl.rotation.y = Math.PI / 4; plat.add(fl);
+    const fe = new THREE.LineSegments(new THREE.EdgesGeometry(fl.geometry), new THREE.LineBasicMaterial({ color: C.ink }));
+    fe.rotation.y = Math.PI / 4; fe.position.copy(fl.position); plat.add(fe);
+    [-1, 1].forEach((s) => { const w = mesh(new THREE.BoxGeometry(0.26, 0.24, 0.06), M(C.ink), 0, fl.position.y, 0, false); w.position.x = s * 0.32; w.position.z = 0.76; w.position.applyAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI / 4); w.rotation.y = Math.PI / 4; plat.add(w); });
+  }
+  if (u.state === 'full') {
+    const topY = 1.0 + u.floors * 0.74;
+    plat.add(mesh(new THREE.CylinderGeometry(0.07, 0.07, 2.2, 6), M(C.ink), 0, topY + 1.1, 0));
+    const fg = new THREE.BufferGeometry(); fg.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 1.3, -0.3, 0, 0, -0.6, 0], 3)); fg.computeVertexNormals();
+    const flag = mesh(fg, M(C.lime, { side: THREE.DoubleSide }), 0.05, topY + 2.15, 0); flag.userData.flag = true; plat.add(flag);
+  }
+  if (u.state === 'locked') {
+    const lock = new THREE.Group(); lock.position.y = 1.7; plat.add(lock);
+    lock.add(mesh(new THREE.BoxGeometry(1.1, 0.85, 0.5), M(C.white), 0, 0, 0));
+    lock.add(mesh(new THREE.TorusGeometry(0.36, 0.11, 6, 12, Math.PI), M(C.ink), 0, 0.42, 0));
+    lock.userData.spin = true;
+  }
+  const lb = label(u.code, false); lb.position.set(0, -0.2, 0); lb.center.set(0.5, 1.6); g.add(lb);
+  tiles.push({ u, g, plat, label: lb, x, z });
+});
+
+// ═══════════════════════════════════════════════════════
+//  大自然：樹、松樹、山、湖、河、石頭、花、雲、船
+// ═══════════════════════════════════════════════════════
+const sway = [], drifters = [], bobbers = [];
+function tree(sx, sy, s = 1) {
+  const [x, z] = W(sx, sy); const g = new THREE.Group(); g.position.set(x, GROUND, z); g.scale.setScalar(s);
+  g.add(mesh(new THREE.CylinderGeometry(0.22, 0.3, 1.4, 6), M(C.trunk), 0, 0.7, 0));
+  g.add(mesh(new THREE.IcosahedronGeometry(1.25, 0), M(C.leaf), 0, 2.2, 0));
+  g.add(mesh(new THREE.IcosahedronGeometry(0.7, 0), M(C.leafL), -0.5, 2.7, 0.4));
+  g.rotation.y = Math.random() * 6; scene.add(g); sway.push({ g, p: Math.random() * 6 });
+}
+function pine(sx, sy, s = 1) {
+  const [x, z] = W(sx, sy); const g = new THREE.Group(); g.position.set(x, GROUND, z); g.scale.setScalar(s);
+  g.add(mesh(new THREE.CylinderGeometry(0.18, 0.24, 0.9, 6), M(C.trunk), 0, 0.45, 0));
+  g.add(mesh(new THREE.ConeGeometry(1.2, 1.8, 7), M(C.pine), 0, 1.6, 0));
+  g.add(mesh(new THREE.ConeGeometry(0.85, 1.5, 7), M(C.pine), 0, 2.5, 0));
+  g.rotation.y = Math.random() * 6; scene.add(g); sway.push({ g, p: Math.random() * 6 });
+}
+function mountain(sx, sy, r, h, snow) {
+  const [x, z] = W(sx, sy);
+  scene.add(mesh(new THREE.ConeGeometry(r, h, 6), M(C.mount), x, GROUND + h / 2 - 0.1, z));
+  if (snow) scene.add(mesh(new THREE.ConeGeometry(r * 0.36, h * 0.36, 6), M(C.white), x, GROUND + h - h * 0.18 - 0.05, z));
+}
+function rock(sx, sy, s = 1) { const [x, z] = W(sx, sy); const r = mesh(new THREE.DodecahedronGeometry(0.55 * s, 0), M(C.rock), x, GROUND + 0.25 * s, z); r.rotation.set(Math.random(), Math.random(), 0); scene.add(r); }
+function flowers(list) { list.forEach(([sx, sy, c]) => { const [x, z] = W(sx, sy); scene.add(mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.4, 4), M(0x3F8F43), x, GROUND + 0.2, z, false)); scene.add(mesh(new THREE.IcosahedronGeometry(0.16, 0), M(c), x, GROUND + 0.45, z, false)); }); }
+function lake(sx, sy, rx, rz) {
+  const [x, z] = W(sx, sy);
+  const shore = mesh(flat(new THREE.CircleGeometry(1, 20)), M(0xC9E9A8), x, GROUND + 0.02, z, false); shore.scale.set(rx + 0.6, 1, rz + 0.5); scene.add(shore);
+  const w = mesh(flat(new THREE.CircleGeometry(1, 20)), M(C.waterL), x, GROUND + 0.05, z, false); w.scale.set(rx, 1, rz); scene.add(w);
+  [[-0.5, 0.3, 0.5], [0.55, -0.3, 0.4]].forEach(([a, b, r]) => scene.add(mesh(new THREE.CylinderGeometry(r, r, 0.06, 8), M(C.leaf), x + a * rx, GROUND + 0.09, z + b * rz, false)));
+  const duck = new THREE.Group(); duck.position.set(x + 0.15 * rx, GROUND + 0.15, z + 0.2 * rz);
+  duck.add(mesh(new THREE.SphereGeometry(0.32, 6, 5), M(C.white), 0, 0.1, 0)); duck.add(mesh(new THREE.SphereGeometry(0.2, 6, 5), M(C.white), 0.25, 0.42, 0));
+  const beak = mesh(new THREE.ConeGeometry(0.08, 0.2, 4), M(0xFFB547), 0.48, 0.4, 0); beak.rotation.z = -Math.PI / 2; duck.add(beak);
+  scene.add(duck); bobbers.push({ g: duck, y: duck.position.y, p: 1, swim: { cx: x, cz: z, rx: rx * 0.35, rz: rz * 0.3 } });
+}
+function cloud(x, y, z, s = 1) {
+  const g = new THREE.Group(); g.position.set(x, y, z); g.scale.setScalar(s);
+  [[0, 0, 0, 1.4], [1.3, -0.2, 0.2, 1], [-1.3, -0.25, -0.1, 1.05], [0.4, 0.55, 0.1, 0.9]].forEach(([a, b, c, r]) => g.add(mesh(new THREE.IcosahedronGeometry(r, 1), M(C.white), a, b, c, true)));
+  scene.add(g); drifters.push({ g, x0: x, p: Math.random() * 6, sp: 0.15 + Math.random() * 0.1 });
+}
+function boat(sx, sy) {
+  const [x, z] = W(sx, sy); const g = new THREE.Group(); g.position.set(x, -0.3, z);
+  g.add(mesh(new THREE.BoxGeometry(2.2, 0.5, 0.9), M(C.coral), 0, 0, 0));
+  g.add(mesh(new THREE.CylinderGeometry(0.05, 0.05, 2, 5), M(C.ink), 0, 1.2, 0));
+  g.add(mesh(new THREE.ConeGeometry(0.75, 1.6, 3), M(C.white), 0.35, 1.2, 0));
+  scene.add(g); bobbers.push({ g, y: -0.3, p: 0, rock: true, sail: { cx: x, cz: z } });
+}
+// 位置沿用 2D 版的安排（避開地塊與小路）
+lake(84, 284, 4, 2.1);
+mountain(300, 222, 2.6, 4.2, false); mountain(334, 214, 4, 7.5, true); mountain(362, 222, 2, 3.4, false);
+(() => { const r = ribbon([[354, 224], [366, 238], [382, 246]].map(([a, b]) => { const [x, z] = W(a, b); return new THREE.Vector2(x, z); }), 0.6, GROUND + 0.06); scene.add(mesh(r, M(C.waterL, { side: THREE.DoubleSide }), 0, 0, 0, false)); })();
+tree(108, 82); pine(130, 70, .9); tree(156, 56, .8); pine(180, 50, .75); pine(318, 86, .85); tree(342, 108, .8);
+tree(270, 406); pine(296, 398, 1.1); tree(322, 414, .95); pine(312, 382, .8); tree(344, 394, .8); tree(136, 314, .75); tree(40, 330, .7);
+rock(364, 346, .9); rock(352, 356, .6); rock(136, 214, .7);
+flowers([[124, 428, 0xFF9AC1], [134, 436, 0xFFD84D], [116, 440, 0xffffff], [252, 354, 0xFF6B57], [262, 362, 0xFFD84D], [58, 340, 0xFF9AC1], [226, 440, 0xffffff], [124, 238, 0xFFD84D], [134, 246, 0xFF9AC1], [182, 188, 0xffffff]]);
+cloud(-14, 13, -18, 1); cloud(9, 15, -26, 1.2); cloud(17, 12, 2, 0.8); cloud(-20, 14, 14, 0.9);
+boat(380, 452);
+
+// ═══════════════════════════════════════════════════════
+//  角色（低多邊形版；正式版會沿用捏人設定）
+// ═══════════════════════════════════════════════════════
+const hero = new THREE.Group(); scene.add(hero);
+const body = new THREE.Group(); body.scale.setScalar(0.8); hero.add(body);
+const legL = new THREE.Group(), legR = new THREE.Group(), armL = new THREE.Group(), armR = new THREE.Group();
+[[legL, -0.22], [legR, 0.22]].forEach(([g, x]) => { g.position.set(x, 0.75, 0); g.add(mesh(new THREE.BoxGeometry(0.28, 0.7, 0.3), M(0x2F3A56), 0, -0.35, 0)); g.add(mesh(new THREE.BoxGeometry(0.32, 0.16, 0.42), M(C.ink), 0, -0.72, 0.05)); body.add(g); });
+body.add(mesh(new THREE.CylinderGeometry(0.42, 0.5, 0.85, 7), M(C.lime), 0, 1.15, 0));
+[[armL, -0.58], [armR, 0.58]].forEach(([g, x]) => { g.position.set(x, 1.5, 0); g.add(mesh(new THREE.BoxGeometry(0.22, 0.62, 0.24), M(C.lime), 0, -0.28, 0)); g.add(mesh(new THREE.SphereGeometry(0.14, 6, 5), M(0xF6C9A3), 0, -0.64, 0)); body.add(g); });
+const head = new THREE.Group(); head.position.y = 2.15; body.add(head);
+head.add(mesh(new THREE.IcosahedronGeometry(0.62, 1), M(0xF6C9A3), 0, 0, 0));
+const hair = mesh(new THREE.SphereGeometry(0.66, 10, 6, 0, Math.PI * 2, 0, Math.PI * 0.45), M(0x2B1E16), 0, 0.06, -0.04); hair.rotation.x = -0.25; head.add(hair);
+[-0.22, 0.22].forEach((x) => head.add(mesh(new THREE.SphereGeometry(0.07, 6, 4), M(C.ink), x, 0.02, 0.58, false)));
+let heroLen = 0, walking = null;
+const tileLen = {};
+// 角色停在地塊上、房子旁邊：從小路上離地塊中心最近的點，往回（或往前）退到距中心約 1.9 的位置
+const dist2 = (i, t) => Math.hypot(ROAD_PTS[i].x - t.x, ROAD_PTS[i].y - t.z);
+tiles.forEach((t) => {
+  let near = 0; ROAD_PTS.forEach((p, i) => { if (dist2(i, t) < dist2(near, t)) near = i; });
+  let i = near; while (i > 0 && dist2(i, t) < 1.9) i--;
+  if (dist2(i, t) < 1.9) { i = near; while (i < ROAD_PTS.length - 1 && dist2(i, t) < 1.9) i++; }
+  tileLen[t.u.code] = ROAD_LEN[i];
+});
+const PLAT_R = 4.3 / Math.SQRT2;   // 地塊（轉 45° 的正方形）中心到角的距離
+function groundAt(x, z) {   // 走上地塊時踩在平台上
+  for (const t of tiles) if (Math.abs(x - t.x) + Math.abs(z - t.z) < PLAT_R) return GROUND + 1.0 + t.plat.position.y;
+  return GROUND + 0.05;
+}
+heroLen = tileLen.U2;
+function placeHero(l, ang) { const r = roadAt(l); hero.position.x = r.x; hero.position.z = r.z; if (ang != null) hero.rotation.y = ang; }
+placeHero(heroLen, 0); hero.position.y = groundAt(hero.position.x, hero.position.z);
+
+// ═══════════════════════════════════════════════════════
+//  視角控制
+// ═══════════════════════════════════════════════════════
+const controls = new OrbitControls(camera, renderer.domElement);
+Object.assign(controls, { enableDamping: true, dampingFactor: 0.08, enablePan: false, minDistance: 22, maxDistance: 85, maxPolarAngle: 1.32, minPolarAngle: 0.02, rotateSpeed: 0.7, zoomSpeed: 0.9 });
+const VIEWS = { bird: { polar: 0.95, az: 0.5, dist: 58 }, top: { polar: 0.03, az: 0, dist: 62 }, low: { polar: 1.25, az: 0.75, dist: 46 } };
+const fitK = () => Math.max(1, 1.05 / camera.aspect);   // 直式手機畫面窄，鏡頭要拉遠才看得到整座島
+const fitControls = () => { controls.maxDistance = 85 * fitK(); controls.minDistance = 16; scene.fog.near = 90 * fitK(); scene.fog.far = 170 * fitK(); };
+fitControls();
+let fly = null;   // 鏡頭平滑移動
+function setView(name, target = new THREE.Vector3(0, 0, 0)) {
+  const v = VIEWS[name]; const portrait = camera.aspect < 0.8;
+  const sph = new THREE.Spherical(v.dist * fitK() * (portrait && name === 'bird' ? 0.92 : 1), name === 'bird' && portrait ? 0.8 : v.polar, name === 'bird' && portrait ? 0.22 : v.az);
+  const to = new THREE.Vector3().setFromSpherical(sph).add(target);
+  fly = { t0: performance.now(), dur: 900, fromP: camera.position.clone(), toP: to, fromT: controls.target.clone(), toT: target.clone() };
+  document.querySelectorAll('[data-view]').forEach((b) => b.classList.toggle('on', b.dataset.view === name));
+}
+camera.position.setFromSpherical(new THREE.Spherical(110, 0.7, 0.2)); controls.target.set(0, 0, 0);
+setView('bird');
+function focusTile(t) {   // 鏡頭飛到地塊上方一點，保持目前的方向
+  const off = camera.position.clone().sub(controls.target); const dist = Math.min(off.length(), 40 * fitK()); off.setLength(dist);
+  const target = new THREE.Vector3(t.x, GROUND, t.z);
+  fly = { t0: performance.now(), dur: 900, fromP: camera.position.clone(), toP: target.clone().add(off), fromT: controls.target.clone(), toT: target };
+}
+
+// ═══════════════════════════════════════════════════════
+//  點地塊：角色沿路走過去、鏡頭跟過去、跳出單元卡片
+// ═══════════════════════════════════════════════════════
+const ray = new THREE.Raycaster(), ptr = new THREE.Vector2();
+let down = null;
+renderer.domElement.addEventListener('pointerdown', (e) => { down = { x: e.clientX, y: e.clientY, t: performance.now() }; hideHint(); });
+renderer.domElement.addEventListener('pointerup', (e) => {
+  if (!down || Math.hypot(e.clientX - down.x, e.clientY - down.y) > 8 || performance.now() - down.t > 500) return;
+  if (walking) { walking.skip = true; return; }
+  ptr.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+  ray.setFromCamera(ptr, camera);
+  const hit = ray.intersectObjects(pickables, false)[0];
+  if (!hit) return;
+  const t = tiles.find((x) => x.u.code === hit.object.userData.unit);
+  if (t.u.state === 'locked') { bounce(t); return showCard(t); }
+  focusTile(t);
+  const to = tileLen[t.u.code];
+  if (Math.abs(to - heroLen) < 0.3) return showCard(t);
+  hideCard();
+  walking = { from: heroLen, to, t0: performance.now(), dur: Math.min(1600, Math.max(500, Math.abs(to - heroLen) * 45)), t, skip: false };
+});
+function bounce(t) { t.bounce = performance.now(); }
+function showCard(t) {
+  const done = t.u.floors, prog = { full: '四站完成，旗子插上了！', started: `完成 ${done} / 4 站`, fresh: '還沒開始，點進去先複習單字', locked: '老師還沒開放' }[t.u.state];
+  $('cCode').textContent = t.u.code; $('cTitle').textContent = t.u.zh; $('cSub').textContent = prog;
+  $('cBar').style.width = (done / 4 * 100) + '%'; $('card').classList.add('show');
+  tiles.forEach((x) => { x.sel = x === t; });
+}
+function hideCard() { $('card').classList.remove('show'); }
+$('cClose').onclick = hideCard;
+let hintOff = false; function hideHint() { if (!hintOff) { hintOff = true; $('hint').style.opacity = 0; } }
+document.querySelectorAll('[data-view]').forEach((b) => b.onclick = () => { hideCard(); setView(b.dataset.view === 'reset' ? 'bird' : b.dataset.view); });
+$('btnQ').onclick = () => { quality = quality === 'high' ? 'low' : 'high'; applyQuality(); };
+applyQuality();
+addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); fitControls(); });
+
+// ═══════════════════════════════════════════════════════
+//  動畫迴圈＋FPS
+// ═══════════════════════════════════════════════════════
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const ease = (k) => (k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2);
+let frames = 0, fpsT = performance.now();
+const clock = new THREE.Clock();
+function loop(now) {
+  const t = clock.getElapsedTime();
+  if (fly) {
+    const k = Math.min(1, (now - fly.t0) / fly.dur), e = ease(k);
+    camera.position.lerpVectors(fly.fromP, fly.toP, e); controls.target.lerpVectors(fly.fromT, fly.toT, e);
+    if (k >= 1) fly = null;
+  }
+  if (walking) {
+    let k = Math.min(1, (now - walking.t0) / walking.dur); if (walking.skip || reduce) k = 1;
+    const l = walking.from + (walking.to - walking.from) * ease(k), r = roadAt(l);
+    heroLen = l; placeHero(l, walking.to > walking.from ? r.ang : r.ang + Math.PI);
+    const sw = Math.sin(now / 75) * 0.7; legL.rotation.x = sw; legR.rotation.x = -sw; armL.rotation.x = -sw; armR.rotation.x = sw; body.position.y = Math.abs(Math.sin(now / 75)) * 0.12;
+    if (k >= 1) { const tt = walking.t; walking = null; [legL, legR, armL, armR].forEach((g) => (g.rotation.x = 0)); body.position.y = 0; hero.rotation.y = 0; showCard(tt); }
+  } else if (!reduce) body.position.y = Math.sin(t * 2.2) * 0.03;
+  if (!reduce) {
+    const a = seaGeo.attributes.position, arr = a.array;   // 海浪
+    for (let i = 0; i < arr.length; i += 3) arr[i + 1] = seaBase[i + 1] + Math.sin(seaBase[i] * 0.25 + t * 1.2) * 0.18 + Math.cos(seaBase[i + 2] * 0.3 + t) * 0.15;
+    a.needsUpdate = true;
+    sway.forEach((s) => { s.g.rotation.z = Math.sin(t * 1.4 + s.p) * 0.035; });
+    drifters.forEach((d) => { d.g.position.x = d.x0 + Math.sin(t * d.sp + d.p) * 4; });
+    bobbers.forEach((b) => {
+      b.g.position.y = b.y + Math.sin(t * 1.8 + b.p) * 0.12;
+      if (b.rock) b.g.rotation.z = Math.sin(t * 1.3) * 0.08;
+      if (b.swim) { b.g.position.x = b.swim.cx + Math.cos(t * 0.4) * b.swim.rx; b.g.position.z = b.swim.cz + Math.sin(t * 0.4) * b.swim.rz; b.g.rotation.y = -t * 0.4; }
+      if (b.sail) { b.g.position.x = b.sail.cx + Math.sin(t * 0.15) * 3; }
+    });
+    tiles.forEach((x) => {
+      x.plat.children.forEach((c) => { if (c.userData.flag) c.rotation.y = Math.sin(t * 3) * 0.25; if (c.userData.spin) c.rotation.y = t * 0.8; });
+    });
+  }
+  tiles.forEach((x) => {   // 選到的地塊浮起來；鎖住的點了會彈一下
+    let y = x.sel ? 0.45 : 0;
+    if (x.bounce) { const k = (now - x.bounce) / 450; if (k < 1) y += Math.sin(k * Math.PI) * 0.6; else x.bounce = 0; }
+    x.plat.position.y += (y - x.plat.position.y) * 0.18;
+  });
+  hero.position.y += (groundAt(hero.position.x, hero.position.z) - hero.position.y) * 0.35;   // 上下地塊時平順地跳上去
+  controls.update();
+  renderer.render(scene, camera);
+  frames++;
+  if (now - fpsT > 1000) { const f = Math.round(frames * 1000 / (now - fpsT)); $('fps').textContent = f + ' fps'; $('fps').style.color = f >= 45 ? '#CCFF00' : f >= 28 ? '#FFB547' : '#FF6B57'; frames = 0; fpsT = now; }
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+window.__island3d = { scene, camera, controls, tiles, setView };   // 測試用
+</script>
+</body>
+</html>
