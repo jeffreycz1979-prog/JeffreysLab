@@ -669,7 +669,7 @@ nav button.on{color:var(--lime);font-weight:700}
         </div>
       </div>
     </div>
-    <p class="hint">Jeffrey's Lab · 英文順起來．探索英文島 v1.5（THP11 內容）</p>
+    <p class="hint">Jeffrey's Lab · 英文順起來．探索英文島 v1.6（THP11 內容）</p>
   </section>
 </main>
 
@@ -1917,26 +1917,32 @@ const AV_OPTS = {
   mouth: [['smile', '微笑'], ['open', '大笑'], ['cat', '貓嘴'], ['o', '驚訝']],
   hair:  [['short', '短髮'], ['spiky', '刺刺頭'], ['bob', '妹妹頭'], ['long', '長髮'], ['bun', '包包頭'], ['curly', '捲髮']],
   top:   [['tee', 'T 恤'], ['hoodie', '帽 T'], ['skirt', '裙子'], ['stripe', '條紋衫'], ['dress', '洋裝'], ['jacket', '外套'],
-          ['princess', '公主裝'], ['knight', '騎士裝'], ['robot', '機器人裝'], ['warrior', '勇士裝'], ['dino', '恐龍裝']],
+          ['princess', '公主裝'], ['hero', '超人裝'], ['knight', '騎士裝'], ['robot', '機器人裝'], ['warrior', '勇士裝'], ['dino', '恐龍裝']],
+  deco:  [['none', '不戴'], ['bow', '蝴蝶結'], ['clip', '髮夾'], ['headband', '髮箍'], ['flowercrown', '花圈'], ['tiara', '小皇冠']],
+  ear:   [['none', '不戴'], ['pearl', '珍珠'], ['heart', '愛心'], ['star', '星星'], ['hoop', '圓圈']],
+  hold:  [['none', '空手'], ['bouquet', '花束'], ['wand', '魔法棒'], ['balloon', '氣球'], ['icecream', '冰淇淋']],
   hat:   [['none', '不戴'], ['cap', '棒球帽'], ['flower', '小花'], ['beanie', '毛帽'], ['headphones', '耳機'], ['wizard', '魔法帽'], ['crown', '皇冠']],
   acc:   [['none', '不戴'], ['glasses', '眼鏡'], ['scarf', '圍巾'], ['backpack', '背包'], ['star', '星星貼紙'], ['cape', '披風']],
-  pet:   [['none', '不帶'], ['dog', '小狗'], ['cat', '小貓'], ['bird', '小鳥'], ['rabbit', '兔子'], ['turtle', '烏龜'], ['snake', '小蛇']],
+  pet:   [['none', '不帶'], ['dog', '小狗'], ['cat', '小貓'], ['bird', '小鳥'], ['rabbit', '兔子'], ['turtle', '烏龜'], ['snake', '小蛇'],
+          ['capybara', '卡皮巴拉'], ['seal', '海豹'], ['trex', '暴龍'], ['dragon', '西方龍'], ['unicorn', '獨角獸']],
 };
 // ── 角色商店：衣服、顏色、帽子、配件、寵物都用積分買 ──
 // 定價：一般 30、很酷的 60（翻倍）、換色 20。一週正常練習（約 90～100 分）大約買得起 3 樣一般的
 // 買東西只扣「可用積分」；總積分、等級、積分證明都不會變少
 const PRICE_BASIC = 30, PRICE_COOL = 60, PRICE_COLOR = 20;
-const AV_COOL = ['top:princess', 'top:knight', 'top:robot', 'top:warrior', 'top:dino', 'hat:wizard', 'hat:crown', 'acc:cape',
-  'pet:dog', 'pet:cat', 'pet:bird', 'pet:rabbit', 'pet:turtle', 'pet:snake'];
-const AV_PRICE = { 'color:top': PRICE_COLOR, 'color:bot': PRICE_COLOR };
-['top', 'hat', 'acc', 'pet'].forEach((k) => AV_OPTS[k].forEach(([v]) => {
+const AV_COOL = ['top:princess', 'top:hero', 'top:knight', 'top:robot', 'top:warrior', 'top:dino', 'hat:wizard', 'hat:crown', 'acc:cape',
+  'deco:flowercrown', 'deco:tiara', 'pet:dog', 'pet:cat', 'pet:bird', 'pet:rabbit', 'pet:turtle', 'pet:snake',
+  'pet:capybara', 'pet:seal', 'pet:trex', 'pet:dragon', 'pet:unicorn'];
+const AV_PRICE = { 'color:hair': PRICE_COLOR, 'color:top': PRICE_COLOR, 'color:bot': PRICE_COLOR };
+['top', 'hat', 'deco', 'ear', 'acc', 'hold', 'pet'].forEach((k) => AV_OPTS[k].forEach(([v]) => {
   if (v !== 'tee' && v !== 'none') AV_PRICE[k + ':' + v] = AV_COOL.includes(k + ':' + v) ? PRICE_COOL : PRICE_BASIC;
 }));
 const spentPts = () => (st.ledger.shop || []).reduce((a, b) => a + b.p, 0);
 const walletPts = () => Math.max(0, points().total - spentPts());
 const owns = (key) => (st.ledger.shop || []).some((b) => b.k === key);
 const avLock = (k, v) => { const key = k + ':' + v, pr = AV_PRICE[key]; return pr && !owns(key) ? pr : null; };   // 還沒買：回傳價格
-const colorLock = (k) => avLock('color', k === 'topC' ? 'top' : 'bot');
+const COLOR_KEY = { hairC: 'hair', topC: 'top', botC: 'bot' };   // 膚色免費，不在這裡
+const colorLock = (k) => (COLOR_KEY[k] ? avLock('color', COLOR_KEY[k]) : null);
 async function buyItem(key) {
   const pr = AV_PRICE[key];
   if (!pr || owns(key)) return true;
@@ -1946,10 +1952,11 @@ async function buyItem(key) {
   confetti(60); toast(L(`🛍 買到了：${avKeyName(key)}！剩 ${walletPts()} 積分`, `🛍 Got it: ${avKeyName(key)}! ${walletPts()} left`));
   return true;
 }
-const DEFAULT_LOOK = { skin: 1, eyes: 'dot', mouth: 'smile', hair: 'short', hairC: 0, top: 'tee', topC: 0, botC: 0, hat: 'none', acc: 'none', pet: 'none' };
+const DEFAULT_LOOK = { skin: 1, eyes: 'dot', mouth: 'smile', hair: 'short', hairC: 0, top: 'tee', topC: 0, botC: 0, hat: 'none', deco: 'none', ear: 'none', acc: 'none', hold: 'none', pet: 'none' };
 function sanitizeLook(l) {   // 還沒解鎖的東西換回預設（例如解鎖規則改了）
   const out = { ...DEFAULT_LOOK, ...l };
-  ['top', 'hat', 'acc', 'pet'].forEach((k) => { if (avLock(k, out[k])) out[k] = DEFAULT_LOOK[k]; });
+  ['top', 'hat', 'deco', 'ear', 'acc', 'hold', 'pet'].forEach((k) => { if (!AV_OPTS[k].some((o) => o[0] === out[k]) || avLock(k, out[k])) out[k] = DEFAULT_LOOK[k]; });
+  if (colorLock('hairC')) out.hairC = DEFAULT_LOOK.hairC;
   if (colorLock('topC')) out.topC = DEFAULT_LOOK.topC;
   if (colorLock('botC')) out.botC = DEFAULT_LOOK.botC;
   return out;
@@ -1959,9 +1966,9 @@ function randomLook() {
   const r = (a) => a[Math.floor(Math.random() * a.length)];
   const free = (k) => AV_OPTS[k].map((o) => o[0]).filter((v) => !avLock(k, v));
   const ri = (n) => Math.floor(Math.random() * n);
-  return { skin: ri(AV_SKIN.length), eyes: r(free('eyes')), mouth: r(free('mouth')), hair: r(free('hair')), hairC: ri(AV_HAIRC.length),
+  return { skin: ri(AV_SKIN.length), eyes: r(free('eyes')), mouth: r(free('mouth')), hair: r(free('hair')), hairC: colorLock('hairC') ? 0 : ri(AV_HAIRC.length),
     top: r(free('top')), topC: colorLock('topC') ? 0 : ri(AV_TOPC.length), botC: colorLock('botC') ? 0 : ri(AV_BOTC.length),
-    hat: Math.random() < .5 ? 'none' : r(free('hat')), acc: Math.random() < .5 ? 'none' : r(free('acc')), pet: Math.random() < .5 ? 'none' : r(free('pet')) };
+    ...Object.fromEntries(['hat', 'deco', 'ear', 'acc', 'hold', 'pet'].map((k) => [k, Math.random() < .5 ? 'none' : r(free(k))])) };
 }
 
 // ── 服裝：每套決定身體、手臂、腿的畫法 ──
@@ -2021,6 +2028,14 @@ function outfitOf(lk, S, T, B, st2) {
       o.armC = S; o.legC = '#5A3A24';
       o.front = `<rect x="21" y="94" width="11" height="6" rx="2" fill="#7A5230" stroke="${INK}" stroke-width="1.6"/><rect x="68" y="94" width="11" height="6" rx="2" fill="#7A5230" stroke="${INK}" stroke-width="1.6"/>`;
       break;
+    case 'hero':   // 超人裝：藍色緊身衣＋紅披風＋星星徽章
+      o.back = `<path d="M33 78 L17 128 Q50 137 83 128 L67 78 Z" fill="#FF3B3B" ${st2}/>`;
+      o.body = `<path d="M31 78 Q50 72 69 78 L70 108 Q50 112 30 108 Z" fill="#3B6BFF" ${st2}/>
+        <path d="M50 81 L59 87 L55 97 L45 97 L41 87 Z" fill="#FFD84D" ${st2}/><path d="M50 84 l1.6 3.3 3.6 .5 -2.6 2.5 .6 3.6 -3.2 -1.7 -3.2 1.7 .6 -3.6 -2.6 -2.5 3.6 -.5 z" fill="#FF3B3B"/>
+        <rect x="30" y="101" width="40" height="5" rx="2" fill="#FFD84D" ${st2}/>
+        <path d="M33 77 Q50 86 67 77" fill="none" stroke="#FF3B3B" stroke-width="4"/>`;
+      o.armC = '#3B6BFF'; o.legC = '#3B6BFF';
+      break;
     case 'dino':   // 恐龍裝：綠色連身＋尾巴＋帶牙齒的帽子
       o.back = `<path d="M62 100 Q88 104 98 126 Q84 118 64 112 Z" fill="#5FB35A" ${st2}/><path d="M78 108 l4 -6 l3 7 M88 114 l5 -5 l2 8" fill="#CCFF00" stroke="${INK}" stroke-width="1.6" stroke-linejoin="round"/>`;
       o.body = `<path d="M30 78 Q50 72 70 78 L71 110 Q50 114 29 110 Z" fill="#5FB35A" ${st2}/><ellipse cx="50" cy="96" rx="13" ry="12" fill="#CDEFA0" stroke="${INK}" stroke-width="1.8"/>
@@ -2063,6 +2078,31 @@ function petOf(kind, st2) {
       <path d="M84 132 Q84 124 96 124 Q110 124 110 130 Q110 136 96 136 Q86 136 88 130" fill="none" stroke="#7CC46A" stroke-width="4" stroke-linecap="round"/>
       <path d="M108 128 Q114 118 112 110" fill="none" stroke="${INK}" stroke-width="7" stroke-linecap="round"/><path d="M108 128 Q114 118 112 110" fill="none" stroke="#7CC46A" stroke-width="4" stroke-linecap="round"/>
       <ellipse cx="113" cy="107" rx="6" ry="4.5" fill="#7CC46A" ${s2}/>${eye(115, 106)}<path d="M119 108 L123 108 L125 106 M123 108 L125 110" stroke="#FF6B57" stroke-width="1.3" fill="none" stroke-linecap="round"/>`;
+    case 'capybara': return `<rect x="83" y="114" width="31" height="19" rx="9.5" fill="#A9784A" ${s2}/><rect x="88" y="128" width="5" height="8" rx="2" fill="#A9784A" ${s2}/><rect x="104" y="128" width="5" height="8" rx="2" fill="#A9784A" ${s2}/>
+      <rect x="103" y="103" width="21" height="17" rx="7" fill="#A9784A" ${s2}/><circle cx="106" cy="104" r="3" fill="#7A5230" ${s2}/>
+      ${eye(113, 110)}<ellipse cx="121" cy="112" rx="2.4" ry="2" fill="${INK}"/><path d="M116 116 q2 1.5 4 0" fill="none" stroke="${INK}" stroke-width="1.2"/>
+      <circle cx="114" cy="98" r="5" fill="#FFB547" ${s2}/><path d="M114 93 q3 -4 7 -2" fill="none" stroke="#3F8F43" stroke-width="2.2" stroke-linecap="round"/>`;
+    case 'seal': return `<path d="M84 130 L77 125 L79 135 Z" fill="#7F93A8" ${s2}/><ellipse cx="99" cy="127" rx="17" ry="8" fill="#9FB3C8" ${s2}/>
+      <ellipse cx="101" cy="130" rx="9" ry="3.5" fill="#DCE6F0"/><ellipse cx="106" cy="133" rx="6" ry="2.8" fill="#7F93A8" ${s2}/>
+      <circle cx="115" cy="111" r="9" fill="#9FB3C8" ${s2}/>${eye(112, 109)}${eye(118, 109)}<circle cx="111.5" cy="108.4" r=".6" fill="#fff"/><circle cx="117.5" cy="108.4" r=".6" fill="#fff"/>
+      <ellipse cx="115" cy="113.5" rx="2" ry="1.4" fill="${INK}"/><path d="M110 115 H104 M120 115 H126 M110 117 L105 119 M120 117 L125 119" stroke="${INK}" stroke-width=".9"/>`;
+    case 'trex': return `<path d="M96 123 Q84 121 79 131 Q90 127 99 129 Z" fill="#7CC46A" ${s2}/><rect x="95" y="127" width="6" height="9" rx="2" fill="#7CC46A" ${s2}/><rect x="104" y="127" width="6" height="9" rx="2" fill="#7CC46A" ${s2}/>
+      <ellipse cx="102" cy="121" rx="10" ry="11" fill="#7CC46A" ${s2}/><ellipse cx="105" cy="124" rx="5" ry="7" fill="#CDEFA0"/>
+      <path d="M109 117 l5 2 l-1 3.5" fill="none" stroke="${INK}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M99 104 Q99 93 112 93 L122 95 Q125 104 120 108 L106 110 Q99 110 99 104 Z" fill="#7CC46A" ${s2}/>
+      <path d="M109 108 l1.6 2.6 l1.6 -2.6 l1.6 2.6 l1.6 -2.6 l1.6 2.6 l1.6 -2.6" fill="#ffffff" stroke="${INK}" stroke-width="1" stroke-linejoin="round"/>${eye(110, 99)}<circle cx="119" cy="99" r="1" fill="${INK}"/>`;
+    case 'dragon': return `<path d="M96 114 L83 95 L89 107 L80 105 L92 120 Z" fill="#CCFF00" ${s2}/><path d="M108 112 L123 93 L117 105 L125 104 L113 119 Z" fill="#CCFF00" ${s2}/>
+      <path d="M93 128 Q82 131 84 120" fill="none" stroke="${INK}" stroke-width="5" stroke-linecap="round"/><path d="M93 128 Q82 131 84 120" fill="none" stroke="#6B4CE6" stroke-width="2.8" stroke-linecap="round"/><path d="M84 121 l-5 -5 l7 1 z" fill="#FF6B57" ${s2}/>
+      <rect x="95" y="128" width="5" height="8" rx="2" fill="#6B4CE6" ${s2}/><rect x="105" y="128" width="5" height="8" rx="2" fill="#6B4CE6" ${s2}/>
+      <ellipse cx="102" cy="123" rx="10" ry="10" fill="#6B4CE6" ${s2}/><ellipse cx="104" cy="126" rx="5" ry="6" fill="#B7A6FF"/>
+      <path d="M103 102 l-3 -7 l5 4 M110 100 l1 -7 l3 6" fill="#FFB547" ${s2}/><circle cx="108" cy="108" r="8" fill="#6B4CE6" ${s2}/><ellipse cx="115" cy="111" rx="5.5" ry="4" fill="#6B4CE6" ${s2}/>
+      <circle cx="109" cy="106" r="2" fill="#FFD84D" stroke="${INK}" stroke-width="1"/><circle cx="109" cy="106" r=".9" fill="${INK}"/><circle cx="118" cy="110" r=".9" fill="${INK}"/>`;
+    case 'unicorn': return `<path d="M86 118 Q77 124 81 133 Q86 126 90 124 Z" fill="#FF9AC1" ${s2}/>
+      ${[89, 94, 101, 106].map((x) => `<rect x="${x}" y="125" width="4" height="10" rx="1.5" fill="#ffffff" ${s2}/>`).join('')}
+      <ellipse cx="98" cy="122" rx="12" ry="8" fill="#ffffff" ${s2}/>
+      <path d="M104 118 L108 104 Q110 98 118 100 L123 106 Q123 111 118 111 L114 111 L110 121 Z" fill="#ffffff" ${s2}/>
+      <path d="M107 104 Q101 109 104 118 Q99 111 102 103 Z" fill="#4ECDC4" ${s2}/><path d="M109 101 Q104 103 103 108" fill="none" stroke="#FF9AC1" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M114 100 L118 88 L117.5 101 Z" fill="#FFD84D" ${s2}/>${eye(116, 104)}<circle cx="121" cy="108" r=".8" fill="${INK}"/>`;
     default: return '';
   }
 }
@@ -2081,7 +2121,18 @@ function avatarParts(look) {
   // 腿、手
   const legs = `<g class="legL"><rect x="37" y="100" width="11" height="30" rx="5.5" fill="${O.legC}" ${st2}/><ellipse cx="41" cy="132" rx="8.5" ry="5" fill="${INK}"/></g>
     <g class="legR"><rect x="52" y="100" width="11" height="30" rx="5.5" fill="${O.legC}" ${st2}/><ellipse cx="59" cy="132" rx="8.5" ry="5" fill="${INK}"/></g>`;
-  const arms = `<g class="armL"><rect x="21" y="80" width="11" height="24" rx="5.5" fill="${O.armC}" ${st2}/><circle cx="26.5" cy="106" r="5.5" fill="${O.hand}" ${st2}/></g>
+  const HOLD = {
+    bouquet: `<path d="M17 97 L36 97 L27 116 Z" fill="#FF9AC1" ${st2}/><path d="M20 96 l-4 -6 M33 96 l4 -6" stroke="#3F8F43" stroke-width="2.4" stroke-linecap="round"/>
+      <circle cx="21" cy="92" r="4.6" fill="#FF6B57" stroke="${INK}" stroke-width="1.8"/><circle cx="28" cy="88" r="4.6" fill="#FFD84D" stroke="${INK}" stroke-width="1.8"/><circle cx="34" cy="93" r="4.6" fill="#ffffff" stroke="${INK}" stroke-width="1.8"/>
+      <circle cx="21" cy="92" r="1.4" fill="#FFD84D"/><circle cx="28" cy="88" r="1.4" fill="#FF6B57"/><circle cx="34" cy="93" r="1.4" fill="#FF9AC1"/>`,
+    wand: `<path d="M27 108 L13 84" stroke="${INK}" stroke-width="5" stroke-linecap="round"/><path d="M27 108 L13 84" stroke="#FFB547" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M12 74 l2.4 5 5.5 .8 -4 3.9 .9 5.5 -4.8 -2.6 -4.8 2.6 .9 -5.5 -4 -3.9 5.5 -.8 z" fill="#CCFF00" stroke="${INK}" stroke-width="1.6" stroke-linejoin="round"/>`,
+    balloon: `<path d="M26 104 Q16 84 13 64" fill="none" stroke="${INK}" stroke-width="1.4"/><ellipse cx="12" cy="52" rx="9" ry="11" fill="#FF6B57" ${st2}/>
+      <path d="M10 63 l2 3 l2 -3 z" fill="#FF6B57" stroke="${INK}" stroke-width="1.4"/><path d="M8 46 q2 -4 5 -4" stroke="#ffffff" stroke-width="2" fill="none" stroke-linecap="round"/>`,
+    icecream: `<path d="M20 102 L33 102 L26.5 121 Z" fill="#E3A878" ${st2}/><path d="M22 106 L31 112 M24 111 L29 106" stroke="#B97D55" stroke-width="1.4"/>
+      <circle cx="23.5" cy="98" r="5.5" fill="#FF9AC1" stroke="${INK}" stroke-width="1.8"/><circle cx="30" cy="97" r="5.5" fill="#CDEFA0" stroke="${INK}" stroke-width="1.8"/><circle cx="27" cy="91" r="5" fill="#FFF3D6" stroke="${INK}" stroke-width="1.8"/>`,
+  };
+  const arms = `<g class="armL"><rect x="21" y="80" width="11" height="24" rx="5.5" fill="${O.armC}" ${st2}/>${HOLD[lk2.hold] || ''}<circle cx="26.5" cy="106" r="5.5" fill="${O.hand}" ${st2}/></g>
     <g class="armR"><rect x="68" y="80" width="11" height="24" rx="5.5" fill="${O.armC}" ${st2}/><circle cx="73.5" cy="106" r="5.5" fill="${O.hand}" ${st2}/></g>`;
   let body = O.body;
   if (lk2.acc === 'backpack') body += `<path d="M36 78 V104 M64 78 V104" stroke="#2A8E86" stroke-width="4" stroke-linecap="round"/>`;
@@ -2115,6 +2166,21 @@ function avatarParts(look) {
     curly: `<path d="M22 46 Q22 20 50 20 Q78 20 78 46 Q66 34 50 36 Q34 34 22 46 Z" fill="${H}" ${st2}/>` + [[25, 36], [31, 25], [41, 19], [52, 17], [63, 20], [71, 27], [76, 37]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="8" fill="${H}" ${st2}/>`).join(''),
   };
   hairF = HF[lk2.hair] || HF.short;
+  const DECO_H = {
+    bow: `<g transform="translate(68 26)"><path d="M0 0 L-11 -8 L-11 8 Z M0 0 L11 -8 L11 8 Z" fill="#FF6BAA" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/><circle r="3.6" fill="#FF9AC1" stroke="${INK}" stroke-width="2"/></g>`,
+    clip: `<rect x="27" y="29" width="13" height="4.5" rx="2.2" transform="rotate(-35 33 31)" fill="#FFD84D" stroke="${INK}" stroke-width="1.8"/><rect x="34" y="24" width="13" height="4.5" rx="2.2" transform="rotate(-25 40 26)" fill="#4ECDC4" stroke="${INK}" stroke-width="1.8"/>`,
+    headband: `<path d="M22 42 Q23 14 50 13 Q77 14 78 42" fill="none" stroke="${INK}" stroke-width="7.5" stroke-linecap="round"/><path d="M22 42 Q23 14 50 13 Q77 14 78 42" fill="none" stroke="#FF6B57" stroke-width="4" stroke-linecap="round"/>`,
+    flowercrown: [[24, 38], [30, 27], [40, 20], [50, 18], [60, 20], [70, 27], [76, 38]].map(([x, y], i) => `<g transform="translate(${x} ${y})"><path d="M-5 3 l4 -2 M5 3 l-4 -2" stroke="#3F8F43" stroke-width="2" stroke-linecap="round"/>${[0, 120, 240].map((a) => `<circle cx="${(Math.cos(a * Math.PI / 180 - 1.57) * 2.8).toFixed(1)}" cy="${(Math.sin(a * Math.PI / 180 - 1.57) * 2.8).toFixed(1)}" r="2.8" fill="${['#FF9AC1', '#FFD84D', '#ffffff'][i % 3]}" stroke="${INK}" stroke-width="1.1"/>`).join('')}<circle r="1.5" fill="#FFB547"/></g>`).join(''),
+    tiara: `<path d="M33 25 L37 13 L44 21 L50 8 L56 21 L63 13 L67 25 Q50 20 33 25 Z" fill="#E6EBF0" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/><circle cx="50" cy="17" r="2.8" fill="#FF9AC1" stroke="${INK}" stroke-width="1.2"/><circle cx="40" cy="21" r="1.6" fill="#4ECDC4"/><circle cx="60" cy="21" r="1.6" fill="#4ECDC4"/>`,
+  };
+  hairF += DECO_H[lk2.deco] || '';
+  const EAR = {
+    pearl: (x) => `<circle cx="${x}" cy="58.5" r="2.8" fill="#ffffff" stroke="${INK}" stroke-width="1.4"/>`,
+    heart: (x) => `<path d="M${x} 62 l-3.4 -3.6 a2 2 0 0 1 3.4 -2.4 a2 2 0 0 1 3.4 2.4 z" fill="#FF6BAA" stroke="${INK}" stroke-width="1.2" stroke-linejoin="round"/>`,
+    star: (x) => `<path d="M${x} 55.5 l1.2 2.5 2.7 .4 -2 1.9 .5 2.7 -2.4 -1.3 -2.4 1.3 .5 -2.7 -2 -1.9 2.7 -.4 z" fill="#CCFF00" stroke="${INK}" stroke-width="1" stroke-linejoin="round"/>`,
+    hoop: (x) => `<circle cx="${x}" cy="60.5" r="4.2" fill="none" stroke="${INK}" stroke-width="3.6"/><circle cx="${x}" cy="60.5" r="4.2" fill="none" stroke="#FFB547" stroke-width="2"/>`,
+  };
+  if (EAR[lk2.ear]) front += EAR[lk2.ear](21) + EAR[lk2.ear](79);
   if (lk2.acc === 'glasses') front += `<circle cx="40" cy="50" r="8" fill="none" stroke="${INK}" stroke-width="2.5"/><circle cx="60" cy="50" r="8" fill="none" stroke="${INK}" stroke-width="2.5"/><path d="M48 50 H52" stroke="${INK}" stroke-width="2.5"/>`;
   if (lk2.acc === 'star') front += `<path d="M69 55 l2 4.2 4.6 .6 -3.3 3.2 .8 4.6 -4.1 -2.2 -4.1 2.2 .8 -4.6 -3.3 -3.2 4.6 -.6 z" fill="#CCFF00" stroke="${INK}" stroke-width="1.6" stroke-linejoin="round"/>`;
   const HAT = {
@@ -2132,13 +2198,13 @@ function avatarParts(look) {
 const AV_VB = { full: '-6 -12 132 152', body: '0 -12 100 152', head: '10 -8 80 86', pet: '72 60 56 80' };
 const petThumb = (v) => (v === 'none'
   ? `<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="11" fill="none" stroke="#1a3a1a" stroke-width="2.5" stroke-dasharray="4 4"/></svg>`
-  : `<svg class="av idle" viewBox="${v === 'bird' ? '58 52 40 38' : '76 86 52 52'}" aria-hidden="true"><g class="pet">${petOf(v)}</g></svg>`);
+  : `<svg class="av idle" viewBox="${v === 'bird' ? '58 52 40 38' : ['dragon', 'trex', 'unicorn'].includes(v) ? '74 82 56 56' : '76 86 52 52'}" aria-hidden="true"><g class="pet">${petOf(v)}</g></svg>`);
 const avatarSVG = (lk, cls = '', vb = 'full') => `<svg class="av ${cls}" viewBox="${AV_VB[vb]}" aria-hidden="true">${avatarParts(lk)}</svg>`;
 const avaHTML = () => (st.profile && st.profile.look ? avatarSVG(lookOf(), '', 'head') : esc(st.profile ? st.profile.avatar : '🦊'));
 
 const avKeyName = (key) => {
   const [k, v] = key.split(':');
-  if (k === 'color') return v === 'top' ? L('上衣換色', 'Top colors') : L('褲子換色', 'Pants colors');
+  if (k === 'color') return { hair: L('髮色', 'Hair colors'), top: L('上衣換色', 'Top colors'), bot: L('褲子換色', 'Pants colors') }[v];
   const o = (AV_OPTS[k] || []).find((x) => x[0] === v); return o ? o[1] : v;
 };
 // ── 逛街提醒：可用積分夠買還沒有的東西時，每週提醒一次 ──
@@ -2152,7 +2218,7 @@ function checkAvUnlocks() {
 
 // ── 捏人頁（含商店）──
 const AV_TABS = [['face', '臉', 'Face'], ['hair', '頭髮', 'Hair'], ['clothes', '衣服', 'Clothes'], ['acc', '配件', 'Extras'], ['pet', '寵物', 'Pets']];
-const TAB_KEYS = { clothes: ['top', 'color:top', 'color:bot'], acc: ['hat', 'acc'], pet: ['pet'] };
+const TAB_KEYS = { face: ['ear'], hair: ['deco', 'color:hair'], clothes: ['top', 'color:top', 'color:bot'], acc: ['hat', 'acc', 'hold'], pet: ['pet'] };
 function tabProgress(tab) {   // 這一頁擁有幾樣
   const keys = Object.keys(AV_PRICE).filter((k) => TAB_KEYS[tab].some((pp) => pp.includes(':') ? k === pp : k.startsWith(pp + ':')));
   return [keys.filter(owns).length, keys.length];
@@ -2198,10 +2264,10 @@ function renderAvCreator() {
   const buyBar = b ? `<div class="avbuy"><div>${L(`試穿中：<b>${esc(avKeyName(b.key))}</b>`, `Trying on: <b>${esc(avKeyName(b.key))}</b>`)}<small>${L(`要 ${AV_PRICE[b.key]} 積分・你有 ${w}`, `${AV_PRICE[b.key]} points · you have ${w}`)}</small></div>
       <button class="btn" data-act="avbuy" ${AV_PRICE[b.key] > w ? 'disabled' : ''}>${AV_PRICE[b.key] > w ? L(`還差 ${AV_PRICE[b.key] - w}`, `Need ${AV_PRICE[b.key] - w}`) : L('買下', 'Buy')}</button>
       <button class="btn ghost" data-act="avbuyno">${L('不要', 'No')}</button></div>` : '';
-  const body = tab === 'face' ? col('skin', AV_SKIN, L('膚色', 'Skin')) + opt('eyes', L('眼睛', 'Eyes')) + opt('mouth', L('嘴巴', 'Mouth'))
-    : tab === 'hair' ? opt('hair', L('髮型', 'Style')) + col('hairC', AV_HAIRC, L('髮色', 'Color'))
+  const body = tab === 'face' ? col('skin', AV_SKIN, L('膚色', 'Skin')) + opt('eyes', L('眼睛', 'Eyes')) + opt('mouth', L('嘴巴', 'Mouth')) + opt('ear', L('耳環', 'Earrings'))
+    : tab === 'hair' ? opt('hair', L('髮型', 'Style')) + col('hairC', AV_HAIRC, L('髮色', 'Color')) + opt('deco', L('髮飾', 'Hair accessory'))
     : tab === 'clothes' ? progLine + opt('top', L('服裝', 'Outfit'), 'body') + col('topC', AV_TOPC, L('上衣顏色', 'Top color')) + col('botC', AV_BOTC, L('褲子／裙子顏色', 'Pants / skirt color'))
-    : tab === 'acc' ? progLine + opt('hat', L('帽子', 'Hat')) + opt('acc', L('配件', 'Extra'), 'body')
+    : tab === 'acc' ? progLine + opt('hat', L('帽子', 'Hat')) + opt('acc', L('配件', 'Extra'), 'body') + opt('hold', L('手拿', 'In hand'), 'body')
     : progLine + opt('pet', L('寵物', 'Pet'), 'pet');
   $('sheet').innerHTML = `<div class="avc">
       <div class="avc-stage ${st.avWalk ? 'walking' : ''}">${avatarSVG(d, st.avWalk ? 'walk' : 'idle')}</div>
@@ -2777,8 +2843,8 @@ document.addEventListener('click', (e) => {
     st.avDraft[k] = v; return renderAvCreator();
   }
   if (t.dataset.avcol) {
-    const [k, i] = t.dataset.avcol.split(':'), lock = (k === 'topC' || k === 'botC') && +i !== DEFAULT_LOOK[k] ? colorLock(k) : null;
-    if (lock) return tryOn(k, +i, k === 'topC' ? 'color:top' : 'color:bot');
+    const [k, i] = t.dataset.avcol.split(':'), lock = COLOR_KEY[k] && +i !== DEFAULT_LOOK[k] ? colorLock(k) : null;
+    if (lock) return tryOn(k, +i, 'color:' + COLOR_KEY[k]);
     if (st.avBuy && st.avBuy.k !== k) cancelBuy(false);
     st.avDraft[k] = +i; return renderAvCreator();
   }
