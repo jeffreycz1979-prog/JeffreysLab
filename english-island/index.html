@@ -8,6 +8,12 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="英文島">
 <title>英文順起來．探索英文島</title>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"
+} }
+</script>
 <link rel="manifest" href="/JeffreysLab/english-island/manifest.json">
 <link rel="apple-touch-icon" href="/JeffreysLab/icons/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -84,6 +90,14 @@ main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
 @media (prefers-reduced-motion:reduce){.island .sway,.island .drift,.island .wave,.island .bobb,.island .spin{animation:none}}
 .island .tile.sel .lift{transform:translateY(-6px)}
 .island .lift{transition:transform .25s}
+.map-tog{flex:none;height:32px;min-width:44px;padding:0 10px;border-radius:12px;border:2px solid var(--green);background:#fff;color:var(--green);font:800 13px 'Syne',sans-serif}
+.island3d{position:relative;width:100%;aspect-ratio:390/440;overflow:hidden;background:#C9EEEA}
+.island3d[hidden]{display:none}
+.island3d canvas{display:block;position:absolute;inset:0}
+.i3d-load{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--green)}
+.island3d.ready .i3d-load{display:none}
+.i3d-views{position:absolute;right:10px;bottom:10px;display:flex;gap:6px;z-index:2}
+.i3d-views button{height:36px;min-width:44px;padding:0 10px;border-radius:12px;border:2px solid var(--green);background:rgba(255,255,255,.92);color:var(--green);font-size:13px;font-weight:700}
 .island-port{display:flex;align-items:center;gap:10px;width:calc(100% - 24px);margin:0 12px 12px;padding:10px 14px;border-radius:16px;
   border:2px solid var(--green);background:#ffffff;color:var(--green);font-size:14px;font-weight:700;text-align:left}
 .island-port i{font-style:normal;font-size:22px}
@@ -156,7 +170,8 @@ main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .avwallet b{font-family:'Syne',sans-serif;color:var(--lime);font-size:16px}
 .avopt small{font-weight:800;color:#1a3a1a}
 .avopt small.short{color:#8a5a00}
-.avbuy{display:flex;align-items:center;gap:8px;margin-top:12px;padding:10px 12px;border-radius:16px;background:#1f2a12;border:2px solid var(--lime)}
+.avfoot{position:sticky;bottom:calc(-18px - var(--safe-b));margin:14px -18px calc(-18px - var(--safe-b));padding:12px 18px calc(14px + var(--safe-b));background:var(--bg);border-top:1px solid var(--line);z-index:2}
+.avbuy{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:16px;background:#1f2a12;border:2px solid var(--lime)}
 .avbuy > div{flex:1;min-width:0;font-size:14px}
 .avbuy small{display:block;font-size:12px;color:var(--muted);margin-top:2px}
 .avbuy .btn{padding:10px 14px}
@@ -173,6 +188,7 @@ main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
   #v-home #installTip{grid-column:1 / -1}
   #v-home .island-card{grid-column:1;grid-row:2 / span 2;margin-bottom:0}
   #v-home .island svg{max-height:calc(100dvh - 330px);margin:0 auto}
+  #v-home .island3d{aspect-ratio:auto;height:calc(100dvh - 330px);min-height:420px}
   #v-home .hero{grid-column:2;grid-row:2}
   #v-home .trio{grid-column:2;grid-row:3;margin-top:14px}
   #v-home .hero{flex-direction:column;text-align:center}
@@ -560,8 +576,13 @@ nav button.on{color:var(--lime);font-weight:700}
       <div class="island-head">
         <div><b>探索英文島</b><small>ENGLISH ISLAND</small></div>
         <span id="islandSum"></span>
+        <button class="map-tog" id="mapTog" aria-label="切換 2D／3D 地圖" style="display:none">3D</button>
       </div>
       <div class="island" id="island"></div>
+      <div class="island3d" id="island3d" hidden>
+        <div class="i3d-load">3D 地圖載入中…</div>
+        <div class="i3d-views"><button data-i3v="bird" data-en="Bird">鳥瞰</button><button data-i3v="top" data-en="Top">俯視</button><button data-i3v="reset" aria-label="重設視角">↺</button></div>
+      </div>
       <button class="island-port" data-v="v-quiz" id="islandPort"></button>
     </div>
     <div class="hero">
@@ -622,6 +643,7 @@ nav button.on{color:var(--lime);font-weight:700}
     <div class="set" id="rules"></div>
     <h3 data-en="Settings">設定 <small>SETTINGS</small></h3>
     <div class="set">
+      <div class="srow" id="rowMap3d"><div><span data-en="3D map">🗺️ 3D 地圖</span><small data-en="Rotate and zoom the island · turn off to use the 2D map">可以轉動、縮放的立體島嶼；關掉就用 2D 地圖</small></div><button class="sw" id="sMap3d"></button></div>
       <div class="srow"><div><span data-en="My character">🧑‍🎨 我的角色</span><small data-en="Pick a face, hair, clothes and extras">換臉、髮型、衣服和配件；練習越多解鎖越多</small></div><button class="btn ghost" data-act="avedit" data-en="Edit">捏角色</button></div>
       <div class="srow"><div><span data-en="Name &amp; avatar">暱稱與頭像</span><small id="meName">—</small></div><button class="btn ghost" data-act="profile" data-en="Edit">修改</button></div>
       <div class="srow"><div>🌐 <span data-en="English mode">英文模式 English mode</span><small data-en="English menus · cards show the English definition first">介面變英文，單字卡和挑戰改看英文定義</small></div><button class="sw" id="sLang"></button></div>
@@ -647,7 +669,7 @@ nav button.on{color:var(--lime);font-weight:700}
         </div>
       </div>
     </div>
-    <p class="hint">Jeffrey's Lab · 英文順起來．探索英文島 v1.4（THP11 內容）</p>
+    <p class="hint">Jeffrey's Lab · 英文順起來．探索英文島 v1.5（THP11 內容）</p>
   </section>
 </main>
 
@@ -1732,9 +1754,77 @@ function renderIsland() {
     <g class="deco">${D.objects}</g>
     ${tiles}<g class="deco">${D.sky}</g><g id="hero"></g></svg>`;
   placeHero();
+  const on3 = use3D();
+  $('island').hidden = on3; $('island3d').hidden = !on3;
+  $('mapTog').style.display = webglOK && !st.map3dFailed ? '' : 'none';
+  $('mapTog').textContent = on3 ? '2D' : '3D';
+  if (on3) ensure3D();
   $('islandSum').textContent = L(`蓋好 ${fullCount} / ${units.length} 座`, `${fullCount} / ${units.length} built`);
   const unlocked = GAMES.filter((g) => masteredCount() >= g.need).length;
   $('islandPort').innerHTML = `<i>🎮</i><span>${L('遊戲港口', 'Game Harbor')}<small>${L('挑戰過關的單元越多，開放越多獎勵遊戲', 'Pass more unit challenges to unlock more games')}</small></span><b>${unlocked} / ${GAMES.length}</b>`;
+}
+// ── 3D 地圖：選 3D 時才下載 Three.js 與 island3d.js；失敗自動改回 2D ──
+const webglOK = (() => { try { const c = document.createElement('canvas'); return !!(c.getContext('webgl2') || c.getContext('webgl')); } catch (e) { return false; } })();
+const use3D = () => webglOK && !st.map3dFailed && st.set.map3d !== false;
+let i3d = null, i3dLoading = null;
+const heroBubble = () => { const fresh = !(st.profile && st.profile.look); return fresh ? 'edit' : (st.meta.avNew || []).length ? 'shop' : ''; };
+function heroCanvas() {   // 角色（含寵物）＋頭上的泡泡 → 畫布，給 3D 當看板貼圖
+  return new Promise((res) => {
+    const svg = avatarSVG(lookOf(), '', 'full').replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" width="264" height="304" ');
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement('canvas'); c.width = 264; c.height = 384;
+      const g = c.getContext('2d'); g.drawImage(img, 0, 80, 264, 304);
+      const b = heroBubble();
+      if (b) {
+        const txt = b === 'edit' ? L('捏我！', 'Edit me!') : L('🛍 去購物！', '🛍 Shop!');
+        g.font = '700 30px "Noto Sans TC", system-ui, sans-serif'; const w = g.measureText(txt).width + 36;
+        g.fillStyle = '#1a3a1a'; g.beginPath(); g.roundRect(112 - w / 2, 14, w, 50, 25); g.fill();
+        g.beginPath(); g.moveTo(102, 62); g.lineTo(112, 76); g.lineTo(122, 62); g.fill();
+        g.fillStyle = '#CCFF00'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(txt, 112, 40);
+      }
+      res(c);
+    };
+    img.onerror = () => res(null);
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  });
+}
+const island3dHost = {
+  layout() { const n = Math.min(9, allUnits().length + (st.lockedUnits || []).length), lay = n <= 6 ? 6 : 9; return { lay, pos: ISLAND_POS[lay], road: ISLAND_ROAD[lay] }; },
+  units() {
+    const open = allUnits(), locked = st.lockedUnits || [];
+    return [...open.map((u) => [u, false]), ...locked.map((u) => [u, true])].slice(0, 9).map(([u, lk]) => {
+      if (lk) return { code: u, locked: true, floors: 0 };
+      const i = unitStations(u);
+      return { code: u, locked: false, floors: i.floors, total: i.total, full: i.full, started: i.started, faded: i.full && faded(u), sel: st.islandSel === u };
+    });
+  },
+  heroAt() { const open = allUnits(); let at = st.meta.avatarAt; if (!open.includes(at)) at = open.find((u) => !unitStations(u).full) || open[0]; return at; },
+  heroKey: () => JSON.stringify(lookOf()) + '|' + heroBubble() + '|' + EN(),
+  heroCanvas,
+  tileTap(code) { openUnit(code); },
+  arrive(code) { st.meta.avatarAt = code; saveMeta(); openUnit(code); },
+  heroTap() { openAvCreator(); },
+  reduce: matchMedia('(prefers-reduced-motion: reduce)').matches,
+  active: () => $('v-home').classList.contains('active') && !document.hidden && use3D() && !$('modal').classList.contains('show'),
+  quality: () => st.set.map3dQ || 'high',
+  setQuality(q) { st.set.map3dQ = q; saveSet(); },
+};
+function ensure3D() {
+  if (i3d) { i3d.update(); return; }
+  if (i3dLoading) return;
+  i3dLoading = (async () => {
+    try {
+      const mod = await import('./island3d.js?v=1');
+      i3d = await mod.createIsland3D($('island3d'), island3dHost);
+      $('island3d').classList.add('ready');
+    } catch (e) {
+      console.error('3D 地圖載入失敗', e);
+      st.map3dFailed = true;
+      toast(L('3D 地圖載入失敗，先用 2D 地圖', '3D map failed to load — using 2D'));
+      renderIsland();
+    } finally { i3dLoading = null; }
+  })();
 }
 function openUnit(u) {
   if (!allUnits().includes(u)) return toast(L('這座島還沒開放，先把前面的島蓋好', 'Not open yet — build the earlier islands first'));
@@ -2120,10 +2210,9 @@ function renderAvCreator() {
         <button class="btn ghost" data-act="avwalk">${st.avWalk ? L('⏸ 停下來', '⏸ Stop') : L('🚶 走走看', '🚶 Walk')}</button>
         <button class="btn ghost" data-act="avrand">${L('🎲 隨機', '🎲 Random')}</button></div>
     </div>
-    ${buyBar}
     <div class="chips avtabs">${AV_TABS.map(([k, zh, en]) => `<button class="chip ${tab === k ? 'on' : ''}" data-avtab="${k}">${EN() ? en : zh}</button>`).join('')}</div>
     <div class="avbody">${body}</div>
-    <div class="btnrow" style="margin-top:14px"><button class="btn" data-act="avsave">${L('儲存角色', 'Save')}</button><button class="btn ghost" data-close="1">${L('取消', 'Cancel')}</button></div>`;
+    <div class="avfoot">${buyBar || `<div class="btnrow"><button class="btn" data-act="avsave">${L('儲存角色', 'Save')}</button><button class="btn ghost" data-close="1">${L('取消', 'Cancel')}</button></div>`}</div>`;
 }
 async function saveAvatar() {
   st.profile = { ...st.profile, look: sanitizeLook(st.avDraft) };
@@ -2193,6 +2282,8 @@ function renderMe() {
   const rm = st.set.remind;
   $('remindInfo').textContent = rm && rm.addedAt ? L(`已設定：每週${rm.days.map((d) => DAYN[d]).join('、')} ${rm.time}`, `Set: ${rm.days.map((d) => ICSD[d]).join(', ')} at ${rm.time}`) : L('加到手機行事曆，時間到會提醒你', 'Add a reminder to your phone calendar');
   $('sAuto').classList.toggle('on', st.set.autoSpeak);
+  $('sMap3d').classList.toggle('on', use3D());
+  $('rowMap3d').style.display = webglOK ? '' : 'none';
   $('syncInfo').textContent = `${st.words.length} ${L('個字・上次同步', 'words · synced')} ${st.set.syncedAt ? new Date(st.set.syncedAt).toLocaleString('zh-TW') : '—'}`;
 }
 function openProof() {
@@ -2677,6 +2768,8 @@ document.addEventListener('click', (e) => {
   const tile = e.target.closest('[data-iunit]');
   if (tile) return goUnit(tile.getAttribute('data-iunit'));
   const t = e.target.closest('button,[data-id]'); if (!t) return;
+  if (t.dataset.i3v) { if (i3d) i3d.setView(t.dataset.i3v === 'reset' ? 'bird' : t.dataset.i3v); return; }
+  if (t.id === 'mapTog') { st.set.map3d = !use3D(); saveSet(); renderIsland(); return; }
   if (t.dataset.avopt) {
     const [k, v] = t.dataset.avopt.split(':');
     if (avLock(k, v)) return tryOn(k, v, k + ':' + v);
@@ -2760,6 +2853,7 @@ $('undoBtn').onclick = undo;
 $('fToggle').onclick = () => $('fPanel').classList.toggle('open');
 $('search').oninput = renderList;
 $('sAuto').onclick = () => { st.set.autoSpeak = !st.set.autoSpeak; saveSet(); renderMe(); };
+$('sMap3d').onclick = () => { st.set.map3d = !use3D(); saveSet(); renderMe(); renderIsland(); };
 $('sLang').onclick = () => {   // 切換英文模式：重畫所有畫面
   st.set.lang = EN() ? 'zh' : 'en'; saveSet(); applyLang();
   renderHeader(); renderFilters(); renderHome(); renderMe();
