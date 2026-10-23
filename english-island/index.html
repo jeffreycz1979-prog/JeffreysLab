@@ -142,7 +142,7 @@ main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .ava svg,.ce svg{overflow:hidden}
 .avopt span{font-size:12px;font-weight:700;color:var(--green)}
 .avopt.on{border-color:var(--lime);box-shadow:0 0 0 3px rgba(204,255,0,.35)}
-.avopt.avlocked{opacity:.5}
+.avopt.avlocked{opacity:.72;background:#E9E4D6}
 .avcols{display:flex;flex-wrap:wrap;gap:10px}
 .avcol{width:44px;height:44px;border-radius:50%;border:2px solid var(--line)}
 .avcol.on{border:3px solid var(--lime);box-shadow:0 0 0 3px rgba(204,255,0,.3)}
@@ -152,6 +152,15 @@ main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .avnew{position:absolute;top:-6px;right:-4px;font:800 10px 'Syne',sans-serif;font-style:normal;background:var(--coral);color:#fff;border-radius:8px;padding:2px 5px;z-index:1}
 .avdot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--coral);vertical-align:middle}
 .avprog{font-size:12px;color:var(--muted);margin:10px 0 2px;line-height:1.5}
+.avwallet{font-size:13px;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:6px 10px}
+.avwallet b{font-family:'Syne',sans-serif;color:var(--lime);font-size:16px}
+.avopt small{font-weight:800;color:#1a3a1a}
+.avopt small.short{color:#8a5a00}
+.avbuy{display:flex;align-items:center;gap:8px;margin-top:12px;padding:10px 12px;border-radius:16px;background:#1f2a12;border:2px solid var(--lime)}
+.avbuy > div{flex:1;min-width:0;font-size:14px}
+.avbuy small{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+.avbuy .btn{padding:10px 14px}
+.avbuy .btn:disabled{opacity:.5}
 .avlockline{font-size:11px;color:var(--amber);font-weight:500;margin-left:6px}
 .av .pet{animation:petIdle 1.4s ease-in-out infinite alternate}
 .av.walk .pet{animation:petHop .3s ease-in-out infinite alternate}
@@ -638,7 +647,7 @@ nav button.on{color:var(--lime);font-weight:700}
         </div>
       </div>
     </div>
-    <p class="hint">Jeffrey's Lab · 英文順起來．探索英文島 v1.3（THP11 內容）</p>
+    <p class="hint">Jeffrey's Lab · 英文順起來．探索英文島 v1.4（THP11 內容）</p>
   </section>
 </main>
 
@@ -1767,7 +1776,7 @@ function placeHero() {
   box.innerHTML = `<g id="heroPos" data-hero="1" tabindex="0" role="button" aria-label="${L('我的角色，點我換造型', 'My character — tap to customize')}" style="cursor:pointer">
     <g id="heroFlip"><g class="av idle">${avatarParts(lookOf())}</g></g>
     ${fresh || news ? `<g><rect x="-16" y="-62" width="132" height="40" rx="20" fill="#1a3a1a"/><path d="M42 -23 L50 -12 L58 -23 Z" fill="#1a3a1a"/>
-      <text x="50" y="-35" text-anchor="middle" font-size="22" font-weight="700" fill="#CCFF00">${fresh ? L('捏我！', 'Edit me!') : L('🎁 新造型！', '🎁 New look!')}</text></g>` : ''}</g>`;
+      <text x="50" y="-35" text-anchor="middle" font-size="22" font-weight="700" fill="#CCFF00">${fresh ? L('捏我！', 'Edit me!') : L('🛍 去購物！', '🛍 Shop!')}</text></g>` : ''}</g>`;
   st.heroLen = st.roadLens[at]; st.heroLeft = !!st.heroLeft;
   setHero(st.heroLen, st.heroLeft);
 }
@@ -1823,61 +1832,30 @@ const AV_OPTS = {
   acc:   [['none', '不戴'], ['glasses', '眼鏡'], ['scarf', '圍巾'], ['backpack', '背包'], ['star', '星星貼紙'], ['cape', '披風']],
   pet:   [['none', '不帶'], ['dog', '小狗'], ['cat', '小貓'], ['bird', '小鳥'], ['rabbit', '兔子'], ['turtle', '烏龜'], ['snake', '小蛇']],
 };
-// ── 解鎖條件：成就資料一次算好（1 秒內重複使用）──
-let avStatsCache = null;
-function avStats() {
-  if (avStatsCache && Date.now() - avStatsCache.t < 1000) return avStatsCache;
-  const W = weeks(), days = Object.keys(st.ledger.days);
-  avStatsCache = {
-    t: Date.now(), pts: points().total, passed: masteredCount(),
-    built: allUnits().filter((u) => unitStations(u).full).length,
-    goals: Object.values(W).filter((w) => w.cards >= WEEK_GOAL).length,
-    streak2: streakNow() >= 2 || st.ledger.bonus.some((b) => b.k.startsWith('streak')),
-    cards: days.reduce((a, k) => a + dayCards(k), 0),
-    active: days.filter((k) => dayCards(k) > 0).length,
-    known: st.words.filter((w) => statusOf(w) === 'known').length,
-    perfect: Object.values(st.meta.quizBest || {}).some((v) => v >= 100),
-  };
-  return avStatsCache;
-}
-const lk = (zh, en, ok) => [() => L(zh, en), () => ok(avStats())];
-const AV_LOCKS = {
-  // 衣服（T 恤是預設，男女都適合）
-  'color:top': lk('總積分 30', '30 points', (s) => s.pts >= 30),
-  'color:bot': lk('總積分 30', '30 points', (s) => s.pts >= 30),
-  'top:hoodie': lk('總積分 50', '50 points', (s) => s.pts >= 50),
-  'top:skirt': lk('總積分 80', '80 points', (s) => s.pts >= 80),
-  'top:stripe': lk('總積分 120', '120 points', (s) => s.pts >= 120),
-  'top:dress': lk('總積分 160', '160 points', (s) => s.pts >= 160),
-  'top:jacket': lk('總積分 220', '220 points', (s) => s.pts >= 220),
-  'top:princess': lk('蓋好 1 座島', 'Build 1 island', (s) => s.built >= 1),
-  'top:knight': lk('挑戰過關 2 個單元', 'Pass 2 units', (s) => s.passed >= 2),
-  'top:robot': lk('連續 2 週完成每週目標', '2-week streak', (s) => s.streak2),
-  'top:warrior': lk('總積分 600（成為 Word Warrior）', '600 points (Word Warrior)', (s) => s.pts >= 600),
-  'top:dino': lk('蓋好 3 座島', 'Build 3 islands', (s) => s.built >= 3),
-  // 帽子
-  'hat:cap': lk('總積分 40', '40 points', (s) => s.pts >= 40),
-  'hat:flower': lk('總積分 60', '60 points', (s) => s.pts >= 60),
-  'hat:headphones': lk('總積分 100', '100 points', (s) => s.pts >= 100),
-  'hat:beanie': lk('總積分 140', '140 points', (s) => s.pts >= 140),
-  'hat:wizard': lk('挑戰過關 1 個單元', 'Pass 1 unit', (s) => s.passed >= 1),
-  'hat:crown': lk('挑戰過關 3 個單元', 'Pass 3 units', (s) => s.passed >= 3),
-  // 配件
-  'acc:glasses': lk('總積分 70', '70 points', (s) => s.pts >= 70),
-  'acc:scarf': lk('總積分 90', '90 points', (s) => s.pts >= 90),
-  'acc:backpack': lk('總積分 250', '250 points', (s) => s.pts >= 250),
-  'acc:star': lk('連續 2 週完成每週目標', '2-week streak', (s) => s.streak2),
-  'acc:cape': lk('總積分 300', '300 points', (s) => s.pts >= 300),
-  // 寵物
-  'pet:dog': lk('完成 1 次每週目標', 'Reach 1 weekly goal', (s) => s.goals >= 1),
-  'pet:cat': lk('總共複習 200 張', 'Review 200 cards', (s) => s.cards >= 200),
-  'pet:bird': lk('練習滿 7 天', 'Practice on 7 days', (s) => s.active >= 7),
-  'pet:rabbit': lk('已掌握 30 個字', 'Master 30 words', (s) => s.known >= 30),
-  'pet:turtle': lk('任一單元挑戰全對', 'Score 100% on a quiz', (s) => s.perfect),
-  'pet:snake': lk('蓋好 2 座島', 'Build 2 islands', (s) => s.built >= 2),
-};
-const avLock = (k, v) => { const x = AV_LOCKS[k + ':' + v]; return x && !x[1]() ? x[0]() : null; };
+// ── 角色商店：衣服、顏色、帽子、配件、寵物都用積分買 ──
+// 定價：一般 30、很酷的 60（翻倍）、換色 20。一週正常練習（約 90～100 分）大約買得起 3 樣一般的
+// 買東西只扣「可用積分」；總積分、等級、積分證明都不會變少
+const PRICE_BASIC = 30, PRICE_COOL = 60, PRICE_COLOR = 20;
+const AV_COOL = ['top:princess', 'top:knight', 'top:robot', 'top:warrior', 'top:dino', 'hat:wizard', 'hat:crown', 'acc:cape',
+  'pet:dog', 'pet:cat', 'pet:bird', 'pet:rabbit', 'pet:turtle', 'pet:snake'];
+const AV_PRICE = { 'color:top': PRICE_COLOR, 'color:bot': PRICE_COLOR };
+['top', 'hat', 'acc', 'pet'].forEach((k) => AV_OPTS[k].forEach(([v]) => {
+  if (v !== 'tee' && v !== 'none') AV_PRICE[k + ':' + v] = AV_COOL.includes(k + ':' + v) ? PRICE_COOL : PRICE_BASIC;
+}));
+const spentPts = () => (st.ledger.shop || []).reduce((a, b) => a + b.p, 0);
+const walletPts = () => Math.max(0, points().total - spentPts());
+const owns = (key) => (st.ledger.shop || []).some((b) => b.k === key);
+const avLock = (k, v) => { const key = k + ':' + v, pr = AV_PRICE[key]; return pr && !owns(key) ? pr : null; };   // 還沒買：回傳價格
 const colorLock = (k) => avLock('color', k === 'topC' ? 'top' : 'bot');
+async function buyItem(key) {
+  const pr = AV_PRICE[key];
+  if (!pr || owns(key)) return true;
+  if (walletPts() < pr) { toast(L(`還差 ${pr - walletPts()} 積分，多練習就買得到 💪`, `${pr - walletPts()} more points needed 💪`)); return false; }
+  st.ledger.shop = [...(st.ledger.shop || []), { k: key, p: pr, t: Date.now() }];   // 記在 ledger 裡，一起簽章、跟著轉移碼走
+  await saveLedger();
+  confetti(60); toast(L(`🛍 買到了：${avKeyName(key)}！剩 ${walletPts()} 積分`, `🛍 Got it: ${avKeyName(key)}! ${walletPts()} left`));
+  return true;
+}
 const DEFAULT_LOOK = { skin: 1, eyes: 'dot', mouth: 'smile', hair: 'short', hairC: 0, top: 'tee', topC: 0, botC: 0, hat: 'none', acc: 'none', pet: 'none' };
 function sanitizeLook(l) {   // 還沒解鎖的東西換回預設（例如解鎖規則改了）
   const out = { ...DEFAULT_LOOK, ...l };
@@ -2068,59 +2046,68 @@ const petThumb = (v) => (v === 'none'
 const avatarSVG = (lk, cls = '', vb = 'full') => `<svg class="av ${cls}" viewBox="${AV_VB[vb]}" aria-hidden="true">${avatarParts(lk)}</svg>`;
 const avaHTML = () => (st.profile && st.profile.look ? avatarSVG(lookOf(), '', 'head') : esc(st.profile ? st.profile.avatar : '🦊'));
 
-// ── 解鎖通知：練習後回到島嶼，看看有沒有新造型 ──
-const avUnlockedKeys = () => Object.keys(AV_LOCKS).filter((k) => AV_LOCKS[k][1]());
 const avKeyName = (key) => {
   const [k, v] = key.split(':');
   if (k === 'color') return v === 'top' ? L('上衣換色', 'Top colors') : L('褲子換色', 'Pants colors');
   const o = (AV_OPTS[k] || []).find((x) => x[0] === v); return o ? o[1] : v;
 };
+// ── 逛街提醒：可用積分夠買還沒有的東西時，每週提醒一次 ──
 function checkAvUnlocks() {
-  if (!st.profile || !Object.keys(GRAM.cards || {}).length) return;   // 文法小卡還沒載入時「蓋好幾座島」算不準，先不檢查
-  avStatsCache = null;
-  const now = avUnlockedKeys();
-  if (!st.meta.avSeen) { st.meta.avSeen = now; saveMeta(); return; }   // 第一次：現有的都算看過
-  const fresh = now.filter((k) => !st.meta.avSeen.includes(k));
-  if (!fresh.length) return;
-  st.meta.avSeen = [...st.meta.avSeen, ...fresh];
-  st.meta.avNew = [...new Set([...(st.meta.avNew || []), ...fresh])];
-  saveMeta();
-  const names = fresh.map(avKeyName), shown = names.slice(0, 2).join(L('、', ', ')) + (names.length > 2 ? L(` 等 ${names.length} 樣`, ` +${names.length - 2} more`) : '');
-  setTimeout(() => { confetti(70); toast(L(`🎁 解鎖新造型：${shown}！點島上的角色換上吧`, `🎁 New: ${shown}! Tap your character`)); }, 500);
+  if (!st.profile) return;
+  const w = walletPts(), can = Object.keys(AV_PRICE).some((k) => !owns(k) && AV_PRICE[k] <= w), wk = thisWeek();
+  if (!can || st.meta.shopNudge === wk) return;
+  st.meta.shopNudge = wk; st.meta.avNew = ['shop']; saveMeta();
+  setTimeout(() => toast(L(`🛍 你有 ${w} 積分可以用，點島上的角色去買新造型！`, `🛍 You have ${w} points — tap your character to shop!`)), 600);
 }
 
-// ── 捏人頁 ──
+// ── 捏人頁（含商店）──
 const AV_TABS = [['face', '臉', 'Face'], ['hair', '頭髮', 'Hair'], ['clothes', '衣服', 'Clothes'], ['acc', '配件', 'Extras'], ['pet', '寵物', 'Pets']];
 const TAB_KEYS = { clothes: ['top', 'color:top', 'color:bot'], acc: ['hat', 'acc'], pet: ['pet'] };
-function tabProgress(tab) {   // 這一頁解鎖了幾樣
-  const keys = Object.keys(AV_LOCKS).filter((k) => TAB_KEYS[tab].some((p) => p.includes(':') ? k === p : k.startsWith(p + ':')));
-  return [keys.filter((k) => AV_LOCKS[k][1]()).length, keys.length];
+function tabProgress(tab) {   // 這一頁擁有幾樣
+  const keys = Object.keys(AV_PRICE).filter((k) => TAB_KEYS[tab].some((pp) => pp.includes(':') ? k === pp : k.startsWith(pp + ':')));
+  return [keys.filter(owns).length, keys.length];
 }
 function openAvCreator() {
   if (!st.profile) return;
-  avStatsCache = null;
-  st.avDraft = lookOf(); st.avTab = st.avTab || 'face';
-  st.avNewShow = st.meta.avNew || [];
+  st.avDraft = lookOf(); st.avTab = st.avTab || 'face'; st.avBuy = null;
   if (st.meta.avNew && st.meta.avNew.length) { st.meta.avNew = []; saveMeta(); renderIsland(); }
   renderAvCreator(); $('modal').classList.add('show');
 }
+function tryOn(k, v, key) {   // 點還沒買的東西：先穿上看看，再決定要不要買
+  if (st.avBuy) cancelBuy(false);
+  st.avBuy = { key, k, prev: st.avDraft[k] }; st.avDraft[k] = v; renderAvCreator();
+}
+function cancelBuy(render = true) {
+  if (st.avBuy) { st.avDraft[st.avBuy.k] = st.avBuy.prev; st.avBuy = null; }
+  if (render) renderAvCreator();
+}
+async function confirmBuy() {
+  const b = st.avBuy; if (!b) return;
+  if (await buyItem(b.key)) { st.avBuy = null; renderHeader(); }
+  renderAvCreator();
+}
 function renderAvCreator() {
-  const d = st.avDraft, isNew = (key) => (st.avNewShow || []).includes(key);
+  const d = st.avDraft, w = walletPts();
+  const tag = (pr) => `<small class="${pr > w ? 'short' : ''}">💰 ${pr}${pr >= PRICE_COOL ? ' ✨' : ''}</small>`;
   const opt = (k, label, vb = 'head') => `<div class="flabel">${label}</div><div class="avopts">${AV_OPTS[k].map(([v, name]) => {
-    const lock = avLock(k, v), on = d[k] === v;
-    return `<button class="avopt ${on ? 'on' : ''} ${lock ? 'avlocked' : ''}" data-avopt="${k}:${v}" aria-label="${esc(name)}${lock ? '（' + esc(lock) + '解鎖）' : ''}" aria-pressed="${on}">
-      ${isNew(k + ':' + v) ? '<i class="avnew">NEW</i>' : ''}${k === 'pet' ? petThumb(v) : avatarSVG({ ...d, pet: 'none', [k]: v }, '', vb)}<span>${lock ? '🔒 ' : ''}${esc(name)}</span>${lock ? `<small>${esc(lock)}</small>` : ''}</button>`;
+    const pr = avLock(k, v), on = d[k] === v;
+    return `<button class="avopt ${on ? 'on' : ''} ${pr ? 'avlocked' : ''}" data-avopt="${k}:${v}" aria-label="${esc(name)}${pr ? L(`（${pr} 積分）`, ` (${pr} points)`) : ''}" aria-pressed="${on}">
+      ${k === 'pet' ? petThumb(v) : avatarSVG({ ...d, pet: 'none', [k]: v }, '', vb)}<span>${esc(name)}</span>${pr ? tag(pr) : ''}</button>`;
   }).join('')}</div>`;
   const col = (k, list, label) => {
-    const lock = colorLock(k);
-    return `<div class="flabel">${label}${lock ? ` <span class="avlockline">🔒 ${esc(lock)}解鎖</span>` : ''}</div><div class="avcols">${list.map((c, i) => {
-      const off = lock && i !== DEFAULT_LOOK[k];
-      return `<button class="avcol ${d[k] === i ? 'on' : ''} ${off ? 'avlocked' : ''}" data-avcol="${k}:${i}" style="background:${c}" aria-label="${label} ${i + 1}${off ? '（' + esc(lock) + '解鎖）' : ''}" aria-pressed="${d[k] === i}"></button>`;
+    const pr = colorLock(k);
+    return `<div class="flabel">${label}${pr ? ` <span class="avlockline">💰 ${pr} ${L('積分買下全部顏色', 'points for all colors')}</span>` : ''}</div><div class="avcols">${list.map((c, i) => {
+      const off = pr && i !== DEFAULT_LOOK[k];
+      return `<button class="avcol ${d[k] === i ? 'on' : ''} ${off ? 'avlocked' : ''}" data-avcol="${k}:${i}" style="background:${c}" aria-label="${label} ${i + 1}" aria-pressed="${d[k] === i}"></button>`;
     }).join('')}</div>`;
   };
   const tab = st.avTab;
   const prog = TAB_KEYS[tab] ? tabProgress(tab) : null;
-  const progLine = prog ? `<p class="avprog">${L(`已解鎖 ${prog[0]} / ${prog[1]} 樣・多練習、拿積分、挑戰過關就能解鎖更多`, `Unlocked ${prog[0]} / ${prog[1]} · practice to unlock more`)}</p>` : '';
+  const progLine = prog ? `<p class="avprog">${L(`已擁有 ${prog[0]} / ${prog[1]} 樣・點一下可以先試穿・買東西不會扣總積分和等級`, `Own ${prog[0]} / ${prog[1]} · tap to try on · shopping never lowers your total or rank`)}</p>` : '';
+  const b = st.avBuy;
+  const buyBar = b ? `<div class="avbuy"><div>${L(`試穿中：<b>${esc(avKeyName(b.key))}</b>`, `Trying on: <b>${esc(avKeyName(b.key))}</b>`)}<small>${L(`要 ${AV_PRICE[b.key]} 積分・你有 ${w}`, `${AV_PRICE[b.key]} points · you have ${w}`)}</small></div>
+      <button class="btn" data-act="avbuy" ${AV_PRICE[b.key] > w ? 'disabled' : ''}>${AV_PRICE[b.key] > w ? L(`還差 ${AV_PRICE[b.key] - w}`, `Need ${AV_PRICE[b.key] - w}`) : L('買下', 'Buy')}</button>
+      <button class="btn ghost" data-act="avbuyno">${L('不要', 'No')}</button></div>` : '';
   const body = tab === 'face' ? col('skin', AV_SKIN, L('膚色', 'Skin')) + opt('eyes', L('眼睛', 'Eyes')) + opt('mouth', L('嘴巴', 'Mouth'))
     : tab === 'hair' ? opt('hair', L('髮型', 'Style')) + col('hairC', AV_HAIRC, L('髮色', 'Color'))
     : tab === 'clothes' ? progLine + opt('top', L('服裝', 'Outfit'), 'body') + col('topC', AV_TOPC, L('上衣顏色', 'Top color')) + col('botC', AV_BOTC, L('褲子／裙子顏色', 'Pants / skirt color'))
@@ -2129,13 +2116,12 @@ function renderAvCreator() {
   $('sheet').innerHTML = `<div class="avc">
       <div class="avc-stage ${st.avWalk ? 'walking' : ''}">${avatarSVG(d, st.avWalk ? 'walk' : 'idle')}</div>
       <div class="avc-tools"><b>${L('我的角色', 'My character')}<small>MY CHARACTER</small></b>
+        <span class="avwallet">💰 ${L('可用積分', 'Points to spend')} <b>${w}</b></span>
         <button class="btn ghost" data-act="avwalk">${st.avWalk ? L('⏸ 停下來', '⏸ Stop') : L('🚶 走走看', '🚶 Walk')}</button>
         <button class="btn ghost" data-act="avrand">${L('🎲 隨機', '🎲 Random')}</button></div>
     </div>
-    <div class="chips avtabs">${AV_TABS.map(([k, zh, en]) => {
-      const p = TAB_KEYS[k] ? tabProgress(k) : null, dot = (st.avNewShow || []).some((key) => TAB_KEYS[k] && TAB_KEYS[k].some((pp) => pp.includes(':') ? key === pp : key.startsWith(pp + ':')));
-      return `<button class="chip ${tab === k ? 'on' : ''}" data-avtab="${k}">${EN() ? en : zh}${p && !p[0] ? ' 🔒' : ''}${dot ? ' <i class="avdot"></i>' : ''}</button>`;
-    }).join('')}</div>
+    ${buyBar}
+    <div class="chips avtabs">${AV_TABS.map(([k, zh, en]) => `<button class="chip ${tab === k ? 'on' : ''}" data-avtab="${k}">${EN() ? en : zh}</button>`).join('')}</div>
     <div class="avbody">${body}</div>
     <div class="btnrow" style="margin-top:14px"><button class="btn" data-act="avsave">${L('儲存角色', 'Save')}</button><button class="btn ghost" data-close="1">${L('取消', 'Cancel')}</button></div>`;
 }
@@ -2199,6 +2185,7 @@ function renderMe() {
     <div class="srow"><div>${L('挑戰全對', 'Perfect quiz')}<small>${L('10 題全部答對', 'All 10 correct')}</small></div><b>+${PERFECT_PTS}</b></div>
     <div class="srow"><div>${L('🔍 抽查通過', '🔍 Quick check passed')}<small>${L(`按「記得／太簡單」時隨機抽查，意思和拼字都對；每週最多 ${SPOT_CAP} 分。答錯那張不算分`, `Random checks when you tap Got it / Easy; up to ${SPOT_CAP} a week. A miss doesn't count`)}</small></div><b>+1</b></div>
     <div class="srow"><div>${L('🎮 獎勵遊戲', '🎮 Bonus game')}<small>${L('精熟 1／2／3 個單元依序解鎖 3 款；所有遊戲每週共用，只算最高一局', 'Master 1 / 2 / 3 units to unlock 3 games; all games share one weekly best')}</small></div><b>0～${GAME_CAP}</b></div>
+    <div class="srow"><div>${L('🛍 角色商店', '🛍 Character shop')}<small>${L(`用積分買衣服、帽子、配件、寵物（一般 ${PRICE_BASIC}、很酷的 ${PRICE_COOL}、換色 ${PRICE_COLOR}）；只扣可用積分，總積分和等級不會變少。目前可用 ${walletPts()}`, `Spend points on outfits, hats, extras and pets (${PRICE_BASIC} / ${PRICE_COOL} / colors ${PRICE_COLOR}). Your total and rank never go down. Now: ${walletPts()}`)}</small></div><b>💰</b></div>
     <div class="srow"><div>${L('單元精熟', 'Unit mastery')}<small>${L(`某單元第一次拿到 ${MASTER_PCT}% 以上（每單元一次）`, `First time scoring ${MASTER_PCT}%+ on a unit (once per unit)`)}</small></div><b>+${MASTER_PTS}</b></div>
     <div class="srow"><div>${L('同一單元重複挑戰', 'Retrying a unit')}<small>${L('每週只算最高的一次，打破本週紀錄才會補差額', 'Only your best score each week counts')}</small></div><b>📈</b></div>
     <div class="srow"><div>${L('精熟要維持', 'Keep your badge')}<small>${L(`🏅 單元 ${FADE_DAYS} 天沒練會褪色，不扣分，回來練就恢復`, `🏅 fades after ${FADE_DAYS} days without practice — no points lost`)}</small></div><b>🏅</b></div>`;
@@ -2226,6 +2213,7 @@ function openProof() {
         <div><b>${P.quizOnly}</b>${L('挑戰', 'Quiz')}</div><div><b>${P.master}</b>${L('單元精熟', 'Mastery')}</div>
         <div><b>${P.streak}</b>${L('連續獎勵', 'Streak bonus')}</div><div><b>🔥 ${streakNow()} ${L('週', 'wk')}</b>${L('目前連續', 'Current streak')}</div>
         <div><b>${totalCards}</b>${L('總複習張數', 'Cards reviewed')}</div><div><b>${acc}</b>${L('挑戰正確率', 'Quiz accuracy')}</div>
+        <div><b>${spentPts()}</b>${L('🛍 商店花費', '🛍 Spent in shop')}</div><div><b>${walletPts()}</b>${L('💰 可用積分', '💰 Points to spend')}</div>
         <div><b>${P.game}</b>${L('🎮 獎勵遊戲', '🎮 Bonus game')}</div><div><b style="font-size:13px;line-height:1.5">${GAMES.map((g) => g.bestText()).filter(Boolean).join('<br>') || '—'}</b>${L('各遊戲最高紀錄', 'Game records')}</div>
       </div>
       <div class="pfoot"><span>${L(`學習 ${active} 天`, `${active} days of practice`)}<br><span class="clock" id="clock"></span></span>
@@ -2690,18 +2678,22 @@ document.addEventListener('click', (e) => {
   if (tile) return goUnit(tile.getAttribute('data-iunit'));
   const t = e.target.closest('button,[data-id]'); if (!t) return;
   if (t.dataset.avopt) {
-    const [k, v] = t.dataset.avopt.split(':'), lock = avLock(k, v);
-    if (lock) return toast(L(`${lock}就能解鎖 🔒`, `Unlock: ${lock} 🔒`));
+    const [k, v] = t.dataset.avopt.split(':');
+    if (avLock(k, v)) return tryOn(k, v, k + ':' + v);
+    if (st.avBuy) cancelBuy(false);
     st.avDraft[k] = v; return renderAvCreator();
   }
   if (t.dataset.avcol) {
     const [k, i] = t.dataset.avcol.split(':'), lock = (k === 'topC' || k === 'botC') && +i !== DEFAULT_LOOK[k] ? colorLock(k) : null;
-    if (lock) return toast(L(`${lock}就能換顏色 🔒`, `Unlock: ${lock} 🔒`));
+    if (lock) return tryOn(k, +i, k === 'topC' ? 'color:top' : 'color:bot');
+    if (st.avBuy && st.avBuy.k !== k) cancelBuy(false);
     st.avDraft[k] = +i; return renderAvCreator();
   }
-  if (t.dataset.avtab) { st.avTab = t.dataset.avtab; return renderAvCreator(); }
+  if (t.dataset.avtab) { if (st.avBuy) cancelBuy(false); st.avTab = t.dataset.avtab; return renderAvCreator(); }
+  if (t.dataset.act === 'avbuy') return confirmBuy();
+  if (t.dataset.act === 'avbuyno') return cancelBuy();
   if (t.dataset.act === 'avwalk') { st.avWalk = !st.avWalk; return renderAvCreator(); }
-  if (t.dataset.act === 'avrand') { st.avDraft = randomLook(); return renderAvCreator(); }
+  if (t.dataset.act === 'avrand') { st.avBuy = null; st.avDraft = randomLook(); return renderAvCreator(); }
   if (t.dataset.act === 'avsave') return saveAvatar();
   if (t.dataset.act === 'avedit') return openAvCreator();
   if (t.dataset.say) { e.stopPropagation(); return speak(t.dataset.say, t, t.dataset.slow === '1'); }
