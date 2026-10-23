@@ -69,6 +69,19 @@ main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .island .tile{cursor:pointer;outline:none}
 .island .tile:focus-visible .top{stroke:var(--coral);stroke-width:3}
 .island .tile.locked{cursor:default}
+/* 島上動態：樹搖、雲飄、水波、船晃 */
+.island .deco{pointer-events:none}
+.island .sway{transform-box:fill-box;transform-origin:50% 100%;animation:isSway 3.6s ease-in-out infinite alternate}
+.island .drift{animation:isDrift 26s ease-in-out infinite alternate}
+.island .wave{animation:isWave 2.8s ease-in-out infinite alternate}
+.island .bobb{animation:isBob 2.2s ease-in-out infinite alternate}
+.island .spin{transform-box:fill-box;transform-origin:50% 50%;animation:isSpin 24s linear infinite}
+@keyframes isSway{from{transform:rotate(-2.5deg)}to{transform:rotate(2.5deg)}}
+@keyframes isDrift{from{transform:translateX(-14px)}to{transform:translateX(14px)}}
+@keyframes isWave{from{transform:translateX(-3px)}to{transform:translateX(3px)}}
+@keyframes isBob{from{transform:translateY(-1px) rotate(-3deg)}to{transform:translateY(1.5px) rotate(3deg)}}
+@keyframes isSpin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.island .sway,.island .drift,.island .wave,.island .bobb,.island .spin{animation:none}}
 .island .tile.sel .lift{transform:translateY(-6px)}
 .island .lift{transition:transform .25s}
 .island-port{display:flex;align-items:center;gap:10px;width:calc(100% - 24px);margin:0 12px 12px;padding:10px 14px;border-radius:16px;
@@ -614,7 +627,7 @@ nav button.on{color:var(--lime);font-weight:700}
         </div>
       </div>
     </div>
-    <p class="hint">Jeffrey's Lab · 英文順起來．探索英文島 v1.1（THP11 內容）</p>
+    <p class="hint">Jeffrey's Lab · 英文順起來．探索英文島 v1.2（THP11 內容）</p>
   </section>
 </main>
 
@@ -1540,11 +1553,11 @@ const RECALL_SHARE = 0.6;   // 「熟記」站：本單元 60% 的字達到已�
 // 地塊位置（viewBox 390×460；單元數 ≤ 6 用第一組，7～9 用第二組）
 const ISLAND_POS = {
   6: [[24, 320], [148, 282], [262, 214], [150, 150], [30, 88], [196, 14]],
-  9: [[14, 340], [150, 322], [282, 300], [272, 196], [150, 214], [28, 190], [40, 76], [160, 54], [282, 32]],
+  9: [[14, 326], [150, 308], [282, 286], [272, 196], [150, 214], [28, 190], [40, 76], [160, 54], [282, 32]],
 };
 const ISLAND_ROAD = {
   6: 'M72 386 Q130 382 196 348 Q270 318 310 280 Q300 232 198 216 Q112 206 78 154 Q92 96 244 80',
-  9: 'M62 406 Q130 396 198 388 Q270 378 330 366 Q336 300 320 262 Q260 272 198 280 Q120 276 76 256 Q64 196 88 142 Q150 126 208 120 Q270 108 330 98',
+  9: 'M62 392 Q130 382 198 374 Q270 364 330 352 Q338 296 320 262 Q260 272 198 280 Q120 276 76 256 Q64 196 88 142 Q150 126 208 120 Q270 108 330 98',
 };
 const isMastered = (u) => st.ledger.bonus.some((b) => b.k === 'master:' + u);
 function unitStations(u) {
@@ -1578,6 +1591,75 @@ const TILE_COLORS = {
   locked: ['#DCD8CF', '#C2BDB2', '#ADA89D'], full: ['#CCFF00', '#A6CC00', '#86A600'],
   started: ['#4ECDC4', '#38AFA6', '#2A8E86'], fresh: ['#ffffff', '#E2DCCD', '#CBC4B3'],
 };
+// ── 島上的大自然：樹、山、湖、河、花、雲、船（只是裝飾，點不到）──
+const ISLAND_SHAPE = 'M44 432 C4 372 6 262 30 196 C50 132 16 70 84 34 C150 2 270 -4 330 34 C386 72 380 160 370 228 C360 300 386 382 326 430 C262 470 104 474 44 432 Z';
+const DECO = {
+  tree: (x, y, s = 1, d = 0) => `<g transform="translate(${x} ${y}) scale(${s})"><g class="sway" style="animation-delay:-${d}s">
+    <rect x="-3" y="-15" width="6" height="15" rx="1.5" fill="#8B5A2B" stroke="${INK}" stroke-width="1.8"/>
+    <circle cx="0" cy="-25" r="12" fill="#5FB35A" stroke="${INK}" stroke-width="1.8"/>
+    <circle cx="-5" cy="-29" r="5.5" fill="#8BD47A"/><circle cx="4" cy="-21" r="2" fill="#3F8F43"/></g></g>`,
+  pine: (x, y, s = 1, d = 0) => `<g transform="translate(${x} ${y}) scale(${s})"><g class="sway" style="animation-delay:-${d}s">
+    <rect x="-2.5" y="-8" width="5" height="8" fill="#8B5A2B" stroke="${INK}" stroke-width="1.6"/>
+    <path d="M0 -40 L13 -20 L7 -20 L16 -7 L-16 -7 L-7 -20 L-13 -20 Z" fill="#3E9150" stroke="${INK}" stroke-width="1.8" stroke-linejoin="round"/>
+    <path d="M0 -34 L-6 -24" stroke="#6BC07A" stroke-width="2" stroke-linecap="round"/></g></g>`,
+  bush: (x, y, s = 1) => `<g transform="translate(${x} ${y}) scale(${s})"><path d="M-12 0 Q-14 -10 -5 -10 Q-2 -17 5 -12 Q13 -12 12 0 Z" fill="#6CBF5B" stroke="${INK}" stroke-width="1.8" stroke-linejoin="round"/><circle cx="-3" cy="-6" r="1.6" fill="#FF6B57"/><circle cx="5" cy="-5" r="1.6" fill="#FF6B57"/></g>`,
+  flowers: (pts) => pts.map(([x, y, c]) => `<g transform="translate(${x} ${y})"><path d="M0 0 V-5" stroke="#3F8F43" stroke-width="1.4"/><circle cy="-6" r="2.4" fill="${c}" stroke="${INK}" stroke-width=".9"/></g>`).join(''),
+  tufts: (pts) => pts.map(([x, y]) => `<path d="M${x - 4} ${y} l2 -5 l2 5 l2 -6 l2 6" fill="none" stroke="#7FB563" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>`).join(''),
+  rock: (x, y, s = 1) => `<g transform="translate(${x} ${y}) scale(${s})"><path d="M-9 0 Q-10 -8 -3 -10 Q5 -12 9 -5 Q11 0 9 0 Z" fill="#B7B2A6" stroke="${INK}" stroke-width="1.6" stroke-linejoin="round"/><path d="M-3 -7 Q1 -9 4 -7" stroke="#ffffff" stroke-width="1.4" fill="none"/></g>`,
+  mountain: (x, base, w, h, snow = true) => {
+    const l = x - w / 2, r = x + w / 2, py = base - h;
+    return `<path d="M${l} ${base} L${x} ${py} L${r} ${base} Z" fill="#8FB58C" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/>
+      <path d="M${l} ${base} L${x} ${py} L${x - w * .08} ${base} Z" fill="#AECAA9"/>
+      ${snow ? `<path d="M${x - w * .17} ${py + h * .3} L${x} ${py} L${x + w * .17} ${py + h * .3} L${x + w * .07} ${py + h * .24} L${x} ${py + h * .32} L${x - w * .07} ${py + h * .24} Z" fill="#ffffff" stroke="${INK}" stroke-width="1.6" stroke-linejoin="round"/>` : ''}
+      <path d="M${l} ${base} L${x} ${py} L${r} ${base}" fill="none" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/>`;
+  },
+  lake: (cx, cy, rx, ry) => `<ellipse cx="${cx}" cy="${cy}" rx="${rx + 5}" ry="${ry + 4}" fill="#C9E9A8"/>
+    <ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="#7FD4E6" stroke="${INK}" stroke-width="2"/>
+    <path class="wave" d="M${cx - rx * .5} ${cy - 3} q5 -3 10 0 t10 0 M${cx + rx * .05} ${cy + 6} q5 -3 10 0" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round"/>
+    <circle cx="${cx - rx * .55}" cy="${cy + ry * .35}" r="5" fill="#5FB35A" stroke="${INK}" stroke-width="1.4"/><circle cx="${cx + rx * .6}" cy="${cy - ry * .3}" r="4" fill="#5FB35A" stroke="${INK}" stroke-width="1.4"/>
+    <circle cx="${cx + rx * .6}" cy="${cy - ry * .3}" r="1.6" fill="#FF9AC1"/>
+    <g transform="translate(${cx - rx - 4} ${cy + 2})"><path d="M0 0 V-14 M4 2 V-10 M-4 2 V-9" stroke="#3F8F43" stroke-width="1.6" stroke-linecap="round"/><ellipse cy="-15" rx="1.8" ry="4" fill="#8B5A2B"/></g>
+    <g class="bobb" transform="translate(${cx + rx * .1} ${cy + ry * .3})"><path d="M-6 0 Q-6 -5 0 -5 Q2 -10 6 -8 L9 -8 L6 -6 Q8 0 0 1 Z" fill="#ffffff" stroke="${INK}" stroke-width="1.4" stroke-linejoin="round"/><circle cx="4.5" cy="-8" r=".9" fill="${INK}"/></g>`,
+  river: (d) => `<path d="${d}" fill="none" stroke="${INK}" stroke-width="9" stroke-linecap="round"/><path d="${d}" fill="none" stroke="#7FD4E6" stroke-width="5.5" stroke-linecap="round"/>`,
+  cloud: (x, y, s = 1, d = 0) => `<g transform="translate(${x} ${y}) scale(${s})"><g class="drift" style="animation-delay:-${d}s">
+    <path d="M-22 6 Q-28 6 -26 -1 Q-24 -7 -16 -5 Q-14 -14 -4 -13 Q4 -20 13 -12 Q24 -13 24 -3 Q30 0 26 6 Z" fill="#ffffff" fill-opacity=".95" stroke="#9BC9C4" stroke-width="1.6" stroke-linejoin="round"/></g></g>`,
+  birds: (x, y) => `<g class="drift" style="animation-duration:22s"><path d="M${x} ${y} q4 -4 8 0 q4 -4 8 0 M${x + 18} ${y - 8} q3 -3 6 0 q3 -3 6 0" fill="none" stroke="${INK}" stroke-width="1.6" stroke-linecap="round"/></g>`,
+  boat: (x, y) => `<g transform="translate(${x} ${y})"><g class="bobb"><path d="M-12 0 L12 0 L8 7 L-8 7 Z" fill="#FF6B57" stroke="${INK}" stroke-width="1.8" stroke-linejoin="round"/>
+    <path d="M0 0 V-22" stroke="${INK}" stroke-width="1.8"/><path d="M1.5 -21 L13 -3 L1.5 -3 Z" fill="#ffffff" stroke="${INK}" stroke-width="1.6" stroke-linejoin="round"/>
+    <path d="M-1.5 -16 L-9 -3 L-1.5 -3 Z" fill="#CCFF00" stroke="${INK}" stroke-width="1.6" stroke-linejoin="round"/></g></g>`,
+  sun: (x, y) => `<g transform="translate(${x} ${y})"><g class="spin">${[0, 45, 90, 135, 180, 225, 270, 315].map((a) => `<path d="M0 -15 V-19" transform="rotate(${a})" stroke="#FFB547" stroke-width="2.4" stroke-linecap="round"/>`).join('')}</g>
+    <circle r="11" fill="#FFD84D" stroke="${INK}" stroke-width="1.8"/></g>`,
+  wave: (x, y) => `<path class="wave" d="M${x} ${y} q10 -8 20 0 t20 0" fill="none" stroke="#4ECDC4" stroke-width="2.5" stroke-linecap="round"/>`,
+};
+function islandDecor(lay) {
+  const F = (pts) => DECO.flowers(pts);
+  const sea = DECO.sun(24, 24) + DECO.wave(10, 300) + DECO.wave(334, 396) + DECO.wave(6, 176) + DECO.boat(366, 438);
+  const sky = (lay === 6
+    ? DECO.cloud(48, 58, .85, 3) + DECO.cloud(262, 26, 1, 11) + DECO.cloud(352, 158, .7, 7) + DECO.birds(292, 22)
+    : DECO.cloud(48, 52, .85, 3) + DECO.cloud(196, 22, .9, 11) + DECO.cloud(352, 200, .65, 7) + DECO.birds(230, 16));
+  if (lay === 6) return {
+    sea, sky,
+    ground: DECO.lake(84, 284, 40, 21) + DECO.river('M354 224 Q366 238 382 246')
+      + F([[124, 428, '#FF9AC1'], [134, 436, '#FFD84D'], [116, 440, '#ffffff'], [252, 354, '#FF6B57'], [262, 362, '#FFD84D'], [58, 340, '#FF9AC1'], [226, 440, '#ffffff'], [124, 238, '#FFD84D'], [134, 246, '#FF9AC1'], [182, 188, '#ffffff']])
+      + DECO.tufts([[120, 332], [236, 448], [342, 262], [176, 190], [150, 64], [300, 440], [44, 236]])
+      + DECO.rock(364, 346, .9) + DECO.rock(352, 356, .6) + DECO.rock(136, 214, .7),
+    objects: DECO.mountain(300, 230, 46, 46, false) + DECO.mountain(334, 230, 74, 84) + DECO.mountain(362, 230, 34, 38, false)
+      + DECO.tree(108, 82, 1, 0) + DECO.pine(130, 70, .9, 1.3) + DECO.tree(156, 56, .8, 2.1) + DECO.pine(180, 50, .75, .7)
+      + DECO.pine(318, 86, .85, 1.1) + DECO.tree(342, 108, .8, 2.6)
+      + DECO.tree(270, 406, 1, .4) + DECO.pine(296, 398, 1.1, 1.7) + DECO.tree(322, 414, .95, 2.9) + DECO.pine(312, 382, .8, .9) + DECO.tree(344, 394, .8, 1.5) + DECO.bush(286, 426)
+      + DECO.tree(136, 314, .75, 2.2) + DECO.bush(40, 316, .8),
+  };
+  return {
+    sea, sky,
+    ground: DECO.lake(190, 218, 44, 19)
+      + F([[248, 214, '#FF9AC1'], [258, 222, '#FFD84D'], [118, 226, '#ffffff'], [262, 448, '#FF6B57'], [270, 440, '#FFD84D'], [108, 432, '#FF9AC1']])
+      + DECO.tufts([[140, 200], [250, 190], [116, 336], [270, 432], [60, 120]]),
+    objects: DECO.mountain(312, 234, 40, 40, false) + DECO.mountain(342, 234, 58, 58) + DECO.mountain(366, 234, 28, 30, false)
+      + DECO.tree(92, 98, .9, 0) + DECO.pine(118, 84, .85, 1.3) + DECO.tree(150, 74, .8, 2.1) + DECO.pine(184, 66, .75, .7)
+      + DECO.pine(246, 64, .8, 1.1) + DECO.tree(272, 56, .75, 2.6)
+      + DECO.tree(128, 330, .8, 1.5) + DECO.bush(120, 300, .8) + DECO.bush(270, 456, .7),
+  };
+}
 function renderIsland() {
   const open = allUnits(), locked = st.lockedUnits || [];
   const units = [...open.map((u) => ({ u, locked: false })), ...locked.map((u) => ({ u, locked: true }))].slice(0, 9);
@@ -1616,14 +1698,18 @@ function renderIsland() {
       <text x="${x + 48}" y="${y + 120.5}" text-anchor="middle" font-family="Syne,sans-serif" font-weight="800" font-size="12" fill="${sel ? '#CCFF00' : '#1a3a1a'}">${esc(u)}</text>
     </g></g>`;
   }).join('');
+  const D = islandDecor(lay);
   $('island').innerHTML = `<svg viewBox="0 0 390 460" role="group" aria-label="${L('英文島地圖', 'English Island map')}">
-    <path d="M14 40 q10 -8 20 0 t20 0" fill="none" stroke="#4ECDC4" stroke-width="2.5" stroke-linecap="round"/>
-    <path d="M330 420 q10 -8 20 0 t20 0" fill="none" stroke="#4ECDC4" stroke-width="2.5" stroke-linecap="round"/>
-    <path d="M44 432 C4 372 6 262 30 196 C50 132 16 70 84 34 C150 2 270 -4 330 34 C386 72 380 160 370 228 C360 300 386 382 326 430 C262 470 104 474 44 432 Z" fill="#F4F1EB" stroke="#1a3a1a" stroke-width="2.5"/>
-    <path d="M58 418 C28 366 28 270 48 206 C66 144 40 86 96 52 C154 22 262 18 316 50 C362 82 358 160 350 226 C342 296 364 372 314 414 C258 450 112 452 58 418 Z" fill="#E4EED0"/>
+    <g class="deco">${D.sea}</g>
+    <path d="${ISLAND_SHAPE}" fill="none" stroke="#A8E6E0" stroke-width="20" stroke-linejoin="round"/>
+    <path d="${ISLAND_SHAPE}" fill="none" stroke="#ffffff" stroke-opacity=".7" stroke-width="2" stroke-dasharray="6 9" transform="translate(195 230) scale(1.035) translate(-195 -230)"/>
+    <path d="${ISLAND_SHAPE}" fill="#F4F1EB" stroke="#1a3a1a" stroke-width="2.5"/>
+    <path d="M58 418 C28 366 28 270 48 206 C66 144 40 86 96 52 C154 22 262 18 316 50 C362 82 358 160 350 226 C342 296 364 372 314 414 C258 450 112 452 58 418 Z" fill="#D5EBB4"/>
+    <g class="deco">${D.ground}</g>
     <path id="islandRoad" d="${ISLAND_ROAD[lay]}" fill="none" stroke="#D8CFB8" stroke-width="16" stroke-linecap="round"/>
     <path d="${ISLAND_ROAD[lay]}" fill="none" stroke="#ffffff" stroke-width="3" stroke-dasharray="2 10" stroke-linecap="round"/>
-    ${tiles}<g id="hero"></g></svg>`;
+    <g class="deco">${D.objects}</g>
+    ${tiles}<g class="deco">${D.sky}</g><g id="hero"></g></svg>`;
   placeHero();
   $('islandSum').textContent = L(`蓋好 ${fullCount} / ${units.length} 座`, `${fullCount} / ${units.length} built`);
   const unlocked = GAMES.filter((g) => masteredCount() >= g.need).length;
