@@ -100,6 +100,39 @@ main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .uhead .t small{display:block;font-size:12px;color:var(--muted)}
 .uhead .floors{font-family:'Syne',sans-serif;font-weight:800;font-size:15px;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:5px 11px;white-space:nowrap}
 .unote{font-size:12px;color:var(--muted);margin-top:12px;line-height:1.6}
+/* 角色：走路＝手腳擺動＋上下彈；站著＝輕輕呼吸 */
+.av{overflow:visible}
+.av .legL,.av .legR,.av .armL,.av .armR{transform-box:fill-box;transform-origin:50% 8%}
+.av.walk .legL,.av.walk .armR{animation:avSwing .34s ease-in-out infinite alternate}
+.av.walk .legR,.av.walk .armL{animation:avSwing .34s ease-in-out infinite alternate-reverse}
+.av.walk .bob{animation:avBob .17s ease-in-out infinite alternate}
+.av.idle .bob{animation:avBreath 1.8s ease-in-out infinite alternate}
+@keyframes avSwing{from{transform:rotate(-24deg)}to{transform:rotate(24deg)}}
+@keyframes avBob{to{transform:translateY(-3px)}}
+@keyframes avBreath{to{transform:translateY(-1.5px)}}
+@media (prefers-reduced-motion:reduce){.av .bob,.av .legL,.av .legR,.av .armL,.av .armR{animation:none!important}}
+.ava svg,.pava svg,.ce svg{width:100%;height:100%;display:block}
+.ava:has(svg){background:#C9EEEA;overflow:hidden}
+#heroPos:focus-visible{outline:none}
+/* 捏人頁 */
+.avc{display:flex;align-items:center;gap:14px}
+.avc-stage{width:132px;height:170px;flex:none;border-radius:22px;background:#C9EEEA;border:2px solid var(--green);display:flex;align-items:flex-end;justify-content:center;padding:8px 6px 4px}
+.avc-stage .av{width:110px;height:auto}
+.avc-tools{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
+.avc-tools b{font-size:19px}
+.avc-tools b small{display:block;font-family:'Syne',sans-serif;font-size:11px;color:var(--lime);letter-spacing:1px}
+.avtabs{margin-top:14px}
+.avbody{margin-top:4px}
+.avopts{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:8px}
+.avopt{border:2px solid var(--line);background:#C9EEEA;border-radius:16px;padding:4px 4px 6px;display:flex;flex-direction:column;align-items:center;gap:2px;min-height:44px}
+.avopt svg{width:100%;height:58px;overflow:hidden}
+.ava svg,.ce svg{overflow:hidden}
+.avopt span{font-size:12px;font-weight:700;color:var(--green)}
+.avopt.on{border-color:var(--lime);box-shadow:0 0 0 3px rgba(204,255,0,.35)}
+.avopt.avlocked{opacity:.5}
+.avcols{display:flex;flex-wrap:wrap;gap:10px}
+.avcol{width:44px;height:44px;border-radius:50%;border:2px solid var(--line)}
+.avcol.on{border:3px solid var(--lime);box-shadow:0 0 0 3px rgba(204,255,0,.3)}
 /* 平板、電腦：島嶼在左，本週目標在右 */
 @media (min-width:900px){
   #v-home{max-width:1080px}
@@ -556,6 +589,7 @@ nav button.on{color:var(--lime);font-weight:700}
     <div class="set" id="rules"></div>
     <h3 data-en="Settings">設定 <small>SETTINGS</small></h3>
     <div class="set">
+      <div class="srow"><div><span data-en="My character">🧑‍🎨 我的角色</span><small data-en="Pick a face, hair, clothes and extras">換臉、髮型、衣服和配件；練習越多解鎖越多</small></div><button class="btn ghost" data-act="avedit" data-en="Edit">捏角色</button></div>
       <div class="srow"><div><span data-en="Name &amp; avatar">暱稱與頭像</span><small id="meName">—</small></div><button class="btn ghost" data-act="profile" data-en="Edit">修改</button></div>
       <div class="srow"><div>🌐 <span data-en="English mode">英文模式 English mode</span><small data-en="English menus · cards show the English definition first">介面變英文，單字卡和挑戰改看英文定義</small></div><button class="sw" id="sLang"></button></div>
       <div class="srow"><div><span data-en="⏰ Reminder">⏰ 練習提醒</span><small id="remindInfo">加到手機行事曆，時間到會提醒你</small></div><button class="btn ghost" data-act="remind" data-en="Set">設定</button></div>
@@ -580,7 +614,7 @@ nav button.on{color:var(--lime);font-weight:700}
         </div>
       </div>
     </div>
-    <p class="hint">Jeffrey's Lab · 英文順起來．探索英文島 v1.0（THP11 內容）</p>
+    <p class="hint">Jeffrey's Lab · 英文順起來．探索英文島 v1.1（THP11 內容）</p>
   </section>
 </main>
 
@@ -1087,7 +1121,7 @@ const prefetch = (text) => { if (text && navigator.onLine) getAudio(sayText(text
 function coach(key, vars = {}) {
   const [en, zh] = pick(LINES[key]);
   const fill = (s) => s.replace(/\{n\}/g, st.profile ? st.profile.name : '').replace(/\{t\}/g, vars.t || '').replace(/\{tz\}/g, vars.tz || '');
-  $('coachAva').textContent = st.profile ? st.profile.avatar : '🦊';
+  $('coachAva').innerHTML = st.profile ? avaHTML() : '🦊';
   $('coachEn').textContent = fill(en); $('coachZh').textContent = EN() ? '' : fill(zh);
   const c = $('coach'); c.classList.add('show');
   clearTimeout(coach._t); coach._t = setTimeout(() => c.classList.remove('show'), 2600);
@@ -1462,7 +1496,7 @@ function bindSwipe(card) {
 // ═══════════════════════════════════════════════════════
 function renderHeader(bump) {
   const pts = points().total, s = streakNow(), t = titleOf(pts).t;
-  if (st.profile) { $('hAva').textContent = st.profile.avatar; $('hName').textContent = st.profile.name; }
+  if (st.profile) { $('hAva').innerHTML = avaHTML(); $('hName').textContent = st.profile.name; }
   $('hTitle').textContent = t[1].toUpperCase();
   $('hStreak').textContent = '🔥 ' + s + L('週', 'w');
   $('hPts').textContent = '⭐ ' + pts;
@@ -1573,7 +1607,7 @@ function renderIsland() {
       <path d="M${x + 44.5} ${y + 64} v-3 a3.5 3.5 0 0 1 7 0 v3" fill="none" stroke="#1a3a1a" stroke-width="2.2"/>`;
     const sel = st.islandSel === u;
     const label = lk ? `${u} ${L('即將開放', 'coming soon')}` : `${u} ${(UNIT_THEMES[u] || [''])[0]}，${L('完成', 'done')} ${info.floors} / ${info.total}`;
-    return `<g class="tile ${lk ? 'locked' : ''} ${sel ? 'sel' : ''}" data-iunit="${esc(u)}" ${lk ? '' : 'tabindex="0" role="button"'} aria-label="${esc(label)}"><g class="lift">
+    return `<g class="tile ${lk ? 'locked' : ''} ${sel ? 'sel' : ''}" data-iunit="${esc(u)}" data-cx="${x + 48}" data-cy="${y + 94}" ${lk ? '' : 'tabindex="0" role="button"'} aria-label="${esc(label)}"><g class="lift">
       <polygon points="${x + 4},${y + 66} ${x + 48},${y + 88} ${x + 48},${y + 102} ${x + 4},${y + 80}" fill="${cl}" stroke="#1a3a1a" stroke-width="2" stroke-linejoin="round"/>
       <polygon points="${x + 48},${y + 88} ${x + 92},${y + 66} ${x + 92},${y + 80} ${x + 48},${y + 102}" fill="${cr}" stroke="#1a3a1a" stroke-width="2" stroke-linejoin="round"/>
       <polygon class="top" points="${x + 48},${y + 44} ${x + 92},${y + 66} ${x + 48},${y + 88} ${x + 4},${y + 66}" fill="${ct}" stroke="#1a3a1a" stroke-width="2" stroke-linejoin="round"/>
@@ -1587,9 +1621,10 @@ function renderIsland() {
     <path d="M330 420 q10 -8 20 0 t20 0" fill="none" stroke="#4ECDC4" stroke-width="2.5" stroke-linecap="round"/>
     <path d="M44 432 C4 372 6 262 30 196 C50 132 16 70 84 34 C150 2 270 -4 330 34 C386 72 380 160 370 228 C360 300 386 382 326 430 C262 470 104 474 44 432 Z" fill="#F4F1EB" stroke="#1a3a1a" stroke-width="2.5"/>
     <path d="M58 418 C28 366 28 270 48 206 C66 144 40 86 96 52 C154 22 262 18 316 50 C362 82 358 160 350 226 C342 296 364 372 314 414 C258 450 112 452 58 418 Z" fill="#E4EED0"/>
-    <path d="${ISLAND_ROAD[lay]}" fill="none" stroke="#D8CFB8" stroke-width="16" stroke-linecap="round"/>
+    <path id="islandRoad" d="${ISLAND_ROAD[lay]}" fill="none" stroke="#D8CFB8" stroke-width="16" stroke-linecap="round"/>
     <path d="${ISLAND_ROAD[lay]}" fill="none" stroke="#ffffff" stroke-width="3" stroke-dasharray="2 10" stroke-linecap="round"/>
-    ${tiles}</svg>`;
+    ${tiles}<g id="hero"></g></svg>`;
+  placeHero();
   $('islandSum').textContent = L(`蓋好 ${fullCount} / ${units.length} 座`, `${fullCount} / ${units.length} built`);
   const unlocked = GAMES.filter((g) => masteredCount() >= g.need).length;
   $('islandPort').innerHTML = `<i>🎮</i><span>${L('遊戲港口', 'Game Harbor')}<small>${L('挑戰過關的單元越多，開放越多獎勵遊戲', 'Pass more unit challenges to unlock more games')}</small></span><b>${unlocked} / ${GAMES.length}</b>`;
@@ -1613,6 +1648,204 @@ function openUnit(u) {
     <div class="btnrow" style="margin-top:12px"><button class="btn ghost" data-close="1">${L('關閉', 'Close')}</button></div>`;
   $('modal').classList.add('show');
 }
+// ── 角色在島上：站在小路上，點地塊沿路走過去 ──
+function placeHero() {
+  const road = $('islandRoad'), box = $('hero'); if (!road || !box) return;
+  const total = road.getTotalLength(), N = 240, pts = [];
+  for (let i = 0; i <= N; i++) { const l = total * i / N, p = road.getPointAtLength(l); pts.push([l, p.x, p.y]); }
+  st.roadLens = {};
+  document.querySelectorAll('#island [data-iunit]').forEach((g) => {   // 每塊開放的地：取小路上離它最近的點
+    if (g.classList.contains('locked')) return;
+    const cx = +g.getAttribute('data-cx'), cy = +g.getAttribute('data-cy');
+    let best = pts[0], bd = Infinity;
+    pts.forEach((q) => { const d = (q[1] - cx) ** 2 + (q[2] - cy) ** 2; if (d < bd) { bd = d; best = q; } });
+    st.roadLens[g.getAttribute('data-iunit')] = best[0];
+  });
+  const open = Object.keys(st.roadLens);
+  if (!open.length) { box.innerHTML = ''; return; }
+  let at = st.meta.avatarAt;
+  if (st.roadLens[at] == null) at = open.find((u) => !unitStations(u).full) || open[0];
+  const fresh = !(st.profile && st.profile.look);
+  box.innerHTML = `<g id="heroPos" data-hero="1" tabindex="0" role="button" aria-label="${L('我的角色，點我換造型', 'My character — tap to customize')}" style="cursor:pointer">
+    <g id="heroFlip"><g class="av idle">${avatarParts(lookOf())}</g></g>
+    ${fresh ? `<g><rect x="-6" y="-62" width="112" height="40" rx="20" fill="#1a3a1a"/><path d="M42 -23 L50 -12 L58 -23 Z" fill="#1a3a1a"/>
+      <text x="50" y="-35" text-anchor="middle" font-size="22" font-weight="700" fill="#CCFF00">${L('捏我！', 'Edit me!')}</text></g>` : ''}</g>`;
+  st.heroLen = st.roadLens[at]; st.heroLeft = !!st.heroLeft;
+  setHero(st.heroLen, st.heroLeft);
+}
+function setHero(l, left) {
+  const p = $('islandRoad').getPointAtLength(l);
+  $('heroPos').setAttribute('transform', `translate(${p.x.toFixed(1)} ${p.y.toFixed(1)}) scale(.42) translate(-50 -136)`);
+  $('heroFlip').setAttribute('transform', left ? 'translate(100 0) scale(-1 1)' : 'translate(0 0)');
+}
+function goUnit(u) {
+  if (!allUnits().includes(u)) return openUnit(u);   // 未開放：只顯示提示
+  const to = (st.roadLens || {})[u];
+  const arrive = () => { st.meta.avatarAt = u; saveMeta(); openUnit(u); };
+  if (to == null || !$('heroPos') || Math.abs(to - st.heroLen) < 3) return arrive();
+  walkTo(to, arrive);
+}
+function walkTo(to, done) {
+  const road = $('islandRoad'), from = st.heroLen;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const dur = reduce ? 0 : Math.min(1100, Math.max(400, Math.abs(to - from) * 3));   // 最多 1.1 秒，點島嶼可跳過
+  const av = document.querySelector('#heroPos .av');
+  av.classList.replace('idle', 'walk');
+  st.walking = true; st.walkSkip = false;
+  const t0 = performance.now(); let lastX = road.getPointAtLength(from).x;
+  const step = (now) => {
+    let k = dur ? Math.min(1, (now - t0) / dur) : 1;
+    if (st.walkSkip) k = 1;
+    const e = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+    const l = from + (to - from) * e, x = road.getPointAtLength(l).x;
+    if (Math.abs(x - lastX) > .3) st.heroLeft = x < lastX;
+    lastX = x; st.heroLen = l; setHero(l, st.heroLeft);
+    if (k < 1) return requestAnimationFrame(step);
+    st.walking = false; av.classList.replace('walk', 'idle'); done();
+  };
+  requestAnimationFrame(step);
+}
+
+// ═══════════════════════════════════════════════════════
+//  捏人系統：SVG 分層角色（座標 100×152，腳底在 y=136）
+// ═══════════════════════════════════════════════════════
+const INK = '#1a3a1a';
+const AV_SKIN = ['#FFE0C7', '#F6C9A3', '#E3A878', '#B97D55', '#7D5238'];
+const AV_HAIRC = ['#2B1E16', '#5A3A24', '#A8673A', '#E8C26A', '#D9534F', '#6B4CE6', '#4ECDC4', '#F2F2F2'];
+const AV_TOPC = ['#CCFF00', '#4ECDC4', '#FF6B57', '#FFB547', '#6B8CFF', '#FF9AC1', '#ffffff', '#2F5A2F'];
+const AV_BOTC = ['#2F3A56', '#1a3a1a', '#7A5230', '#6B8CFF', '#B0A89A', '#FF6B57'];
+const AV_OPTS = {
+  eyes:  [['dot', '圓點'], ['happy', '笑眼'], ['big', '閃亮'], ['sleepy', '瞇眼'], ['wink', '眨眼']],
+  mouth: [['smile', '微笑'], ['open', '大笑'], ['cat', '貓嘴'], ['o', '驚訝']],
+  hair:  [['short', '短髮'], ['spiky', '刺刺頭'], ['bob', '妹妹頭'], ['long', '長髮'], ['bun', '包包頭'], ['curly', '捲髮']],
+  top:   [['tee', 'T 恤'], ['hoodie', '帽 T'], ['stripe', '條紋衫'], ['jacket', '外套'], ['dress', '洋裝']],
+  hat:   [['none', '不戴'], ['cap', '棒球帽'], ['beanie', '毛帽'], ['flower', '小花'], ['headphones', '耳機'], ['wizard', '魔法帽'], ['crown', '皇冠']],
+  acc:   [['none', '不戴'], ['glasses', '眼鏡'], ['scarf', '圍巾'], ['backpack', '背包'], ['star', '星星貼紙'], ['cape', '披風']],
+};
+// 成就解鎖的配件（[條件說明, 判斷]）
+const AV_LOCKS = {
+  'hat:headphones': [L.bind(null, '總積分 100', '100 points'), () => points().total >= 100],
+  'hat:wizard': [L.bind(null, '挑戰過關 1 個單元', 'Pass 1 unit'), () => masteredCount() >= 1],
+  'hat:crown': [L.bind(null, '挑戰過關 3 個單元', 'Pass 3 units'), () => masteredCount() >= 3],
+  'acc:star': [L.bind(null, '連續 2 週完成每週目標', '2-week streak'), () => streakNow() >= 2 || st.ledger.bonus.some((b) => b.k.startsWith('streak'))],
+  'acc:cape': [L.bind(null, '總積分 300', '300 points'), () => points().total >= 300],
+};
+const avLock = (k, v) => { const x = AV_LOCKS[k + ':' + v]; return x && !x[1]() ? x[0]() : null; };
+const DEFAULT_LOOK = { skin: 1, eyes: 'dot', mouth: 'smile', hair: 'short', hairC: 0, top: 'tee', topC: 0, botC: 0, hat: 'none', acc: 'none' };
+const lookOf = () => ({ ...DEFAULT_LOOK, ...((st.profile && st.profile.look) || {}) });
+function randomLook() {
+  const r = (a) => a[Math.floor(Math.random() * a.length)];
+  const free = (k) => AV_OPTS[k].map((o) => o[0]).filter((v) => !avLock(k, v));
+  return { skin: Math.floor(Math.random() * AV_SKIN.length), eyes: r(free('eyes')), mouth: r(free('mouth')), hair: r(free('hair')),
+    hairC: Math.floor(Math.random() * AV_HAIRC.length), top: r(free('top')), topC: Math.floor(Math.random() * AV_TOPC.length),
+    botC: Math.floor(Math.random() * AV_BOTC.length), hat: Math.random() < .5 ? 'none' : r(free('hat')), acc: Math.random() < .5 ? 'none' : r(free('acc')) };
+}
+function avatarParts(lk) {
+  const S = AV_SKIN[lk.skin] || AV_SKIN[1], H = AV_HAIRC[lk.hairC] || AV_HAIRC[0], T = AV_TOPC[lk.topC] || AV_TOPC[0], B = AV_BOTC[lk.botC] || AV_BOTC[0];
+  const st2 = `stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"`;
+  let back = '', body = '', face = '', hairF = '', front = '', hat = '';
+  // 背後：披風、背包、長髮
+  if (lk.acc === 'cape') back += `<path d="M33 80 L20 126 Q50 134 80 126 L67 80 Z" fill="#FF6B57" ${st2}/>`;
+  if (lk.acc === 'backpack') back += `<rect x="25" y="80" width="50" height="30" rx="10" fill="#4ECDC4" ${st2}/>`;
+  if (lk.hair === 'long') back += `<path d="M22 46 Q18 94 34 98 L66 98 Q82 94 78 46 Z" fill="${H}" ${st2}/>`;
+  if (lk.hair === 'bob') back += `<path d="M21 46 Q19 76 30 78 L70 78 Q81 76 79 46 Z" fill="${H}" ${st2}/>`;
+  // 腿、手、身體
+  const legs = `<g class="legL"><rect x="37" y="100" width="11" height="30" rx="5.5" fill="${B}" ${st2}/><ellipse cx="41" cy="132" rx="8.5" ry="5" fill="${INK}"/></g>
+    <g class="legR"><rect x="52" y="100" width="11" height="30" rx="5.5" fill="${B}" ${st2}/><ellipse cx="59" cy="132" rx="8.5" ry="5" fill="${INK}"/></g>`;
+  const arms = `<g class="armL"><rect x="21" y="80" width="11" height="24" rx="5.5" fill="${T}" ${st2}/><circle cx="26.5" cy="106" r="5.5" fill="${S}" ${st2}/></g>
+    <g class="armR"><rect x="68" y="80" width="11" height="24" rx="5.5" fill="${T}" ${st2}/><circle cx="73.5" cy="106" r="5.5" fill="${S}" ${st2}/></g>`;
+  if (lk.top === 'dress') body = `<path d="M34 78 Q50 72 66 78 L77 117 Q50 123 23 117 Z" fill="${T}" ${st2}/><path d="M40 78 Q50 84 60 78" fill="none" stroke="${INK}" stroke-width="2"/>`;
+  else {
+    body = `<path d="M31 78 Q50 72 69 78 L70 107 Q50 111 30 107 Z" fill="${T}" ${st2}/>`;
+    if (lk.top === 'hoodie') body += `<path d="M37 76 Q50 88 63 76" fill="none" stroke="${INK}" stroke-width="2.2"/><path d="M45 82 v8 M55 82 v8" stroke="${INK}" stroke-width="2" stroke-linecap="round"/><rect x="39" y="94" width="22" height="9" rx="3" fill="none" stroke="${INK}" stroke-width="2"/>`;
+    if (lk.top === 'stripe') body += `<path d="M32 87 H68 M31 96 H69 M31 104 H69" stroke="#ffffff" stroke-opacity=".75" stroke-width="3.5"/><path d="M31 78 Q50 72 69 78 L70 107 Q50 111 30 107 Z" fill="none" ${st2}/>`;
+    if (lk.top === 'jacket') body += `<path d="M50 76 V109" stroke="${INK}" stroke-width="2.2"/><path d="M42 76 L50 88 L58 76" fill="#ffffff" ${st2}/><circle cx="44" cy="96" r="1.8" fill="${INK}"/><circle cx="56" cy="96" r="1.8" fill="${INK}"/>`;
+  }
+  if (lk.acc === 'backpack') body += `<path d="M36 78 V104 M64 78 V104" stroke="#2A8E86" stroke-width="4" stroke-linecap="round"/>`;
+  if (lk.acc === 'scarf') body += `<path d="M33 75 Q50 84 67 75 L67 82 Q50 91 33 82 Z" fill="#FF6B57" ${st2}/><rect x="56" y="82" width="8" height="16" rx="3" fill="#FF6B57" ${st2}/>`;
+  if (lk.acc === 'cape') body += `<circle cx="50" cy="79" r="3.5" fill="#CCFF00" ${st2}/>`;
+  // 頭
+  face = `<circle cx="22" cy="50" r="6" fill="${S}" ${st2}/><circle cx="78" cy="50" r="6" fill="${S}" ${st2}/>
+    <circle cx="50" cy="48" r="28" fill="${S}" ${st2}/>
+    <ellipse cx="34" cy="58" rx="5" ry="3" fill="#FF8A7A" opacity=".55"/><ellipse cx="66" cy="58" rx="5" ry="3" fill="#FF8A7A" opacity=".55"/>`;
+  const E = {
+    dot: `<circle cx="40" cy="50" r="3.6" fill="${INK}"/><circle cx="60" cy="50" r="3.6" fill="${INK}"/>`,
+    happy: `<path d="M35 52 Q40 45 45 52 M55 52 Q60 45 65 52" fill="none" stroke="${INK}" stroke-width="3" stroke-linecap="round"/>`,
+    big: `<circle cx="40" cy="50" r="6" fill="${INK}"/><circle cx="60" cy="50" r="6" fill="${INK}"/><circle cx="42" cy="48" r="2" fill="#fff"/><circle cx="62" cy="48" r="2" fill="#fff"/>`,
+    sleepy: `<path d="M35 51 H45 M55 51 H65" stroke="${INK}" stroke-width="3" stroke-linecap="round"/>`,
+    wink: `<circle cx="40" cy="50" r="3.6" fill="${INK}"/><path d="M55 52 Q60 45 65 52" fill="none" stroke="${INK}" stroke-width="3" stroke-linecap="round"/>`,
+  };
+  const M = {
+    smile: `<path d="M43 60 Q50 67 57 60" fill="none" stroke="${INK}" stroke-width="2.8" stroke-linecap="round"/>`,
+    open: `<path d="M43 59 Q50 71 57 59 Z" fill="#8A2B2B" stroke="${INK}" stroke-width="2.2" stroke-linejoin="round"/>`,
+    cat: `<path d="M42 60 Q46 65 50 60 Q54 65 58 60" fill="none" stroke="${INK}" stroke-width="2.6" stroke-linecap="round"/>`,
+    o: `<circle cx="50" cy="62" r="3.4" fill="none" stroke="${INK}" stroke-width="2.6"/>`,
+  };
+  face += (E[lk.eyes] || E.dot) + (M[lk.mouth] || M.smile);
+  // 瀏海、髮型
+  const bangs = `<path d="M22 50 Q22 18 50 18 Q78 18 78 50 Q75 36 64 34 Q56 41 46 34 Q30 36 22 50 Z" fill="${H}" ${st2}/>`;
+  const HF = {
+    short: `<path d="M22 46 Q22 18 50 18 Q78 18 78 46 Q66 32 50 34 Q34 32 22 46 Z" fill="${H}" ${st2}/>`,
+    spiky: `<path d="M22 46 L24 27 L33 30 L34 15 L44 24 L50 10 L56 24 L66 15 L67 30 L76 27 L78 46 Q64 32 50 34 Q36 32 22 46 Z" fill="${H}" ${st2}/>`,
+    bob: bangs, long: bangs,
+    bun: `<circle cx="50" cy="15" r="9" fill="${H}" ${st2}/><path d="M22 46 Q22 18 50 18 Q78 18 78 46 Q66 32 50 34 Q34 32 22 46 Z" fill="${H}" ${st2}/>`,
+    curly: `<path d="M22 46 Q22 20 50 20 Q78 20 78 46 Q66 34 50 36 Q34 34 22 46 Z" fill="${H}" ${st2}/>` + [[25, 36], [31, 25], [41, 19], [52, 17], [63, 20], [71, 27], [76, 37]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="8" fill="${H}" ${st2}/>`).join(''),
+  };
+  hairF = HF[lk.hair] || HF.short;
+  if (lk.acc === 'glasses') front += `<circle cx="40" cy="50" r="8" fill="none" stroke="${INK}" stroke-width="2.5"/><circle cx="60" cy="50" r="8" fill="none" stroke="${INK}" stroke-width="2.5"/><path d="M48 50 H52" stroke="${INK}" stroke-width="2.5"/>`;
+  if (lk.acc === 'star') front += `<path d="M69 55 l2 4.2 4.6 .6 -3.3 3.2 .8 4.6 -4.1 -2.2 -4.1 2.2 .8 -4.6 -3.3 -3.2 4.6 -.6 z" fill="#CCFF00" stroke="${INK}" stroke-width="1.6" stroke-linejoin="round"/>`;
+  const HAT = {
+    cap: `<path d="M23 38 Q24 13 50 13 Q76 13 77 38 Z" fill="#4ECDC4" ${st2}/><path d="M21 37 H82 Q86 37 86 41 H19 Q19 37 21 37 Z" fill="#2A8E86" ${st2}/>`,
+    beanie: `<path d="M22 40 Q22 11 50 11 Q78 11 78 40 Z" fill="#FF6B57" ${st2}/><rect x="20" y="34" width="60" height="9" rx="4.5" fill="#ffffff" ${st2}/><circle cx="50" cy="9" r="6" fill="#ffffff" ${st2}/>`,
+    flower: `<g transform="translate(70 27)">${[0, 72, 144, 216, 288].map((a) => `<circle cx="${(Math.cos(a * Math.PI / 180) * 5).toFixed(1)}" cy="${(Math.sin(a * Math.PI / 180) * 5).toFixed(1)}" r="4.2" fill="#FF9AC1" stroke="${INK}" stroke-width="1.6"/>`).join('')}<circle r="3.2" fill="#CCFF00" stroke="${INK}" stroke-width="1.6"/></g>`,
+    headphones: `<path d="M22 47 Q22 13 50 13 Q78 13 78 47" fill="none" stroke="${INK}" stroke-width="4.5" stroke-linecap="round"/><rect x="14" y="40" width="10" height="18" rx="5" fill="#4ECDC4" ${st2}/><rect x="76" y="40" width="10" height="18" rx="5" fill="#4ECDC4" ${st2}/>`,
+    wizard: `<path d="M25 33 L54 -8 L75 33 Z" fill="#6B4CE6" ${st2}/><ellipse cx="50" cy="34" rx="33" ry="6" fill="#6B4CE6" ${st2}/><path d="M50 13 l1.6 3.4 3.7 .5 -2.7 2.6 .7 3.7 -3.3 -1.8 -3.3 1.8 .7 -3.7 -2.7 -2.6 3.7 -.5 z" fill="#CCFF00"/>`,
+    crown: `<path d="M29 31 L31 11 L41 21 L50 6 L59 21 L69 11 L71 31 Z" fill="#CCFF00" ${st2}/><circle cx="50" cy="23" r="3" fill="#FF6B57" ${st2}/>`,
+  };
+  hat = HAT[lk.hat] || '';
+  return `<g class="bob">${back}${legs}${arms}${body}${face}${hairF}${front}${hat}</g>`;
+}
+const AV_VB = { full: '0 -12 100 152', head: '10 -8 80 86' };
+const avatarSVG = (lk, cls = '', vb = 'full') => `<svg class="av ${cls}" viewBox="${AV_VB[vb]}" aria-hidden="true">${avatarParts(lk)}</svg>`;
+const avaHTML = () => (st.profile && st.profile.look ? avatarSVG(st.profile.look, '', 'head') : esc(st.profile ? st.profile.avatar : '🦊'));
+
+// ── 捏人頁 ──
+const AV_TABS = [['face', '臉', 'Face'], ['hair', '頭髮', 'Hair'], ['clothes', '衣服', 'Clothes'], ['acc', '配件', 'Extras']];
+function openAvCreator() {
+  if (!st.profile) return;
+  st.avDraft = lookOf(); st.avTab = st.avTab || 'face';
+  renderAvCreator(); $('modal').classList.add('show');
+}
+function renderAvCreator() {
+  const d = st.avDraft;
+  const opt = (k, label, vb = 'head') => `<div class="flabel">${label}</div><div class="avopts">${AV_OPTS[k].map(([v, name]) => {
+    const lock = avLock(k, v), on = d[k] === v;
+    return `<button class="avopt ${on ? 'on' : ''} ${lock ? 'avlocked' : ''}" data-avopt="${k}:${v}" aria-label="${esc(name)}${lock ? '（' + esc(lock) + '解鎖）' : ''}" aria-pressed="${on}">
+      ${avatarSVG({ ...d, [k]: v }, '', vb)}<span>${lock ? '🔒 ' : ''}${esc(name)}</span></button>`;
+  }).join('')}</div>`;
+  const col = (k, list, label) => `<div class="flabel">${label}</div><div class="avcols">${list.map((c, i) => `<button class="avcol ${d[k] === i ? 'on' : ''}" data-avcol="${k}:${i}" style="background:${c}" aria-label="${label} ${i + 1}" aria-pressed="${d[k] === i}"></button>`).join('')}</div>`;
+  const tab = st.avTab;
+  const body = tab === 'face' ? col('skin', AV_SKIN, L('膚色', 'Skin')) + opt('eyes', L('眼睛', 'Eyes')) + opt('mouth', L('嘴巴', 'Mouth'))
+    : tab === 'hair' ? opt('hair', L('髮型', 'Style')) + col('hairC', AV_HAIRC, L('髮色', 'Color'))
+    : tab === 'clothes' ? opt('top', L('上衣', 'Top'), 'full') + col('topC', AV_TOPC, L('上衣顏色', 'Top color')) + col('botC', AV_BOTC, L('褲子顏色', 'Pants color'))
+    : opt('hat', L('帽子', 'Hat')) + opt('acc', L('配件', 'Extra'), 'full') + `<p class="unote">${L('🔒 的配件要靠練習解鎖：拿積分、挑戰過關、連續完成每週目標。', '🔒 items unlock as you practice: points, unit passes, weekly streaks.')}</p>`;
+  $('sheet').innerHTML = `<div class="avc">
+      <div class="avc-stage ${st.avWalk ? 'walking' : ''}">${avatarSVG(d, st.avWalk ? 'walk' : 'idle')}</div>
+      <div class="avc-tools"><b>${L('我的角色', 'My character')}<small>MY CHARACTER</small></b>
+        <button class="btn ghost" data-act="avwalk">${st.avWalk ? L('⏸ 停下來', '⏸ Stop') : L('🚶 走走看', '🚶 Walk')}</button>
+        <button class="btn ghost" data-act="avrand">${L('🎲 隨機', '🎲 Random')}</button></div>
+    </div>
+    <div class="chips avtabs">${AV_TABS.map(([k, zh, en]) => `<button class="chip ${tab === k ? 'on' : ''}" data-avtab="${k}">${EN() ? en : zh}</button>`).join('')}</div>
+    <div class="avbody">${body}</div>
+    <div class="btnrow" style="margin-top:14px"><button class="btn" data-act="avsave">${L('儲存角色', 'Save')}</button><button class="btn ghost" data-close="1">${L('取消', 'Cancel')}</button></div>`;
+}
+async function saveAvatar() {
+  st.profile = { ...st.profile, look: { ...st.avDraft } };
+  await db.set('profile', st.profile);
+  $('modal').classList.remove('show');
+  renderHeader(); renderIsland(); toast(L('角色已儲存 ✨', 'Saved ✨'));
+}
+
 function renderFilters() {
   const chip = (val, on, grp, label) => `<button class="chip ${on ? 'on' : ''}" data-grp="${grp}" data-val="${esc(val)}">${esc(label || val || L('全部', 'All'))}</button>`;
   const books = allBooks();
@@ -1682,7 +1915,7 @@ function openProof() {
   const totalCards = Object.values(st.ledger.days).reduce((a, d) => a + (d.cards || 0), 0);
   const qs = st.ledger.qstat, acc = qs && qs.total ? Math.round(qs.right / qs.total * 100) + '%' : '—';
   $('sheet').innerHTML = `<div class="proof">
-      <div class="pava">${esc(st.profile.avatar)}</div>
+      <div class="pava">${avaHTML()}</div>
       <div class="pname">${esc(st.profile.name)}</div>
       <div class="ptitle">${esc(t[1].toUpperCase())}${EN() ? '' : ' · ' + esc(t[2])}</div>
       <div class="pid">ID #${studentId()}</div><br>
@@ -2144,16 +2377,29 @@ $('onbGo').onclick = async () => {
   await saveLedger();   // createdAt 參與簽章，重新簽一次
   $('onb').classList.remove('show');
   renderHeader(); renderHome(); renderMe();
-  if (first) { confetti(); setTimeout(() => coach('hello'), 400); }
+  if (first) { confetti(); setTimeout(() => coach('hello'), 400); setTimeout(openAvCreator, 1200); }   // 第一次使用：接著捏角色
 };
 
 // ═══════════════════════════════════════════════════════
 //  事件
 // ═══════════════════════════════════════════════════════
 document.addEventListener('click', (e) => {
+  if (st.walking && e.target.closest('#island')) { st.walkSkip = true; return; }   // 走路中點島嶼＝跳過動畫
+  if (e.target.closest('[data-hero]')) return openAvCreator();
   const tile = e.target.closest('[data-iunit]');
-  if (tile) return openUnit(tile.getAttribute('data-iunit'));
+  if (tile) return goUnit(tile.getAttribute('data-iunit'));
   const t = e.target.closest('button,[data-id]'); if (!t) return;
+  if (t.dataset.avopt) {
+    const [k, v] = t.dataset.avopt.split(':'), lock = avLock(k, v);
+    if (lock) return toast(L(`${lock}就能解鎖 🔒`, `Unlock: ${lock} 🔒`));
+    st.avDraft[k] = v; return renderAvCreator();
+  }
+  if (t.dataset.avcol) { const [k, i] = t.dataset.avcol.split(':'); st.avDraft[k] = +i; return renderAvCreator(); }
+  if (t.dataset.avtab) { st.avTab = t.dataset.avtab; return renderAvCreator(); }
+  if (t.dataset.act === 'avwalk') { st.avWalk = !st.avWalk; return renderAvCreator(); }
+  if (t.dataset.act === 'avrand') { st.avDraft = randomLook(); return renderAvCreator(); }
+  if (t.dataset.act === 'avsave') return saveAvatar();
+  if (t.dataset.act === 'avedit') return openAvCreator();
   if (t.dataset.say) { e.stopPropagation(); return speak(t.dataset.say, t, t.dataset.slow === '1'); }
   if (t.dataset.uhard) {   // 單元面板「熟記」站：只練這個單元不熟的字，沒有就多練 10 張
     $('modal').classList.remove('show');
@@ -2208,7 +2454,9 @@ document.addEventListener('click', (e) => {
 document.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.id === 'spellIn') { e.preventDefault(); checkSpell(); } });
 document.addEventListener('keydown', (e) => {   // 島嶼地塊可以用鍵盤 Tab＋Enter 打開
   const tile = e.target.closest && e.target.closest('[data-iunit]');
-  if (tile && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openUnit(tile.getAttribute('data-iunit')); }
+  if (tile && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); goUnit(tile.getAttribute('data-iunit')); }
+  const hero = e.target.closest && e.target.closest('[data-hero]');
+  if (hero && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openAvCreator(); }
 });
 $('modal').addEventListener('click', (e) => { if (e.target.id === 'modal') { clearInterval(openProof._i); $('modal').classList.remove('show'); checkLock(); } });
 function checkLock() { $('lock').classList.toggle('show', !!st.meta.movedOut); }
