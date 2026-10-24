@@ -450,6 +450,8 @@ nav button.on{color:var(--lime);font-weight:700}
 .tip.warn b{color:var(--amber)}
 .codebox{width:100%;height:120px;margin-top:10px;border:1.5px solid var(--line);border-radius:12px;padding:10px;background:var(--panel);
   color:var(--ink);font-family:monospace;font-size:11px;word-break:break-all;resize:none}
+.clab{display:block;font-size:13px;color:var(--muted);margin:12px 0 6px}
+.cerr{min-height:18px;margin:8px 0 0;font-size:13px;color:var(--coral)}
 .pid{font-family:'Syne',sans-serif;font-weight:800;font-size:15px;letter-spacing:2px;color:#fff;background:rgba(0,0,0,.35);border-radius:10px;padding:3px 10px;display:inline-block;margin-top:8px}
 .moved{margin-top:10px;background:#3a2e12;color:var(--amber);border-radius:12px;padding:8px;font-size:12px}
 .lock{position:fixed;inset:0;background:var(--bg);z-index:105;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px 24px;gap:12px}
@@ -654,8 +656,9 @@ nav button.on{color:var(--lime);font-weight:700}
         <div class="diag" id="ttsDiag"></div>
         <div class="btnrow" style="justify-content:flex-start;margin-top:8px"><button class="btn ghost" id="btnTtsTest" data-en="Test voice">測試語音</button></div></div>
     </div>
+    <div class="set" id="cloudBox" style="display:none"></div>
     <div class="set">
-      <div class="srow" style="display:block">
+      <div class="srow" style="display:block" id="codeBox">
         <div>搬移進度（轉移碼）<small>從瀏覽器搬到主畫面 App、或換手機時使用。產生後這裡會被鎖住，轉移碼 30 分鐘內有效</small></div>
         <div class="btnrow" style="justify-content:flex-start;margin-top:8px">
           <button class="btn" data-act="codeout">產生轉移碼</button>
@@ -669,7 +672,7 @@ nav button.on{color:var(--lime);font-weight:700}
         </div>
       </div>
     </div>
-    <p class="hint">Jeffrey's Lab · 英文順起來．探索英文島 v1.6（THP11 內容）</p>
+    <p class="hint">Jeffrey's Lab · 英文順起來．探索英文島 v1.7（THP11 內容）</p>
   </section>
 </main>
 
@@ -694,6 +697,7 @@ nav button.on{color:var(--lime);font-weight:700}
     <div class="agrid" id="onbGrid"></div>
     <button class="btn wide" id="onbGo" style="margin-top:24px">Let's go! 開始 ▶</button>
     <p style="font-size:12px;margin-top:12px">學習進度只存在這支手機上</p>
+    <button class="btn wide" style="margin-top:18px;display:none" data-act="cloudin" id="onbLogin">🎫 用登入小卡登入</button>
     <button class="btn ghost wide" style="margin-top:18px" data-act="codein" id="onbCode">已經有進度？貼上轉移碼</button>
   </div>
 </div>
@@ -3059,6 +3063,7 @@ document.addEventListener('keydown', (e) => {
   else if (last && daysBetween(last, todayKey()) >= 2) setTimeout(() => coach('comeback'), 600);
   else if (st.meta.day !== todayKey()) setTimeout(() => coach('greet'), 600);
   rollDay();
+  st.ready = true; window.dispatchEvent(new Event('island-ready'));   // cloud.js 等這個訊號再讀登入狀態
   if (st.fixedNotice && st.ledger.fix1015) setTimeout(() => toast(`挑戰計分已修正：${st.ledger.fix1015.before} → ${st.ledger.fix1015.after} 分`), 1500);
 
   const before = st.words.length;
@@ -3074,5 +3079,6 @@ document.addEventListener('keydown', (e) => {
 <script src="games/jump.js?v=1.5"></script>
 <script src="games/blaster.js?v=1.5"></script>
 <script src="games/run.js?v=1.1"></script>
+<script src="cloud.js?v=1"></script>
 </body>
 </html>
