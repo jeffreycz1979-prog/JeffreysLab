@@ -3,10 +3,10 @@
 // 後台是獨立的 GAS（在負責 GAS 的 Project 開發）；API 格式見 Claude Docs「英文島後台規劃」
 //
 // ISLAND_API 空白時整個功能隱藏，學生畫面不會有任何變化
-// 測試：網址加 ?api=mock 用手機裡的模擬後台（測試帳號 12345／1234、67890／5678；QR 測試 ?api=mock&k=DEMO1）
+// 測試：網址加 ?api=mock 用手機裡的模擬後台（測試帳號 1101／1234、1102／5678；QR 測試 ?api=mock&k=DEMO1）
 (() => {
   const ISLAND_API = '';   // GAS 網頁應用程式網址（…/exec）
-  const ID_LABEL = '學籍卡號';
+  const ID_LABEL = '學號';   // 後台自編學號（2026/10/24 決定）；之後加學籍卡號也只改這裡
   const PUSH_GAP = 2 * 60000;    // 自動備份最多每 2 分鐘一次
   const HIDE_GAP = 30000;        // App 切到背景時，距離上次備份 30 秒以上就再備份一次
   const qs = new URLSearchParams(location.search);
@@ -136,7 +136,7 @@
       <input class="search" id="cPin" type="password" inputmode="numeric" maxlength="4" autocomplete="current-password">
       <p class="cerr" id="cErr"></p>
       <div class="btnrow" style="margin-top:12px"><button class="btn" data-act="cloudgo">登入</button><button class="btn ghost" data-close="1">取消</button></div>
-      ${MOCK ? '<p class="note" style="margin-top:10px">🧪 模擬後台：測試帳號 12345／1234、67890／5678</p>' : ''}`;
+      ${MOCK ? '<p class="note" style="margin-top:10px">🧪 模擬後台：測試帳號 1101／1234、1102／5678</p>' : ''}`;
     $('modal').classList.add('show');
     setTimeout(() => $('cSid') && $('cSid').focus(), 200);
   }
@@ -219,10 +219,10 @@
   // ═══════════════════════════════════════════════════════
   async function mockApi(action, p, token) {
     await new Promise((r) => setTimeout(r, 400));
-    const K = 'eisland-mock';
+    const K = 'eisland-mock2';
     let M; try { M = JSON.parse(localStorage.getItem(K)); } catch (e) {}
-    M = M || { students: { 12345: { pin: '1234', nick: 'Bella', cls: 'THP11' }, 67890: { pin: '5678', nick: '', cls: 'THP11' } },
-      codes: { DEMO1: '12345' }, tokens: {}, progress: {}, fails: {} };
+    M = M || { students: { 1101: { pin: '1234', nick: 'Bella', cls: 'THP11' }, 1102: { pin: '5678', nick: '', cls: 'THP11' } },
+      codes: { DEMO1: '1101' }, tokens: {}, progress: {}, fails: {} };
     const save = () => { try { localStorage.setItem(K, JSON.stringify(M)); } catch (e) {} };
     const ok = (data) => ({ ok: true, data }), fail = (error, code) => ({ ok: false, error, code });
     if (action === 'ping') return ok({ pong: true });
