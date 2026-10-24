@@ -486,6 +486,8 @@ nav button.on{color:var(--lime);font-weight:700}
 .gamecard .go{border:none;background:var(--lime);color:#10140a;font-weight:700;font-size:13px;border-radius:12px;padding:9px 14px}
 .gamecard .go:disabled{background:var(--panel);color:var(--muted)}
 .wj{position:fixed;inset:0;z-index:130;background:#0a0a14;display:none;touch-action:none;user-select:none;-webkit-user-select:none}
+/* 電腦／橫向螢幕：遊戲區維持手機直式比例、置中，兩旁塗黑（不然畫面太寬、上下看得到的範圍太少） */
+.wj{left:50%;right:auto;width:min(100vw,62vh);width:min(100vw,62dvh);transform:translateX(-50%);box-shadow:0 0 0 100vmax #05050c}
 .wj.show{display:block}
 .wj canvas{position:absolute;inset:0;display:block}
 .wj-hud{position:absolute;left:0;right:0;top:0;padding:calc(env(safe-area-inset-top,0px) + 10px) 12px 8px;display:flex;gap:8px;align-items:center;pointer-events:none}
