@@ -10,7 +10,7 @@
 //        saveLedger, saveMeta, afterPoints, points, gameWeekBestAll, gameCard, masteredCount, GAMES, toast, confetti
 // ═══════════════════════════════════════════════════════
 const WS = (() => {
-  const ID = 'shoot', NEED = 4, VER = '0.3';
+  const ID = 'shoot', NEED = 4, VER = '0.4';
   const TIME = 180, CAP = 20;
   const S_PER_PT = 200;               // 每 200 分 1 ⭐（4000 分滿 20）— 待實玩後調整
   const LW = 360;                     // 邏輯寬度
@@ -31,11 +31,12 @@ const WS = (() => {
   const REST = () => ({ x: LW / 2, y: VH - 170 });   // 球的發射位置（往下拉 130 也還在畫面裡）
   const elapsed = () => (game ? (Date.now() - game.t0) / 1000 : 0);
   const fever = () => !!game && elapsed() < game.feverEnd;
-  const mult = () => (fever() ? 2 : 1);
+  const mult = () => (fever() ? 2 : 1) * (game && game.usePower === 'x2' ? 2 : 1);
   const GOLD = '#ffd23f';
   // 道具：連進 2 球（之後每 2 球）可以選一個，用在下一題
   const POWERS = [
-    { id: 'cut', ic: '✂️', name: ['拿掉一個錯的籃框', 'Remove a wrong hoop'] },
+    { id: 'x2', ic: '💰', name: ['下一球投進分數 ×2', 'Next basket ×2'] },
+    { id: 'time', ic: '⏱️', name: ['遊戲時間 +7 秒', '+7 seconds'] },
     { id: 'big', ic: '⭕', name: ['籃框全部變大', 'Bigger hoops'] },
     { id: 'aim', ic: '🎯', name: ['完整瞄準線', 'Full aim line'] },
   ];
@@ -56,9 +57,9 @@ const WS = (() => {
     document.body.appendChild(root);
     if (!document.getElementById('wsCss')) {
       const st2 = document.createElement('style'); st2.id = 'wsCss';
-      st2.textContent = `.ws-pw{display:flex;flex-direction:column;gap:10px;margin:14px 0 6px}
-        .ws-pw .btn{display:flex;align-items:center;gap:12px;justify-content:flex-start;font-size:16px;padding:14px 16px;border-color:#4ECDC4}
-        .ws-pw .btn span{font-size:24px}`;
+      st2.textContent = `.ws-pw{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0 6px}
+        .ws-pw .btn{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:14px;line-height:1.3;padding:12px 8px;border-color:#4ECDC4;min-height:92px}
+        .ws-pw .btn span{font-size:28px}`;
       document.head.appendChild(st2);
     }
     cv = root.querySelector('canvas'); cx = cv.getContext('2d');
@@ -121,7 +122,7 @@ const WS = (() => {
         <div>🏀 ${L(`投進正確的籃框 +${BASKET}；空心球（沒碰到籃框）再 +${SWISH}`, `Right hoop +${BASKET}; swish (no rim) +${SWISH}`)}</div>
         <div>🔥 ${L(`連進 3 球以上，每球再 +${STREAK}`, `3+ in a row: +${STREAK} each`)}</div>
         <div>✨ ${L(`籃框發金光＝黃金時間，${FEVER_LEN} 秒內投進分數 ×2`, `Golden hoops = GOLDEN TIME: ×2 for ${FEVER_LEN}s`)}</div>
-        <div>🎁 ${L('連進 2 球可以選一個道具：拿掉一個錯的籃框／籃框變大／完整瞄準線', 'Every 2 in a row: pick a power-up (remove a wrong hoop / bigger hoops / full aim line)')}</div>
+        <div>🎁 ${L('連進 2 球可以選一個道具：下一球 ×2／時間 +7 秒／籃框變大／完整瞄準線', 'Every 2 in a row: pick a power-up (next basket ×2 / +7 s / bigger hoops / full aim line)')}</div>
         <div>✏️ ${L('投進錯的籃框，要拼出這個字才能繼續（時間不會停）', 'Wrong hoop = spell the word (clock keeps running)')}</div>
         <div>↕️ ${L(`第 ${MOVE_FROM} 題起籃框會上下移動，第 ${WIND_FROM} 題起有風 🌬️`, `Hoops move from word ${MOVE_FROM}; wind from word ${WIND_FROM} 🌬️`)}</div>
         <div>⭐ ${trial ? L('試玩模式：不計分', 'Trial: not scored') : L(`每 ${S_PER_PT} 分 1 顆星，最多 ${CAP}；所有遊戲每週只算最高一局`, `1 ⭐ per ${S_PER_PT} points, up to ${CAP}; best game of the week counts`)}</div>
@@ -159,8 +160,7 @@ const WS = (() => {
     g.wind = g.n >= WIND_FROM ? (Math.random() < 0.5 ? -1 : 1) * (60 + Math.random() * 110) : 0;
     const pw = g.power; g.power = null; g.usePower = pw;   // 這一題用的道具
     g.hoops = opts.map((o, i) => ({ i, x: 0, y: 0, by: 0, ph: Math.random() * 6, amp: 0, sp: 0, flash: 0, big: pw === 'big', gone: false }));
-    if (pw === 'cut') { const wr = g.hoops.filter((h) => h.i !== g.q.ans); wr[Math.floor(Math.random() * wr.length)].gone = true; }
-    layoutHoops(false);
+    showQ(); layoutHoops(false);   // 先放題目，籃框才知道要往下讓多少
     resetBall();
     showQ(); speak(w.word);
   }
@@ -173,8 +173,15 @@ const WS = (() => {
         h.amp = n >= MOVE_FROM ? Math.min(46, 16 + (n - MOVE_FROM) * 4) : 0;
         h.sp = n >= MOVE_FROM ? 1.1 + Math.random() * 0.9 : 0;
       }
-      h.by = VH * h.yr + 40; h.y = h.by;
+      h.by = Math.max(VH * h.yr + 40, topY() + 8 + 66 + h.amp); h.y = h.by;   // 籃板（高 66）不能被題目擋到，連上下移動的幅度也算
     });
+  }
+  // 題目框下緣（換成遊戲座標）；iPhone 瀏海／動態島會把題目往下推
+  function topY() {
+    const el = root && root.querySelector('#wsQ .wr-q'), hudEl = root && root.querySelector('.wj-hud');
+    const r = cv.getBoundingClientRect(); if (!r.width) return 110;
+    const px = el && el.offsetParent ? el.getBoundingClientRect().bottom : (hudEl ? hudEl.getBoundingClientRect().bottom + 56 : 110);
+    return (px - r.top) * LW / r.width;
   }
   function resetBall() { const r = REST(), b = game.ball; Object.assign(b, { x: r.x, y: r.y, vx: 0, vy: 0, state: 'rest', t: 0, touched: false, top: r.y }); }
 
@@ -247,7 +254,7 @@ const WS = (() => {
     }
   }
   function offerPower() {
-    const g = game; g.choosing = Date.now(); aim = null;
+    const g = game; g.choosing = Date.now(); aim = null; showQ();
     pane(`<div class="wj-card"><div class="wj-kicker">🔥 ${L(`連進 ${g.streak} 球！選一個道具（下一題用）`, `${g.streak} in a row! Pick a power-up for the next word`)}</div>
       <div class="ws-pw">${POWERS.map((p) => `<button class="btn ghost" data-ws="pw" data-pw="${p.id}"><span>${p.ic}</span>${L(...p.name)}</button>`).join('')}</div>
       <p class="wj-small">${L('選的時候時間暫停', 'The clock is paused')}</p></div>`);
@@ -255,8 +262,10 @@ const WS = (() => {
   function pickPower(id) {
     const g = game; if (!g || !g.choosing) return;
     g.t0 += Date.now() - g.choosing; g.choosing = null; g.last = performance.now();   // 選道具的時間不算
-    g.power = id; g.powers++; pane(''); nextQ();
-    const p = POWERS.find((x) => x.id === id); banner(p.ic, L(p.name[0], p.name[1]), L('這一題可以用', 'For this word'), '#4ECDC4');
+    g.powers++; pane('');
+    if (id === 'time') g.t0 += 7000; else g.power = id;   // +7 秒馬上生效；其他用在下一題
+    nextQ();
+    const p = POWERS.find((x) => x.id === id); banner(p.ic, L(p.name[0], p.name[1]), id === 'time' ? '' : L('這一題可以用', 'For this word'), '#4ECDC4');
   }
   function miss() {
     const g = game; g.streak = 0;
@@ -275,7 +284,7 @@ const WS = (() => {
   function showQ() {
     const el = $('wsQ'); if (!el) return;
     const q = game && game.q;
-    if (!q || game.spell || game.over) { el.style.display = 'none'; el.innerHTML = ''; return; }
+    if (!q || game.spell || game.over || game.choosing) { el.style.display = 'none'; el.innerHTML = ''; return; }
     el.style.display = '';
     el.innerHTML = `<div class="wr-q">🏀 <b>${esc(q.w.word)}</b><button class="spk small" data-say="${esc(q.w.word)}">🔊</button></div>`;
   }
@@ -375,7 +384,7 @@ const WS = (() => {
     if (g.wind && !g.over) {
       cx.save(); cx.globalAlpha = 0.8; cx.fillStyle = '#4ECDC4'; cx.font = '700 13px "Noto Sans TC", sans-serif'; cx.textAlign = 'center';
       const dir = g.wind > 0 ? '→' : '←', n = Math.round(Math.abs(g.wind) / 60);
-      cx.fillText(`🌬️ ${L('風', 'Wind')} ${dir.repeat(Math.max(1, n))}`, LW / 2, 122);   // 題目下方
+      cx.fillText(`🌬️ ${L('風', 'Wind')} ${dir.repeat(Math.max(1, n))}`, LW / 2, topY() + 18);   // 題目下方
       cx.restore();
     }
     if (fever() && !g.over) {   // 黃金時間：畫面四周金光＋閃亮
@@ -391,7 +400,7 @@ const WS = (() => {
         cx.beginPath(); cx.moveTo(sx - 5, sy); cx.lineTo(sx, sy + 1.5); cx.lineTo(sx + 5, sy); cx.lineTo(sx, sy - 1.5); cx.fill();
       }
       cx.globalAlpha = 1; cx.font = '800 16px Syne, "Noto Sans TC", sans-serif'; cx.textAlign = 'center';
-      cx.shadowColor = GOLD; cx.shadowBlur = 12; cx.fillStyle = GOLD; cx.fillText(`✨ GOLDEN TIME ×2 · ${left}s`, LW / 2, g.wind ? 142 : 122); cx.restore();
+      cx.shadowColor = GOLD; cx.shadowBlur = 12; cx.fillStyle = GOLD; cx.fillText(`✨ GOLDEN TIME ×2 · ${left}s`, LW / 2, topY() + (g.wind ? 40 : 20)); cx.restore();
     }
     if (g.spell) return;   // 拼字時只留球場背景
     g.hoops.forEach((h) => drawHoop(h, 'back'));

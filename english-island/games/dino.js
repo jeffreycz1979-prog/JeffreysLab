@@ -9,12 +9,12 @@
 //        saveLedger, saveMeta, afterPoints, points, gameWeekBestAll, gameCard, masteredCount, GAMES, toast, confetti
 // ═══════════════════════════════════════════════════════
 const WD = (() => {
-  const ID = 'dino', NEED = 5, VER = '0.3';
+  const ID = 'dino', NEED = 5, VER = '0.4';
   const TIME = 180, CAP = 20, S_PER_PT = 200;   // 每 200 分 1 ⭐（4000 分滿 20）— 待實玩後調整
   const T = 24, ROWS = 11, WH = ROWS * T;         // 磚塊大小、地圖列數、世界高度
   const GROUND = 9;                               // 地面從第 9 列開始（第 9、10 列是土）
   const ACC = 900, VMAX = 150, FRIC = 1300, GRAV = 1500, JUMP = 470, HOLD = 0.22;
-  const ENERGY = 30, DRAIN = 0.35, E_WRONG = 5, E_HIT = 8, E_PIT = 6;   // 體力約 85 秒才會耗完；答對補滿
+  const ENERGY = 30, DRAIN = 0.5, E_WRONG = 5, E_HIT = 8, E_PIT = 6;   // 體力 60 秒耗完；答對補滿
   const AW = 3;   // 答案磚寬（格）
   const P = { coin: 10, stomp: 50, right: 100, streak: 50, flag: 300 };
   const E = 0, GD = 1, BR = 2, QB = 3, UB = 4, PIPE = 5, ST = 6, AB = 8;   // 地圖格子種類
