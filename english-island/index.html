@@ -368,7 +368,7 @@ nav button.on{color:var(--lime);font-weight:700}
   background:#1b2236;border:1px solid var(--lime);border-radius:18px;padding:10px 14px;display:flex;gap:10px;align-items:center;
   opacity:0;transition:all .3s;pointer-events:none;z-index:90;box-shadow:0 10px 30px rgba(0,0,0,.5)}
 .coach.show{opacity:1;transform:translate(-50%,0)}
-.coach .ce{font-size:28px;flex:none}
+.coach .ce{font-size:28px;flex:none;width:44px;height:44px;border-radius:50%;overflow:hidden;background:#C9EEEA;display:flex;align-items:center;justify-content:center}
 .coach b{display:block;font-size:14px}
 .coach small{display:block;font-size:12px;color:var(--muted);margin-top:1px}
 .confetti{position:fixed;top:-12px;width:9px;height:14px;z-index:95;pointer-events:none;animation:fall linear forwards}
@@ -470,6 +470,7 @@ nav button.on{color:var(--lime);font-weight:700}
 .toast{position:fixed;left:50%;bottom:calc(92px + var(--safe-b));transform:translateX(-50%);background:var(--mint);color:#06201e;
   font-size:13px;font-weight:700;padding:9px 16px;border-radius:20px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:120;white-space:nowrap}
 .toast.show{opacity:1}
+.toast.top{top:calc(env(safe-area-inset-top,0px) + 8px);bottom:auto}   /* 作答中：放最上面，不擋按鍵 */
 .rate.nonew{grid-template-columns:1fr 1fr}.rate.nonew .r4{display:none}
 .spot{position:fixed;inset:0;z-index:112;background:rgba(5,8,16,.82);display:none;align-items:flex-start;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 40px) 16px 16px;overflow-y:auto}
 .spot.show{display:flex}
@@ -674,7 +675,7 @@ nav button.on{color:var(--lime);font-weight:700}
         </div>
       </div>
     </div>
-    <p class="hint">Jeffrey's Lab · 英文順起來．探索英文島 v1.7（THP11 內容）</p>
+    <p class="hint">Jeffrey's Lab · 英文順起來．探索英文島 v1.8（THP11 內容）</p>
   </section>
 </main>
 
@@ -864,7 +865,7 @@ const todayKey = () => keyOf(new Date());
 const daysBetween = (a, b) => Math.round((new Date(b) - new Date(a)) / DAY);
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 2200); }
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.toggle('top', inFocus()); t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 2200); }
 const saveProg = () => db.set('prog', st.prog);
 const saveMeta = () => db.set('meta', st.meta);
 const saveSet = () => db.set('settings', st.set);
@@ -1179,7 +1180,12 @@ const prefetch = (text) => { if (text && navigator.onLine) getAudio(sayText(text
 // ═══════════════════════════════════════════════════════
 //  回饋：教練泡泡、彩帶、+1
 // ═══════════════════════════════════════════════════════
+// 作答中（複習還有卡、挑戰還沒結算）不跳泡泡：連對、答錯的話直接略過，目標達成、升級留到結算時再說
+const FOCUS_SKIP = ['miss', 'combo3', 'combo5', 'combo10'];
+const inFocus = () => ($('v-review').classList.contains('active') && !!st.cur) || ($('v-quiz').classList.contains('active') && qz.qs.length > 0 && !qz.result);
 function coach(key, vars = {}) {
+  if (inFocus()) { if (!FOCUS_SKIP.includes(key)) st.pendingCoach = [key, vars]; return; }
+  if (key === 'goal') confetti();
   const [en, zh] = pick(LINES[key]);
   const fill = (s) => s.replace(/\{n\}/g, st.profile ? st.profile.name : '').replace(/\{t\}/g, vars.t || '').replace(/\{tz\}/g, vars.tz || '');
   $('coachAva').innerHTML = st.profile ? avaHTML() : '🦊';
@@ -1275,9 +1281,10 @@ function nextCard() {
   if (st.cur) {
     if (st.set.autoSpeak && $('v-review').classList.contains('active')) speak(st.cur.word);
     if (st.queue.length) prefetch(st.byId[st.queue[0]] && st.byId[st.queue[0]].word);
-  } else if (st.sess.total && $('v-review').classList.contains('active') && st.celebrateSess) {
+  } else if ($('v-review').classList.contains('active')) {   // 這輪結束：才出現角色和鼓勵的話
+    const p = st.pendingCoach; st.pendingCoach = null;
+    if (p) coach(p[0], p[1]); else if (st.sess.total && st.celebrateSess) coach('sess');
     st.celebrateSess = false;
-    if (!st.justGoal) coach('sess');   // 剛達成目標時讓「目標達成」的話優先
   }
 }
 
@@ -1318,7 +1325,7 @@ function rate(g, opt = {}) {
   st.justGoal = wc === WEEK_GOAL && st.meta.celebrated !== thisWeek();
   if (st.justGoal) {
     st.meta.celebrated = thisWeek();
-    setTimeout(() => { confetti(); coach('goal'); }, 250);
+    coach('goal');   // 作答中會留到這輪結束才出現
     checkStreakBonus();
   }
   st.celebrateSess = true;
@@ -1385,7 +1392,7 @@ function spotFail(html) {
 function spotFinish(pass) {
   const g = spot.g; spot = null;
   $('spot').classList.remove('show');
-  if (pass) { toast(L('🔍 抽查通過 +1 ⭐', '🔍 Check passed +1 ⭐')); rate(g, { checked: true, pass: true }); }
+  if (pass) rate(g, { checked: true, pass: true });   // 抽查視窗已顯示「兩題都答對 +1」，按鍵上也有 +2，不再另外跳提示
   else rate(1, { checked: true, fail: true });
 }
 function checkStreakBonus() {
