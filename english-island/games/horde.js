@@ -12,11 +12,12 @@
 //        avatarSVG, lookOf, petOf, AV_TOPC
 // ═══════════════════════════════════════════════════════
 const WH6 = (() => {
-  const ID = 'horde', NEED = 6, VER = '0.3';
+  const ID = 'horde', NEED = 6, VER = '0.4';
   const TIME = 180, CAP = 20, S_PER_PT = 300;   // 每 300 分 1 ⭐ — 分數主要來自拼字，打小怪只有一點點
-  const P = { kill: 2, brute: 15, letter: 15, word: 150, boss: 400 };
+  const P = { kill: 1, brute: 10, letter: 15, word: 250, boss: 400 };   // v0.4：分數以拼字為主；無雙、炸彈打倒的怪不給分
   const G_GAIN = { kill: 1, brute: 6, letter: 4, word: 35 }, G_MAX = 100;   // 無雙集氣
-  const HERO_R = 14, PICK = 20, BUFF = 8;
+  const HERO_R = 14, PICK = 24, BUFF = 8, ORB_R = 21, MAX_ORBS = 3;
+  const JOY_R = 52;   // 左下角固定搖桿
   const BOSS_AT = [55, 120], BOSS_HP = 900;
   const SKILLS = [
     { id: 'pow', ic: '⚔️', name: ['攻擊力 +30%', 'Damage +30%'] },
@@ -88,6 +89,9 @@ const WH6 = (() => {
         .wh-word .slots b{width:22px;height:28px;border-radius:6px;background:rgba(255,255,255,.1);border-bottom:3px solid rgba(255,255,255,.4);color:#fff;
           font:800 18px Syne,sans-serif;display:flex;align-items:center;justify-content:center}
         .wh-word .slots b.ok{background:#CCFF00;color:#10140a;border-color:#8fb300}
+        .wh-word .slots b.pop{animation:whPop .45s}
+        .wj.wh6 .wb-banner{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 116px)}
+        @keyframes whPop{0%{transform:scale(1)}40%{transform:scale(1.6) translateY(-6px)}100%{transform:scale(1)}}
         .wh-word .slots b.next{border-color:#ffb547;box-shadow:0 0 8px #ffb547}
         .wh-word .slots b.hint{color:rgba(255,255,255,.4)}
         .wh-word .spk{pointer-events:auto}
@@ -110,23 +114,21 @@ const WH6 = (() => {
     }
     cv = root.querySelector('canvas'); cx = cv.getContext('2d');
     root.addEventListener('click', onClick);
-    // 搖桿：手指按下的位置當中心，拖曳的方向＝移動方向
+    // 搖桿（v0.4）：固定在左下角；畫面左半邊任何地方按下都算，方向＝從搖桿中心指向手指（拇指放著不用找）
+    const setJoy = (e) => { const p = toLogic(e), c = joyC(); let dx = p.x - c.x, dy = p.y - c.y; const d = Math.hypot(dx, dy); if (d > JOY_R) { dx = dx / d * JOY_R; dy = dy / d * JOY_R; } joy.dx = dx; joy.dy = dy; };
     cv.addEventListener('pointerdown', (e) => {
       if (!game || game.over || paused()) return;
+      const p = toLogic(e); if (p.x > LW * 0.55) return;   // 右半邊不是搖桿（右下角是無雙按鈕）
       e.preventDefault(); cv.setPointerCapture && cv.setPointerCapture(e.pointerId);
-      const p = toLogic(e); joy = { id: e.pointerId, x0: p.x, y0: p.y, dx: 0, dy: 0 };
+      joy = { id: e.pointerId, dx: 0, dy: 0 }; setJoy(e);
     });
-    cv.addEventListener('pointermove', (e) => {
-      if (!joy || joy.id !== e.pointerId) return;
-      const p = toLogic(e); let dx = p.x - joy.x0, dy = p.y - joy.y0; const d = Math.hypot(dx, dy);
-      if (d > 50) { joy.x0 = p.x - dx / d * 50; joy.y0 = p.y - dy / d * 50; dx = dx / d * 50; dy = dy / d * 50; }   // 拖太遠時搖桿中心跟著走
-      joy.dx = dx; joy.dy = dy;
-    });
+    cv.addEventListener('pointermove', (e) => { if (joy && joy.id === e.pointerId) setJoy(e); });
     ['pointerup', 'pointercancel', 'lostpointercapture'].forEach((ev) => cv.addEventListener(ev, (e) => { if (joy && joy.id === e.pointerId) joy = null; }));
     addEventListener('keydown', (e) => { keys[e.key] = true; if (e.key === ' ' && game && game.gauge >= G_MAX && !paused()) { e.preventDefault(); offerMoves(); } });
     addEventListener('keyup', (e) => { keys[e.key] = false; });
     addEventListener('resize', resize);
   }
+  const joyC = () => ({ x: 26 + JOY_R, y: LH - 30 - JOY_R });
   const paused = () => !!(game && (game.menu || game.spell || game.moveMenu));
   const toLogic = (e) => { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * LW, y: (e.clientY - r.top) / r.height * LH }; };
   function resize() {
@@ -159,7 +161,7 @@ const WH6 = (() => {
       <h2>Word Brawl 單字無雙</h2>
       <div class="wj-rules">
         <div>🧍 ${L('用你自己捏的角色上場！帶了寵物的話，寵物也會一起幫忙打', 'Fight as your own avatar! Your pet fights too')}</div>
-        <div>👆 ${L('手指按住拖曳＝移動，角色自動攻擊；小怪一刀就倒，大塊頭會蓄力衝撞，要閃', 'Hold and drag to move — attacks are automatic. Small fry fall in one hit; dodge the big ones when they charge')}</div>
+        <div>🕹️ ${L('左下角搖桿移動（左半邊按下都算），角色自動攻擊；小怪一刀就倒，大塊頭會蓄力衝撞，要閃', 'Joystick bottom-left (anywhere on the left half) — attacks are automatic. Small fry fall in one hit; dodge the big ones when they charge')}</div>
         <div>🔤 ${L('上面是一個字的中文：怪物會掉字母球，走過去照順序撿齊就拼好這個字', 'Monsters drop letter balls — walk over them in order to spell the word')}</div>
         <div>⬆️ ${L(`拼好一個字 +${P.word}，升級三選一技能，還能打破墨水大王的護盾`, `Spell it: +${P.word}, pick a skill, and break the Ink King's shield`)}</div>
         <div>💥 ${L('打怪、撿字母、拼字都會集「無雙」氣，滿了按右下角，自己選招式放大絕', 'Fill the MUSOU gauge, then tap the button to choose your super move')}</div>
@@ -205,7 +207,7 @@ const WH6 = (() => {
     const a = g.w.word.toLowerCase();
     el.style.display = '';
     el.innerHTML = `<div class="in"><span class="zh">${esc(short(g.w))}</span><span class="slots">${a.split('').map((c, i) =>
-      i < g.idx ? `<b class="ok">${esc(c)}</b>` : i === g.idx ? `<b class="next ${g.miss >= 3 ? 'hint' : ''}">${g.miss >= 3 ? esc(c) : ''}</b>` : '<b></b>').join('')}</span>
+      i < g.idx ? `<b class="ok ${i === g.popSlot ? 'pop' : ''}">${esc(c)}</b>` : i === g.idx ? `<b class="next ${g.miss >= 3 ? 'hint' : ''}">${g.miss >= 3 ? esc(c) : ''}</b>` : '<b></b>').join('')}</span>
       <button class="spk small" data-say="${esc(g.w.word)}">🔊</button></div>`;
   }
   function musouBtn() {
@@ -245,7 +247,7 @@ const WH6 = (() => {
     for (const k in g.buff) if (g.buff[k] > 0) g.buff[k] -= dt;
     // 移動
     let mx = 0, my = 0;
-    if (joy) { mx = joy.dx / 50; my = joy.dy / 50; }
+    if (joy) { const d = Math.hypot(joy.dx, joy.dy); if (d > 5) { const k = Math.min(1, d / 20) / d; mx = joy.dx * k; my = joy.dy * k; } }   // 輕推就全速
     if (keys.ArrowLeft || keys.a) mx = -1; if (keys.ArrowRight || keys.d) mx = 1; if (keys.ArrowUp || keys.w) my = -1; if (keys.ArrowDown || keys.s) my = 1;
     const ml = Math.hypot(mx, my); if (ml > 1) { mx /= ml; my /= ml; }
     const sp = 140 * m.move * (g.buff.boots > 0 ? 1.6 : 1);
@@ -358,7 +360,11 @@ const WH6 = (() => {
     });
   }
   // 右下角是無雙按鈕：角色、字母、道具都不能躲在按鈕下面
-  function btnCorner(o) { const c = 108; if (o.x > LW - c && o.y > LH - c) { if (o.x - (LW - c) < o.y - (LH - c)) o.x = LW - c; else o.y = LH - c; } }
+  function btnCorner(o) {   // 右下角無雙按鈕、左下角搖桿：角色、字母、道具都不能躲在下面
+    const c = 108, j = 26 + JOY_R * 2 + 8;
+    if (o.x > LW - c && o.y > LH - c) { if (o.x - (LW - c) < o.y - (LH - c)) o.x = LW - c; else o.y = LH - c; }
+    if (o.x < j && o.y > LH - j - 4) { if (j - o.x < o.y - (LH - j - 4)) o.x = j; else o.y = LH - j - 4; }
+  }
   function hurtHero(dmg, inv) {
     const g = game, h = g.hero;
     h.hp -= dmg; h.inv = inv; g.fx.push({ t: 0.5, txt: `−${Math.round(dmg)}`, x: h.x, y: h.y - 36, c: '#ff6b57' });
@@ -407,9 +413,9 @@ const WH6 = (() => {
     if (f.type === 'boss' && g.shieldOff <= 0) dmg *= musou ? 0.6 : 0.2;   // 護盾
     f.hp -= dmg; f.flash = 0.1;
     const kb = f.type === 'boss' ? 20 : f.type === 'brute' ? 70 : 220; f.kx += Math.cos(ang) * kb; f.ky += Math.sin(ang) * kb;
-    if (f.hp <= 0) kill(f);
+    if (f.hp <= 0) kill(f, musou);
   }
-  function kill(f) {
+  function kill(f, musou) {
     const g = game, i = g.foes.indexOf(f); if (i < 0) return;
     g.foes.splice(i, 1);
     if (f.type === 'boss') {
@@ -420,27 +426,28 @@ const WH6 = (() => {
       return;
     }
     const big = f.type === 'brute';
-    g.score += big ? P.brute : P.kill; g.kills++; addGauge(big ? G_GAIN.brute : G_GAIN.kill);
+    g.kills++; if (!musou) { g.score += big ? P.brute : P.kill; addGauge(big ? G_GAIN.brute : G_GAIN.kill); }
     burst(f.x, f.y, big ? '#ff9a3c' : f.type === 'bat' ? '#b48cff' : '#4ECDC4', big ? 16 : 6);
-    if (Math.random() < (big ? 1 : 0.16) && g.orbs.length < 9) drop(f.x, f.y);
+    if (g.orbs.length < MAX_ORBS && Math.random() < (big ? 1 : 0.2)) drop(f.x, f.y);
     if (Math.random() < (big ? 0.4 : 0.02) && g.items.length < 3) g.items.push({ k: ['boots', 'ice', 'meat', 'bomb'][Math.floor(Math.random() * 4)], x: f.x + rnd(-10, 10), y: f.y, t: 10 });
   }
   // 掉字母：一半是下一個要的字母、一半干擾；場上沒有正確的而且太久沒掉，就保證掉一個
   function drop(x, y) {
     const g = game, a = g.w.word.toLowerCase(), need = a[g.idx]; if (!need) return;
+    // 場上最多 3 顆：正確的那顆一定先出現，之後才補 1～2 顆干擾
     const onField = g.orbs.some((o) => o.c === need);
-    g.sinceNeed++;
     let c;
-    if ((!onField && g.sinceNeed >= 2) || Math.random() < 0.45) { c = need; g.sinceNeed = 0; }
+    if (!onField) c = need;
     else { const others = a.split('').filter((ch) => ch !== need), al = 'abcdefghijklmnopqrstuvwxyz'.replace(need, ''); c = others.length && Math.random() < 0.5 ? others[Math.floor(Math.random() * others.length)] : al[Math.floor(Math.random() * al.length)]; }
     const ang = Math.random() * 6.28;
-    g.orbs.push({ c, x, y, vx: Math.cos(ang) * 120, vy: Math.sin(ang) * 120, pop: 0.35, t: 12 });
+    g.orbs.push({ c, x, y, vx: Math.cos(ang) * 120, vy: Math.sin(ang) * 120, pop: 0.35, t: 14 });
     g.fx.push({ t: 0.6, ring: 1, x, y });
   }
   function pick(c, o) {
     const g = game, a = g.w.word.toLowerCase();
     if (c === a[g.idx]) {
-      g.idx++; g.miss = 0; g.score += P.letter; addGauge(G_GAIN.letter);
+      g.idx++; g.miss = 0; g.score += P.letter; addGauge(G_GAIN.letter); g.popSlot = g.idx - 1;
+      if (g.idx < a.length) speak(c.toUpperCase());   // 唸字母
       g.fx.push({ t: 0.7, txt: c.toUpperCase(), x: o ? o.x : g.hero.x, y: (o ? o.y : g.hero.y) - 20, c: '#CCFF00', big: 1 });
       if (g.idx >= a.length) { showWord(); return wordDone(); }
     } else {
@@ -461,7 +468,7 @@ const WH6 = (() => {
     speak(g.w.word);
     if (g.boss) g.shieldOff = 7;
     g.orbs = []; g.hero.inv = 1;
-    g.fx.push({ t: 0.5, flash: 1 });
+    g.fx.push({ t: 0.5, flash: 1 }, { t: 1.3, bigword: g.w.word });
     banner('🔤', L(`拼出來了！${g.w.word} +${P.word}`, `Spelled! ${g.w.word} +${P.word}`), g.boss ? L('墨水大王的護盾破了！', "Ink King's shield is down!") : short(g.w), '#CCFF00');
     g.lvAt = performance.now() + 600;   // 0.6 秒後升級（如果那時正在選招式或拼字，就等結束後再跳）
   }
@@ -619,10 +626,11 @@ const WH6 = (() => {
     g.orbs.forEach((o) => {
       if (o.t < 2.5 && Math.floor(o.t * 6) % 2) return;
       const by = o.pop > 0 ? -Math.sin((1 - o.pop / 0.35) * Math.PI) * 18 : Math.sin(g.clock * 4 + o.x) * 2;
-      cx.fillStyle = 'rgba(0,0,0,.35)'; cx.beginPath(); cx.ellipse(o.x, o.y + 15, 12, 4, 0, 0, 7); cx.fill();
-      cx.fillStyle = 'rgba(255,214,90,.28)'; cx.beginPath(); cx.arc(o.x, o.y + by, 19 + Math.sin(g.clock * 6) * 2, 0, 7); cx.fill();
-      cx.fillStyle = '#fffbe8'; cx.strokeStyle = '#ff9f1c'; cx.lineWidth = 3; cx.beginPath(); cx.arc(o.x, o.y + by, 14, 0, 7); cx.fill(); cx.stroke();
-      cx.fillStyle = '#3a2400'; cx.font = '900 19px Syne, sans-serif'; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText(o.c, o.x, o.y + by + 1); cx.textBaseline = 'alphabetic';
+      cx.fillStyle = 'rgba(0,0,0,.35)'; cx.beginPath(); cx.ellipse(o.x, o.y + ORB_R + 2, ORB_R * 0.8, 5, 0, 0, 7); cx.fill();
+      cx.fillStyle = 'rgba(255,214,90,.3)'; cx.beginPath(); cx.arc(o.x, o.y + by, ORB_R + 7 + Math.sin(g.clock * 6) * 2.5, 0, 7); cx.fill();
+      cx.fillStyle = '#fffbe8'; cx.strokeStyle = '#ff9f1c'; cx.lineWidth = 4; cx.beginPath(); cx.arc(o.x, o.y + by, ORB_R, 0, 7); cx.fill(); cx.stroke();
+      cx.font = '900 28px Syne, sans-serif'; cx.textAlign = 'center'; cx.textBaseline = 'middle';
+      cx.lineWidth = 3; cx.strokeStyle = '#fff'; cx.strokeText(o.c, o.x, o.y + by + 1); cx.fillStyle = '#2a1800'; cx.fillText(o.c, o.x, o.y + by + 1); cx.textBaseline = 'alphabetic';
     });
     // 寵物的小球、墨水彈
     g.shots.forEach((s2) => { cx.fillStyle = '#ffd23f'; cx.beginPath(); cx.arc(s2.x, s2.y, 4, 0, 7); cx.fill(); });
@@ -677,6 +685,12 @@ const WH6 = (() => {
     // 畫面效果：閃光、放大絕的字卡、buff 提示
     cx.setTransform(S, 0, 0, S, 0, 0);
     g.fx.forEach((f) => {
+      if (f.bigword) {   // 拼好的字放大顯示
+        const k = 1 - f.t / 1.3, sc = 1 + Math.min(1, k * 4) * 0.4;
+        cx.save(); cx.globalAlpha = Math.min(1, f.t * 3); cx.translate(LW / 2, LH * 0.38); cx.scale(sc, sc);
+        cx.font = '900 44px Syne, sans-serif'; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.lineWidth = 8; cx.strokeStyle = '#10140a'; cx.strokeText(f.bigword, 0, 0);
+        cx.fillStyle = '#CCFF00'; cx.fillText(f.bigword, 0, 0); cx.restore(); cx.textBaseline = 'alphabetic';
+      }
       if (f.flash) { cx.fillStyle = `rgba(255,255,255,${Math.min(0.55, f.t * 2.2)})`; cx.fillRect(0, 0, LW, LH); }
       if (f.cut) {   // 大絕字卡（慢動作期間）
         const mv = MOVES.find((x) => x.id === f.mv), a = Math.min(1, f.t * 6);
@@ -688,7 +702,7 @@ const WH6 = (() => {
     if (g.slow > 0) { cx.strokeStyle = 'rgba(255,180,71,.6)'; cx.lineWidth = 12; cx.strokeRect(0, 0, LW, LH); }
     const bf = Object.keys(g.buff).filter((k) => g.buff[k] > 0);
     bf.forEach((k, i) => {
-      const x = 14 + i * 64, y = LH - 30;
+      const x = 14 + i * 64, y = joyC().y - JOY_R - 22;   // 搖桿上方
       cx.fillStyle = 'rgba(10,14,24,.75)'; cx.beginPath(); cx.roundRect ? cx.roundRect(x, y - 16, 58, 26, 13) : cx.rect(x, y - 16, 58, 26); cx.fill();
       cx.fillStyle = '#fff'; cx.font = '700 14px Syne, sans-serif'; cx.textAlign = 'left'; cx.fillText(`${ITEMS[k].ic} ${Math.ceil(g.buff[k])}`, x + 8, y + 2);
     });
@@ -701,13 +715,32 @@ const WH6 = (() => {
       cx.fillStyle = '#fff'; cx.font = '700 11px "Noto Sans TC", sans-serif'; cx.textAlign = 'center';
       cx.fillText(g.shieldOff > 0 ? L('墨水大王・護盾破了！快打！', 'Ink King · shield down!') : L('墨水大王・🛡️ 拼好字打破護盾', 'Ink King · 🛡️ spell to break'), LW / 2, y - 5);
     }
-    // 搖桿
-    if (joy) {
-      cx.strokeStyle = 'rgba(255,255,255,.35)'; cx.lineWidth = 3; cx.beginPath(); cx.arc(joy.x0, joy.y0, 50, 0, 7); cx.stroke();
-      cx.fillStyle = 'rgba(204,255,0,.45)'; cx.beginPath(); cx.arc(joy.x0 + joy.dx, joy.y0 + joy.dy, 20, 0, 7); cx.fill();
-    } else if (g.elapsed < 4 && !paused()) {
-      cx.fillStyle = 'rgba(255,255,255,.65)'; cx.font = '700 14px "Noto Sans TC", sans-serif'; cx.textAlign = 'center';
-      cx.fillText(L('👆 手指按住拖曳就能移動', '👆 Hold and drag to move'), LW / 2, LH - 70);
+    // 左下角固定搖桿
+    if (!g.over && !paused()) {
+      const c = joyC(), kx = joy ? joy.dx : 0, ky = joy ? joy.dy : 0;
+      cx.fillStyle = 'rgba(10,14,24,.45)'; cx.beginPath(); cx.arc(c.x, c.y, JOY_R + 6, 0, 7); cx.fill();
+      cx.strokeStyle = joy ? 'rgba(204,255,0,.7)' : 'rgba(255,255,255,.35)'; cx.lineWidth = 3; cx.beginPath(); cx.arc(c.x, c.y, JOY_R + 6, 0, 7); cx.stroke();
+      cx.fillStyle = 'rgba(255,255,255,.25)'; [[0, -1], [1, 0], [0, 1], [-1, 0]].forEach(([ax, ay]) => { cx.beginPath(); cx.moveTo(c.x + ax * (JOY_R - 4), c.y + ay * (JOY_R - 4)); cx.lineTo(c.x + ax * (JOY_R - 14) - ay * 7, c.y + ay * (JOY_R - 14) + ax * 7); cx.lineTo(c.x + ax * (JOY_R - 14) + ay * 7, c.y + ay * (JOY_R - 14) - ax * 7); cx.fill(); });
+      cx.fillStyle = joy ? 'rgba(204,255,0,.85)' : 'rgba(255,255,255,.55)'; cx.beginPath(); cx.arc(c.x + kx, c.y + ky, 22, 0, 7); cx.fill();
+    }
+    // 第一個字：箭頭指向要撿的字母
+    if (g.words === 0 && !paused()) {
+      const need = g.w && g.w.word.toLowerCase()[g.idx], o = need && g.orbs.filter((x) => x.c === need && x.pop <= 0).sort((a, b) => Math.hypot(a.x - h.x, a.y - h.y) - Math.hypot(b.x - h.x, b.y - h.y))[0];
+      if (o) {
+        const a = Math.atan2(o.y - h.y, o.x - h.x), d = Math.hypot(o.x - h.x, o.y - h.y);
+        if (d > 70) { const ax = h.x + Math.cos(a) * 46, ay = h.y + Math.sin(a) * 46; cx.save(); cx.translate(ax, ay); cx.rotate(a); cx.fillStyle = '#CCFF00'; cx.beginPath(); cx.moveTo(14, 0); cx.lineTo(-6, -10); cx.lineTo(-2, 0); cx.lineTo(-6, 10); cx.fill(); cx.restore(); }
+        const bob = Math.sin(g.clock * 6) * 4;
+        cx.strokeStyle = '#CCFF00'; cx.lineWidth = 3; cx.beginPath(); cx.arc(o.x, o.y, ORB_R + 12, 0, 7); cx.stroke();
+        cx.fillStyle = '#CCFF00'; cx.font = '800 14px "Noto Sans TC", sans-serif'; cx.textAlign = 'center'; cx.fillText(L('撿這個 ↓', 'Pick this ↓'), o.x, o.y - ORB_R - 18 + bob);
+      }
+    }
+    // 開場三步提示（前 9 秒輪流）
+    if (g.elapsed < 9 && !paused()) {
+      const steps = [L('① 左下搖桿移動，角色會自動攻擊', '① Move with the joystick — attacks are automatic'), L('② 撿字母球，拼出上面的字', '② Pick up letters to spell the word above'), L('③ 無雙集滿了，按右下角放大絕', '③ When MUSOU is full, tap the bottom-right button')];
+      const t = steps[Math.min(2, Math.floor(g.elapsed / 3))];
+      cx.font = '800 15px "Noto Sans TC", sans-serif'; cx.textAlign = 'center'; const tw = Math.min(LW - 20, cx.measureText(t).width + 28), y = LH - 40 - JOY_R * 2 - 40;   // 搖桿上方
+      cx.fillStyle = 'rgba(10,14,24,.78)'; cx.beginPath(); cx.roundRect ? cx.roundRect(LW / 2 - tw / 2, y - 22, tw, 36, 18) : cx.rect(LW / 2 - tw / 2, y - 22, tw, 36); cx.fill();
+      cx.fillStyle = '#fff'; cx.fillText(t, LW / 2, y + 2);
     }
   }
   function drawImg(img, x, y, w, hgt, face, isHero) {
