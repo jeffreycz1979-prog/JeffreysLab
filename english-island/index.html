@@ -421,6 +421,13 @@ nav button.on{color:var(--lime);font-weight:700}
 .grule b{display:block;color:var(--mint);font-size:13px;margin-bottom:3px}
 .grule i{font-family:'Syne',sans-serif;font-style:normal;font-size:15px}
 .gmis{display:grid;grid-template-columns:1fr;gap:2px;font-size:14px;margin-top:8px;background:var(--panel);border-radius:12px;padding:10px 12px}
+.phs{background:var(--panel);border-radius:12px;padding:10px 12px;margin-top:8px}
+.phs .ph-h{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.phs .ph-h b{color:var(--mint);font-size:15px}.phs .ph-h .ipa{font-family:serif;font-size:16px;color:var(--lime)}
+.phs small{display:block;color:var(--muted);font-size:12px;margin:2px 0 6px}
+.ph-words{display:flex;flex-wrap:wrap;gap:6px}
+.ph-w{border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:6px 12px;font-family:'Syne',sans-serif;font-size:16px;font-weight:700}
+.ph-w em{font-style:normal;color:var(--coral)}
+.ph-w.sm{font-size:14px;padding:5px 10px;font-weight:600}
 .gmis .x{color:var(--coral);text-decoration:line-through}.gmis .o{color:var(--mint);font-weight:700}.gmis small{color:var(--muted)}
 .qunit .acts{display:flex;gap:6px;flex:none}
 .qunit .gbtn{background:var(--panel);border:1.5px solid var(--line);color:var(--ink);font-weight:700;font-size:13px;border-radius:12px;padding:8px 10px}
@@ -676,7 +683,7 @@ nav button.on{color:var(--lime);font-weight:700}
         </div>
       </div>
     </div>
-    <p class="hint">Jeffrey's Lab · 英文順起來．探索英文島 v1.8.1（THP11 內容）</p>
+    <p class="hint">Jeffrey's Lab · 英文順起來．探索英文島 v1.9（THP11 內容）</p>
   </section>
 </main>
 
@@ -1621,7 +1628,7 @@ function unitStations(u) {
   const ws = st.words.filter((w) => w.unit === u), n = ws.length;
   const k = { known: 0, learn: 0, hard: 0, new: 0 }; ws.forEach((w) => k[statusOf(w)]++);
   const studied = n - k.new, best = (st.meta.quizBest || {})[u];
-  const hasCard = !!((GRAM.cards || {})[u] || (GRAM.everyday || {})[u]);
+  const hasPh = !!(GRAM.phonics || {})[u], hasCard = !!((GRAM.cards || {})[u] || (GRAM.everyday || {})[u]) || hasPh;
   const seen = !!(st.meta.gseen || {})[u];
   const gramReady = Object.keys(GRAM.cards || {}).length > 0;   // grammar.json 還沒載入時，沒有小卡的單元先不算完成
   const need = Math.ceil(n * RECALL_SHARE);
@@ -1629,7 +1636,7 @@ function unitStations(u) {
     { key: 'words', ic: '🃏', zh: '字彙', en: 'Words', done: n > 0 && studied >= n, pct: n ? studied / n : 0,
       txt: L(`${n} 個字・學過 ${studied}`, `${n} words · studied ${studied}`), act: `data-unit="${esc(u)}"`, btn: L('複習 ▶', 'Review ▶') },
     { key: 'pattern', ic: '📘', zh: '句型', en: 'Patterns', done: hasCard ? seen : gramReady, pct: (hasCard ? seen : gramReady) ? 1 : 0,
-      txt: hasCard ? (seen ? L('看過文法和生活句型小卡', 'Grammar cards read') : L('看一次文法和生活句型小卡', 'Read the grammar cards')) : L('這個單元沒有文法小卡', 'No grammar card'),
+      txt: hasCard ? (seen ? L(hasPh ? '看過文法和發音小卡' : '看過文法和生活句型小卡', 'Grammar cards read') : L(hasPh ? '看一次文法和發音小卡' : '看一次文法和生活句型小卡', hasPh ? 'Read the grammar & phonics cards' : 'Read the grammar cards')) : L('這個單元沒有文法小卡', 'No grammar card'),
       act: hasCard ? `data-gcard="${esc(u)}"` : '', btn: L('看小卡', 'Open') },
     { key: 'quiz', ic: '🎯', zh: '挑戰', en: 'Challenge', done: isMastered(u), pct: best == null ? 0 : Math.min(1, best / MASTER_PCT),
       txt: best == null ? L(`10 題拿到 ${MASTER_PCT}% 就過關`, `Score ${MASTER_PCT}% on 10 questions`) : L(`最佳 ${best}%・${MASTER_PCT}% 過關`, `Best ${best}% · pass at ${MASTER_PCT}%`),
@@ -2572,7 +2579,7 @@ function renderQuiz() {
       <input class="spellin" id="spellIn" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="type here">
       <button class="btn wide" style="margin-top:10px" data-act="qspell">${L('確認 Check', 'Check')}</button>`;
   }
-  box.innerHTML = head + `<div class="qcard"><div class="qtype">${EN() ? QTYPE_EN[q.type] : QTYPE[q.type]}</div>${body}<div id="qfb"></div></div>`;
+  box.innerHTML = head + `<div class="qcard"><div class="qtype">${q.g && q.g.label ? esc(q.g.label[EN() ? 1 : 0]) : EN() ? QTYPE_EN[q.type] : QTYPE[q.type]}</div>${body}<div id="qfb"></div></div>`;
   if (q.type === 'order' || q.type === 'lorder') drawOrder();
   if (q.type === 'lfill' || q.type === 'lpick' || q.type === 'lorder') speak(sayOf(q.g));
   if (q.type === 'listen' || (q.type === 'en2zh' && st.set.autoSpeak)) speak(q.w.word);
@@ -2716,19 +2723,29 @@ function makeIcs() {
 function cardHTMLg(c, label) {
   return `<div class="gcard"><div class="qtype" style="text-align:left;margin-bottom:4px">${label}</div>
       <h4>${esc(c.title)}</h4><div class="gzh">${esc(c.zh)}</div>
-      ${(c.rules || []).map(([r, ex]) => `<div class="grule" style="display:flex;gap:10px;align-items:center"><div style="flex:1;min-width:0"><b>${esc(r)}</b><i>${esc(ex)}</i></div>
+      ${(c.rules || []).map(([r, ex]) => `<div class="grule" style="display:flex;gap:10px;align-items:center"><div style="flex:1;min-width:0">${r ? `<b>${esc(r)}</b>` : ''}<i>${esc(ex)}</i></div>
         <button class="spk small" data-say="${esc(ex)}">🔊</button></div>`).join('')}
       ${(c.phrases || []).map(([k, v]) => `<div class="grule"><b>${esc(k)}</b><span style="font-size:14px">${esc(v)}</span></div>`).join('')}
       ${(c.mistakes || []).length ? `<div class="sec" style="margin-top:14px">常見錯誤 COMMON MISTAKES</div>` : ''}
       ${(c.mistakes || []).map(([x, o, why]) => `<div class="gmis"><span class="x">✕ ${esc(x)}</span><span class="o">✓ ${esc(o)}</span><small>${esc(why)}</small></div>`).join('')}
     </div>`;
 }
+const phWord = (w) => esc(w).replace(/\[([^\]]+)\]/g, '<em>$1</em>');   // c[a]n[e] → c<em>a</em>n<em>e</em>
+function cardHTMLp(p, label) {   // 發音小卡（grammar.json 的 phonics）：每個音一格，例字點了會唸；下面是練習字
+  return `<div class="gcard"><div class="qtype" style="text-align:left;margin-bottom:4px">${label}</div>
+      <h4>${esc(p.title)}</h4>
+      ${(p.sounds || []).map((x) => `<div class="phs"><div class="ph-h"><b>${esc(x.name)}</b><span class="ipa">[${esc(x.ipa)}]</span></div><small>${esc(x.rule || '')}</small>
+        <div class="ph-words">${x.words.map((w) => `<button class="ph-w" data-say="${esc(w.replace(/[[\]]/g, ''))}">${phWord(w)}</button>`).join('')}</div></div>`).join('')}
+      ${(p.practice || []).length ? `<div class="sec" style="margin-top:14px">${L('唸唸看 PHONICS PRACTICE（點字聽發音）', 'PHONICS PRACTICE (tap to listen)')}</div>
+        <div class="ph-words">${p.practice.map((w) => `<button class="ph-w sm" data-say="${esc(w)}">${esc(w)}</button>`).join('')}</div>` : ''}
+    </div>`;
+}
 function openGrammar(unit) {
-  const c = (GRAM.cards || {})[unit], e = (GRAM.everyday || {})[unit];
-  if (!c && !e) return toast('這個單元還沒有文法小卡');
+  const c = (GRAM.cards || {})[unit], e = (GRAM.everyday || {})[unit], ph = (GRAM.phonics || {})[unit];
+  if (!c && !e && !ph) return toast('這個單元還沒有文法小卡');
   st.meta.gseen = st.meta.gseen || {};   // 英文島「句型」站：看過小卡就算完成
   if (!st.meta.gseen[unit]) { st.meta.gseen[unit] = Date.now(); saveMeta(); if ($('v-home').classList.contains('active')) renderIsland(); }
-  $('sheet').innerHTML = (c ? cardHTMLg(c, `📘 ${esc(unit)} 文法 GRAMMAR`) : '') + (e ? cardHTMLg(e, `🗣️ ${esc(unit)} 生活句型 EVERYDAY ENGLISH（聽力題）`) : '') + `
+  $('sheet').innerHTML = (c ? cardHTMLg(c, `📘 ${esc(unit)} 文法 GRAMMAR`) : '') + (e ? cardHTMLg(e, `🗣️ ${esc(unit)} 生活句型 EVERYDAY ENGLISH（聽力題）`) : '') + (ph ? cardHTMLp(ph, `🔤 ${esc(unit)} 發音 PHONICS`) : '') + `
     <div class="btnrow"><button class="btn" data-qunit="${esc(unit)}">${L('去挑戰', 'Quiz')} ${esc(unit)} ▶</button><button class="btn ghost" data-close="1">${L('關閉', 'Close')}</button></div>`;
   $('modal').classList.add('show');
 }
@@ -3064,7 +3081,7 @@ document.addEventListener('keydown', (e) => {
   if (prog) st.prog = prog;
   if (meta) st.meta = { ...st.meta, ...meta };
   if (set) st.set = { ...st.set, ...set };
-  if (qs) st.set.csvUrl = qs;
+  st.set.csvUrl = qs || DEFAULT_CSV;   // 單字來源以程式為準；測試可用 ?csv=
   if (ledger) { st.ledger = ledger; st.tampered = !!sig && sig !== ledgerSig(); }
   if (ledger && repairQuizExploit()) { saveLedger(); db.set('meta', st.meta); st.fixedNotice = true; }   // 先驗證簽章再修正，修正後重新簽章
   if (words && words.length) setWords(words);

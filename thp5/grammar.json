@@ -1,0 +1,3285 @@
+{
+ "_說明": "THP5（Tree House 5）文法、聽力與發音。cards＝課本 Grammar 頁小卡；questions＝文法題（choice 選擇、order 排句子）；listening＝用課本例句出的聽力題（lfill、lpick、lorder），加上發音聽辨（lpick、有 label）；phonics＝課本 Phonics 頁（例字用 [ ] 標出發這個音的字母）。a＝正確選項位置（從 0 開始），App 會打亂選項順序。",
+ "cards": {
+  "U1": {
+   "title": "and / but · Present Continuous · Past Continuous",
+   "zh": "連接詞 and／but；現在進行式：現在正在做的事；過去進行式：過去某個時間正在做的事",
+   "rules": [
+    [
+     "and：好事＋好事（＋, and ＋）",
+     "Chuck's dad turned on the TV, and Susie wrote her homework."
+    ],
+    [
+     "but：一正一反（＋, but －）",
+     "Susie likes to write English homework, but she doesn't like to write math homework."
+    ],
+    [
+     "現在進行式：am / is / are ＋ V-ing",
+     "Chuck's dad is putting down the fruit."
+    ],
+    [
+     "I → am；he / she / it → is；you / we / they → are",
+     "Chuck and Susie are standing by the sink."
+    ],
+    [
+     "過去進行式：was / were ＋ V-ing",
+     "Was Chuck turning off the computer at eleven o'clock?"
+    ],
+    [
+     "I / he / she / it → was；you / we / they → were",
+     "Chuck's parents were sitting down at one o'clock."
+    ]
+   ],
+   "phrases": [
+    [
+     "問句",
+     "Who is eating pizza?　What were you doing at one o'clock?"
+    ]
+   ],
+   "mistakes": [
+    [
+     "She are standing by the sink.",
+     "She is standing by the sink.",
+     "she 用 is"
+    ],
+    [
+     "They was sitting down at one o'clock.",
+     "They were sitting down at one o'clock.",
+     "they 用 were"
+    ],
+    [
+     "Dad is put down the fruit.",
+     "Dad is putting down the fruit.",
+     "進行式動詞要加 -ing"
+    ],
+    [
+     "I like cats, but I like dogs.",
+     "I like cats, and I like dogs.",
+     "兩件都是好事用 and"
+    ]
+   ]
+  },
+  "U2": {
+   "title": "time to / time for · before / after · when",
+   "zh": "該做什麼的時間到了；在……之前／之後；當……的時候",
+   "rules": [
+    [
+     "time to ＋ 動詞",
+     "\"Tim, it's time to come inside!\" yells Alice."
+    ],
+    [
+     "time for ＋ 名詞（bed, breakfast, school, a nap, a snack, a story, the test）",
+     "\"It's time for school,\" said Wally's dad."
+    ],
+    [
+     "before / after ＋ 名詞（介系詞）",
+     "Alice woke up before breakfast."
+    ],
+    [
+     "before / after ＋ 句子（連接詞）",
+     "Tim will put on his pajamas after he runs upstairs."
+    ],
+    [
+     "when ＋ 句子：當……的時候",
+     "Kate and Jimmy felt excited when their cards blew away."
+    ],
+    [
+     "講未來時，when／after 後面用現在式",
+     "Wally will feel happy when he sits on the couch with his parents."
+    ]
+   ],
+   "phrases": [
+    [
+     "問句",
+     "Did Wally go downstairs before he went to school?　Did Alice sing when she took a shower?"
+    ]
+   ],
+   "mistakes": [
+    [
+     "It's time to bed.",
+     "It's time for bed.",
+     "bed 是名詞 → time for"
+    ],
+    [
+     "It's time for eat.",
+     "It's time to eat.",
+     "eat 是動詞 → time to"
+    ],
+    [
+     "Tim will put on his pajamas after he will run upstairs.",
+     "Tim will put on his pajamas after he runs upstairs.",
+     "講未來時，after 後面用現在式"
+    ]
+   ]
+  },
+  "U3": {
+   "title": "should · as · start / finish V-ing",
+   "zh": "應該；一邊……一邊……（同時）；開始／做完某件事",
+   "rules": [
+    [
+     "should ＋ 原形動詞：應該",
+     "Kate should put on her boots."
+    ],
+    [
+     "should not（shouldn't）：不應該",
+     "The boy should not hurry."
+    ],
+    [
+     "問句：Should ＋ 主詞 ＋ 原形動詞？",
+     "Should the woman answer her cell phone? No, she shouldn't answer her cell phone."
+    ],
+    [
+     "as：同時。過去式 as 過去式",
+     "The vendor watched TV as she cut up the guavas."
+    ],
+    [
+     "講未來：will ＋ 動詞 as ＋ 現在式",
+     "Grandma will make a mess as she waits for the bus."
+    ],
+    [
+     "start / finish ＋ V-ing",
+     "The children started putting on their boots at four o'clock."
+    ]
+   ],
+   "phrases": [
+    [
+     "更多例句",
+     "The man will start doing magic tricks at 4:15.　The workers will finish making a pile of wood at 4:15."
+    ]
+   ],
+   "mistakes": [
+    [
+     "Kate should puts on her boots.",
+     "Kate should put on her boots.",
+     "should 後面用原形動詞"
+    ],
+    [
+     "The children started put on their boots.",
+     "The children started putting on their boots.",
+     "start ＋ V-ing"
+    ],
+    [
+     "Grandma will make a mess as she will wait for the bus.",
+     "Grandma will make a mess as she waits for the bus.",
+     "講未來時，as 後面用現在式"
+    ]
+   ]
+  },
+  "U4": {
+   "title": "will … in (time) · be going to · anyone / everyone …",
+   "zh": "未來式：多久之後會……；打算要做……；不定代名詞（有人、大家、沒有人……）",
+   "rules": [
+    [
+     "will ＋ 動詞 ＋ in ＋ 時間（in a minute＝一分鐘後）",
+     "Who will dig a hole in two months? Tim will dig a hole in two months."
+    ],
+    [
+     "will be ＋ 形容詞／名詞／地方",
+     "Susie will be angry in a week."
+    ],
+    [
+     "否定：won't",
+     "Tim won't be a scientist in two months."
+    ],
+    [
+     "be going to ＋ 原形動詞：打算要……",
+     "Chuck's dad is going to watch television."
+    ],
+    [
+     "問句：Are … going to …? 否定：isn't going to",
+     "Are Pam and her grandfather going to plant a tree? Yes, they are going to plant a tree."
+    ],
+    [
+     "anyone, everyone, someone, no one／anything, everything, something, nothing（當單數）",
+     "Everyone is in the science museum."
+    ]
+   ],
+   "phrases": [
+    [
+     "更多例句",
+     "Is anyone looking at the tiger? No, no one is looking at the tiger.　Someone is sleeping on the bench.　Will Chuck eat anything? Yes, Chuck will eat everything."
+    ]
+   ],
+   "mistakes": [
+    [
+     "Susie will angry in a week.",
+     "Susie will be angry in a week.",
+     "will 後面接形容詞要加 be"
+    ],
+    [
+     "Tim will digs a hole.",
+     "Tim will dig a hole.",
+     "will ＋ 原形動詞"
+    ],
+    [
+     "Chuck's dad is going to watches TV.",
+     "Chuck's dad is going to watch TV.",
+     "going to ＋ 原形動詞"
+    ],
+    [
+     "Everyone are in the museum.",
+     "Everyone is in the museum.",
+     "everyone 當單數 → is"
+    ]
+   ]
+  },
+  "U5": {
+   "title": "with (adj.) (n.) · Past Tense: ago · Past Tense: time phrases",
+   "zh": "有……的（人／東西）；多久以前；用過去的時間詞要用過去式",
+   "rules": [
+    [
+     "（人／東西）with ＋ 形容詞 ＋ 名詞：有……的",
+     "The girl with big eyes talked on her cell phone."
+    ],
+    [
+     "",
+     "The dog with the short tail played in a puddle."
+    ],
+    [
+     "時間 ＋ ago：……以前（ago＝before now），動詞用過去式",
+     "Susie drew a grasshopper thirty seconds ago."
+    ],
+    [
+     "When did …? → … ago",
+     "When did the fat boy chase his friend? He chased his friend four hours ago."
+    ],
+    [
+     "過去的時間詞：this morning, yesterday, last night, last week, last weekend, six months ago",
+     "Who played video games last weekend?"
+    ],
+    [
+     "",
+     "What did the girl with long hair do this morning? She fed the swan this morning."
+    ]
+   ],
+   "mistakes": [
+    [
+     "The girl has big eyes talked on her phone.",
+     "The girl with big eyes talked on her phone.",
+     "描述是哪一個人用 with"
+    ],
+    [
+     "I eat lunch an hour ago.",
+     "I ate lunch an hour ago.",
+     "ago 是過去 → 過去式"
+    ],
+    [
+     "I played games ago three days.",
+     "I played games three days ago.",
+     "ago 放在時間的後面"
+    ]
+   ]
+  },
+  "U6": {
+   "title": "as (adj.) as (n.) · get (adj.) · Be Verbs",
+   "zh": "跟……一樣（形容詞）；變得……；be 動詞的過去、現在、未來",
+   "rules": [
+    [
+     "as ＋ 形容詞 ＋ as ＋ 名詞：跟……一樣",
+     "The thin girl is as tall as the tree."
+    ],
+    [
+     "",
+     "Who will be as excited as Wally? Becky will be as excited as Wally."
+    ],
+    [
+     "get ＋ 形容詞：變得……",
+     "Pam got excited as she watched the news on TV."
+    ],
+    [
+     "",
+     "The little boy will get confused when the girl does a magic trick."
+    ],
+    [
+     "Be 動詞：過去 was / were；現在 am / is / are；未來 will be",
+     "Where were the students?"
+    ],
+    [
+     "",
+     "Bob will be a vendor.　Will Pam and the other children be famous?"
+    ]
+   ],
+   "mistakes": [
+    [
+     "The girl is as tall the tree.",
+     "The girl is as tall as the tree.",
+     "as … as 兩個 as 都要有"
+    ],
+    [
+     "Pam got excite.",
+     "Pam got excited.",
+     "get ＋ 形容詞（excited）"
+    ],
+    [
+     "Tim and Susie isn't hot.",
+     "Tim and Susie aren't hot.",
+     "Tim and Susie＝they → are"
+    ],
+    [
+     "Bob will is a vendor.",
+     "Bob will be a vendor.",
+     "will 後面用 be"
+    ]
+   ]
+  },
+  "U7": {
+   "title": "Prepositions of Movement · Past Continuous + when · should / will + if",
+   "zh": "移動的介系詞；正在做某事的時候，突然發生另一件事；如果……就應該／會……",
+   "rules": [
+    [
+     "across 穿越／along 沿著／around 繞著／between 在兩者之間／over 越過上方／through 穿過（裡面）",
+     "Wally walked around the bushes."
+    ],
+    [
+     "",
+     "Susie and Becky were walking along the stream."
+    ],
+    [
+     "(was / were ＋ V-ing) when (過去式)：長時間的事 when 短時間的事",
+     "The bear was climbing a tree when it fell."
+    ],
+    [
+     "",
+     "What were you doing when you heard a wolf?"
+    ],
+    [
+     "should / will ＋ 原形動詞 ＋ if ＋ 現在式",
+     "What should you do if you see a bear? You should make a lot of noise if you see a bear."
+    ],
+    [
+     "",
+     "Tim will hide if he sees a bear."
+    ]
+   ],
+   "mistakes": [
+    [
+     "The bear climbed a tree when it was falling.",
+     "The bear was climbing a tree when it fell.",
+     "長時間的事用進行式，短時間的事用過去式"
+    ],
+    [
+     "Tim will hide if he will see a bear.",
+     "Tim will hide if he sees a bear.",
+     "if 後面用現在式"
+    ],
+    [
+     "Jimmy should eats an apple.",
+     "Jimmy should eat an apple.",
+     "should ＋ 原形動詞"
+    ]
+   ]
+  },
+  "U8": {
+   "title": "Sensory Verbs · Comparative Adjectives · see / hear (something) V-ing",
+   "zh": "感官動詞；比較級（比……更……）；看到／聽到某人正在做某事",
+   "rules": [
+    [
+     "look / smell / sound / taste / feel ＋ 形容詞",
+     "How does the recorder sound? It sounds scary."
+    ],
+    [
+     "look / smell / sound / taste / feel ＋ like ＋ 名詞",
+     "What did the water taste like? It tasted like chicken."
+    ],
+    [
+     "一個音節：A be 形容詞-er than B",
+     "The pink butterfly is bigger than the yellow butterfly."
+    ],
+    [
+     "兩個以上音節：A be more 形容詞 than B（bad → worse）",
+     "The small egg is more colorful than the big egg."
+    ],
+    [
+     "see / hear ＋ 某人或某物 ＋ V-ing",
+     "Alice sees a mouse digging a hole."
+    ],
+    [
+     "",
+     "Tim heard Alice talking loudly."
+    ]
+   ],
+   "phrases": [
+    [
+     "更多例句",
+     "The mouse felt soft.　The ground smelled terrible.　The turtle looks like a dinosaur.　The gray pigeon was heavier than the purple pigeon."
+    ]
+   ],
+   "mistakes": [
+    [
+     "The mouse felt softly.",
+     "The mouse felt soft.",
+     "感官動詞後面接形容詞"
+    ],
+    [
+     "The turtle looks a dinosaur.",
+     "The turtle looks like a dinosaur.",
+     "接名詞要加 like"
+    ],
+    [
+     "The pink butterfly is more big than the yellow one.",
+     "The pink butterfly is bigger than the yellow one.",
+     "一個音節加 -er"
+    ],
+    [
+     "Kate's hot dog was badder than Becky's.",
+     "Kate's hot dog was worse than Becky's.",
+     "bad 的比較級是 worse"
+    ]
+   ]
+  },
+  "U9": {
+   "title": "as (adv.) as … could · Superlative Adjectives · Adverbs",
+   "zh": "盡可能地……；最高級（最……）；副詞：怎麼做",
+   "rules": [
+    [
+     "動詞 ＋ as ＋ 副詞 ＋ as ＋ 某人 ＋ could：盡可能地……",
+     "The goat jumped as high as it could."
+    ],
+    [
+     "",
+     "How carefully did the farmers burn the leaves? They burned them as carefully as they could."
+    ],
+    [
+     "一個音節：A be the 形容詞-est",
+     "The blue turtle is the biggest."
+    ],
+    [
+     "兩個以上音節：A be the most 形容詞",
+     "Is the vendor with the purple shirt the most polite?"
+    ],
+    [
+     "副詞（形容詞 ＋ ly）說明動作怎麼做",
+     "The fox crossed the road quickly."
+    ],
+    [
+     "",
+     "Kate was laughing happily."
+    ]
+   ],
+   "phrases": [
+    [
+     "更多例句",
+     "Were the thin pigs the hungriest?　The gray eagle was the fastest.　The truck driver isn't eating slowly."
+    ]
+   ],
+   "mistakes": [
+    [
+     "The goat jumped as high as it can.",
+     "The goat jumped as high as it could.",
+     "過去的事用 could"
+    ],
+    [
+     "The blue turtle is the most big.",
+     "The blue turtle is the biggest.",
+     "一個音節 → the 形容詞-est"
+    ],
+    [
+     "The fox crossed the road quick.",
+     "The fox crossed the road quickly.",
+     "說明動作用副詞 quickly"
+    ],
+    [
+     "Kate was the most crazy.",
+     "Kate was the craziest.",
+     "crazy → y 改 i ＋ est"
+    ]
+   ]
+  }
+ },
+ "everyday": {},
+ "questions": {
+  "U1": [
+   {
+    "type": "choice",
+    "q": "Susie likes cats, ___ she doesn't like dogs.",
+    "opts": [
+     "but",
+     "and",
+     "or"
+    ],
+    "a": 0,
+    "tip": "一正一反（likes／doesn't like）用 but"
+   },
+   {
+    "type": "choice",
+    "q": "Dad turned on the TV, ___ Mom opened the window.",
+    "opts": [
+     "and",
+     "but",
+     "so"
+    ],
+    "a": 0,
+    "tip": "兩件事都是「有做」用 and"
+   },
+   {
+    "type": "choice",
+    "q": "Chuck's dad ___ putting down the fruit.",
+    "opts": [
+     "is",
+     "are",
+     "am"
+    ],
+    "a": 0,
+    "tip": "Chuck's dad＝he → is"
+   },
+   {
+    "type": "choice",
+    "q": "Chuck and Susie ___ standing by the sink.",
+    "opts": [
+     "are",
+     "is",
+     "am"
+    ],
+    "a": 0,
+    "tip": "Chuck and Susie＝they → are"
+   },
+   {
+    "type": "choice",
+    "q": "I ___ closing the door.",
+    "opts": [
+     "am",
+     "is",
+     "are"
+    ],
+    "a": 0,
+    "tip": "I → am"
+   },
+   {
+    "type": "choice",
+    "q": "___ Chuck and Susie going outside?",
+    "opts": [
+     "Are",
+     "Is",
+     "Am"
+    ],
+    "a": 0,
+    "tip": "問句把 are 放前面"
+   },
+   {
+    "type": "choice",
+    "q": "Chuck's mom ___ closing the refrigerator door.",
+    "opts": [
+     "isn't",
+     "aren't",
+     "don't"
+    ],
+    "a": 0,
+    "tip": "Chuck's mom＝she → isn't"
+   },
+   {
+    "type": "choice",
+    "q": "Look! The dog is ___ pizza.",
+    "opts": [
+     "eating",
+     "eat",
+     "eats"
+    ],
+    "a": 0,
+    "tip": "is ＋ V-ing"
+   },
+   {
+    "type": "choice",
+    "q": "Chuck's parents ___ sitting down at one o'clock yesterday.",
+    "opts": [
+     "were",
+     "was",
+     "are"
+    ],
+    "a": 0,
+    "tip": "yesterday 是過去；parents＝they → were"
+   },
+   {
+    "type": "choice",
+    "q": "___ Chuck turning off the computer at eleven o'clock last night?",
+    "opts": [
+     "Was",
+     "Were",
+     "Is"
+    ],
+    "a": 0,
+    "tip": "last night 是過去；Chuck＝he → was"
+   },
+   {
+    "type": "choice",
+    "q": "What ___ you doing at one o'clock yesterday?",
+    "opts": [
+     "were",
+     "was",
+     "are"
+    ],
+    "a": 0,
+    "tip": "you 的過去用 were"
+   },
+   {
+    "type": "choice",
+    "q": "Susie ___ giving the yo-yo to Chuck at eleven o'clock yesterday.",
+    "opts": [
+     "wasn't",
+     "weren't",
+     "isn't"
+    ],
+    "a": 0,
+    "tip": "Susie＝she，過去否定用 wasn't"
+   },
+   {
+    "type": "order",
+    "words": [
+     "Chuck's",
+     "dad",
+     "is",
+     "putting",
+     "down",
+     "the",
+     "fruit."
+    ],
+    "tip": "現在進行式 is ＋ V-ing"
+   },
+   {
+    "type": "order",
+    "words": [
+     "What",
+     "were",
+     "you",
+     "doing",
+     "at",
+     "one",
+     "o'clock?"
+    ],
+    "tip": "過去進行式問句：What were you ＋ V-ing"
+   },
+   {
+    "type": "order",
+    "words": [
+     "Susie",
+     "likes",
+     "English,",
+     "but",
+     "she",
+     "doesn't",
+     "like",
+     "math."
+    ],
+    "tip": "一正一反用 but"
+   }
+  ],
+  "U2": [
+   {
+    "type": "choice",
+    "q": "It's time ___ bed.",
+    "opts": [
+     "for",
+     "to",
+     "at"
+    ],
+    "a": 0,
+    "tip": "bed 是名詞 → time for"
+   },
+   {
+    "type": "choice",
+    "q": "It's time ___ eat.",
+    "opts": [
+     "to",
+     "for",
+     "at"
+    ],
+    "a": 0,
+    "tip": "eat 是動詞 → time to"
+   },
+   {
+    "type": "choice",
+    "q": "Tim, it's time to ___ inside!",
+    "opts": [
+     "come",
+     "comes",
+     "coming"
+    ],
+    "a": 0,
+    "tip": "time to ＋ 原形動詞"
+   },
+   {
+    "type": "choice",
+    "q": "Kids, it's time for ___.",
+    "opts": [
+     "a snack",
+     "eat",
+     "sleep"
+    ],
+    "a": 0,
+    "tip": "time for ＋ 名詞"
+   },
+   {
+    "type": "choice",
+    "q": "First I wake up. Then I eat breakfast. I wake up ___ breakfast.",
+    "opts": [
+     "before",
+     "after",
+     "when"
+    ],
+    "a": 0,
+    "tip": "先醒來、再吃早餐 → before breakfast"
+   },
+   {
+    "type": "choice",
+    "q": "The party ends at 8:00. Chuck will mop the floor at 9:00. He will mop the floor ___ the party.",
+    "opts": [
+     "after",
+     "before",
+     "for"
+    ],
+    "a": 0,
+    "tip": "派對結束之後 → after"
+   },
+   {
+    "type": "choice",
+    "q": "Tim will put on his pajamas after he ___ upstairs.",
+    "opts": [
+     "runs",
+     "will run",
+     "ran"
+    ],
+    "a": 0,
+    "tip": "講未來時，after 後面用現在式"
+   },
+   {
+    "type": "choice",
+    "q": "Did Wally go downstairs before he ___ to school?",
+    "opts": [
+     "went",
+     "goes",
+     "will go"
+    ],
+    "a": 0,
+    "tip": "Did 問過去的事 → went"
+   },
+   {
+    "type": "choice",
+    "q": "I feel happy ___ I sit on the couch with my parents.",
+    "opts": [
+     "when",
+     "for",
+     "to"
+    ],
+    "a": 0,
+    "tip": "when ＋ 句子：當……的時候"
+   },
+   {
+    "type": "choice",
+    "q": "Wally sometimes eats French fries when he ___ TV.",
+    "opts": [
+     "watches",
+     "watch",
+     "watching"
+    ],
+    "a": 0,
+    "tip": "sometimes 常做的事；he → watches"
+   },
+   {
+    "type": "choice",
+    "q": "Did Alice sing when she ___ a shower?",
+    "opts": [
+     "took",
+     "takes",
+     "take"
+    ],
+    "a": 0,
+    "tip": "Did 問過去 → took"
+   },
+   {
+    "type": "order",
+    "words": [
+     "It's",
+     "time",
+     "for",
+     "school."
+    ],
+    "tip": "time for ＋ 名詞"
+   },
+   {
+    "type": "order",
+    "words": [
+     "Tim",
+     "will",
+     "put",
+     "on",
+     "his",
+     "pajamas",
+     "after",
+     "he",
+     "runs",
+     "upstairs."
+    ],
+    "tip": "講未來時，after 後面用現在式"
+   },
+   {
+    "type": "order",
+    "words": [
+     "Did",
+     "Alice",
+     "sing",
+     "when",
+     "she",
+     "took",
+     "a",
+     "shower?"
+    ],
+    "tip": "when ＋ 過去式"
+   }
+  ],
+  "U3": [
+   {
+    "type": "choice",
+    "q": "Kate should ___ on her boots.",
+    "opts": [
+     "put",
+     "puts",
+     "putting"
+    ],
+    "a": 0,
+    "tip": "should ＋ 原形動詞"
+   },
+   {
+    "type": "choice",
+    "q": "It's cold outside. You ___ put on gloves.",
+    "opts": [
+     "should",
+     "shouldn't",
+     "should not to"
+    ],
+    "a": 0,
+    "tip": "天冷 → 應該戴手套"
+   },
+   {
+    "type": "choice",
+    "q": "The road is dangerous. The boy ___ hurry.",
+    "opts": [
+     "shouldn't",
+     "should",
+     "doesn't should"
+    ],
+    "a": 0,
+    "tip": "危險 → 不應該匆忙"
+   },
+   {
+    "type": "choice",
+    "q": "___ the woman answer her cell phone?",
+    "opts": [
+     "Should",
+     "Does",
+     "Is"
+    ],
+    "a": 0,
+    "tip": "Should ＋ 主詞 ＋ 原形動詞？"
+   },
+   {
+    "type": "choice",
+    "q": "The vendor watched TV as she ___ up the guavas.",
+    "opts": [
+     "cut",
+     "cuts",
+     "will cut"
+    ],
+    "a": 0,
+    "tip": "過去式 as 過去式（cut 的過去式還是 cut）"
+   },
+   {
+    "type": "choice",
+    "q": "The worker sang as she ___ on her gloves.",
+    "opts": [
+     "put",
+     "puts",
+     "will put"
+    ],
+    "a": 0,
+    "tip": "過去式 as 過去式（put 的過去式還是 put）"
+   },
+   {
+    "type": "choice",
+    "q": "Grandma will make a mess as she ___ for the bus.",
+    "opts": [
+     "waits",
+     "will wait",
+     "waited"
+    ],
+    "a": 0,
+    "tip": "講未來時，as 後面用現在式"
+   },
+   {
+    "type": "choice",
+    "q": "They will drink water as they ___.",
+    "opts": [
+     "talk",
+     "will talk",
+     "talked"
+    ],
+    "a": 0,
+    "tip": "講未來時，as 後面用現在式"
+   },
+   {
+    "type": "choice",
+    "q": "The children started ___ on their boots.",
+    "opts": [
+     "putting",
+     "put",
+     "puts"
+    ],
+    "a": 0,
+    "tip": "start ＋ V-ing"
+   },
+   {
+    "type": "choice",
+    "q": "The workers will finish ___ a pile of wood at 4:15.",
+    "opts": [
+     "making",
+     "make",
+     "made"
+    ],
+    "a": 0,
+    "tip": "finish ＋ V-ing"
+   },
+   {
+    "type": "choice",
+    "q": "Did the men finish ___ around the neighborhood at 4:05?",
+    "opts": [
+     "walking",
+     "walk",
+     "walked"
+    ],
+    "a": 0,
+    "tip": "finish ＋ V-ing"
+   },
+   {
+    "type": "order",
+    "words": [
+     "The",
+     "boy",
+     "should",
+     "not",
+     "hurry."
+    ],
+    "tip": "should not ＋ 原形動詞"
+   },
+   {
+    "type": "order",
+    "words": [
+     "The",
+     "man",
+     "will",
+     "start",
+     "doing",
+     "magic",
+     "tricks."
+    ],
+    "tip": "start ＋ V-ing"
+   },
+   {
+    "type": "order",
+    "words": [
+     "The",
+     "worker",
+     "sang",
+     "as",
+     "she",
+     "put",
+     "on",
+     "her",
+     "gloves."
+    ],
+    "tip": "過去式 as 過去式"
+   }
+  ],
+  "U4": [
+   {
+    "type": "choice",
+    "q": "Tim will ___ a hole in two months.",
+    "opts": [
+     "dig",
+     "digs",
+     "digging"
+    ],
+    "a": 0,
+    "tip": "will ＋ 原形動詞"
+   },
+   {
+    "type": "choice",
+    "q": "Susie will ___ angry in a week.",
+    "opts": [
+     "be",
+     "is",
+     "are"
+    ],
+    "a": 0,
+    "tip": "will be ＋ 形容詞"
+   },
+   {
+    "type": "choice",
+    "q": "Tim ___ be a scientist in two months.",
+    "opts": [
+     "won't",
+     "isn't",
+     "doesn't"
+    ],
+    "a": 0,
+    "tip": "will 的否定是 won't"
+   },
+   {
+    "type": "choice",
+    "q": "I will see you ___ a minute.",
+    "opts": [
+     "in",
+     "on",
+     "at"
+    ],
+    "a": 0,
+    "tip": "in a minute＝一分鐘後"
+   },
+   {
+    "type": "choice",
+    "q": "Chuck's dad is going to ___ television.",
+    "opts": [
+     "watch",
+     "watches",
+     "watching"
+    ],
+    "a": 0,
+    "tip": "going to ＋ 原形動詞"
+   },
+   {
+    "type": "choice",
+    "q": "___ Pam and her grandfather going to plant a tree?",
+    "opts": [
+     "Are",
+     "Is",
+     "Do"
+    ],
+    "a": 0,
+    "tip": "Pam and her grandfather＝they → Are"
+   },
+   {
+    "type": "choice",
+    "q": "Alice ___ going to help Tim.",
+    "opts": [
+     "isn't",
+     "aren't",
+     "don't"
+    ],
+    "a": 0,
+    "tip": "Alice＝she → isn't"
+   },
+   {
+    "type": "choice",
+    "q": "What are you going to do? I'm going to ___ attention to the teacher.",
+    "opts": [
+     "pay",
+     "pays",
+     "paying"
+    ],
+    "a": 0,
+    "tip": "going to ＋ 原形動詞"
+   },
+   {
+    "type": "choice",
+    "q": "Everyone ___ in the science museum.",
+    "opts": [
+     "is",
+     "are",
+     "am"
+    ],
+    "a": 0,
+    "tip": "everyone 當單數 → is"
+   },
+   {
+    "type": "choice",
+    "q": "Is anyone looking at the tiger? No, ___ is looking at the tiger.",
+    "opts": [
+     "no one",
+     "someone",
+     "everyone"
+    ],
+    "a": 0,
+    "tip": "回答 No → no one（沒有人）"
+   },
+   {
+    "type": "choice",
+    "q": "Will Chuck eat anything? Yes, Chuck will eat ___.",
+    "opts": [
+     "everything",
+     "nothing",
+     "no one"
+    ],
+    "a": 0,
+    "tip": "回答 Yes，全部都吃 → everything"
+   },
+   {
+    "type": "order",
+    "words": [
+     "Who",
+     "will",
+     "dig",
+     "a",
+     "hole",
+     "in",
+     "two",
+     "months?"
+    ],
+    "tip": "will ＋ 動詞 ＋ in ＋ 時間"
+   },
+   {
+    "type": "order",
+    "words": [
+     "Alice",
+     "isn't",
+     "going",
+     "to",
+     "help",
+     "Tim."
+    ],
+    "tip": "isn't going to ＋ 原形動詞"
+   },
+   {
+    "type": "order",
+    "words": [
+     "Someone",
+     "is",
+     "sleeping",
+     "on",
+     "the",
+     "bench."
+    ],
+    "tip": "someone 當單數 → is"
+   }
+  ],
+  "U5": [
+   {
+    "type": "choice",
+    "q": "The girl ___ big eyes talked on her cell phone.",
+    "opts": [
+     "with",
+     "has",
+     "of"
+    ],
+    "a": 0,
+    "tip": "有大眼睛的女孩 → with big eyes"
+   },
+   {
+    "type": "choice",
+    "q": "Paul likes the small dinosaur with ___ teeth.",
+    "opts": [
+     "sharp",
+     "sharply",
+     "a sharp"
+    ],
+    "a": 0,
+    "tip": "with ＋ 形容詞 ＋ 名詞"
+   },
+   {
+    "type": "choice",
+    "q": "Susie ___ a grasshopper thirty seconds ago.",
+    "opts": [
+     "drew",
+     "draws",
+     "will draw"
+    ],
+    "a": 0,
+    "tip": "ago 是過去 → drew"
+   },
+   {
+    "type": "choice",
+    "q": "He chased his friend four hours ___.",
+    "opts": [
+     "ago",
+     "last",
+     "next"
+    ],
+    "a": 0,
+    "tip": "時間 ＋ ago"
+   },
+   {
+    "type": "choice",
+    "q": "When ___ the fat boy chase his friend?",
+    "opts": [
+     "did",
+     "does",
+     "is"
+    ],
+    "a": 0,
+    "tip": "問過去的事 → did"
+   },
+   {
+    "type": "choice",
+    "q": "I ___ lunch an hour ago.",
+    "opts": [
+     "ate",
+     "eat",
+     "will eat"
+    ],
+    "a": 0,
+    "tip": "ago 是過去 → ate"
+   },
+   {
+    "type": "choice",
+    "q": "Who played video games ___ weekend?",
+    "opts": [
+     "last",
+     "ago",
+     "next"
+    ],
+    "a": 0,
+    "tip": "played 是過去 → last weekend"
+   },
+   {
+    "type": "choice",
+    "q": "What did the girl do this morning? She ___ the swan.",
+    "opts": [
+     "fed",
+     "feeds",
+     "will feed"
+    ],
+    "a": 0,
+    "tip": "did 問過去 → fed（feed 的過去式）"
+   },
+   {
+    "type": "choice",
+    "q": "The man with the green shirt threw up ___ year.",
+    "opts": [
+     "last",
+     "ago",
+     "next"
+    ],
+    "a": 0,
+    "tip": "threw 是過去 → last year"
+   },
+   {
+    "type": "choice",
+    "q": "We went to the forest three days ___.",
+    "opts": [
+     "ago",
+     "last",
+     "yesterday"
+    ],
+    "a": 0,
+    "tip": "three days ago＝三天前"
+   },
+   {
+    "type": "choice",
+    "q": "The boy ___ blue shoes laughed at the picture.",
+    "opts": [
+     "with",
+     "and",
+     "has"
+    ],
+    "a": 0,
+    "tip": "穿藍鞋的男孩 → with blue shoes"
+   },
+   {
+    "type": "order",
+    "words": [
+     "The",
+     "girl",
+     "with",
+     "big",
+     "eyes",
+     "talked",
+     "on",
+     "her",
+     "cell",
+     "phone."
+    ],
+    "tip": "（人）with ＋ 形容詞 ＋ 名詞"
+   },
+   {
+    "type": "order",
+    "words": [
+     "Susie",
+     "drew",
+     "a",
+     "grasshopper",
+     "thirty",
+     "seconds",
+     "ago."
+    ],
+    "tip": "時間 ＋ ago 放句尾"
+   },
+   {
+    "type": "order",
+    "words": [
+     "What",
+     "did",
+     "the",
+     "girl",
+     "do",
+     "this",
+     "morning?"
+    ],
+    "tip": "What did ＋ 主詞 ＋ 原形動詞？"
+   }
+  ],
+  "U6": [
+   {
+    "type": "choice",
+    "q": "The thin girl is as tall ___ the tree.",
+    "opts": [
+     "as",
+     "than",
+     "like"
+    ],
+    "a": 0,
+    "tip": "as ＋ 形容詞 ＋ as"
+   },
+   {
+    "type": "choice",
+    "q": "The hamster was ___ fat as the ball.",
+    "opts": [
+     "as",
+     "so",
+     "very"
+    ],
+    "a": 0,
+    "tip": "as ＋ 形容詞 ＋ as"
+   },
+   {
+    "type": "choice",
+    "q": "Becky will be as ___ as Wally.",
+    "opts": [
+     "excited",
+     "excite",
+     "excites"
+    ],
+    "a": 0,
+    "tip": "as 中間放形容詞"
+   },
+   {
+    "type": "choice",
+    "q": "Pam ___ excited as she watched the news on TV.",
+    "opts": [
+     "got",
+     "gets",
+     "getting"
+    ],
+    "a": 0,
+    "tip": "watched 是過去 → got"
+   },
+   {
+    "type": "choice",
+    "q": "Is Paul ___ angry at Bob?",
+    "opts": [
+     "getting",
+     "get",
+     "got"
+    ],
+    "a": 0,
+    "tip": "Is ＋ V-ing"
+   },
+   {
+    "type": "choice",
+    "q": "The little boy will get ___ when the girl does a magic trick.",
+    "opts": [
+     "confused",
+     "confuse",
+     "confuses"
+    ],
+    "a": 0,
+    "tip": "get ＋ 形容詞"
+   },
+   {
+    "type": "choice",
+    "q": "Where ___ the students yesterday?",
+    "opts": [
+     "were",
+     "was",
+     "are"
+    ],
+    "a": 0,
+    "tip": "yesterday 過去；students＝they → were"
+   },
+   {
+    "type": "choice",
+    "q": "The short girl ___ reading a book yesterday afternoon.",
+    "opts": [
+     "was",
+     "were",
+     "is"
+    ],
+    "a": 0,
+    "tip": "過去；girl＝she → was"
+   },
+   {
+    "type": "choice",
+    "q": "I ___ ready to take pictures.",
+    "opts": [
+     "am",
+     "is",
+     "are"
+    ],
+    "a": 0,
+    "tip": "I → am"
+   },
+   {
+    "type": "choice",
+    "q": "Tim and Susie ___ hot.",
+    "opts": [
+     "aren't",
+     "isn't",
+     "am not"
+    ],
+    "a": 0,
+    "tip": "Tim and Susie＝they → aren't"
+   },
+   {
+    "type": "choice",
+    "q": "Bob ___ a vendor next year.",
+    "opts": [
+     "will be",
+     "will",
+     "is be"
+    ],
+    "a": 0,
+    "tip": "未來 → will be"
+   },
+   {
+    "type": "order",
+    "words": [
+     "The",
+     "hamster",
+     "was",
+     "as",
+     "fat",
+     "as",
+     "the",
+     "ball."
+    ],
+    "tip": "as ＋ 形容詞 ＋ as"
+   },
+   {
+    "type": "order",
+    "words": [
+     "Is",
+     "Paul",
+     "getting",
+     "angry",
+     "at",
+     "Bob?"
+    ],
+    "tip": "get ＋ 形容詞，進行式 getting"
+   },
+   {
+    "type": "order",
+    "words": [
+     "Will",
+     "Pam",
+     "and",
+     "the",
+     "other",
+     "children",
+     "be",
+     "famous?"
+    ],
+    "tip": "Will ＋ 主詞 ＋ be ＋ 形容詞？"
+   }
+  ],
+  "U7": [
+   {
+    "type": "choice",
+    "q": "We walked ___ the woods. There were trees all around us.",
+    "opts": [
+     "through",
+     "over",
+     "between"
+    ],
+    "a": 0,
+    "tip": "從樹林裡面穿過去 → through"
+   },
+   {
+    "type": "choice",
+    "q": "The frog sat ___ the two rocks.",
+    "opts": [
+     "between",
+     "through",
+     "along"
+    ],
+    "a": 0,
+    "tip": "兩個東西中間 → between"
+   },
+   {
+    "type": "choice",
+    "q": "Susie and Becky were walking ___ the stream. The stream was next to them all the time.",
+    "opts": [
+     "along",
+     "across",
+     "through"
+    ],
+    "a": 0,
+    "tip": "沿著 → along"
+   },
+   {
+    "type": "choice",
+    "q": "Chuck jumped ___ the rock.",
+    "opts": [
+     "over",
+     "through",
+     "between"
+    ],
+    "a": 0,
+    "tip": "從上面越過 → over"
+   },
+   {
+    "type": "choice",
+    "q": "The snake was crawling ___ the grass to the other side.",
+    "opts": [
+     "across",
+     "along",
+     "around"
+    ],
+    "a": 0,
+    "tip": "到另一邊 → across"
+   },
+   {
+    "type": "choice",
+    "q": "The bear ___ climbing a tree when it fell.",
+    "opts": [
+     "was",
+     "were",
+     "is"
+    ],
+    "a": 0,
+    "tip": "bear＝it → was"
+   },
+   {
+    "type": "choice",
+    "q": "The baby birds were singing when their mother ___ home.",
+    "opts": [
+     "came",
+     "comes",
+     "was coming"
+    ],
+    "a": 0,
+    "tip": "when 後面用過去式"
+   },
+   {
+    "type": "choice",
+    "q": "Pam was hiking when she ___ some beetles.",
+    "opts": [
+     "found",
+     "finds",
+     "was finding"
+    ],
+    "a": 0,
+    "tip": "when 後面用過去式"
+   },
+   {
+    "type": "choice",
+    "q": "What ___ you doing when you heard a wolf?",
+    "opts": [
+     "were",
+     "was",
+     "did"
+    ],
+    "a": 0,
+    "tip": "you → were ＋ V-ing"
+   },
+   {
+    "type": "choice",
+    "q": "You should make a lot of noise if you ___ a bear.",
+    "opts": [
+     "see",
+     "will see",
+     "saw"
+    ],
+    "a": 0,
+    "tip": "if 後面用現在式"
+   },
+   {
+    "type": "choice",
+    "q": "Tim will hide if he ___ a bear.",
+    "opts": [
+     "sees",
+     "see",
+     "will see"
+    ],
+    "a": 0,
+    "tip": "if 後面用現在式；he → sees"
+   },
+   {
+    "type": "choice",
+    "q": "Jimmy should ___ an apple if he is hungry.",
+    "opts": [
+     "eat",
+     "eats",
+     "eating"
+    ],
+    "a": 0,
+    "tip": "should ＋ 原形動詞"
+   },
+   {
+    "type": "order",
+    "words": [
+     "Who",
+     "ran",
+     "through",
+     "the",
+     "woods?"
+    ],
+    "tip": "through＝穿過"
+   },
+   {
+    "type": "order",
+    "words": [
+     "The",
+     "bear",
+     "was",
+     "climbing",
+     "a",
+     "tree",
+     "when",
+     "it",
+     "fell."
+    ],
+    "tip": "(was ＋ V-ing) when (過去式)"
+   },
+   {
+    "type": "order",
+    "words": [
+     "Tim",
+     "will",
+     "hide",
+     "if",
+     "he",
+     "sees",
+     "a",
+     "bear."
+    ],
+    "tip": "will ＋ 動詞 ＋ if ＋ 現在式"
+   }
+  ],
+  "U8": [
+   {
+    "type": "choice",
+    "q": "How does the recorder sound? It sounds ___.",
+    "opts": [
+     "scary",
+     "like scary",
+     "scarily"
+    ],
+    "a": 0,
+    "tip": "sound ＋ 形容詞"
+   },
+   {
+    "type": "choice",
+    "q": "The tree feels ___ a rock.",
+    "opts": [
+     "like",
+     "as",
+     "than"
+    ],
+    "a": 0,
+    "tip": "feel like ＋ 名詞"
+   },
+   {
+    "type": "choice",
+    "q": "The turtle looks ___ a dinosaur.",
+    "opts": [
+     "like",
+     "as",
+     "to"
+    ],
+    "a": 0,
+    "tip": "look like ＋ 名詞"
+   },
+   {
+    "type": "choice",
+    "q": "The mouse felt ___.",
+    "opts": [
+     "soft",
+     "softly",
+     "like soft"
+    ],
+    "a": 0,
+    "tip": "feel ＋ 形容詞"
+   },
+   {
+    "type": "choice",
+    "q": "The pink butterfly is ___ than the yellow butterfly.",
+    "opts": [
+     "bigger",
+     "more big",
+     "biggest"
+    ],
+    "a": 0,
+    "tip": "一個音節 → big ＋ g ＋ er"
+   },
+   {
+    "type": "choice",
+    "q": "The small egg is ___ colorful than the big egg.",
+    "opts": [
+     "more",
+     "most",
+     "very"
+    ],
+    "a": 0,
+    "tip": "兩個以上音節 → more"
+   },
+   {
+    "type": "choice",
+    "q": "Kate's hot dog was ___ than Becky's hot dog.",
+    "opts": [
+     "worse",
+     "badder",
+     "more bad"
+    ],
+    "a": 0,
+    "tip": "bad → worse"
+   },
+   {
+    "type": "choice",
+    "q": "The gray pigeon was ___ than the purple pigeon.",
+    "opts": [
+     "heavier",
+     "heavyer",
+     "more heavy"
+    ],
+    "a": 0,
+    "tip": "heavy → y 改 i ＋ er"
+   },
+   {
+    "type": "choice",
+    "q": "Alice sees a mouse ___ a hole.",
+    "opts": [
+     "digging",
+     "digs",
+     "dug"
+    ],
+    "a": 0,
+    "tip": "see ＋ 某物 ＋ V-ing"
+   },
+   {
+    "type": "choice",
+    "q": "Tim heard Alice ___ loudly.",
+    "opts": [
+     "talking",
+     "talks",
+     "talked"
+    ],
+    "a": 0,
+    "tip": "hear ＋ 某人 ＋ V-ing"
+   },
+   {
+    "type": "choice",
+    "q": "The ground ___ terrible.",
+    "opts": [
+     "smelled",
+     "smelled like",
+     "smelly"
+    ],
+    "a": 0,
+    "tip": "smell ＋ 形容詞"
+   },
+   {
+    "type": "order",
+    "words": [
+     "What",
+     "did",
+     "the",
+     "water",
+     "taste",
+     "like?"
+    ],
+    "tip": "taste like ＋ 名詞"
+   },
+   {
+    "type": "order",
+    "words": [
+     "The",
+     "pink",
+     "butterfly",
+     "is",
+     "bigger",
+     "than",
+     "the",
+     "yellow",
+     "butterfly."
+    ],
+    "tip": "形容詞-er than"
+   },
+   {
+    "type": "order",
+    "words": [
+     "Tim",
+     "hears",
+     "his",
+     "father",
+     "playing",
+     "the",
+     "recorder."
+    ],
+    "tip": "hear ＋ 某人 ＋ V-ing"
+   }
+  ],
+  "U9": [
+   {
+    "type": "choice",
+    "q": "The goat jumped as high as it ___.",
+    "opts": [
+     "could",
+     "can",
+     "can't"
+    ],
+    "a": 0,
+    "tip": "過去的事 → could"
+   },
+   {
+    "type": "choice",
+    "q": "They burned the leaves as ___ as they could.",
+    "opts": [
+     "carefully",
+     "careful",
+     "more careful"
+    ],
+    "a": 0,
+    "tip": "as ＋ 副詞 ＋ as"
+   },
+   {
+    "type": "choice",
+    "q": "The blue turtle is the ___.",
+    "opts": [
+     "biggest",
+     "bigger",
+     "most big"
+    ],
+    "a": 0,
+    "tip": "一個音節 → biggest"
+   },
+   {
+    "type": "choice",
+    "q": "Is the vendor with the purple shirt the ___ polite?",
+    "opts": [
+     "most",
+     "more",
+     "very"
+    ],
+    "a": 0,
+    "tip": "兩個音節 → the most"
+   },
+   {
+    "type": "choice",
+    "q": "The gray eagle was the ___.",
+    "opts": [
+     "fastest",
+     "faster",
+     "most fast"
+    ],
+    "a": 0,
+    "tip": "the ＋ 形容詞-est"
+   },
+   {
+    "type": "choice",
+    "q": "Were the thin pigs the ___?",
+    "opts": [
+     "hungriest",
+     "hungryest",
+     "most hungry"
+    ],
+    "a": 0,
+    "tip": "hungry → y 改 i ＋ est"
+   },
+   {
+    "type": "choice",
+    "q": "Kate was not the ___.",
+    "opts": [
+     "craziest",
+     "crazyest",
+     "most crazy"
+    ],
+    "a": 0,
+    "tip": "crazy → y 改 i ＋ est"
+   },
+   {
+    "type": "choice",
+    "q": "The fox crossed the road ___.",
+    "opts": [
+     "quickly",
+     "quick",
+     "quicker"
+    ],
+    "a": 0,
+    "tip": "說明怎麼過馬路 → 副詞 quickly"
+   },
+   {
+    "type": "choice",
+    "q": "Kate was laughing ___.",
+    "opts": [
+     "happily",
+     "happy",
+     "happyly"
+    ],
+    "a": 0,
+    "tip": "happy → y 改 i ＋ ly"
+   },
+   {
+    "type": "choice",
+    "q": "The truck driver isn't eating ___.",
+    "opts": [
+     "slowly",
+     "slow",
+     "slower"
+    ],
+    "a": 0,
+    "tip": "說明怎麼吃 → 副詞 slowly"
+   },
+   {
+    "type": "choice",
+    "q": "They are reading ___ because they want to learn about Snow Mountain.",
+    "opts": [
+     "carefully",
+     "careful",
+     "care"
+    ],
+    "a": 0,
+    "tip": "說明怎麼讀 → 副詞 carefully"
+   },
+   {
+    "type": "order",
+    "words": [
+     "The",
+     "goat",
+     "jumped",
+     "as",
+     "high",
+     "as",
+     "it",
+     "could."
+    ],
+    "tip": "as ＋ 副詞 ＋ as ＋ it could"
+   },
+   {
+    "type": "order",
+    "words": [
+     "The",
+     "gray",
+     "eagle",
+     "was",
+     "the",
+     "fastest."
+    ],
+    "tip": "the ＋ 形容詞-est"
+   },
+   {
+    "type": "order",
+    "words": [
+     "Kate",
+     "was",
+     "laughing",
+     "happily."
+    ],
+    "tip": "副詞放在動詞後面"
+   }
+  ]
+ },
+ "listening": {
+  "U1": [
+   {
+    "type": "lfill",
+    "say": "Chuck and Susie are standing by the sink.",
+    "q": "Chuck and Susie ___ standing by the sink.",
+    "opts": [
+     "are",
+     "were",
+     "is"
+    ],
+    "a": 0,
+    "tip": "現在正在做 → are ＋ V-ing"
+   },
+   {
+    "type": "lfill",
+    "say": "Chuck's parents were sitting down at one o'clock.",
+    "q": "Chuck's parents ___ sitting down at one o'clock.",
+    "opts": [
+     "were",
+     "are",
+     "was"
+    ],
+    "a": 0,
+    "tip": "過去某個時間正在做 → were ＋ V-ing"
+   },
+   {
+    "type": "lpick",
+    "say": "Susie wasn't giving the yo-yo to Chuck.",
+    "opts": [
+     "Susie wasn't giving the yo-yo to Chuck.",
+     "Susie isn't giving the yo-yo to Chuck.",
+     "Susie was giving the yo-yo to Chuck."
+    ],
+    "a": 0,
+    "tip": "聽清楚 wasn't（過去、否定）"
+   },
+   {
+    "type": "lorder",
+    "words": [
+     "Who",
+     "is",
+     "eating",
+     "pizza?"
+    ],
+    "tip": "誰正在吃披薩？Who is ＋ V-ing"
+   },
+   {
+    "type": "lpick",
+    "say": "cane",
+    "opts": [
+     "cane",
+     "can",
+     "cone"
+    ],
+    "a": 0,
+    "tip": "a_e 唸長音 /e/，像字母 A",
+    "label": [
+     "🔤 發音：選出你聽到的字 Which word did you hear?",
+     "Phonics: which word did you hear?"
+    ]
+   },
+   {
+    "type": "lpick",
+    "say": "tack",
+    "opts": [
+     "tack",
+     "take",
+     "tick"
+    ],
+    "a": 0,
+    "tip": "t[a]ck 是短音 /æ/",
+    "label": [
+     "🔤 發音：選出你聽到的字 Which word did you hear?",
+     "Phonics: which word did you hear?"
+    ]
+   },
+   {
+    "type": "lpick",
+    "say": "pail",
+    "opts": [
+     "pail",
+     "pal",
+     "pill"
+    ],
+    "a": 0,
+    "tip": "ai 唸長音 /e/",
+    "label": [
+     "🔤 發音：選出你聽到的字 Which word did you hear?",
+     "Phonics: which word did you hear?"
+    ]
+   }
+  ],
+  "U2": [
+   {
+    "type": "lfill",
+    "say": "It's time for bed, Tim.",
+    "q": "It's time ___ bed, Tim.",
+    "opts": [
+     "for",
+     "to",
+     "at"
+    ],
+    "a": 0,
+    "tip": "time for ＋ 名詞"
+   },
+   {
+    "type": "lfill",
+    "say": "Alice woke up before breakfast.",
+    "q": "Alice woke up ___ breakfast.",
+    "opts": [
+     "before",
+     "after",
+     "for"
+    ],
+    "a": 0,
+    "tip": "before＝在……之前"
+   },
+   {
+    "type": "lpick",
+    "say": "Wally will feel happy when he sits on the couch.",
+    "opts": [
+     "Wally will feel happy when he sits on the couch.",
+     "Wally will feel happy when he sits on the chair.",
+     "Wally felt happy when he sat on the couch."
+    ],
+    "a": 0,
+    "tip": "聽清楚 will feel 和 couch"
+   },
+   {
+    "type": "lorder",
+    "words": [
+     "It's",
+     "time",
+     "to",
+     "eat."
+    ],
+    "tip": "time to ＋ 動詞"
+   },
+   {
+    "type": "lpick",
+    "say": "mess",
+    "opts": [
+     "mess",
+     "miss",
+     "mass"
+    ],
+    "a": 0,
+    "tip": "m[e]ss 是短音 /ɛ/",
+    "label": [
+     "🔤 發音：選出你聽到的字 Which word did you hear?",
+     "Phonics: which word did you hear?"
+    ]
+   },
+   {
+    "type": "lpick",
+    "say": "leak",
+    "opts": [
+     "leak",
+     "lick",
+     "lake"
+    ],
+    "a": 0,
+    "tip": "ea 唸長音 /i/",
+    "label": [
+     "🔤 發音：選出你聽到的字 Which word did you hear?",
+     "Phonics: which word did you hear?"
+    ]
+   },
+   {
+    "type": "lpick",
+    "say": "eel",
+    "opts": [
+     "eel",
+     "ill",
+     "all"
+    ],
+    "a": 0,
+    "tip": "ee 唸長音 /i/",
+    "label": [
+     "🔤 發音：選出你聽到的字 Which word did you hear?",
+     "Phonics: which word did you hear?"
+    ]
+   }
+  ],
+  "U3": [
+   {
+    "type": "lfill",
+    "say": "Kate should put on her boots.",
+    "q": "Kate ___ put on her boots.",
+    "opts": [
+     "should",
+     "shouldn't",
+     "will"
+    ],
+    "a": 0,
+    "tip": "應該 → should"
+   },
+   {
+    "type": "lfill",
+    "say": "The children started putting on their boots.",
+    "q": "The children ___ putting on their boots.",
+    "opts": [
+     "started",
+     "finished",
+     "will start"
+    ],
+    "a": 0,
+    "tip": "開始 → started"
+   },
+   {
+    "type": "lpick",
+    "say": "No, she shouldn't answer her cell phone.",
+    "opts": [
+     "No, she shouldn't answer her cell phone.",
+     "Yes, she should answer her cell phone.",
+     "No, she didn't answer her cell phone."
+    ],
+    "a": 0,
+    "tip": "聽清楚 shouldn't"
+   },
+   {
+    "type": "lorder",
+    "words": [
+     "Should",
+     "the",
+     "woman",
+     "answer",
+     "her",
+     "cell",
+     "phone?"
+    ],
+    "tip": "Should ＋ 主詞 ＋ 原形動詞？"
+   },
+   {
+    "type": "lpick",
+    "say": "lime",
+    "opts": [
+     "lime",
+     "limb",
+     "lamb"
+    ],
+    "a": 0,
+    "tip": "i_e 唸長音 /aɪ/",
+    "label": [
+     "🔤 發音：選出你聽到的字 Which word did you hear?",
+     "Phonics: which word did you hear?"
+    ]
+   },
+   {
+    "type": "lpick",
+    "say": "slight",
+    "opts": [
+     "slight",
+     "slit",
+     "slate"
+    ],
+    "a": 0,
+    "tip": "igh 唸長音 /aɪ/",
+    "label": [
+     "🔤 發音：選出你聽到的字 Which word did you hear?",
+     "Phonics: which word did you hear?"
+    ]
+   },
+   {
+    "type": "lpick",
+    "say": "itch",
+    "opts": [
+     "itch",
+     "each",
+     "etch"
+    ],
+    "a": 0,
+    "tip": "[i]tch 是短音 /ɪ/",
+    "label": [
+     "🔤 發音：選出你聽到的字 Which word did you hear?",
+     "Phonics: which word did you hear?"
+    ]
+   }
+  ],
+  "U4": [
+   {
+    "type": "lfill",
+    "say": "Chuck and Susie will be at home in a week.",
+    "q": "Chuck and Susie will be at home ___ a week.",
+    "opts": [
+     "in",
+     "on",
+     "at"
+    ],
+    "a": 0,
+    "tip": "in a week＝一週後"
+   },
+   {
+    "type": "lfill",
+    "say": "I'm going to pay attention to the teacher.",
+    "q": "I'm going to ___ attention to the teacher.",
+    "opts": [
+     "pay",
+     "play",
+     "say"
+    ],
+    "a": 0,
+    "tip": "pay attention＝專心"
+   },
+   {
+    "type": "lpick",
+    "say": "No one is looking at the tiger.",
+    "opts": [
+     "No one is looking at the tiger.",
+     "Someone is looking at the tiger.",
+     "Everyone is looking at the tiger."
+    ],
+    "a": 0,
+    "tip": "no one＝沒有人"
+   },
+   {
+    "type": "lorder",
+    "words": [
+     "Nothing",
+     "is",
+     "going",
+     "to",
+     "help",
+     "the",
+     "plants."
+    ],
+    "tip": "nothing 當單數 → is"
+   },
+   {
+    "type": "lpick",
+    "say": "bone",
+    "opts": [
+     "bone",
+     "bun",
+     "Ben"
+    ],
+    "a": 0,
+    "tip": "o_e 唸長音 /o/",
+    "label": [
+     "🔤 發音：選出你聽到的字 Which word did you hear?",
+     "Phonics: which word did you hear?"
+    ]
+   },
+   {
+    "type": "lpick",
+    "say": "moss",
+    "opts": [
+     "moss",
+     "mass",
+     "mess"
+    ],
+    "a": 0,
+    "tip": "m[o]ss 是短音 /ɑ/",
+    "label": [
+     "🔤 發音：選出你聽到的字 Which word did you hear?",
+     "Phonics: which word did you hear?"
+    ]
+   },
+   {
+    "type": "lpick",
+    "say": "toast",
+    "opts": [
+     "toast",
+     "test",
+     "taste"
+    ],
+    "a": 0,
+    "tip": "oa 唸長音 /o/",
+    "label": [
+     "🔤 發音：選出你聽到的字 Which word did you hear?",
+     "Phonics: which word did you hear?"
+    ]
+   }
+  ],
+  "U5": [
+   {
+    "type": "lfill",
+    "say": "The dog with the short tail played in a puddle.",
+    "q": "The dog ___ the short tail played in a puddle.",
+    "opts": [
+     "with",
+     "has",
+     "and"
+    ],
+    "a": 0,
+    "tip": "有短尾巴的狗 → with the short tail"
+   },
+   {
+    "type": "lfill",
+    "say": "He chased his friend four hours ago.",
+    "q": "He chased his friend ___ hours ago.",
+    "opts": [
+     "four",
+     "five",
+     "nine"
+    ],
+    "a": 0,
+    "tip": "聽清楚數字"
+   },
+   {
+    "type": "lpick",
+    "say": "The girl with long hair fed the swan.",
+    "opts": [
+     "The girl with long hair fed the swan.",
+     "The girl with short hair fed the swan.",
+     "The girl with long hair fed the duck."
+    ],
+    "a": 0,
+    "tip": "聽清楚 long hair 和 swan"
+   },
+   {
+    "type": "lorder",
+    "words": [
+     "Who",
+     "played",
+     "video",
+     "games",
+     "last",
+     "weekend?"
+    ],
+    "tip": "過去的時間詞 last weekend 放句尾"
+   },
+   {
+    "type": "lpick",
+    "say": "cube",
+    "opts": [
+     "cube",
+     "cub",
+     "cab"
+    ],
+    "a": 0,
+    "tip": "u_e 唸長音 /ju/",
+    "label": [
+     "🔤 發音：選出你聽到的字 Which word did you hear?",
+     "Phonics: which word did you hear?"
+    ]
+   },
+   {
+    "type": "lpick",
+    "say": "tune",
+    "opts": [
+     "tune",
+     "ton",
+     "tan"
+    ],
+    "a": 0,
+    "tip": "u_e 唸長音 /u/",
+    "label": [
+     "🔤 發音：選出你聽到的字 Which word did you hear?",
+     "Phonics: which word did you hear?"
+    ]
+   },
+   {
+    "type": "lpick",
+    "say": "cuff",
+    "opts": [
+     "cuff",
+     "cave",
+     "cough"
+    ],
+    "a": 0,
+    "tip": "c[u]ff 是短音 /ʌ/",
+    "label": [
+     "🔤 發音：選出你聽到的字 Which word did you hear?",
+     "Phonics: which word did you hear?"
+    ]
+   }
+  ],
+  "U6": [
+   {
+    "type": "lfill",
+    "say": "Becky will be as excited as Wally.",
+    "q": "Becky will be ___ excited as Wally.",
+    "opts": [
+     "as",
+     "so",
+     "very"
+    ],
+    "a": 0,
+    "tip": "as … as：跟……一樣"
+   },
+   {
+    "type": "lfill",
+    "say": "Alice isn't getting tired.",
+    "q": "Alice ___ getting tired.",
+    "opts": [
+     "isn't",
+     "is",
+     "wasn't"
+    ],
+    "a": 0,
+    "tip": "聽清楚 isn't"
+   },
+   {
+    "type": "lpick",
+    "say": "Where were the students?",
+    "opts": [
+     "Where were the students?",
+     "Where are the students?",
+     "Where was the student?"
+    ],
+    "a": 0,
+    "tip": "聽清楚 were（過去、複數）"
+   },
+   {
+    "type": "lorder",
+    "words": [
+     "Bob",
+     "is",
+     "taking",
+     "a",
+     "break."
+    ],
+    "tip": "is ＋ V-ing"
+   },
+   {
+    "type": "lpick",
+    "say": "foot",
+    "opts": [
+     "foot",
+     "food",
+     "feet"
+    ],
+    "a": 0,
+    "tip": "f[oo]t 是短的 /ʊ/；food 是長的 /u/",
+    "label": [
+     "🔤 發音：選出你聽到的字 Which word did you hear?",
+     "Phonics: which word did you hear?"
+    ]
+   },
+   {
+    "type": "lpick",
+    "say": "full",
+    "opts": [
+     "full",
+     "fool",
+     "fill"
+    ],
+    "a": 0,
+    "tip": "f[u]ll 是短的 /ʊ/",
+    "label": [
+     "🔤 發音：選出你聽到的字 Which word did you hear?",
+     "Phonics: which word did you hear?"
+    ]
+   },
+   {
+    "type": "lpick",
+    "say": "broom",
+    "opts": [
+     "broom",
+     "brim",
+     "bram"
+    ],
+    "a": 0,
+    "tip": "br[oo]m 是長的 /u/",
+    "label": [
+     "🔤 發音：選出你聽到的字 Which word did you hear?",
+     "Phonics: which word did you hear?"
+    ]
+   }
+  ],
+  "U7": [
+   {
+    "type": "lfill",
+    "say": "Wally walked around the bushes.",
+    "q": "Wally walked ___ the bushes.",
+    "opts": [
+     "around",
+     "along",
+     "across"
+    ],
+    "a": 0,
+    "tip": "around＝繞著"
+   },
+   {
+    "type": "lfill",
+    "say": "Pam was hiking when she found some beetles.",
+    "q": "Pam was ___ when she found some beetles.",
+    "opts": [
+     "hiking",
+     "biking",
+     "walking"
+    ],
+    "a": 0,
+    "tip": "hike＝健行"
+   },
+   {
+    "type": "lpick",
+    "say": "Kate will not drink water if she is thirsty.",
+    "opts": [
+     "Kate will not drink water if she is thirsty.",
+     "Kate will drink water if she is thirsty.",
+     "Kate will not eat bread if she is hungry."
+    ],
+    "a": 0,
+    "tip": "聽清楚 will not"
+   },
+   {
+    "type": "lorder",
+    "words": [
+     "What",
+     "should",
+     "you",
+     "do",
+     "if",
+     "you",
+     "see",
+     "a",
+     "bear?"
+    ],
+    "tip": "What should you do if …?"
+   },
+   {
+    "type": "lpick",
+    "say": "fault",
+    "opts": [
+     "fault",
+     "felt",
+     "fit"
+    ],
+    "a": 0,
+    "tip": "au 唸 /ɔ/",
+    "label": [
+     "🔤 發音：選出你聽到的字 Which word did you hear?",
+     "Phonics: which word did you hear?"
+    ]
+   },
+   {
+    "type": "lpick",
+    "say": "stall",
+    "opts": [
+     "stall",
+     "still",
+     "stale"
+    ],
+    "a": 0,
+    "tip": "all 唸 /ɔl/",
+    "label": [
+     "🔤 發音：選出你聽到的字 Which word did you hear?",
+     "Phonics: which word did you hear?"
+    ]
+   },
+   {
+    "type": "lpick",
+    "say": "yawn",
+    "opts": [
+     "yawn",
+     "yarn",
+     "young"
+    ],
+    "a": 0,
+    "tip": "aw 唸 /ɔ/",
+    "label": [
+     "🔤 發音：選出你聽到的字 Which word did you hear?",
+     "Phonics: which word did you hear?"
+    ]
+   }
+  ],
+  "U8": [
+   {
+    "type": "lfill",
+    "say": "The ground smelled terrible.",
+    "q": "The ground ___ terrible.",
+    "opts": [
+     "smelled",
+     "sounded",
+     "tasted"
+    ],
+    "a": 0,
+    "tip": "用鼻子聞 → smell"
+   },
+   {
+    "type": "lfill",
+    "say": "It tasted like chicken.",
+    "q": "It ___ like chicken.",
+    "opts": [
+     "tasted",
+     "looked",
+     "felt"
+    ],
+    "a": 0,
+    "tip": "用嘴巴嚐 → taste"
+   },
+   {
+    "type": "lpick",
+    "say": "The gray pigeon was heavier than the purple pigeon.",
+    "opts": [
+     "The gray pigeon was heavier than the purple pigeon.",
+     "The gray pigeon was bigger than the purple pigeon.",
+     "The purple pigeon was heavier than the gray pigeon."
+    ],
+    "a": 0,
+    "tip": "聽清楚 heavier 和誰比較重"
+   },
+   {
+    "type": "lorder",
+    "words": [
+     "Becky's",
+     "mother",
+     "saw",
+     "Jimmy",
+     "running",
+     "in",
+     "and",
+     "out."
+    ],
+    "tip": "see ＋ 某人 ＋ V-ing"
+   },
+   {
+    "type": "lpick",
+    "say": "crown",
+    "opts": [
+     "crown",
+     "crone",
+     "crane"
+    ],
+    "a": 0,
+    "tip": "ow 唸 /aʊ/（crone 的 o_e 唸 /o/）",
+    "label": [
+     "🔤 發音：選出你聽到的字 Which word did you hear?",
+     "Phonics: which word did you hear?"
+    ]
+   },
+   {
+    "type": "lpick",
+    "say": "now",
+    "opts": [
+     "now",
+     "know",
+     "new"
+    ],
+    "a": 0,
+    "tip": "ow 唸 /aʊ/",
+    "label": [
+     "🔤 發音：選出你聽到的字 Which word did you hear?",
+     "Phonics: which word did you hear?"
+    ]
+   },
+   {
+    "type": "lpick",
+    "say": "pout",
+    "opts": [
+     "pout",
+     "pot",
+     "put"
+    ],
+    "a": 0,
+    "tip": "ou 唸 /aʊ/",
+    "label": [
+     "🔤 發音：選出你聽到的字 Which word did you hear?",
+     "Phonics: which word did you hear?"
+    ]
+   }
+  ],
+  "U9": [
+   {
+    "type": "lfill",
+    "say": "The fox crossed the road quickly.",
+    "q": "The fox crossed the road ___.",
+    "opts": [
+     "quickly",
+     "quietly",
+     "slowly"
+    ],
+    "a": 0,
+    "tip": "quickly＝很快地"
+   },
+   {
+    "type": "lfill",
+    "say": "Did the sailor sing as wonderfully as he could?",
+    "q": "Did the sailor sing as ___ as he could?",
+    "opts": [
+     "wonderfully",
+     "carefully",
+     "happily"
+    ],
+    "a": 0,
+    "tip": "as ＋ 副詞 ＋ as"
+   },
+   {
+    "type": "lpick",
+    "say": "The blue turtle is the biggest.",
+    "opts": [
+     "The blue turtle is the biggest.",
+     "The blue turtle is bigger.",
+     "The brown turtle is the biggest."
+    ],
+    "a": 0,
+    "tip": "聽清楚 the biggest 和顏色"
+   },
+   {
+    "type": "lorder",
+    "words": [
+     "They",
+     "are",
+     "reading",
+     "carefully."
+    ],
+    "tip": "副詞放在動詞後面"
+   },
+   {
+    "type": "lpick",
+    "say": "coin",
+    "opts": [
+     "coin",
+     "cone",
+     "can"
+    ],
+    "a": 0,
+    "tip": "oi 唸 /ɔɪ/",
+    "label": [
+     "🔤 發音：選出你聽到的字 Which word did you hear?",
+     "Phonics: which word did you hear?"
+    ]
+   },
+   {
+    "type": "lpick",
+    "say": "joy",
+    "opts": [
+     "joy",
+     "jay",
+     "Joe"
+    ],
+    "a": 0,
+    "tip": "oy 唸 /ɔɪ/",
+    "label": [
+     "🔤 發音：選出你聽到的字 Which word did you hear?",
+     "Phonics: which word did you hear?"
+    ]
+   },
+   {
+    "type": "lpick",
+    "say": "spoil",
+    "opts": [
+     "spoil",
+     "spill",
+     "spell"
+    ],
+    "a": 0,
+    "tip": "oi 唸 /ɔɪ/",
+    "label": [
+     "🔤 發音：選出你聽到的字 Which word did you hear?",
+     "Phonics: which word did you hear?"
+    ]
+   }
+  ]
+ },
+ "phonics": {
+  "U1": {
+   "title": "short a · long a",
+   "sounds": [
+    {
+     "name": "short a",
+     "ipa": "æ",
+     "rule": "短母音 a，嘴巴張大、嘴角往兩邊拉",
+     "words": [
+      "t[a]ck",
+      "l[a]dder"
+     ]
+    },
+    {
+     "name": "long a",
+     "ipa": "e",
+     "rule": "長母音 a，唸字母 A 的名字：a_e、ai、ay，或 a 後面沒有子音擋住",
+     "words": [
+      "c[a]n[e]",
+      "p[ai]l",
+      "j[ay]",
+      "m[a]ple",
+      "m[ai]den",
+      "l[ay]er"
+     ]
+    }
+   ],
+   "practice": [
+    "painless",
+    "tactic",
+    "staff",
+    "blast",
+    "act",
+    "flake",
+    "bait",
+    "sate",
+    "clasp",
+    "fray",
+    "pass",
+    "bandit",
+    "aim",
+    "sway",
+    "bay",
+    "sail",
+    "nay",
+    "knack",
+    "ladle",
+    "mayor",
+    "maize",
+    "basin",
+    "cannon",
+    "phase"
+   ]
+  },
+  "U2": {
+   "title": "short e · long e",
+   "sounds": [
+    {
+     "name": "short e",
+     "ipa": "ɛ",
+     "rule": "短母音 e，嘴巴半開",
+     "words": [
+      "m[e]ss",
+      "p[e]bble"
+     ]
+    },
+    {
+     "name": "long e",
+     "ipa": "i",
+     "rule": "長母音 e，唸字母 E 的名字：e_e、ee、ea，或 e 後面沒有子音擋住",
+     "words": [
+      "g[e]n[e]",
+      "[ee]l",
+      "l[ea]k",
+      "m[e]ter",
+      "w[ee]ping",
+      "[ea]sel"
+     ]
+    }
+   ],
+   "practice": [
+    "tweed",
+    "vend",
+    "blend",
+    "wreath",
+    "please",
+    "meter",
+    "squeal",
+    "lentil",
+    "these",
+    "venture",
+    "fence",
+    "press",
+    "jeep",
+    "greasy",
+    "hectic",
+    "here",
+    "deft",
+    "dream",
+    "mete",
+    "sweeten",
+    "wreck",
+    "knee",
+    "sheet",
+    "theme"
+   ]
+  },
+  "U3": {
+   "title": "short i · long i",
+   "sounds": [
+    {
+     "name": "short i",
+     "ipa": "ɪ",
+     "rule": "短母音 i，短而輕",
+     "words": [
+      "p[i]nch",
+      "z[i]pper"
+     ]
+    },
+    {
+     "name": "long i",
+     "ipa": "aɪ",
+     "rule": "長母音 i，唸字母 I 的名字：i_e、igh，或 i 後面沒有子音擋住",
+     "words": [
+      "l[i]m[e]",
+      "th[igh]",
+      "b[i]son",
+      "fr[igh]tful"
+     ]
+    }
+   ],
+   "practice": [
+    "itch",
+    "spring",
+    "chimp",
+    "highness",
+    "griffin",
+    "diction",
+    "virus",
+    "bride",
+    "yipe",
+    "pistil",
+    "nigh",
+    "blight",
+    "tine",
+    "rightist",
+    "twist",
+    "vibe",
+    "slight",
+    "plight",
+    "limb",
+    "quill",
+    "fife",
+    "sigh",
+    "knight",
+    "rite"
+   ]
+  },
+  "U4": {
+   "title": "short o · long o",
+   "sounds": [
+    {
+     "name": "short o",
+     "ipa": "ɑ",
+     "rule": "短母音 o，嘴巴張大像「啊」",
+     "words": [
+      "m[o]ss",
+      "l[o]cker"
+     ]
+    },
+    {
+     "name": "long o",
+     "ipa": "o",
+     "rule": "長母音 o，唸字母 O 的名字：o_e、oa、ow，或 o 後面沒有子音擋住",
+     "words": [
+      "b[o]n[e]",
+      "t[oa]st",
+      "sn[ow]",
+      "fr[o]zen",
+      "c[oa]stal",
+      "b[ow]lful"
+     ]
+    }
+   ],
+   "practice": [
+    "dock",
+    "moth",
+    "thrown",
+    "spotless",
+    "crone",
+    "frond",
+    "foster",
+    "bowler",
+    "crotch",
+    "floss",
+    "ode",
+    "flow",
+    "throat",
+    "loaf",
+    "loft",
+    "boastful",
+    "moat",
+    "stroke",
+    "phone",
+    "nozzle",
+    "coax",
+    "stow",
+    "doting",
+    "molar"
+   ]
+  },
+  "U5": {
+   "title": "short u · long u",
+   "sounds": [
+    {
+     "name": "short u",
+     "ipa": "ʌ",
+     "rule": "短母音 u，嘴巴輕輕張開",
+     "words": [
+      "c[u]ff",
+      "dr[u]mmer"
+     ]
+    },
+    {
+     "name": "long u",
+     "ipa": "u",
+     "rule": "長母音 u（ㄨ）：u_e、ue、ew、ui",
+     "words": [
+      "l[u]t[e]",
+      "gr[ue]l",
+      "br[ui]se",
+      "scr[ew]",
+      "ch[ew]y",
+      "s[ui]tor"
+     ]
+    },
+    {
+     "name": "long u",
+     "ipa": "ju",
+     "rule": "長母音 u（一ㄨ），唸字母 U 的名字：u_e、u、ue",
+     "words": [
+      "c[u]b[e]",
+      "c[u]pid",
+      "f[ue]ling"
+     ]
+    }
+   ],
+   "practice": [
+    "fruit",
+    "skunk",
+    "ruckus",
+    "suiting",
+    "sultan",
+    "bruit",
+    "skew",
+    "yew",
+    "plume",
+    "ruse",
+    "suture",
+    "musk",
+    "crumb",
+    "cue",
+    "brew",
+    "fuel",
+    "rueful",
+    "slue",
+    "tune",
+    "Newton",
+    "tuft",
+    "brunt",
+    "truss",
+    "juice"
+   ]
+  },
+  "U6": {
+   "title": "middle u \"oo\" · long u \"oo\"",
+   "sounds": [
+    {
+     "name": "middle u \"oo\"",
+     "ipa": "ʊ",
+     "rule": "短的「ㄨ」，嘴巴不用嘟太圓：u、oo",
+     "words": [
+      "p[u]sh",
+      "h[oo]d",
+      "b[u]lly",
+      "w[oo]len"
+     ]
+    },
+    {
+     "name": "long u \"oo\"",
+     "ipa": "u",
+     "rule": "長的「ㄨ」，嘴巴嘟圓、拉長：oo",
+     "words": [
+      "br[oo]m",
+      "r[oo]ster"
+     ]
+    }
+   ],
+   "practice": [
+    "booklet",
+    "fully",
+    "bush",
+    "looker",
+    "droopy",
+    "wooden",
+    "foot",
+    "crooner",
+    "boost",
+    "stood",
+    "bushel",
+    "nook",
+    "loosen",
+    "choose",
+    "shook",
+    "pusher",
+    "put",
+    "rook",
+    "sooty",
+    "footless",
+    "full",
+    "scoopful",
+    "rooted",
+    "push"
+   ]
+  },
+  "U7": {
+   "title": "au / aw · al / all",
+   "sounds": [
+    {
+     "name": "au / aw",
+     "ipa": "ɔ",
+     "rule": "au、aw 唸 /ɔ/，嘴巴圓圓張開",
+     "words": [
+      "f[au]lt",
+      "y[aw]n",
+      "c[au]tion",
+      "[aw]ful"
+     ]
+    },
+    {
+     "name": "al / all",
+     "ipa": "ɔl",
+     "rule": "al、all 唸 /ɔl/",
+     "words": [
+      "st[all]",
+      "h[al]ter"
+     ]
+    }
+   ],
+   "practice": [
+    "vaunted",
+    "malted",
+    "staunch",
+    "dawdle",
+    "maudlin",
+    "maw",
+    "crawly",
+    "causal",
+    "calling",
+    "faucet",
+    "yawn",
+    "lawful",
+    "bald",
+    "caucus",
+    "shawl",
+    "baldness",
+    "thaw",
+    "hall",
+    "haul",
+    "falter",
+    "malt",
+    "scald",
+    "cause",
+    "rawness"
+   ]
+  },
+  "U8": {
+   "title": "ow / ou",
+   "sounds": [
+    {
+     "name": "ow / ou",
+     "ipa": "aʊ",
+     "rule": "ow、ou 唸 /aʊ/，像「ㄠ」",
+     "words": [
+      "s[ou]th",
+      "cr[ow]n",
+      "b[ou]ncing",
+      "p[ow]der"
+     ]
+    }
+   ],
+   "practice": [
+    "chow",
+    "rounded",
+    "cowling",
+    "noun",
+    "sprout",
+    "rout",
+    "gown",
+    "poundage",
+    "trowel",
+    "howling",
+    "pout",
+    "countless",
+    "dowry",
+    "joust",
+    "bounden",
+    "louse",
+    "scowl",
+    "gout",
+    "mouthful",
+    "prowl",
+    "growler",
+    "scoundrel",
+    "crowded",
+    "now"
+   ]
+  },
+  "U9": {
+   "title": "oy / oi",
+   "sounds": [
+    {
+     "name": "oy / oi",
+     "ipa": "ɔɪ",
+     "rule": "oy、oi 唸 /ɔɪ/，像「ㄛ一」連在一起",
+     "words": [
+      "s[oy]",
+      "c[oi]n",
+      "r[oy]al",
+      "p[oi]son"
+     ]
+    }
+   ],
+   "practice": [
+    "spoil",
+    "ploy",
+    "soy",
+    "coy",
+    "spoilage",
+    "coyly",
+    "coyness",
+    "voiceless",
+    "cloy",
+    "hoist",
+    "coif",
+    "oink",
+    "loiter",
+    "goiter",
+    "poise",
+    "hoyden",
+    "broiling",
+    "foible",
+    "troy",
+    "joy",
+    "moisture",
+    "joyless",
+    "void",
+    "cloying"
+   ]
+  }
+ }
+}
