@@ -12,7 +12,7 @@
 //        avatarSVG, lookOf, petOf, AV_TOPC
 // ═══════════════════════════════════════════════════════
 const WH6 = (() => {
-  const ID = 'horde', NEED = 6, VER = '0.2';
+  const ID = 'horde', NEED = 6, VER = '0.3';
   const TIME = 180, CAP = 20, S_PER_PT = 300;   // 每 300 分 1 ⭐ — 分數主要來自拼字，打小怪只有一點點
   const P = { kill: 2, brute: 15, letter: 15, word: 150, boss: 400 };
   const G_GAIN = { kill: 1, brute: 6, letter: 4, word: 35 }, G_MAX = 100;   // 無雙集氣
@@ -139,7 +139,11 @@ const WH6 = (() => {
   }
   const pane = (html) => { const p = root.querySelector('#whPane'); p.innerHTML = html; p.style.display = html ? '' : 'none'; if (html) joy = null; };
   // 畫面上方（題目框下面）不能走的範圍
-  const topY = () => { const el = root && root.querySelector('#whWord .in'); const r = cv.getBoundingClientRect(); if (!el || !r.height || !el.offsetParent) return 100; return (el.getBoundingClientRect().bottom - r.top) / r.height * LH + 6; };
+  const topY = () => {   // 題目框隱藏時（選單打開）用 HUD 下方＋題目框高度估計，大王血條才不會跑到 HUD 上
+    const el = root && root.querySelector('#whWord .in'), hudEl = root && root.querySelector('.wj-hud'), r = cv.getBoundingClientRect(); if (!r.height) return 100;
+    const px = el && el.offsetParent ? el.getBoundingClientRect().bottom : hudEl ? hudEl.getBoundingClientRect().bottom + 52 : r.top + 100;
+    return (px - r.top) / r.height * LH + 6;
+  };
 
   // ── 開始畫面 ──
   function open(opts) {
@@ -220,7 +224,12 @@ const WH6 = (() => {
     const g = game; if (!g) return;
     if (root.clientWidth !== lastW || root.clientHeight !== lastH) resize();
     const now = performance.now(), real = (now - g.last) / 1000; g.last = now;
-    if (paused()) { hud(); draw(); return; }   // 選技能、選招式、拼字時暫停
+    if (paused()) {   // 選技能、選招式、拼字時暫停
+      // 保險：暫停中但選單不見了（兩個選單同時跳出時會發生）→ 解除，避免卡住
+      if (!root.querySelector('#whPane').innerHTML) { if (g.spell) renderSpell(); else { g.menu = false; g.moveMenu = false; showWord(); musouBtn(); } }
+      hud(); draw(); return;
+    }
+    if (g.lvAt && now >= g.lvAt) { g.lvAt = 0; levelUp(); hud(); draw(); return; }
     let dt = Math.min(0.033, real);
     if (g.slow > 0) { g.slow -= dt; dt *= 0.22; }   // 放大絕：慢動作
     if (g.shake > 0) g.shake -= Math.min(0.033, real);
@@ -454,7 +463,7 @@ const WH6 = (() => {
     g.orbs = []; g.hero.inv = 1;
     g.fx.push({ t: 0.5, flash: 1 });
     banner('🔤', L(`拼出來了！${g.w.word} +${P.word}`, `Spelled! ${g.w.word} +${P.word}`), g.boss ? L('墨水大王的護盾破了！', "Ink King's shield is down!") : short(g.w), '#CCFF00');
-    setTimeout(() => { if (game === g && !g.over && !g.spell) levelUp(); }, 600);
+    g.lvAt = performance.now() + 600;   // 0.6 秒後升級（如果那時正在選招式或拼字，就等結束後再跳）
   }
   function levelUp() {
     const g = game; g.lv++; g.menu = true; joy = null; showWord(); musouBtn();
