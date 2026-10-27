@@ -10,7 +10,7 @@
 //        saveLedger, saveMeta, afterPoints, points, gameWeekBestAll, gameCard, masteredCount, GAMES, toast, confetti
 // ═══════════════════════════════════════════════════════
 const WS = (() => {
-  const ID = 'shoot', NEED = 4, VER = '0.1';
+  const ID = 'shoot', NEED = 4, VER = '0.2';
   const TIME = 180, CAP = 20;
   const S_PER_PT = 200;               // 每 200 分 1 ⭐（4000 分滿 20）— 待實玩後調整
   const LW = 360;                     // 邏輯寬度
@@ -27,7 +27,12 @@ const WS = (() => {
   const card = () => gameCard({ id: ID, need: NEED, icon: '🏀', name: 'Word Shot' });
   const bestText = () => { const b = st.meta.games && st.meta.games[ID] && st.meta.games[ID].best; return b ? `Word Shot ${b}` : ''; };
   const short = (w) => String(meaning(w) || '').split(/[；;,，]/)[0].trim();
-  const REST = () => ({ x: LW / 2, y: VH - 170 });   // 球的發射位置（往下拉 130 也還在畫面裡）
+  const FAR_FROM = 3, FAR_P = 0.35, FEVER_LEN = 8;   // 第 3 題起有機會遠投；彩虹時間 8 秒
+  // 球的發射位置：平常在中間；遠投時退到左下或右下角（離籃框比較遠，分數 ×2）
+  const REST = () => { const f = game && game.far; return f ? { x: f < 0 ? 72 : LW - 72, y: VH - 128 } : { x: LW / 2, y: VH - 170 }; };
+  const elapsed = () => (game ? (Date.now() - game.t0) / 1000 : 0);
+  const fever = () => !!game && elapsed() < game.feverEnd;
+  const mult = () => (game && game.far ? 2 : 1) * (fever() ? 2 : 1);
 
   // ── 畫面 ──
   function mount() {
@@ -101,6 +106,8 @@ const WS = (() => {
         <div>👇 ${L('在下面按住，往後拉（像彈弓），放開就投出去；拉越遠越用力', 'Press near the bottom, pull back like a slingshot, let go to shoot')}</div>
         <div>🏀 ${L(`投進正確的籃框 +${BASKET}；空心球（沒碰到籃框）再 +${SWISH}`, `Right hoop +${BASKET}; swish (no rim) +${SWISH}`)}</div>
         <div>🔥 ${L(`連進 3 球以上，每球再 +${STREAK}`, `3+ in a row: +${STREAK} each`)}</div>
+        <div>🎯 ${L('球跑到角落時是「遠投」：投進分數 ×2', 'Long shot from the corner: ×2')}</div>
+        <div>🌈 ${L(`籃框變成彩虹色＝FEVER TIME，${FEVER_LEN} 秒內投進分數 ×2（遠投再 ×2＝×4！）`, `Rainbow hoops = FEVER TIME: ×2 for ${FEVER_LEN}s (long shot too = ×4!)`)}</div>
         <div>✏️ ${L('投進錯的籃框，要拼出這個字才能繼續（時間不會停）', 'Wrong hoop = spell the word (clock keeps running)')}</div>
         <div>↕️ ${L(`第 ${MOVE_FROM} 題起籃框會上下移動，第 ${WIND_FROM} 題起有風 🌬️`, `Hoops move from word ${MOVE_FROM}; wind from word ${WIND_FROM} 🌬️`)}</div>
         <div>⭐ ${trial ? L('試玩模式：不計分', 'Trial: not scored') : L(`每 ${S_PER_PT} 分 1 顆星，最多 ${CAP}；所有遊戲每週只算最高一局`, `1 ⭐ per ${S_PER_PT} points, up to ${CAP}; best game of the week counts`)}</div>
@@ -123,7 +130,7 @@ const WS = (() => {
     game = {
       t0: Date.now(), last: performance.now(), clock: 0,
       ball: { x: 0, y: 0, vx: 0, vy: 0, state: 'rest', t: 0, touched: false, top: 0, spin: 0 },
-      hoops: [], q: null, n: 0, wind: 0, used: new Set(),
+      hoops: [], q: null, n: 0, wind: 0, used: new Set(), far: 0, feverEnd: 0, feverAt: 25 + Math.random() * 15, fevers: 0, longs: 0,
       score: 0, baskets: 0, swish: 0, wrong: 0, shots: 0, streak: 0, bestStreak: 0, fx: [], spell: null, over: false, pause: 0,
     };
     pane(''); nextQ(); loop();
@@ -135,6 +142,7 @@ const WS = (() => {
     const opts = shuffle([w, ...distract(w, 2)]);
     g.n++;
     g.q = { w, opts, ans: opts.indexOf(w) };
+    g.far = g.n >= FAR_FROM && Math.random() < FAR_P ? (Math.random() < 0.5 ? -1 : 1) : 0;
     g.wind = g.n >= WIND_FROM ? (Math.random() < 0.5 ? -1 : 1) * (60 + Math.random() * 110) : 0;
     g.hoops = opts.map((o, i) => ({ i, x: 0, y: 0, by: 0, ph: Math.random() * 6, amp: 0, sp: 0, flash: 0 }));
     layoutHoops(false);
@@ -161,6 +169,11 @@ const WS = (() => {
     const now = performance.now(), dt = Math.min(0.033, (now - g.last) / 1000); g.last = now; g.clock += dt * 1000;
     const left = TIME - (Date.now() - g.t0) / 1000;
     if (left <= 0) return end();
+    const el = elapsed();
+    if (el >= g.feverAt && left > 4) {   // 彩虹時間：每 30～45 秒一次
+      g.feverEnd = el + FEVER_LEN; g.feverAt = g.feverEnd + 30 + Math.random() * 15; g.fevers++;
+      if (!g.spell) banner('🌈', 'FEVER TIME!', L(`${FEVER_LEN} 秒內投進分數 ×2`, `×2 for ${FEVER_LEN} seconds`), '#ffd23f');
+    }
     if (!g.spell) step(dt);
     hud(left); draw();
   }
@@ -201,9 +214,11 @@ const WS = (() => {
       let pts = BASKET; g.baskets++; g.streak++; g.bestStreak = Math.max(g.bestStreak, g.streak);
       if (!b.touched) { pts += SWISH; g.swish++; }
       if (g.streak >= 3) pts += STREAK;
+      const m = mult(); pts *= m; if (g.far) g.longs++;
       g.score += pts;
       burst(h.x, h.y, '#CCFF00');
-      banner(!b.touched ? '💫' : '🏀', !b.touched ? L(`空心球！+${pts}`, `Swish! +${pts}`) : L(`進了！+${pts}`, `Nice! +${pts}`),
+      const tag = m > 1 ? ` (×${m})` : '';
+      banner(m >= 4 ? '🌈' : g.far ? '🎯' : !b.touched ? '💫' : '🏀', (!b.touched ? L(`空心球！+${pts}`, `Swish! +${pts}`) : L(`進了！+${pts}`, `Nice! +${pts}`)) + tag,
         g.streak >= 3 ? L(`連進 ${g.streak} 球 🔥`, `${g.streak} in a row 🔥`) : `${g.q.w.word} = ${short(g.q.w)}`, '#CCFF00');
       g.after = nextQ; g.pause = 0.75;
     } else {
@@ -296,7 +311,7 @@ const WS = (() => {
       <div class="wj-kicker">${L('時間到！', "Time's up!")}</div>
       <div class="wj-big">${sc}</div>
       <div class="wj-small">${trial ? L('🧪 試玩模式，不計分', '🧪 Trial — not scored') : record ? L('🆕 個人最高紀錄！', '🆕 New personal best!') : L(`個人最高 ${best} 分`, `Personal best ${best}`)}<br>
-        ${L(`投進 ${g.baskets} 球（空心 ${g.swish}）・投錯 ${g.wrong}・出手 ${g.shots} 次・最多連進 ${g.bestStreak}`, `${g.baskets} baskets (${g.swish} swish) · ${g.wrong} wrong · ${g.shots} shots · best streak ${g.bestStreak}`)}</div>
+        ${L(`投進 ${g.baskets} 球（空心 ${g.swish}）・投錯 ${g.wrong}・出手 ${g.shots} 次・遠投進 ${g.longs}・最多連進 ${g.bestStreak}`, `${g.baskets} baskets (${g.swish} swish) · ${g.wrong} wrong · ${g.shots} shots · best streak ${g.bestStreak}`)}</div>
       <div class="wj-pts">⭐ ${pts} / ${CAP}</div>
       ${trial ? '' : gain ? `<div class="gain">+${gain} ⭐</div>`
         : `<div class="gain zero">${prev >= CAP ? L('本週遊戲已經拿滿 20 分，現在純粹好玩 🎮', 'You already got 20 this week — just for fun now 🎮')
@@ -333,6 +348,11 @@ const WS = (() => {
       cx.fillText(`🌬️ ${L('風', 'Wind')} ${dir.repeat(Math.max(1, n))}`, LW / 2, 122);   // 題目下方
       cx.restore();
     }
+    if (fever() && !g.over) {
+      const left = Math.ceil(g.feverEnd - elapsed());
+      cx.save(); cx.font = '800 15px Syne, "Noto Sans TC", sans-serif'; cx.textAlign = 'center';
+      cx.fillStyle = `hsl(${(g.clock / 4) % 360},95%,62%)`; cx.fillText(`🌈 FEVER ×2 · ${left}s`, LW / 2, g.wind ? 142 : 122); cx.restore();
+    }
     if (g.spell) return;   // 拼字時只留球場背景
     g.hoops.forEach((h) => drawHoop(h, 'back'));
     drawBall();
@@ -347,7 +367,7 @@ const WS = (() => {
       // 籃板（上面寫中文意思）
       const bw = 104, bh = 54, bx = h.x - bw / 2, by = h.y - bh - 12;
       cx.fillStyle = h.flash > 0 ? (h.i === g.q.ans ? 'rgba(204,255,0,.95)' : 'rgba(255,107,87,.95)') : 'rgba(255,255,255,.95)';
-      cx.strokeStyle = '#4ECDC4'; cx.lineWidth = 3;
+      cx.strokeStyle = fever() ? `hsl(${(g.clock / 3 + h.i * 60) % 360},95%,60%)` : '#4ECDC4'; cx.lineWidth = fever() ? 5 : 3;
       cx.beginPath(); cx.roundRect ? cx.roundRect(bx, by, bw, bh, 8) : cx.rect(bx, by, bw, bh); cx.fill(); cx.stroke();
       cx.strokeStyle = '#ff6b57'; cx.lineWidth = 2; cx.strokeRect(h.x - 18, h.y - 30, 36, 20);
       if (op) {
@@ -385,9 +405,15 @@ const WS = (() => {
           const t = 0.035; vx += g.wind * t; vy += G * t; sx += vx * t; sy += vy * t;
           cx.fillStyle = `rgba(255,255,255,${0.8 - i * 0.07})`; cx.beginPath(); cx.arc(sx, sy, 3.2, 0, 7); cx.fill();
         }
-      } else if (!aim) {
+      } else if (!aim && !g.far) {
         cx.fillStyle = 'rgba(255,255,255,.55)'; cx.font = '600 12px "Noto Sans TC", sans-serif'; cx.textAlign = 'center';
         cx.fillText(L('按住往下拉，放開投籃', 'Pull down & release'), r.x, r.y + 44);
+      }
+      if (g.far) {   // 遠投標示
+        cx.save(); cx.textAlign = 'center'; cx.font = '800 14px Syne, "Noto Sans TC", sans-serif';
+        const t = L(`🎯 遠投 ×${mult()}`, `🎯 Long shot ×${mult()}`), tw = cx.measureText(t).width + 18, tx = Math.min(LW - tw / 2 - 4, Math.max(tw / 2 + 4, r.x));
+        cx.fillStyle = 'rgba(10,10,20,.75)'; cx.beginPath(); cx.roundRect ? cx.roundRect(tx - tw / 2, r.y - 62, tw, 24, 12) : cx.rect(tx - tw / 2, r.y - 62, tw, 24); cx.fill();
+        cx.fillStyle = '#ffd23f'; cx.fillText(t, tx, r.y - 45); cx.restore();
       }
     }
     if (b.state === 'in') return;
@@ -418,7 +444,7 @@ const WS = (() => {
   }
   // 測試用：直接投出（vx, vy 是初速），或直接判定進某個籃框
   const _t = { get game() { return game; }, shoot(vx, vy) { const b = game.ball; Object.assign(b, { vx, vy, state: 'fly', t: 0, touched: false, top: b.y }); game.shots++; },
-    land, check, end, toPts, get VH() { return VH; }, get trial() { return trial; } };
+    land, check, end, toPts, REST, mult, get VH() { return VH; }, get trial() { return trial; } };
   return { id: ID, need: NEED, card, bestText, open, close, _t };
 })();
 GAMES.push(WS);

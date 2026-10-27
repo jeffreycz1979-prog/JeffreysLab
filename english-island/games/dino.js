@@ -9,13 +9,13 @@
 //        saveLedger, saveMeta, afterPoints, points, gameWeekBestAll, gameCard, masteredCount, GAMES, toast, confetti
 // ═══════════════════════════════════════════════════════
 const WD = (() => {
-  const ID = 'dino', NEED = 5, VER = '0.1';
+  const ID = 'dino', NEED = 5, VER = '0.2';
   const TIME = 180, CAP = 20, S_PER_PT = 200;   // 每 200 分 1 ⭐（4000 分滿 20）— 待實玩後調整
   const T = 24, ROWS = 11, WH = ROWS * T;         // 磚塊大小、地圖列數、世界高度
   const GROUND = 9;                               // 地面從第 9 列開始（第 9、10 列是土）
   const ACC = 900, VMAX = 150, FRIC = 1300, GRAV = 1500, JUMP = 470, HOLD = 0.22;
   const ENERGY = 30, DRAIN = 1, E_RIGHT = 14, E_WRONG = 6;
-  const AW = 2;   // 答案磚寬（格）
+  const AW = 3;   // 答案磚寬（格）
   const P = { coin: 10, stomp: 50, right: 100, streak: 50, flag: 300 };
   const E = 0, GD = 1, BR = 2, QB = 3, UB = 4, PIPE = 5, ST = 6, AB = 8;   // 地圖格子種類
   const THEMES = [
@@ -24,7 +24,7 @@ const WD = (() => {
     { name: L('城堡', 'Castle'), sky: ['#2a0f12', '#5a1d1d'], hill: '#4a1818', hill2: '#6a2424', top: '#8a8a8a', dirt: '#5e5e66', dot: '#46464d', brick: '#8f8f99', cloud: false, lava: true },
   ];
   let cv, cx, root, k = 2, oy = 0, VW = 300, dpr = 1;
-  let game = null, raf = 0, trial = false;
+  let game = null, raf = 0, trial = false, releaseAll = () => {}, lastW = 0, lastH = 0, portrait = false;
   const keys = { l: false, r: false, j: false };
 
   const unlocked = () => masteredCount() >= NEED;
@@ -46,9 +46,10 @@ const WD = (() => {
       <div class="wj-hud"><button class="wj-x" data-wd="quit">✕</button>
         <span class="wr-coin" id="wdC">🪙 0</span><span class="wd-en"><i id="wdE"></i></span>
         <span class="wj-t" id="wdT">3:00</span><span class="wj-h" id="wdS">0</span><span class="wj-p" id="wdP">⭐ 0</span></div>
+      <div class="wd-touch" id="wdTouch"></div>
       <div class="wd-pad" id="wdPad">
-        <button data-k="l" aria-label="左">◀</button><button data-k="r" aria-label="右">▶</button>
-        <button data-k="j" class="jb" aria-label="跳">JUMP</button></div>
+        <b data-k="l">◀</b><b data-k="r">▶</b><b data-k="j" class="jb">JUMP</b></div>
+      <div class="wd-rot" id="wdRot"><div><div class="ic">📱↻</div><b>請把手機轉成橫的</b><small>Turn your phone sideways</small></div></div>
       <div class="wj-pane" id="wdPane"></div>`;
     document.body.appendChild(root);
     if (!document.getElementById('wdCss')) {
@@ -56,35 +57,58 @@ const WD = (() => {
       s.textContent = `.wj.wd{left:0;right:0;width:auto;transform:none;box-shadow:none}
         .wd-en{width:74px;height:14px;padding:0!important;border-radius:8px!important;overflow:hidden;background:rgba(0,0,0,.5)!important;position:relative}
         .wd-en i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#ff6b57,#ffd23f 40%,#CCFF00);border-radius:8px;transition:width .2s}
-        .wd-pad{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);display:flex;gap:12px;padding:0 16px;z-index:3;pointer-events:none}
-        .wd-pad button{pointer-events:auto;width:76px;height:76px;border-radius:50%;border:3px solid rgba(255,255,255,.55);background:rgba(0,0,0,.28);color:#fff;font-size:28px;
-          touch-action:none;-webkit-user-select:none;user-select:none}
-        .wd-pad button.on{background:rgba(204,255,0,.35);border-color:#CCFF00}
-        .wd-pad .jb{margin-left:auto;width:96px;height:96px;font:800 18px Syne,sans-serif;background:rgba(204,255,0,.22);border-color:#CCFF00}
+        .wd-touch{position:absolute;left:0;right:0;top:64px;bottom:0;z-index:2;touch-action:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+        .wd-pad{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);display:flex;gap:10px;
+          padding:0 calc(env(safe-area-inset-right,0px) + 22px) 0 calc(env(safe-area-inset-left,0px) + 18px);z-index:3;pointer-events:none}
+        .wd-pad b{display:flex;align-items:center;justify-content:center;width:72px;height:72px;border-radius:50%;border:3px solid rgba(255,255,255,.5);
+          background:rgba(0,0,0,.22);color:#fff;font-size:26px;transition:transform .06s}
+        .wd-pad b.on{background:rgba(204,255,0,.4);border-color:#CCFF00;transform:scale(.92)}
+        .wd-pad .jb{margin-left:auto;width:92px;height:92px;font:800 17px Syne,sans-serif;background:rgba(204,255,0,.2);border-color:#CCFF00}
+        .wd-rot{position:absolute;inset:0;z-index:20;display:none;align-items:center;justify-content:center;background:rgba(10,10,20,.92);color:#fff;text-align:center}
+        .wd-rot.on{display:flex}.wd-rot .ic{font-size:64px;margin-bottom:10px}.wd-rot b{display:block;font-size:22px}.wd-rot small{display:block;opacity:.7;margin-top:6px}
+        .wd .wj-pane{overflow:auto}
+        @media (orientation:landscape){.wd .wj-card{max-width:720px}.wd .wj-ic{display:none}.wd .wj-card h2{margin:0 0 4px}.wd .wj-card>p:first-of-type{display:none}
+          .wd .wj-rules{display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;font-size:12.5px;line-height:1.45}}
         .wd .wr-gate{top:calc(env(safe-area-inset-top,0px) + 54px)}
         .wj.wd .wb-banner{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 108px)}`;
       document.head.appendChild(s);
     }
     cv = root.querySelector('canvas'); cx = cv.getContext('2d');
     root.addEventListener('click', onClick);
-    const pad = root.querySelector('#wdPad');
-    const set = (b, v) => { if (!b) return; keys[b.dataset.k] = v; b.classList.toggle('on', v); if (b.dataset.k === 'j' && v) jumpPress(); };
-    pad.addEventListener('pointerdown', (e) => { const b = e.target.closest('[data-k]'); if (b) { e.preventDefault(); b.setPointerCapture && b.setPointerCapture(e.pointerId); set(b, true); } });
-    ['pointerup', 'pointercancel', 'lostpointercapture'].forEach((ev) => pad.addEventListener(ev, (e) => set(e.target.closest('[data-k]'), false)));
+    // 觸控：左半邊整塊都是方向鍵（手指可以左右滑，以 ◀▶ 中間為界），右半邊整塊都是跳
+    const tl = root.querySelector('#wdTouch'), ptrs = new Map();
+    const sync = () => {
+      let l = false, r = false, j = false;
+      const pb = root.querySelector('#wdPad [data-k="r"]').getBoundingClientRect(), mid = pb.left - 5;
+      ptrs.forEach((p) => { if (p.side === 'j') j = true; else if (p.x < mid) l = true; else r = true; });
+      if (j && !keys.j) jumpPress();
+      keys.l = l && !r; keys.r = r && !l; keys.j = j;
+      root.querySelectorAll('#wdPad [data-k]').forEach((b) => b.classList.toggle('on', keys[b.dataset.k]));
+    };
+    tl.addEventListener('pointerdown', (e) => {
+      e.preventDefault(); tl.setPointerCapture && tl.setPointerCapture(e.pointerId);
+      ptrs.set(e.pointerId, { x: e.clientX, side: e.clientX < innerWidth * 0.5 ? 'm' : 'j' }); sync();
+    });
+    tl.addEventListener('pointermove', (e) => { const p = ptrs.get(e.pointerId); if (p) { p.x = e.clientX; sync(); } });
+    ['pointerup', 'pointercancel', 'lostpointercapture'].forEach((ev) => tl.addEventListener(ev, (e) => { if (ptrs.delete(e.pointerId)) sync(); }));
+    releaseAll = () => { ptrs.clear(); Object.keys(keys).forEach((x) => (keys[x] = false)); root.querySelectorAll('#wdPad .on').forEach((b) => b.classList.remove('on')); };
     addEventListener('keydown', onKey); addEventListener('keyup', onKey);
-    addEventListener('resize', resize);
+    addEventListener('resize', resize); addEventListener('orientationchange', () => [60, 300, 800].forEach((t) => setTimeout(resize, t)));
   }
   function resize() {
     if (!root) return;
     const w = root.clientWidth, h = root.clientHeight; dpr = Math.min(2, devicePixelRatio || 1);
+    lastW = w; lastH = h; portrait = h > w * 1.05;
+    root.querySelector('#wdRot').classList.toggle('on', portrait);
+    if (portrait) releaseAll();
     cv.width = w * dpr; cv.height = h * dpr; cv.style.width = w + 'px'; cv.style.height = h + 'px';
-    // 至少看得到 260 寬（三塊答案磚＋空隙 8 格＝192）；地面放在按鈕上方，天空往上延伸
+    // 只在橫式玩；直式蓋上「請轉橫」並暫停；地面放在按鈕上方，天空往上延伸
     const W = w * dpr, H = h * dpr;
-    k = Math.min(H * 0.9 / WH, W / 260);
+    k = Math.min(H * 0.94 / WH, W / 300);   // 橫式：高度決定大小，前方看得很遠
     VW = W / k;
-    oy = Math.max(0, Math.min(H - WH * k, H - 150 * dpr - GROUND * T * k));
+    oy = Math.max(0, Math.min(H - WH * k, H - 96 * dpr - GROUND * T * k));
   }
-  const pane = (html) => { const p = root.querySelector('#wdPane'); p.innerHTML = html; p.style.display = html ? '' : 'none'; root.querySelector('#wdPad').style.display = html ? 'none' : ''; };
+  const pane = (html) => { const p = root.querySelector('#wdPane'); p.innerHTML = html; p.style.display = html ? '' : 'none'; ['#wdPad', '#wdTouch'].forEach((q) => (root.querySelector(q).style.display = html ? 'none' : '')); if (html) releaseAll(); };
   function onKey(e) {
     if (!root || !root.classList.contains('show') || !game || game.spell || game.over) return;
     const m = { ArrowLeft: 'l', ArrowRight: 'r', ArrowUp: 'j', ' ': 'j', z: 'j', Z: 'j' }[e.key]; if (!m) return;
@@ -107,7 +131,7 @@ const WD = (() => {
       <h2>Dino Quest</h2>
       <p>${L('帶小恐龍跑過草原、洞穴和城堡，一路答對單字！', 'Run, jump and answer words through the grassland, cave and castle!')}</p>
       <div class="wj-rules">
-        <div>◀ ▶ ${L('左右移動，JUMP 跳（按久一點跳更高）；鍵盤：方向鍵＋空白鍵', 'Move with ◀ ▶, JUMP to jump (hold for higher); keyboard: arrows + space')}</div>
+        <div>📱 ${L('手機橫著玩：左半邊按住＝走（手指左右滑換方向），右半邊按＝跳（按久跳更高）；鍵盤：方向鍵＋空白鍵', 'Play sideways: hold the left half to walk (slide to turn), tap the right half to jump (hold = higher); keyboard: arrows + space')}</div>
         <div>❓ ${L('用頭頂「？」磚塊：會出現英文，前面浮出三塊中文答案磚，頂到正確的那塊', 'Bump a ? block: an English word appears, then bump the block with the right meaning')}</div>
         <div>✅ ${L(`答對 +${P.right}、體力補滿一大段；連對 3 題起每題再 +${P.streak}`, `Right +${P.right} and energy; 3+ in a row: +${P.streak} each`)}</div>
         <div>⚡ ${L('體力條會一直減少，只有答對才能補', 'Energy keeps draining — answer right to refill')}</div>
@@ -120,7 +144,7 @@ const WD = (() => {
     </div>`);
   }
   function close() {
-    cancelAnimationFrame(raf); game = null; Object.keys(keys).forEach((x) => (keys[x] = false));
+    cancelAnimationFrame(raf); game = null; releaseAll();
     if (root) root.classList.remove('show');
     document.body.style.overflow = '';
     if (typeof renderQuiz === 'function' && $('v-quiz') && $('v-quiz').classList.contains('active')) renderQuiz();
@@ -134,9 +158,9 @@ const WD = (() => {
     const free = new Array(cols).fill(true);   // 這一欄還沒放東西
     const reserve = (a, b) => { for (let c = a; c <= b && c < cols; c++) free[c] = false; };
     reserve(0, 8); reserve(cols - 16, cols - 1);
-    // ？磚塊：每隔 30～37 欄一個，後面 14 欄留平地給答案磚（中間剩下的地方才放坑、水管、敵人）
+    // ？磚塊：每隔 30～37 欄一個，後面 16 欄留平地給答案磚（中間剩下的地方才放坑、水管、敵人）
     const qs = [];
-    for (let c = 12; c < cols - 34; c += 30 + Math.floor(R() * 8)) { qs.push(c); map[c][6] = QB; reserve(c - 1, c + 14); }
+    for (let c = 12; c < cols - 34; c += 30 + Math.floor(R() * 8)) { qs.push(c); map[c][6] = QB; reserve(c - 1, c + 16); }
     // 坑：在還沒用到的地方挖 2～3 格（後面幾關比較多、比較寬）
     for (let c = 10; c < cols - 18; c++) {
       if (!free[c] || !free[c + 1] || !free[c + 2] || !free[c + 3]) continue;
@@ -165,7 +189,7 @@ const WD = (() => {
     }
     // 敵人：放在平地上（每關越後面越多、越快）
     for (let c = 14; c < cols - 18; c++) {
-      if (map[c][GROUND] === GD && map[c][GROUND - 1] === E && R() < 0.035 + n * 0.015 && !qs.some((q) => c > q && c < q + 15))
+      if (map[c][GROUND] === GD && map[c][GROUND - 1] === E && R() < 0.035 + n * 0.015 && !qs.some((q) => c > q && c < q + 17))
         ents.push({ t: 'bug', x: c * T + 2, y: GROUND * T - 18, w: 20, h: 18, vx: -(28 + n * 10), alive: true });
     }
     // 結尾：石階＋旗子
@@ -176,9 +200,9 @@ const WD = (() => {
 
   // ── 遊戲 ──
   function start() {
-    Object.keys(keys).forEach((x) => (keys[x] = false));
+    releaseAll();
     game = {
-      t0: Date.now(), last: performance.now(), clock: 0,
+      elapsed: 0, last: performance.now(), clock: 0, buf: 0, coyote: 0,
       lv: null, n: 0, hero: null, camX: 0, energy: ENERGY, score: 0, coins: 0, stomps: 0, right: 0, wrong: 0, streak: 0, best: 0, deaths: 0, clears: 0,
       q: null, used: new Set(), fx: [], spell: null, over: false, pause: 0,
     };
@@ -196,15 +220,18 @@ const WD = (() => {
   function loop() {
     raf = requestAnimationFrame(loop);
     const g = game; if (!g) return;
-    const now = performance.now(), dt = Math.min(0.033, (now - g.last) / 1000); g.last = now; g.clock += dt;
-    const left = TIME - (Date.now() - g.t0) / 1000;
+    if (root.clientWidth !== lastW || root.clientHeight !== lastH) resize();   // 轉向後尺寸有時晚一點才更新，每格檢查
+    const now = performance.now(), real = (now - g.last) / 1000, dt = Math.min(0.033, real); g.last = now;
+    if (portrait) { hud(TIME - g.elapsed); draw(); return; }   // 直式：暫停（時間也停）
+    g.clock += dt; g.elapsed += real;
+    const left = TIME - g.elapsed;
     if (left <= 0) return end();
     if (!g.spell) step(dt);
     hud(left); draw();
   }
   function jumpPress() {
     const h = game && game.hero; if (!h || game.spell || game.over) return;
-    if (h.on) { h.vy = -JUMP; h.on = false; h.hold = HOLD; }
+    game.buf = 0.13;   // 落地前 0.13 秒按也算
   }
   function step(dt) {
     const g = game, h = g.hero, lv = g.lv;
@@ -229,6 +256,8 @@ const WD = (() => {
     // 垂直移動＋碰撞（頭頂磚塊）
     h.y += h.vy * dt; h.on = false;
     collideY(h);
+    g.coyote = h.on ? 0.09 : Math.max(0, g.coyote - dt);   // 剛走出平台邊緣 0.09 秒內還能跳
+    if (g.buf > 0) { g.buf -= dt; if (g.coyote > 0 && h.vy >= 0) { h.vy = -JUMP; h.on = false; h.hold = keys.j ? HOLD : 0.06; g.buf = 0; g.coyote = 0; } }
     if (h.on && h.x > h.safeX && solid(tile(Math.floor((h.x + h.w / 2) / T), GROUND))) h.safeX = h.x;
     // 掉進坑
     if (h.y > WH + 30) return die('pit');
@@ -293,9 +322,9 @@ const WD = (() => {
     const w = shuffle(fresh.length ? fresh : pool)[0]; g.used.add(w.id);
     const seen = new Set([short(w)]), others = shuffle(pool.filter((x) => x.id !== w.id)).filter((x) => { const s = short(x); if (!s || seen.has(s)) return false; seen.add(s); return true; }).slice(0, 2);
     const opts = shuffle([w, ...others]);
-    const blocks = opts.map((o, i) => ({ c: c + 2 + i * 3, r: 6, o, ok: o === w }));
+    const blocks = opts.map((o, i) => ({ c: c + 2 + i * 4, r: 6, o, ok: o === w }));
     blocks.forEach((b) => { for (let i = 0; i < AW; i++) g.lv.map[b.c + i][b.r] = AB; });
-    g.q = { w, blocks, end: (c + 2 + 2 * 3 + 4) * T };
+    g.q = { w, blocks, end: (c + 2 + 2 * 4 + 5) * T };
     showQ(); speak(w.word);
   }
   function answer(c, r) {
@@ -340,7 +369,7 @@ const WD = (() => {
   }
   function die(why) {
     const g = game; g.deaths++; g.streak = 0;
-    Object.keys(keys).forEach((x) => (keys[x] = false)); root.querySelectorAll('.wd-pad .on').forEach((b) => b.classList.remove('on'));
+    releaseAll();
     const pool = spellPool(), fresh = pool.filter((w) => !g.used.has(w.id));
     const w = shuffle(fresh.length ? fresh : pool)[0];
     g.spell = { w, ans: answersOf(w)[0], shown: 1, tries: 0, why };
