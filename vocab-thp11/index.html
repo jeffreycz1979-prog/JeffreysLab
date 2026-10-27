@@ -294,7 +294,8 @@ nav button.on{color:var(--lime);font-weight:700}
 .days button.on,.times button.on{background:var(--lime);border-color:var(--lime);color:#10140a}
 .times{display:flex;gap:8px;margin-top:10px}
 .times button{flex:1;border:1.5px solid var(--line);background:var(--panel);border-radius:12px;padding:10px;font-weight:700}
-.hintw{font-family:monospace;font-size:20px;letter-spacing:4px;color:var(--muted);margin-top:12px}
+.hintw{font-family:monospace;font-size:20px;letter-spacing:2px;color:var(--muted);margin-top:12px;line-height:1.7}
+.hintw .hw{display:inline-block;white-space:nowrap;margin:0 .55em}   /* 一個字一組，不會從字中間斷行 */
 .spellin{width:100%;margin-top:14px;border:2px solid var(--line);border-radius:14px;padding:13px;font-size:20px;text-align:center;
   background:var(--panel);color:var(--ink);font-family:'Syne',sans-serif;font-weight:700}
 .spellin:focus{outline:none;border-color:var(--lime)}
@@ -526,7 +527,7 @@ nav button.on{color:var(--lime);font-weight:700}
         </div>
       </div>
     </div>
-    <p class="hint">Jeffrey's Lab · THP11 Word Quest v3.7</p>
+    <p class="hint">Jeffrey's Lab · THP11 Word Quest v3.8</p>
   </section>
 </main>
 
@@ -1207,7 +1208,7 @@ function spotSpell() {   // 第 2 題：看意思拼字（不顯示英文）
       <div class="spot-kick">🔍 ${L('抽查！', 'Quick check!')}</div>
       <div class="spot-step">2 / 2　${L('拼出這個字', 'Spell the word')}</div>
       <div class="qzh" ${EN() ? 'style="font-size:18px;color:var(--ink)"' : ''}>${esc(meaning(w))}</div>
-      <div class="hintw">${esc(a[0])} ${a.slice(1).replace(/[^ -]/g, '_ ').replace(/-/g, '- ')}</div>
+      <div class="hintw">${blanks(a)}</div>
       <input class="spellin" id="spotIn" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="type here">
       <button class="btn wide" style="margin-top:10px" data-act="spotcheck">${L('確認 Check', 'Check')}</button>
       <div id="spotFb"></div></div>`;
@@ -1590,11 +1591,16 @@ async function loadGrammar() {
 const qz = { unit: '', qs: [], i: 0, right: 0, combo: 0, pts: 0, wrong: [], answered: false, result: null };
 const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const norm = (s) => s.toLowerCase().replace(/[’‘]/g, "'").replace(/\s+/g, ' ').trim();
-function answersOf(w) {   // 可接受的拼法：去括號、斜線兩種都算對
-  const base = w.word.replace(/\s*\([^)]*\)\s*/g, ' ');
-  if (/\s\/\s/.test(base)) return base.split(/\s\/\s/).map(norm);
-  const m = base.match(/^(.*?)(\S+)\/(\S+)(.*)$/);
-  return m ? [norm(m[1] + m[2] + m[4]), norm(m[1] + m[3] + m[4])] : [norm(base)];
+const blanks = (a) => a.split(' ').map((wd, i) => `<span class="hw">${wd.split('').map((c, j) => (i === 0 && j === 0 ? esc(c) : c === '-' || c === "'" ? c : '_')).join(' ')}</span>`).join('');   // 拼字提示：一個字一組不斷行，' 和 - 直接顯示
+function answersOf(w) {   // 可接受的拼法：括號裡的字打或不打都算對（roll (one's) eyes → roll one's eyes／roll eyes），斜線兩種都算對
+  const forms = [w.word.replace(/[()]/g, ''), w.word.replace(/\s*\([^)]*\)\s*/g, ' ')];   // 第一個＝完整片語，拼字提示用這個
+  const out = [];
+  forms.forEach((base) => {
+    if (/\s\/\s/.test(base)) { base.split(/\s\/\s/).forEach((x) => out.push(norm(x))); return; }
+    const m = base.match(/^(.*?)(\S+)\/(\S+)(.*)$/);
+    if (m) out.push(norm(m[1] + m[2] + m[4]), norm(m[1] + m[3] + m[4])); else out.push(norm(base));
+  });
+  return [...new Set(out)];
 }
 function clozeOf(w) {
   if (!w.ex || /[()/]/.test(w.word)) return null;
@@ -1703,7 +1709,7 @@ function renderQuiz() {
   else if (q.type === 'spell') {
     const a = answersOf(q.w)[0];
     body = `<div class="qzh" ${EN() ? 'style="font-size:18px;color:var(--ink)"' : ''}>${esc(meaning(q.w))}</div><div class="qmid"><span class="pos">${esc(q.w.pos)}</span>${spk(q.w.word)}</div>
-      <div class="hintw">${esc(a[0])} ${a.slice(1).replace(/[^ -]/g, '_ ').replace(/-/g, '- ')}</div>
+      <div class="hintw">${blanks(a)}</div>
       <input class="spellin" id="spellIn" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="type here">
       <button class="btn wide" style="margin-top:10px" data-act="qspell">${L('確認 Check', 'Check')}</button>`;
   }
