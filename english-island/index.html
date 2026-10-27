@@ -919,7 +919,9 @@ const bestOf = (gb) => Math.min(GAME_CAP, Math.max(0, ...Object.values(gb || {})
 const gameWeekBestAll = () => bestOf((weeks()[thisWeek()] || {}).gb);
 // 遊戲註冊：精熟幾個單元就開放幾款（need＝需要的精熟單元數）
 const GAMES = [];
-const masteredCount = () => new Set(st.ledger.bonus.filter((b) => b.k.startsWith('master:')).map((b) => b.k.slice(7))).size;
+// 測試版：全部單元開放、遊戲不看精熟門檻（正式版 THP11／THP5 沒有這個開關）
+const TEST_ALL_OPEN = true;
+const masteredCount = () => TEST_ALL_OPEN ? 99 : new Set(st.ledger.bonus.filter((b) => b.k.startsWith('master:')).map((b) => b.k.slice(7))).size;
 function gameCard(g) {
   const ok = masteredCount() >= g.need, best = gameWeekBestAll();
   return `<div class="gamecard ${ok ? '' : 'off'}">
@@ -1018,7 +1020,7 @@ function rowsToWords(rows) {
 const DEFAULT_OPEN = ['U1', 'U2', 'U3'];
 function setWords(words) {
   const useCol = words.some((w) => w.openCol);
-  const isOpen = (w) => (useCol ? w.open !== false : DEFAULT_OPEN.includes(w.unit));
+  const isOpen = (w) => TEST_ALL_OPEN || (useCol ? w.open !== false : DEFAULT_OPEN.includes(w.unit));
   st.allWords = words;
   st.words = words.filter(isOpen);
   st.lockedUnits = [...new Set(words.filter((w) => !isOpen(w)).map((w) => w.unit))].filter((u) => !st.words.some((w) => w.unit === u)).sort(natSort);
