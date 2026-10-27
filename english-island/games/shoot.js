@@ -10,7 +10,7 @@
 //        saveLedger, saveMeta, afterPoints, points, gameWeekBestAll, gameCard, masteredCount, GAMES, toast, confetti
 // ═══════════════════════════════════════════════════════
 const WS = (() => {
-  const ID = 'shoot', NEED = 4, VER = '0.2';
+  const ID = 'shoot', NEED = 4, VER = '0.3';
   const TIME = 180, CAP = 20;
   const S_PER_PT = 200;               // 每 200 分 1 ⭐（4000 分滿 20）— 待實玩後調整
   const LW = 360;                     // 邏輯寬度
@@ -27,12 +27,19 @@ const WS = (() => {
   const card = () => gameCard({ id: ID, need: NEED, icon: '🏀', name: 'Word Shot' });
   const bestText = () => { const b = st.meta.games && st.meta.games[ID] && st.meta.games[ID].best; return b ? `Word Shot ${b}` : ''; };
   const short = (w) => String(meaning(w) || '').split(/[；;,，]/)[0].trim();
-  const FAR_FROM = 3, FAR_P = 0.35, FEVER_LEN = 8;   // 第 3 題起有機會遠投；彩虹時間 8 秒
-  // 球的發射位置：平常在中間；遠投時退到左下或右下角（離籃框比較遠，分數 ×2）
-  const REST = () => { const f = game && game.far; return f ? { x: f < 0 ? 72 : LW - 72, y: VH - 128 } : { x: LW / 2, y: VH - 170 }; };
+  const FEVER_LEN = 15;   // 黃金時間 15 秒（v0.3：遠投拿掉，位置固定在中間才好抓力道）
+  const REST = () => ({ x: LW / 2, y: VH - 170 });   // 球的發射位置（往下拉 130 也還在畫面裡）
   const elapsed = () => (game ? (Date.now() - game.t0) / 1000 : 0);
   const fever = () => !!game && elapsed() < game.feverEnd;
-  const mult = () => (game && game.far ? 2 : 1) * (fever() ? 2 : 1);
+  const mult = () => (fever() ? 2 : 1);
+  const GOLD = '#ffd23f';
+  // 道具：連進 2 球（之後每 2 球）可以選一個，用在下一題
+  const POWERS = [
+    { id: 'cut', ic: '✂️', name: ['拿掉一個錯的籃框', 'Remove a wrong hoop'] },
+    { id: 'big', ic: '⭕', name: ['籃框全部變大', 'Bigger hoops'] },
+    { id: 'aim', ic: '🎯', name: ['完整瞄準線', 'Full aim line'] },
+  ];
+  const rimOf = (h) => (h.big ? 46 : RIM);
 
   // ── 畫面 ──
   function mount() {
@@ -47,6 +54,13 @@ const WS = (() => {
         <span class="wj-t" id="wsT">3:00</span><span class="wj-h" id="wsS">0</span><span class="wj-p" id="wsP">⭐ 0</span></div>
       <div class="wj-pane" id="wsPane"></div>`;
     document.body.appendChild(root);
+    if (!document.getElementById('wsCss')) {
+      const st2 = document.createElement('style'); st2.id = 'wsCss';
+      st2.textContent = `.ws-pw{display:flex;flex-direction:column;gap:10px;margin:14px 0 6px}
+        .ws-pw .btn{display:flex;align-items:center;gap:12px;justify-content:flex-start;font-size:16px;padding:14px 16px;border-color:#4ECDC4}
+        .ws-pw .btn span{font-size:24px}`;
+      document.head.appendChild(st2);
+    }
     cv = root.querySelector('canvas'); cx = cv.getContext('2d');
     root.addEventListener('click', onClick);
     cv.addEventListener('pointerdown', onDown); cv.addEventListener('pointermove', onMove);
@@ -64,7 +78,7 @@ const WS = (() => {
   const toLogic = (e) => { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * LW, y: (e.clientY - r.top) / r.height * VH }; };
 
   // ── 操作：在下半部按住往後拉，放開投出（拉越遠越用力） ──
-  const ready = () => game && !game.spell && !game.over && game.ball.state === 'rest';
+  const ready = () => game && !game.spell && !game.over && !game.choosing && game.ball.state === 'rest';
   function onDown(e) {
     if (!ready()) return;
     const p = toLogic(e);
@@ -106,8 +120,8 @@ const WS = (() => {
         <div>👇 ${L('在下面按住，往後拉（像彈弓），放開就投出去；拉越遠越用力', 'Press near the bottom, pull back like a slingshot, let go to shoot')}</div>
         <div>🏀 ${L(`投進正確的籃框 +${BASKET}；空心球（沒碰到籃框）再 +${SWISH}`, `Right hoop +${BASKET}; swish (no rim) +${SWISH}`)}</div>
         <div>🔥 ${L(`連進 3 球以上，每球再 +${STREAK}`, `3+ in a row: +${STREAK} each`)}</div>
-        <div>🎯 ${L('球跑到角落時是「遠投」：投進分數 ×2', 'Long shot from the corner: ×2')}</div>
-        <div>🌈 ${L(`籃框變成彩虹色＝FEVER TIME，${FEVER_LEN} 秒內投進分數 ×2（遠投再 ×2＝×4！）`, `Rainbow hoops = FEVER TIME: ×2 for ${FEVER_LEN}s (long shot too = ×4!)`)}</div>
+        <div>✨ ${L(`籃框發金光＝黃金時間，${FEVER_LEN} 秒內投進分數 ×2`, `Golden hoops = GOLDEN TIME: ×2 for ${FEVER_LEN}s`)}</div>
+        <div>🎁 ${L('連進 2 球可以選一個道具：拿掉一個錯的籃框／籃框變大／完整瞄準線', 'Every 2 in a row: pick a power-up (remove a wrong hoop / bigger hoops / full aim line)')}</div>
         <div>✏️ ${L('投進錯的籃框，要拼出這個字才能繼續（時間不會停）', 'Wrong hoop = spell the word (clock keeps running)')}</div>
         <div>↕️ ${L(`第 ${MOVE_FROM} 題起籃框會上下移動，第 ${WIND_FROM} 題起有風 🌬️`, `Hoops move from word ${MOVE_FROM}; wind from word ${WIND_FROM} 🌬️`)}</div>
         <div>⭐ ${trial ? L('試玩模式：不計分', 'Trial: not scored') : L(`每 ${S_PER_PT} 分 1 顆星，最多 ${CAP}；所有遊戲每週只算最高一局`, `1 ⭐ per ${S_PER_PT} points, up to ${CAP}; best game of the week counts`)}</div>
@@ -130,7 +144,7 @@ const WS = (() => {
     game = {
       t0: Date.now(), last: performance.now(), clock: 0,
       ball: { x: 0, y: 0, vx: 0, vy: 0, state: 'rest', t: 0, touched: false, top: 0, spin: 0 },
-      hoops: [], q: null, n: 0, wind: 0, used: new Set(), far: 0, feverEnd: 0, feverAt: 25 + Math.random() * 15, fevers: 0, longs: 0,
+      hoops: [], q: null, n: 0, wind: 0, used: new Set(), feverEnd: 0, feverAt: 20 + Math.random() * 10, fevers: 0, power: null, powers: 0, choosing: null,
       score: 0, baskets: 0, swish: 0, wrong: 0, shots: 0, streak: 0, bestStreak: 0, fx: [], spell: null, over: false, pause: 0,
     };
     pane(''); nextQ(); loop();
@@ -142,9 +156,10 @@ const WS = (() => {
     const opts = shuffle([w, ...distract(w, 2)]);
     g.n++;
     g.q = { w, opts, ans: opts.indexOf(w) };
-    g.far = g.n >= FAR_FROM && Math.random() < FAR_P ? (Math.random() < 0.5 ? -1 : 1) : 0;
     g.wind = g.n >= WIND_FROM ? (Math.random() < 0.5 ? -1 : 1) * (60 + Math.random() * 110) : 0;
-    g.hoops = opts.map((o, i) => ({ i, x: 0, y: 0, by: 0, ph: Math.random() * 6, amp: 0, sp: 0, flash: 0 }));
+    const pw = g.power; g.power = null; g.usePower = pw;   // 這一題用的道具
+    g.hoops = opts.map((o, i) => ({ i, x: 0, y: 0, by: 0, ph: Math.random() * 6, amp: 0, sp: 0, flash: 0, big: pw === 'big', gone: false }));
+    if (pw === 'cut') { const wr = g.hoops.filter((h) => h.i !== g.q.ans); wr[Math.floor(Math.random() * wr.length)].gone = true; }
     layoutHoops(false);
     resetBall();
     showQ(); speak(w.word);
@@ -167,12 +182,13 @@ const WS = (() => {
     raf = requestAnimationFrame(loop);
     const g = game; if (!g) return;
     const now = performance.now(), dt = Math.min(0.033, (now - g.last) / 1000); g.last = now; g.clock += dt * 1000;
+    if (g.choosing) { g.last = now; hud(TIME - (g.choosing - g.t0) / 1000); draw(); return; }
     const left = TIME - (Date.now() - g.t0) / 1000;
     if (left <= 0) return end();
     const el = elapsed();
-    if (el >= g.feverAt && left > 4) {   // 彩虹時間：每 30～45 秒一次
-      g.feverEnd = el + FEVER_LEN; g.feverAt = g.feverEnd + 30 + Math.random() * 15; g.fevers++;
-      if (!g.spell) banner('🌈', 'FEVER TIME!', L(`${FEVER_LEN} 秒內投進分數 ×2`, `×2 for ${FEVER_LEN} seconds`), '#ffd23f');
+    if (el >= g.feverAt && left > 6) {   // 黃金時間：開局 20～30 秒第一次，之後每 25～35 秒
+      g.feverEnd = el + FEVER_LEN; g.feverAt = g.feverEnd + 25 + Math.random() * 10; g.fevers++;
+      if (!g.spell) banner('✨', 'GOLDEN TIME!', L(`${FEVER_LEN} 秒內投進分數 ×2`, `×2 for ${FEVER_LEN} seconds`), GOLD);
     }
     if (!g.spell) step(dt);
     hud(left); draw();
@@ -191,6 +207,8 @@ const WS = (() => {
       b.x += b.vx * h_; b.y += b.vy * h_; b.t += h_; b.spin += b.vx * h_ * 0.05; b.top = Math.min(b.top, b.y);
       if (b.vy <= 0) continue;   // 往上飛時球在籃框前面（往畫面裡面投），不會撞到；落下時才判斷籃框
       for (const hp of g.hoops) {
+        if (hp.gone) continue;
+        const RIM = rimOf(hp);
         for (const s of [-1, 1]) {   // 籃框左右兩個邊緣：反彈
           const rx = hp.x + s * RIM, ry = hp.y, dx = b.x - rx, dy = b.y - ry, d = Math.hypot(dx, dy);
           if (d < R + RIMR && d > 0) {
@@ -214,19 +232,31 @@ const WS = (() => {
       let pts = BASKET; g.baskets++; g.streak++; g.bestStreak = Math.max(g.bestStreak, g.streak);
       if (!b.touched) { pts += SWISH; g.swish++; }
       if (g.streak >= 3) pts += STREAK;
-      const m = mult(); pts *= m; if (g.far) g.longs++;
+      const m = mult(); pts *= m;
       g.score += pts;
       burst(h.x, h.y, '#CCFF00');
       const tag = m > 1 ? ` (×${m})` : '';
-      banner(m >= 4 ? '🌈' : g.far ? '🎯' : !b.touched ? '💫' : '🏀', (!b.touched ? L(`空心球！+${pts}`, `Swish! +${pts}`) : L(`進了！+${pts}`, `Nice! +${pts}`)) + tag,
+      banner(m > 1 ? '✨' : !b.touched ? '💫' : '🏀', (!b.touched ? L(`空心球！+${pts}`, `Swish! +${pts}`) : L(`進了！+${pts}`, `Nice! +${pts}`)) + tag,
         g.streak >= 3 ? L(`連進 ${g.streak} 球 🔥`, `${g.streak} in a row 🔥`) : `${g.q.w.word} = ${short(g.q.w)}`, '#CCFF00');
-      g.after = nextQ; g.pause = 0.75;
+      g.after = g.streak % 2 === 0 ? offerPower : nextQ; g.pause = 0.75;
     } else {
       g.wrong++; g.streak = 0;
       burst(h.x, h.y, '#ff6b57');
       banner('✕', L('投錯籃框了', 'Wrong hoop'), `${g.q.w.word} = ${short(g.q.w)}`, '#ff6b57');
       g.after = () => openSpell(g.q.w); g.pause = 0.9;
     }
+  }
+  function offerPower() {
+    const g = game; g.choosing = Date.now(); aim = null;
+    pane(`<div class="wj-card"><div class="wj-kicker">🔥 ${L(`連進 ${g.streak} 球！選一個道具（下一題用）`, `${g.streak} in a row! Pick a power-up for the next word`)}</div>
+      <div class="ws-pw">${POWERS.map((p) => `<button class="btn ghost" data-ws="pw" data-pw="${p.id}"><span>${p.ic}</span>${L(...p.name)}</button>`).join('')}</div>
+      <p class="wj-small">${L('選的時候時間暫停', 'The clock is paused')}</p></div>`);
+  }
+  function pickPower(id) {
+    const g = game; if (!g || !g.choosing) return;
+    g.t0 += Date.now() - g.choosing; g.choosing = null; g.last = performance.now();   // 選道具的時間不算
+    g.power = id; g.powers++; pane(''); nextQ();
+    const p = POWERS.find((x) => x.id === id); banner(p.ic, L(p.name[0], p.name[1]), L('這一題可以用', 'For this word'), '#4ECDC4');
   }
   function miss() {
     const g = game; g.streak = 0;
@@ -311,7 +341,7 @@ const WS = (() => {
       <div class="wj-kicker">${L('時間到！', "Time's up!")}</div>
       <div class="wj-big">${sc}</div>
       <div class="wj-small">${trial ? L('🧪 試玩模式，不計分', '🧪 Trial — not scored') : record ? L('🆕 個人最高紀錄！', '🆕 New personal best!') : L(`個人最高 ${best} 分`, `Personal best ${best}`)}<br>
-        ${L(`投進 ${g.baskets} 球（空心 ${g.swish}）・投錯 ${g.wrong}・出手 ${g.shots} 次・遠投進 ${g.longs}・最多連進 ${g.bestStreak}`, `${g.baskets} baskets (${g.swish} swish) · ${g.wrong} wrong · ${g.shots} shots · best streak ${g.bestStreak}`)}</div>
+        ${L(`投進 ${g.baskets} 球（空心 ${g.swish}）・投錯 ${g.wrong}・出手 ${g.shots} 次・道具 ${g.powers}・最多連進 ${g.bestStreak}`, `${g.baskets} baskets (${g.swish} swish) · ${g.wrong} wrong · ${g.shots} shots · best streak ${g.bestStreak}`)}</div>
       <div class="wj-pts">⭐ ${pts} / ${CAP}</div>
       ${trial ? '' : gain ? `<div class="gain">+${gain} ⭐</div>`
         : `<div class="gain zero">${prev >= CAP ? L('本週遊戲已經拿滿 20 分，現在純粹好玩 🎮', 'You already got 20 this week — just for fun now 🎮')
@@ -348,10 +378,20 @@ const WS = (() => {
       cx.fillText(`🌬️ ${L('風', 'Wind')} ${dir.repeat(Math.max(1, n))}`, LW / 2, 122);   // 題目下方
       cx.restore();
     }
-    if (fever() && !g.over) {
-      const left = Math.ceil(g.feverEnd - elapsed());
-      cx.save(); cx.font = '800 15px Syne, "Noto Sans TC", sans-serif'; cx.textAlign = 'center';
-      cx.fillStyle = `hsl(${(g.clock / 4) % 360},95%,62%)`; cx.fillText(`🌈 FEVER ×2 · ${left}s`, LW / 2, g.wind ? 142 : 122); cx.restore();
+    if (fever() && !g.over) {   // 黃金時間：畫面四周金光＋閃亮
+      const left = Math.ceil(g.feverEnd - elapsed()), pul = 0.5 + 0.5 * Math.sin(g.clock / 160);
+      cx.save();
+      const vg = cx.createRadialGradient(LW / 2, VH / 2, Math.min(LW, VH) * 0.35, LW / 2, VH / 2, Math.max(LW, VH) * 0.75);
+      vg.addColorStop(0, 'rgba(255,210,63,0)'); vg.addColorStop(1, `rgba(255,190,40,${0.28 + 0.14 * pul})`);
+      cx.fillStyle = vg; cx.fillRect(0, 0, LW, VH);
+      for (let i = 0; i < 14; i++) {   // 金色閃光點
+        const sx = (i * 97 + g.clock / 9) % LW, sy = (i * 151 + Math.sin(g.clock / 500 + i) * 30 + VH) % (VH - 160);
+        cx.globalAlpha = 0.4 + 0.6 * Math.abs(Math.sin(g.clock / 300 + i)); cx.fillStyle = '#fff6c2';
+        cx.beginPath(); cx.moveTo(sx, sy - 5); cx.lineTo(sx + 1.5, sy); cx.lineTo(sx, sy + 5); cx.lineTo(sx - 1.5, sy); cx.fill();
+        cx.beginPath(); cx.moveTo(sx - 5, sy); cx.lineTo(sx, sy + 1.5); cx.lineTo(sx + 5, sy); cx.lineTo(sx, sy - 1.5); cx.fill();
+      }
+      cx.globalAlpha = 1; cx.font = '800 16px Syne, "Noto Sans TC", sans-serif'; cx.textAlign = 'center';
+      cx.shadowColor = GOLD; cx.shadowBlur = 12; cx.fillStyle = GOLD; cx.fillText(`✨ GOLDEN TIME ×2 · ${left}s`, LW / 2, g.wind ? 142 : 122); cx.restore();
     }
     if (g.spell) return;   // 拼字時只留球場背景
     g.hoops.forEach((h) => drawHoop(h, 'back'));
@@ -362,13 +402,18 @@ const WS = (() => {
     cx.globalAlpha = 1;
   }
   function drawHoop(h, layer) {
-    const g = game, op = g.q && g.q.opts[h.i];
+    const g = game, op = g.q && g.q.opts[h.i], RIM = rimOf(h), gold = fever();
+    if (h.gone) {   // 被道具拿掉的籃框：只留淡淡的影子
+      if (layer === 'back') { cx.save(); cx.globalAlpha = 0.18; cx.fillStyle = '#fff'; cx.fillRect(h.x - 52, h.y - 66, 104, 54); cx.restore(); }
+      return;
+    }
     if (layer === 'back') {
       // 籃板（上面寫中文意思）
       const bw = 104, bh = 54, bx = h.x - bw / 2, by = h.y - bh - 12;
-      cx.fillStyle = h.flash > 0 ? (h.i === g.q.ans ? 'rgba(204,255,0,.95)' : 'rgba(255,107,87,.95)') : 'rgba(255,255,255,.95)';
-      cx.strokeStyle = fever() ? `hsl(${(g.clock / 3 + h.i * 60) % 360},95%,60%)` : '#4ECDC4'; cx.lineWidth = fever() ? 5 : 3;
-      cx.beginPath(); cx.roundRect ? cx.roundRect(bx, by, bw, bh, 8) : cx.rect(bx, by, bw, bh); cx.fill(); cx.stroke();
+      cx.fillStyle = h.flash > 0 ? (h.i === g.q.ans ? 'rgba(204,255,0,.95)' : 'rgba(255,107,87,.95)') : gold ? '#fff4c4' : 'rgba(255,255,255,.95)';
+      cx.strokeStyle = gold ? GOLD : '#4ECDC4'; cx.lineWidth = gold ? 5 : 3;
+      if (gold) { cx.shadowColor = GOLD; cx.shadowBlur = 18 + 8 * Math.sin(g.clock / 150); }
+      cx.beginPath(); cx.roundRect ? cx.roundRect(bx, by, bw, bh, 8) : cx.rect(bx, by, bw, bh); cx.fill(); cx.stroke(); cx.shadowBlur = 0;
       cx.strokeStyle = '#ff6b57'; cx.lineWidth = 2; cx.strokeRect(h.x - 18, h.y - 30, 36, 20);
       if (op) {
         cx.fillStyle = '#10140a'; cx.textAlign = 'center'; cx.textBaseline = 'middle';
@@ -378,13 +423,13 @@ const WS = (() => {
         cx.textBaseline = 'alphabetic';
       }
       // 籃框後半圈
-      cx.strokeStyle = '#c94a1a'; cx.lineWidth = 4; cx.beginPath(); cx.ellipse(h.x, h.y, RIM, 7, 0, Math.PI, 0); cx.stroke();
+      cx.strokeStyle = gold ? '#e0a100' : '#c94a1a'; cx.lineWidth = 4; cx.beginPath(); cx.ellipse(h.x, h.y, RIM, 7, 0, Math.PI, 0); cx.stroke();
     } else {
       // 籃網＋籃框前半圈（畫在球的前面，看起來像球掉進網子）
       cx.strokeStyle = 'rgba(255,255,255,.75)'; cx.lineWidth = 1.5;
       for (let k = -3; k <= 3; k++) { cx.beginPath(); cx.moveTo(h.x + k * (RIM / 3.2), h.y + 2); cx.lineTo(h.x + k * (RIM / 5), h.y + 34); cx.stroke(); }
       for (let r = 1; r <= 3; r++) { const y = h.y + r * 10, w = RIM - r * 4; cx.beginPath(); cx.moveTo(h.x - w, y); cx.lineTo(h.x + w, y); cx.stroke(); }
-      cx.strokeStyle = '#ff7a2f'; cx.lineWidth = 4; cx.beginPath(); cx.ellipse(h.x, h.y, RIM, 7, 0, 0, Math.PI); cx.stroke();
+      cx.strokeStyle = gold ? GOLD : '#ff7a2f'; cx.lineWidth = 4; cx.beginPath(); cx.ellipse(h.x, h.y, RIM, 7, 0, 0, Math.PI); cx.stroke();
     }
   }
   function drawBall() {
@@ -401,19 +446,18 @@ const WS = (() => {
       // 瞄準輔助線：只畫前一小段
       if (aim && Math.hypot(px, py) > 18 && py > 6) {
         const k = VMAX / PULL; let vx = -px * k, vy = -py * k, sx = x, sy = y;
-        for (let i = 1; i <= 9; i++) {
+        for (let i = 1, n = g.usePower === 'aim' ? 40 : 9; i <= n; i++) {
           const t = 0.035; vx += g.wind * t; vy += G * t; sx += vx * t; sy += vy * t;
-          cx.fillStyle = `rgba(255,255,255,${0.8 - i * 0.07})`; cx.beginPath(); cx.arc(sx, sy, 3.2, 0, 7); cx.fill();
+          cx.fillStyle = g.usePower === 'aim' ? `rgba(78,205,196,${Math.max(0.25, 0.9 - i * 0.015)})` : `rgba(255,255,255,${0.8 - i * 0.07})`; cx.beginPath(); cx.arc(sx, sy, 3.2, 0, 7); cx.fill();
         }
-      } else if (!aim && !g.far) {
+      } else if (!aim) {
         cx.fillStyle = 'rgba(255,255,255,.55)'; cx.font = '600 12px "Noto Sans TC", sans-serif'; cx.textAlign = 'center';
         cx.fillText(L('按住往下拉，放開投籃', 'Pull down & release'), r.x, r.y + 44);
       }
-      if (g.far) {   // 遠投標示
-        cx.save(); cx.textAlign = 'center'; cx.font = '800 14px Syne, "Noto Sans TC", sans-serif';
-        const t = L(`🎯 遠投 ×${mult()}`, `🎯 Long shot ×${mult()}`), tw = cx.measureText(t).width + 18, tx = Math.min(LW - tw / 2 - 4, Math.max(tw / 2 + 4, r.x));
-        cx.fillStyle = 'rgba(10,10,20,.75)'; cx.beginPath(); cx.roundRect ? cx.roundRect(tx - tw / 2, r.y - 62, tw, 24, 12) : cx.rect(tx - tw / 2, r.y - 62, tw, 24); cx.fill();
-        cx.fillStyle = '#ffd23f'; cx.fillText(t, tx, r.y - 45); cx.restore();
+      if (g.usePower) {   // 這一題的道具
+        const p = POWERS.find((x) => x.id === g.usePower);
+        cx.save(); cx.textAlign = 'center'; cx.font = '700 13px "Noto Sans TC", sans-serif'; cx.fillStyle = '#4ECDC4';
+        cx.fillText(`${p.ic} ${L(p.name[0], p.name[1])}`, r.x, r.y - 44); cx.restore();
       }
     }
     if (b.state === 'in') return;
@@ -424,7 +468,8 @@ const WS = (() => {
     const far = Math.max(0, Math.min(1, (r.y - y) / Math.max(1, r.y - hy)));   // 0＝在手上，1＝到籃框的高度
     const sc = 1.25 - 0.3 * far;   // 球在手上大一點，飛到籃框附近跟籃框差不多
     cx.save(); cx.translate(x, y); cx.rotate(b.spin); cx.scale(sc, sc);
-    cx.fillStyle = '#f28c28'; cx.beginPath(); cx.arc(0, 0, R, 0, 7); cx.fill();
+    if (fever()) { cx.shadowColor = GOLD; cx.shadowBlur = 16; }
+    cx.fillStyle = fever() ? '#ffc21a' : '#f28c28'; cx.beginPath(); cx.arc(0, 0, R, 0, 7); cx.fill(); cx.shadowBlur = 0;
     cx.strokeStyle = '#3a1d08'; cx.lineWidth = 1.6;
     cx.beginPath(); cx.arc(0, 0, R, 0, 7); cx.moveTo(-R, 0); cx.lineTo(R, 0); cx.moveTo(0, -R); cx.lineTo(0, R); cx.stroke();
     cx.beginPath(); cx.arc(-R * 1.15, 0, R * 0.8, -0.9, 0.9); cx.stroke(); cx.beginPath(); cx.arc(R * 1.15, 0, R * 0.8, Math.PI - 0.9, Math.PI + 0.9); cx.stroke();
@@ -437,6 +482,7 @@ const WS = (() => {
     if (a === 'start') { if (typeof unlockAudio === 'function') unlockAudio(); start(); }
     if (a === 'close') close();
     if (a === 'check') check();
+    if (a === 'pw') pickPower(t.dataset.pw);
     if (a === 'quit') {
       if (game && !game.over && !trial && !confirm(L('離開這一局？這局不會計分。', "Quit this game? It won't be scored."))) return;
       close();

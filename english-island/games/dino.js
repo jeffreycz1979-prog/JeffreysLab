@@ -3,18 +3,18 @@
 //  解鎖：精熟 5 個單元（試玩：網址加 ?try=dino，不用解鎖、不計分）
 //  規則：3 分鐘；控制原創小恐龍往右跑、跳、踩敵人、吃金幣，跑到旗子就過關、進下一關（草原 → 洞穴 → 城堡，越後面越難）。
 //        用頭頂「？」磚塊會出一題：上方出現英文單字，前面浮出三塊寫中文意思的答案磚，頂到正確的那塊得分、補體力。
-//        體力條會一直減少（冒險島式），答對才能補滿；體力用完、掉進坑、被敵人撞到 → 拼出一個字才能繼續（時間不停）。
+//        體力條慢慢減少（冒險島式），答對補滿；掉坑、被甲蟲撞到只扣體力；體力用完才要拼字。答題、拼字時時間暫停（v0.3）。
 //        分數換算 0～20，所有遊戲共用每週最高一局。角色、場景都是原創，只借平台遊戲的玩法。
 //  依賴 index.html 的全域：st, $, esc, L, EN, meaning, speak, answersOf, norm, shuffle, todayKey, clockCheck,
 //        saveLedger, saveMeta, afterPoints, points, gameWeekBestAll, gameCard, masteredCount, GAMES, toast, confetti
 // ═══════════════════════════════════════════════════════
 const WD = (() => {
-  const ID = 'dino', NEED = 5, VER = '0.2';
+  const ID = 'dino', NEED = 5, VER = '0.3';
   const TIME = 180, CAP = 20, S_PER_PT = 200;   // 每 200 分 1 ⭐（4000 分滿 20）— 待實玩後調整
   const T = 24, ROWS = 11, WH = ROWS * T;         // 磚塊大小、地圖列數、世界高度
   const GROUND = 9;                               // 地面從第 9 列開始（第 9、10 列是土）
   const ACC = 900, VMAX = 150, FRIC = 1300, GRAV = 1500, JUMP = 470, HOLD = 0.22;
-  const ENERGY = 30, DRAIN = 1, E_RIGHT = 14, E_WRONG = 6;
+  const ENERGY = 30, DRAIN = 0.35, E_WRONG = 5, E_HIT = 8, E_PIT = 6;   // 體力約 85 秒才會耗完；答對補滿
   const AW = 3;   // 答案磚寬（格）
   const P = { coin: 10, stomp: 50, right: 100, streak: 50, flag: 300 };
   const E = 0, GD = 1, BR = 2, QB = 3, UB = 4, PIPE = 5, ST = 6, AB = 8;   // 地圖格子種類
@@ -67,6 +67,9 @@ const WD = (() => {
         .wd-rot{position:absolute;inset:0;z-index:20;display:none;align-items:center;justify-content:center;background:rgba(10,10,20,.92);color:#fff;text-align:center}
         .wd-rot.on{display:flex}.wd-rot .ic{font-size:64px;margin-bottom:10px}.wd-rot b{display:block;font-size:22px}.wd-rot small{display:block;opacity:.7;margin-top:6px}
         .wd .wj-pane{overflow:auto}
+        .wd-quiz .wd-word{font:800 34px Syne,sans-serif;color:#fff;margin:6px 0 12px;display:flex;align-items:center;justify-content:center;gap:10px}
+        .wd-opts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:8px}
+        .wd-opts .btn{font-size:19px;padding:16px 8px;border-color:#4ECDC4;min-height:62px}
         @media (orientation:landscape){.wd .wj-card{max-width:720px}.wd .wj-ic{display:none}.wd .wj-card h2{margin:0 0 4px}.wd .wj-card>p:first-of-type{display:none}
           .wd .wj-rules{display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;font-size:12.5px;line-height:1.45}}
         .wd .wr-gate{top:calc(env(safe-area-inset-top,0px) + 54px)}
@@ -132,11 +135,11 @@ const WD = (() => {
       <p>${L('帶小恐龍跑過草原、洞穴和城堡，一路答對單字！', 'Run, jump and answer words through the grassland, cave and castle!')}</p>
       <div class="wj-rules">
         <div>📱 ${L('手機橫著玩：左半邊按住＝走（手指左右滑換方向），右半邊按＝跳（按久跳更高）；鍵盤：方向鍵＋空白鍵', 'Play sideways: hold the left half to walk (slide to turn), tap the right half to jump (hold = higher); keyboard: arrows + space')}</div>
-        <div>❓ ${L('用頭頂「？」磚塊：會出現英文，前面浮出三塊中文答案磚，頂到正確的那塊', 'Bump a ? block: an English word appears, then bump the block with the right meaning')}</div>
+        <div>❓ ${L('用頭頂「？」磚塊會跳出題目，點正確的中文意思（答題時時間暫停）', 'Bump a ? block, then tap the right meaning (clock pauses)')}</div>
         <div>✅ ${L(`答對 +${P.right}、體力補滿一大段；連對 3 題起每題再 +${P.streak}`, `Right +${P.right} and energy; 3+ in a row: +${P.streak} each`)}</div>
-        <div>⚡ ${L('體力條會一直減少，只有答對才能補', 'Energy keeps draining — answer right to refill')}</div>
+        <div>⚡ ${L(`體力條會慢慢減少，答對就補滿；掉坑 −${E_PIT}、被甲蟲撞到 −${E_HIT}`, `Energy drains slowly; a right answer refills it. Fall −${E_PIT}, beetle −${E_HIT}`)}</div>
         <div>👟 ${L(`從上面踩敵人 +${P.stomp}・🪙 金幣 +${P.coin}・🚩 碰到旗子過關 +${P.flag}`, `Stomp enemies +${P.stomp} · 🪙 +${P.coin} · 🚩 flag +${P.flag}`)}</div>
-        <div>✏️ ${L('掉進坑、被敵人撞到、體力用完：拼對一個字才能繼續（時間不會停）', 'Fall, get hit or run out of energy: spell a word to continue (clock keeps running)')}</div>
+        <div>✏️ ${L('體力用完：拼對一個字就能繼續（拼字時時間暫停）', 'Out of energy: spell a word to keep going (clock pauses)')}</div>
         <div>⭐ ${trial ? L('試玩模式：不計分', 'Trial: not scored') : L(`每 ${S_PER_PT} 分 1 顆星，最多 ${CAP}；所有遊戲每週只算最高一局`, `1 ⭐ per ${S_PER_PT} points, up to ${CAP}; best game of the week counts`)}</div>
       </div>
       <p class="wj-small">${trial ? L('🧪 試玩版', '🧪 Trial') : L(`本週遊戲最佳 ${best} / ${CAP} ⭐・個人最高 ${pb} 分`, `Best this week ${best} / ${CAP} ⭐ · Personal best ${pb}`)}<br><span style="opacity:.5">v${VER}</span></p>
@@ -158,9 +161,9 @@ const WD = (() => {
     const free = new Array(cols).fill(true);   // 這一欄還沒放東西
     const reserve = (a, b) => { for (let c = a; c <= b && c < cols; c++) free[c] = false; };
     reserve(0, 8); reserve(cols - 16, cols - 1);
-    // ？磚塊：每隔 30～37 欄一個，後面 16 欄留平地給答案磚（中間剩下的地方才放坑、水管、敵人）
+    // ？磚塊：每隔 20～26 欄一個（頂到會跳出題目卡，時間暫停）
     const qs = [];
-    for (let c = 12; c < cols - 34; c += 30 + Math.floor(R() * 8)) { qs.push(c); map[c][6] = QB; reserve(c - 1, c + 16); }
+    for (let c = 12; c < cols - 34; c += 20 + Math.floor(R() * 7)) { qs.push(c); map[c][6] = QB; reserve(c - 2, c + 3); }
     // 坑：在還沒用到的地方挖 2～3 格（後面幾關比較多、比較寬）
     for (let c = 10; c < cols - 18; c++) {
       if (!free[c] || !free[c + 1] || !free[c + 2] || !free[c + 3]) continue;
@@ -189,7 +192,7 @@ const WD = (() => {
     }
     // 敵人：放在平地上（每關越後面越多、越快）
     for (let c = 14; c < cols - 18; c++) {
-      if (map[c][GROUND] === GD && map[c][GROUND - 1] === E && R() < 0.035 + n * 0.015 && !qs.some((q) => c > q && c < q + 17))
+      if (map[c][GROUND] === GD && map[c][GROUND - 1] === E && R() < 0.035 + n * 0.015 && !qs.some((q) => c > q - 3 && c < q + 4))
         ents.push({ t: 'bug', x: c * T + 2, y: GROUND * T - 18, w: 20, h: 18, vx: -(28 + n * 10), alive: true });
     }
     // 結尾：石階＋旗子
@@ -223,10 +226,11 @@ const WD = (() => {
     if (root.clientWidth !== lastW || root.clientHeight !== lastH) resize();   // 轉向後尺寸有時晚一點才更新，每格檢查
     const now = performance.now(), real = (now - g.last) / 1000, dt = Math.min(0.033, real); g.last = now;
     if (portrait) { hud(TIME - g.elapsed); draw(); return; }   // 直式：暫停（時間也停）
+    if (g.spell || g.q) { hud(TIME - g.elapsed); draw(); return; }   // 答題、拼字時時間暫停
     g.clock += dt; g.elapsed += real;
     const left = TIME - g.elapsed;
     if (left <= 0) return end();
-    if (!g.spell) step(dt);
+    step(dt);
     hud(left); draw();
   }
   function jumpPress() {
@@ -242,7 +246,8 @@ const WD = (() => {
     if (g.energy <= 0) { g.energy = 0; return die('hungry'); }
     // 左右
     const dir = (keys.r ? 1 : 0) - (keys.l ? 1 : 0);
-    if (dir) { h.vx += dir * ACC * dt; h.face = dir; } else { const f = FRIC * dt; h.vx = Math.abs(h.vx) <= f ? 0 : h.vx - Math.sign(h.vx) * f; }
+    if (dir) { h.vx += dir * ACC * (h.on || Math.sign(h.vx) !== dir ? 1 : 0.6) * dt; h.face = dir; }
+    else if (h.on) { const f = FRIC * dt; h.vx = Math.abs(h.vx) <= f ? 0 : h.vx - Math.sign(h.vx) * f; }   // 空中放開方向鍵：保持衝力
     h.vx = Math.max(-VMAX, Math.min(VMAX, h.vx));
     // 跳：按著跳躍鍵時重力變小（按久跳高）
     if (h.hold > 0) { h.hold -= dt; if (!keys.j) h.hold = 0; }
@@ -260,9 +265,9 @@ const WD = (() => {
     if (g.buf > 0) { g.buf -= dt; if (g.coyote > 0 && h.vy >= 0) { h.vy = -JUMP; h.on = false; h.hold = keys.j ? HOLD : 0.06; g.buf = 0; g.coyote = 0; } }
     if (h.on && h.x > h.safeX && solid(tile(Math.floor((h.x + h.w / 2) / T), GROUND))) h.safeX = h.x;
     // 掉進坑
-    if (h.y > WH + 30) return die('pit');
+    if (h.y > WH + 30) return pitFall();
     // 鏡頭：平常英雄在畫面 35% 的位置；有題目時往前看（20%），讓三塊答案磚都看得到；只往前、平滑移動
-    const want = Math.min(h.x - VW * (g.q ? 0.2 : 0.35), lv.cols * T - VW);
+    const want = Math.min(h.x - VW * 0.3, lv.cols * T - VW);
     if (want > g.camX) g.camX += (want - g.camX) * Math.min(1, dt * 6);
     // 東西
     for (const e of lv.ents) {
@@ -275,14 +280,12 @@ const WD = (() => {
           if (h.vy > 60 && h.y + h.h - e.y < 12) {   // 從上面踩
             e.alive = false; h.vy = -320; g.score += P.stomp; g.stomps++;
             pop(e.x + e.w / 2, e.y, `+${P.stomp}`, '#ffd23f');
-          } else if (h.inv <= 0) return die('bug');
+          } else if (h.inv <= 0) { hurt(e); if (g.energy <= 0) return die('hungry'); }
         }
       } else if (e.t === 'coin' && !e.got && hit(h, e)) {
         e.got = true; g.coins++; g.score += P.coin; pop(e.x + 6, e.y, `+${P.coin}`, '#ffd23f');
       }
     }
-    // 答案磚已經跑過了 → 這題結束
-    if (g.q && h.x > g.q.end) expireQ();
     // 旗子
     if (h.x + h.w > lv.flagX) return clear();
   }
@@ -312,58 +315,58 @@ const WD = (() => {
     const g = game, v = tile(c, r);
     g.fx.push({ t: 0.15, bump: [c, r] });
     if (v === QB) { g.lv.map[c][r] = UB; ask(c); }
-    else if (v === AB) answer(c, r);
   }
 
-  // ── 出題：頂到「？」→ 前面浮出三塊答案磚（每塊 3 格寬） ──
+  // ── 出題：頂到「？」→ 跳出題目卡（時間暫停），點中文意思作答 ──
   function ask(c) {
-    const g = game; if (g.q) expireQ(true);
+    const g = game;
     const pool = quizPool(), fresh = pool.filter((w) => !g.used.has(w.id));
     const w = shuffle(fresh.length ? fresh : pool)[0]; g.used.add(w.id);
     const seen = new Set([short(w)]), others = shuffle(pool.filter((x) => x.id !== w.id)).filter((x) => { const s = short(x); if (!s || seen.has(s)) return false; seen.add(s); return true; }).slice(0, 2);
-    const opts = shuffle([w, ...others]);
-    const blocks = opts.map((o, i) => ({ c: c + 2 + i * 4, r: 6, o, ok: o === w }));
-    blocks.forEach((b) => { for (let i = 0; i < AW; i++) g.lv.map[b.c + i][b.r] = AB; });
-    g.q = { w, blocks, end: (c + 2 + 2 * 4 + 5) * T };
-    showQ(); speak(w.word);
+    g.q = { w, opts: shuffle([w, ...others]), c };
+    releaseAll(); speak(w.word);
+    pane(`<div class="wj-card wd-quiz">
+      <div class="wj-kicker">❓ ${L('這個字是什麼意思？', 'What does it mean?')}</div>
+      <div class="wd-word">${esc(w.word)}<button class="spk small" data-say="${esc(w.word)}">🔊</button></div>
+      <div class="wd-opts">${g.q.opts.map((o, i) => `<button class="btn ghost" data-wd="ans" data-i="${i}">${esc(short(o))}</button>`).join('')}</div>
+      <p class="wj-small">${L('答題時時間暫停', 'The clock is paused')}</p>
+    </div>`);
   }
-  function answer(c, r) {
-    const g = game, q = g.q; if (!q) return;
-    const b = q.blocks.find((x) => c >= x.c && c < x.c + AW && x.r === r); if (!b) return;
-    clearBlocks(q);
-    const cx0 = (b.c + AW / 2) * T, cy0 = b.r * T;
-    if (b.ok) {
+  function answer(i) {
+    const g = game, q = g && g.q; if (!q) return;
+    const o = q.opts[i], ok = o === q.w, x0 = (q.c + 0.5) * T, y0 = 6 * T;
+    g.q = null; pane(''); g.last = performance.now();
+    if (ok) {
       g.right++; g.streak++; g.best = Math.max(g.best, g.streak);
-      const pts = P.right + (g.streak >= 3 ? P.streak : 0); g.score += pts;
-      g.energy = Math.min(ENERGY, g.energy + E_RIGHT);
-      for (let i = 0; i < 6; i++) g.fx.push({ t: 0.9, x: cx0 + (i - 2.5) * 8, y: cy0, vx: (i - 2.5) * 30, vy: -260 - i * 10, coin: true });
-      banner('✅', L(`答對！+${pts}`, `Correct! +${pts}`), `${q.w.word} = ${short(q.w)}${g.streak >= 3 ? `　🔥${g.streak}` : ''}`, '#CCFF00');
+      const pts = P.right + (g.streak >= 3 ? P.streak : 0); g.score += pts; g.energy = ENERGY;
+      for (let k = 0; k < 8; k++) g.fx.push({ t: 0.9, x: x0, y: y0, vx: (k - 3.5) * 32, vy: -280 - (k % 3) * 30, coin: true });
+      banner('✅', L(`答對！+${pts}　⚡ 體力補滿`, `Correct! +${pts}  ⚡ full energy`), `${q.w.word} = ${short(q.w)}${g.streak >= 3 ? `　🔥${g.streak}` : ''}`, '#CCFF00');
     } else {
       g.wrong++; g.streak = 0; g.energy = Math.max(1, g.energy - E_WRONG);
-      banner('✕', L('不是這個', 'Not this one'), `${q.w.word} = ${short(q.w)}`, '#ff6b57');
-      g.fx.push({ t: 1.2, ghost: q.blocks.find((x) => x.ok) });   // 正確答案閃一下
+      banner('✕', L(`不對喔　⚡−${E_WRONG}`, `Not quite  ⚡−${E_WRONG}`), `${q.w.word} = ${short(q.w)}`, '#ff6b57');
     }
-    g.q = null; showQ();
   }
-  function clearBlocks(q) { q.blocks.forEach((b) => { for (let i = 0; i < AW; i++) if (game.lv.map[b.c + i][b.r] === AB) game.lv.map[b.c + i][b.r] = E; }); }
-  function expireQ(silent) {
-    const g = game, q = g.q; if (!q) return;
-    clearBlocks(q); g.q = null; g.streak = 0; showQ();
-    if (!silent) banner('💨', L('錯過這題了', 'Missed it'), `${q.w.word} = ${short(q.w)}`, '#4ECDC4');
+  function hurt(e) {   // 被甲蟲撞到：扣體力、彈開、短暫無敵（不中斷遊戲）
+    const g = game, h = g.hero; g.energy -= E_HIT; g.streak = 0; g.hits = (g.hits || 0) + 1;
+    h.inv = 1.5; h.vy = -260; h.vx = (h.x < e.x ? -1 : 1) * 140;
+    pop(h.x + 8, h.y, `⚡−${E_HIT}`, '#ff6b57');
   }
-  function showQ() {
-    const el = $('wdQ'); if (!el) return;
-    const q = game && game.q;
-    if (!q || game.spell || game.over) { el.style.display = 'none'; el.innerHTML = ''; return; }
-    el.style.display = '';
-    el.innerHTML = `<div class="wr-q">❓ <b>${esc(q.w.word)}</b><button class="spk small" data-say="${esc(q.w.word)}">🔊</button></div>`;
+  function pitFall() {   // 掉坑：扣體力、回到站穩的地方（體力用完才要拼字）
+    const g = game, h = g.hero; g.energy -= E_PIT; g.falls = (g.falls || 0) + 1;
+    if (g.energy <= 0) { g.energy = 0; return die('hungry'); }
+    respawn(); pop(h.x + 8, h.y, `⚡−${E_PIT}`, '#ff6b57');
   }
+  function respawn() {
+    const g = game, h = g.hero;
+    h.x = Math.max(0, h.safeX - 12); h.y = GROUND * T - h.h - 2 * T; h.vx = 0; h.vy = 0; h.inv = 2;   // safeX 一定是站過的地板
+    g.camX = Math.min(g.camX, Math.max(0, h.x - VW * 0.3));
+  }
+  function showQ() { const el = $('wdQ'); if (el) { el.style.display = 'none'; el.innerHTML = ''; } }
 
   // ── 過關、失誤 ──
   function clear() {
     const g = game; g.clears++;
     const bonus = P.flag + Math.round(g.energy) * 2; g.score += bonus;
-    if (g.q) expireQ(true);
     banner('🚩', L(`過關！+${bonus}`, `Stage clear! +${bonus}`), L('下一關更難喔', 'Next stage is harder'), '#CCFF00');
     g.after = nextLevel; g.pause = 1.4; g.hero.vx = 0;
   }
@@ -397,12 +400,8 @@ const WD = (() => {
     if (!v) return $('wdIn').focus();
     if (answersOf(s.w).includes(v)) {
       const g = game, h = g.hero; g.spell = null; pane(''); g.last = performance.now();
-      if (s.why === 'hungry') g.energy = ENERGY * 0.6;
-      else {   // 回到最後站穩的地方
-        h.x = Math.max(0, h.safeX - 12); h.y = GROUND * T - h.h - 2 * T; h.vx = 0; h.vy = 0;   // safeX 一定是站過的地板
-        g.camX = Math.min(g.camX, Math.max(0, h.x - VW * 0.35));
-        g.energy = Math.max(g.energy, ENERGY * 0.4);
-      }
+      g.energy = ENERGY * 0.7;
+      if (h.y > GROUND * T || !h.on) respawn();
       h.inv = 2; showQ();
       banner('✓', L('答對！繼續冒險', 'Correct! Keep going'), '', '#CCFF00');
     } else {
@@ -446,7 +445,7 @@ const WD = (() => {
       <div class="wj-kicker">${L('時間到！', "Time's up!")}</div>
       <div class="wj-big">${sc}</div>
       <div class="wj-small">${trial ? L('🧪 試玩模式，不計分', '🧪 Trial — not scored') : record ? L('🆕 個人最高紀錄！', '🆕 New personal best!') : L(`個人最高 ${best} 分`, `Personal best ${best}`)}<br>
-        ${L(`過了 ${g.clears} 關・答對 ${g.right}・答錯 ${g.wrong}・踩敵人 ${g.stomps}・🪙 ${g.coins}・失誤 ${g.deaths}`, `${g.clears} stages · ${g.right} right · ${g.wrong} wrong · ${g.stomps} stomps · 🪙 ${g.coins} · ${g.deaths} falls`)}</div>
+        ${L(`過了 ${g.clears} 關・答對 ${g.right}・答錯 ${g.wrong}・踩敵人 ${g.stomps}・🪙 ${g.coins}・掉坑 ${g.falls || 0}・體力用完 ${g.deaths}`, `${g.clears} stages · ${g.right} right · ${g.wrong} wrong · ${g.stomps} stomps · 🪙 ${g.coins} · ${g.deaths} falls`)}</div>
       <div class="wj-pts">⭐ ${pts} / ${CAP}</div>
       ${trial ? '' : gain ? `<div class="gain">+${gain} ⭐</div>`
         : `<div class="gain zero">${prev >= CAP ? L('本週遊戲已經拿滿 20 分，現在純粹好玩 🎮', 'You already got 20 this week — just for fun now 🎮')
@@ -497,14 +496,6 @@ const WD = (() => {
     }
     for (let c = c0; c <= c1; c++) for (let r = 0; r < ROWS; r++) drawTile(c, r, tile(c, r), th);
     // 答案磚上的字
-    if (g.q) g.q.blocks.forEach((b) => {
-      const x = b.c * T, y = b.r * T, w = AW * T;
-      cx.fillStyle = '#10140a'; cx.textAlign = 'center'; cx.textBaseline = 'middle';
-      let t = short(b.o); if (t.length > 8) t = t.slice(0, 7) + '…';
-      let fs = 13; do { cx.font = `800 ${fs}px "Noto Sans TC", sans-serif`; } while (cx.measureText(t).width > w - 6 && --fs > 6);
-      cx.fillText(t, x + w / 2, y + T / 2 + 1);
-      cx.textBaseline = 'alphabetic';
-    });
     // 旗子
     const fx = lv.flagX, fy = GROUND * T;
     cx.fillStyle = '#e8e8e8'; cx.fillRect(fx, fy - 8 * T, 3, 8 * T); cx.fillStyle = '#ffd23f'; cx.beginPath(); cx.arc(fx + 1.5, fy - 8 * T, 4, 0, 7); cx.fill();
@@ -526,8 +517,6 @@ const WD = (() => {
     g.fx.forEach((f) => {
       if (f.coin) { f.x += f.vx * 0.016; f.y += f.vy * 0.016; f.vy += 900 * 0.016; cx.fillStyle = '#ffd23f'; cx.beginPath(); cx.arc(f.x, f.y, 4, 0, 7); cx.fill(); }
       else if (f.txt) { f.y -= 0.6; cx.globalAlpha = Math.min(1, f.t * 2); cx.fillStyle = f.c; cx.font = '800 11px Syne, sans-serif'; cx.textAlign = 'center'; cx.fillText(f.txt, f.x, f.y); cx.globalAlpha = 1; }
-      else if (f.ghost) { const b = f.ghost; cx.globalAlpha = (Math.sin(f.t * 20) + 1) / 2; cx.strokeStyle = '#CCFF00'; cx.lineWidth = 3; cx.strokeRect(b.c * T, b.r * T, AW * T, T);
-        cx.fillStyle = '#CCFF00'; cx.font = '800 11px "Noto Sans TC", sans-serif'; cx.textAlign = 'center'; cx.fillText(short(b.o), b.c * T + AW / 2 * T, b.r * T - 4); cx.globalAlpha = 1; }
     });
     drawHero(g.hero);
   }
@@ -548,6 +537,7 @@ const WD = (() => {
       cx.fillStyle = 'rgba(255,255,255,.4)'; cx.fillRect(x, by, T, 2);
       if (v === QB) { cx.fillStyle = '#7a3f00'; cx.font = '900 17px Syne, sans-serif'; cx.textAlign = 'center'; cx.fillText('?', x + T / 2, by + 18 + Math.sin(game.clock * 5) * 1.2); }
     } else if (v === AB) {
+      return;   // v0.3 起答案改成題目卡，不再有答案磚
       const q = game.q, b = q && q.blocks.find((bb) => c >= bb.c && c < bb.c + AW); if (!b) return;
       if (c !== b.c) return;   // 一塊答案磚畫一次（AW 格寬）
       const bb2 = game.fx.find((f) => f.bump && f.bump[1] === r && f.bump[0] >= b.c && f.bump[0] < b.c + AW), yy = bb2 ? y - 5 : y;
@@ -602,6 +592,7 @@ const WD = (() => {
     if (a === 'start') { if (typeof unlockAudio === 'function') unlockAudio(); start(); }
     if (a === 'close') close();
     if (a === 'check') check();
+    if (a === 'ans') answer(+t.dataset.i);
     if (a === 'quit') {
       if (game && !game.over && !trial && !confirm(L('離開這一局？這局不會計分。', "Quit this game? It won't be scored."))) return;
       close();
