@@ -585,7 +585,7 @@ nav button.on{color:var(--lime);font-weight:700}
       <div class="island" id="island"></div>
       <div class="island3d" id="island3d" hidden>
         <div class="i3d-load">3D 地圖載入中…</div>
-        <div class="i3d-views"><button data-i3v="bird" data-en="Bird">鳥瞰</button><button data-i3v="top" data-en="Top">俯視</button><button data-i3v="reset" aria-label="重設視角">↺</button></div>
+        <div class="i3d-views"><button data-i3v="bird" data-en="Bird">鳥瞰</button><button data-i3v="eye" data-en="Walk">平視</button><button data-i3v="top" data-en="Top">俯視</button><button data-i3v="reset" aria-label="重設視角">↺</button></div>
       </div>
       <button class="island-port" data-v="v-quiz" id="islandPort"></button>
     </div>
@@ -1812,6 +1812,7 @@ const island3dHost = {
   arrive(code) { st.meta.avatarAt = code; saveMeta(); openUnit(code); },
   heroTap() { openAvCreator(); },
   reduce: matchMedia('(prefers-reduced-motion: reduce)').matches,
+  lang: () => (EN() ? 'en' : 'zh'),
   active: () => $('v-home').classList.contains('active') && !document.hidden && use3D() && !$('modal').classList.contains('show'),
   quality: () => st.set.map3dQ || 'high',
   setQuality(q) { st.set.map3dQ = q; saveSet(); },
@@ -1821,7 +1822,7 @@ function ensure3D() {
   if (i3dLoading) return;
   i3dLoading = (async () => {
     try {
-      const mod = await import('./island3d.js?v=1');
+      const mod = await import('./island3d.js?v=2');
       i3d = await mod.createIsland3D($('island3d'), island3dHost);
       $('island3d').classList.add('ready');
     } catch (e) {
