@@ -9,7 +9,7 @@
 //        saveLedger, saveMeta, afterPoints, points, gameWeekBestAll, gameCard, masteredCount, GAMES, toast, confetti
 // ═══════════════════════════════════════════════════════
 const WD = (() => {
-  const ID = 'dino', NEED = 5, VER = '0.5';
+  const ID = 'dino', NEED = 5, VER = '0.6';
   const TIME = 180, CAP = 20, S_PER_PT = 300;   // 每 300 分 1 ⭐（6000 分滿 20；v0.4 試玩 4754 分就滿 20，太好拿）
   const T = 24, ROWS = 11, WH = ROWS * T;         // 磚塊大小、地圖列數、世界高度
   const GROUND = 9;                               // 地面從第 9 列開始（第 9、10 列是土）
@@ -17,7 +17,8 @@ const WD = (() => {
   const ENERGY = 30, DRAIN = 0.5, E_RIGHT = 15, E_WRONG = 5, E_HIT = 8, E_PIT = 6;   // 體力 60 秒耗完；答對補 30 秒（15）
   const AW = 3;   // 答案磚寬（格）
   const P = { coin: 10, stomp: 50, right: 100, streak: 50, flag: 300 };
-  const E = 0, GD = 1, BR = 2, QB = 3, UB = 4, PIPE = 5, ST = 6, AB = 8;   // 地圖格子種類
+  const E = 0, GD = 1, BR = 2, QB = 3, UB = 4, PIPE = 5, ST = 6, SB = 7, AB = 8;   // SB：無敵星星磚
+  const CLEAR_SEC = 15, STAR_EVERY = 10, STAR_SEC = 30;   // 過關 +15 秒；每答對 10 題出現星星磚，無敵 30 秒   // 地圖格子種類
   const THEMES = [
     { name: L('草原', 'Grassland'), sky: ['#7ec8f7', '#c9ecff'], hill: '#5fbf5f', hill2: '#86d36e', top: '#4caf50', dirt: '#a0622d', dot: '#7c4a21', brick: '#c8642b', cloud: true },
     { name: L('洞穴', 'Cave'), sky: ['#1b1530', '#2e2450'], hill: '#3a2f63', hill2: '#4a3d78', top: '#6b6a8f', dirt: '#4a4566', dot: '#36324d', brick: '#7a6f9e', cloud: false },
@@ -63,6 +64,7 @@ const WD = (() => {
       const s = document.createElement('style'); s.id = 'wdCss';
       s.textContent = `.wj.wd{left:0;right:0;width:auto;transform:none;box-shadow:none}
         .wd-en{width:74px;height:14px;padding:0!important;border-radius:8px!important;overflow:hidden;background:rgba(0,0,0,.5)!important;position:relative}
+.wd-en.star{box-shadow:0 0 10px #ffd23f}.wd-en.star i{background:linear-gradient(90deg,#ff6b57,#ffd23f,#CCFF00,#4ECDC4,#b48cff)!important}
         .wd-en i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#ff6b57,#ffd23f 40%,#CCFF00);border-radius:8px;transition:width .2s}
         .wd-touch{position:absolute;left:0;right:0;top:64px;bottom:0;z-index:2;touch-action:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
         .wd-pad{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);display:flex;gap:10px;
@@ -144,6 +146,7 @@ const WD = (() => {
         <div>📱 ${L('手機橫著玩：左半邊按住＝走（手指左右滑換方向），右半邊按＝跳（按久跳更高）；鍵盤：方向鍵＋空白鍵', 'Play sideways: hold the left half to walk (slide to turn), tap the right half to jump (hold = higher); keyboard: arrows + space')}</div>
         <div>❓ ${L('用頭頂「？」磚塊會跳出題目，點正確的中文意思（答題時時間暫停）', 'Bump a ? block, then tap the right meaning (clock pauses)')}</div>
         <div>✅ ${L(`答對 +${P.right}、體力補滿一大段；連對 3 題起每題再 +${P.streak}`, `Right +${P.right} and energy; 3+ in a row: +${P.streak} each`)}</div>
+        <div>🌟 ${L(`過關時間 +${CLEAR_SEC} 秒；每答對 ${STAR_EVERY} 題出現無敵星星磚，頂到無敵 ${STAR_SEC} 秒`, `Clear a stage: +${CLEAR_SEC}s. Every ${STAR_EVERY} right answers a star block appears: ${STAR_SEC}s invincible`)}</div>
         <div>🗺️ ${L('草原 → 洞穴 → 城堡 → 雲端空島（飛彈）→ 海底世界（游泳），之後再輪一次、越來越難', 'Grassland → Cave → Castle → Sky Island (missiles) → Under the Sea (swim), then again — harder')}</div>
         <div>⚡ ${L(`體力 60 秒會用完，答對 +30 秒；掉坑 −${E_PIT}、被敵人撞到 −${E_HIT}`, `Energy lasts 60 s; a right answer adds 30 s. Fall −${E_PIT}, enemy hit −${E_HIT}`)}</div>
         <div>👟 ${L(`從上面踩敵人 +${P.stomp}・🪙 金幣 +${P.coin}・🚩 碰到旗子過關 +${P.flag}`, `Stomp enemies +${P.stomp} · 🪙 +${P.coin} · 🚩 flag +${P.flag}`)}</div>
@@ -282,7 +285,7 @@ const WD = (() => {
     g.fx = g.fx.filter((f) => (f.t -= dt) > 0);
     if (g.pause > 0) { g.pause -= dt; if (g.pause <= 0 && g.after) { const f = g.after; g.after = null; f(); } return; }
     // 體力
-    g.energy -= DRAIN * dt;
+    if (h.star > 0) h.star -= dt; else g.energy -= DRAIN * dt;   // 無敵時體力不減
     if (g.energy <= 0) { g.energy = 0; return die('hungry'); }
     // 左右
     const dir = (keys.r ? 1 : 0) - (keys.l ? 1 : 0);
@@ -329,7 +332,8 @@ const WD = (() => {
           if (h.vy > 60 && h.y + h.h - e.y < 12) {   // 從上面踩
             e.alive = false; h.vy = -320; g.score += P.stomp; g.stomps++;
             pop(e.x + e.w / 2, e.y, `+${P.stomp}`, '#ffd23f');
-          } else if (h.inv <= 0) { hurt(e); if (g.energy <= 0) return die('hungry'); }
+          } else if (h.star > 0) { e.alive = false; g.score += P.stomp; g.stomps++; pop(e.x + e.w / 2, e.y, `🌟+${P.stomp}`, '#ffd23f'); }
+          else if (h.inv <= 0) { hurt(e); if (g.energy <= 0) return die('hungry'); }
         }
       } else if ((e.t === 'missile' || e.t === 'fish') && e.alive) {
         if (e.t === 'fish' && e.x > g.camX + VW + 40) continue;
@@ -340,7 +344,8 @@ const WD = (() => {
           if (h.vy > 40 && h.y + h.h - e.y < 12) {   // 從上面踩
             e.alive = false; h.vy = sea ? -200 : -320; g.score += P.stomp; g.stomps++;
             pop(e.x + e.w / 2, e.y, `+${P.stomp}`, '#ffd23f');
-          } else if (h.inv <= 0) { hurt(e); if (g.energy <= 0) return die('hungry'); }
+          } else if (h.star > 0) { e.alive = false; g.score += P.stomp; g.stomps++; pop(e.x + e.w / 2, e.y, `🌟+${P.stomp}`, '#ffd23f'); }
+          else if (h.inv <= 0) { hurt(e); if (g.energy <= 0) return die('hungry'); }
         }
       } else if (e.t === 'coin' && !e.got && hit(h, e)) {
         e.got = true; g.coins++; g.score += P.coin; pop(e.x + 6, e.y, `+${P.coin}`, '#ffd23f');
@@ -375,6 +380,7 @@ const WD = (() => {
     const g = game, v = tile(c, r);
     g.fx.push({ t: 0.15, bump: [c, r] });
     if (v === QB) { g.lv.map[c][r] = UB; ask(c); }
+    else if (v === SB) { g.lv.map[c][r] = UB; g.hero.star = STAR_SEC; g.stars = (g.stars || 0) + 1; banner('🌟', L(`無敵 ${STAR_SEC} 秒！`, `Invincible for ${STAR_SEC}s!`), L('撞到敵人直接打倒，體力不會減少', 'Smash enemies; energy stays full'), '#ffd23f'); }
   }
 
   // ── 出題：頂到「？」→ 跳出題目卡（時間暫停），點中文意思作答 ──
@@ -400,10 +406,23 @@ const WD = (() => {
       g.right++; g.streak++; g.best = Math.max(g.best, g.streak);
       const pts = P.right + (g.streak >= 3 ? P.streak : 0); g.score += pts; g.energy = Math.min(ENERGY, g.energy + E_RIGHT);
       for (let k = 0; k < 8; k++) g.fx.push({ t: 0.9, x: x0, y: y0, vx: (k - 3.5) * 32, vy: -280 - (k % 3) * 30, coin: true });
+      if (g.right % STAR_EVERY === 0) placeStar();
       banner('✅', L(`答對！+${pts}　⚡ +30 秒`, `Correct! +${pts}  ⚡ +30 s`), `${q.w.word} = ${short(q.w)}${g.streak >= 3 ? `　🔥${g.streak}` : ''}`, '#CCFF00');
     } else {
       g.wrong++; g.streak = 0; g.energy = Math.max(1, g.energy - E_WRONG);
       banner('✕', L(`不對喔　⚡−${E_WRONG}`, `Not quite  ⚡−${E_WRONG}`), `${q.w.word} = ${short(q.w)}`, '#ff6b57');
+    }
+  }
+  // 無敵星星磚：放在前面 8～20 格、某個地面或平台上方 3 格
+  function placeStar() {
+    const g = game, lv = g.lv, c0 = Math.floor(g.hero.x / T) + 8;
+    for (let c = c0; c < Math.min(lv.cols - 18, c0 + 30); c++) {
+      for (let r = 4; r <= GROUND; r++) {
+        if (solid(tile(c, r)) && tile(c, r - 1) === E && tile(c, r - 2) === E && tile(c, r - 3) === E && r - 3 >= 1) {
+          lv.map[c][r - 3] = SB; setTimeout(() => banner('🌟', L('無敵星星磚出現了！', 'A star block appeared!'), L(`頂它＝無敵 ${STAR_SEC} 秒`, `Bump it: ${STAR_SEC}s invincible`), '#ffd23f'), 1500);
+          return;
+        }
+      }
     }
   }
   function hurt(e) {   // 被甲蟲撞到：扣體力、彈開、短暫無敵（不中斷遊戲）
@@ -426,8 +445,8 @@ const WD = (() => {
   // ── 過關、失誤 ──
   function clear() {
     const g = game; g.clears++;
-    const bonus = P.flag + Math.round(g.energy) * 2; g.score += bonus;
-    banner('🚩', L(`過關！+${bonus}`, `Stage clear! +${bonus}`), L('下一關更難喔', 'Next stage is harder'), '#CCFF00');
+    const bonus = P.flag + Math.round(g.energy) * 2; g.score += bonus; g.elapsed -= CLEAR_SEC;
+    banner('🚩', L(`過關！+${bonus}　⏱️ +${CLEAR_SEC} 秒`, `Stage clear! +${bonus}  ⏱️ +${CLEAR_SEC}s`), L('下一關更難喔', 'Next stage is harder'), '#CCFF00');
     g.after = nextLevel; g.pause = 1.4; g.hero.vx = 0;
   }
   function die(why) {
@@ -521,6 +540,7 @@ const WD = (() => {
     $('wdS').textContent = g ? g.score : 0; $('wdC').textContent = `🪙 ${g ? g.coins : 0}`;
     $('wdP').textContent = `⭐ ${g ? toPts(g.score) : 0}`;
     $('wdE').style.width = `${g ? Math.max(0, g.energy / ENERGY * 100) : 100}%`;
+    const sh = g && g.hero && g.hero.star > 0; $('wdE').parentNode.classList.toggle('star', !!sh);
   }
   function draw() {
     if (!cx) return;
@@ -601,6 +621,10 @@ const WD = (() => {
     } else if (v === BR) {
       cx.fillStyle = th.brick; cx.fillRect(x, by, T, T);
       cx.fillStyle = 'rgba(0,0,0,.3)'; cx.fillRect(x, by + 11, T, 2); cx.fillRect(x, by + T - 2, T, 2); cx.fillRect(x + 11, by, 2, 11); cx.fillRect(x + 5, by + 13, 2, 9); cx.fillRect(x + 17, by + 13, 2, 9);
+    } else if (v === SB) {   // 無敵星星磚：彩虹色＋星星
+      cx.fillStyle = `hsl(${(game.clock * 200 + c * 30) % 360},90%,60%)`; cx.fillRect(x, by, T, T);
+      cx.fillStyle = 'rgba(255,255,255,.45)'; cx.fillRect(x, by, T, 2);
+      cx.fillStyle = '#fff'; cx.font = '900 16px sans-serif'; cx.textAlign = 'center'; cx.fillText('★', x + T / 2, by + 18);
     } else if (v === QB || v === UB) {
       cx.fillStyle = v === QB ? '#ffc93d' : '#9a6a3a'; cx.fillRect(x, by, T, T);
       cx.fillStyle = 'rgba(0,0,0,.25)'; cx.fillRect(x, by + T - 3, T, 3); cx.fillRect(x + T - 3, by, 3, T);
@@ -646,7 +670,10 @@ const WD = (() => {
     cx.fillStyle = '#fff'; cx.fillRect(x + 3, y + 3, 4, 4); cx.fillStyle = '#000'; cx.fillRect(x + 3, y + 4, 2, 2);
   }
   function drawHero(h) {
-    if (h.inv > 0 && Math.floor(h.inv * 10) % 2) return;   // 無敵時閃爍
+    if (h.star > 0) {   // 無敵星星：彩虹光圈
+      cx.save(); cx.globalAlpha = h.star < 3 && Math.floor(h.star * 8) % 2 ? 0.2 : 0.55;
+      cx.fillStyle = `hsl(${(game.clock * 400) % 360},95%,60%)`; cx.beginPath(); cx.ellipse(h.x + h.w / 2, h.y + h.h / 2, 18, 17, 0, 0, 7); cx.fill(); cx.restore();
+    } else if (h.inv > 0 && Math.floor(h.inv * 10) % 2) return;   // 受傷後閃爍
     cx.save(); cx.translate(Math.round(h.x + h.w / 2), Math.round(h.y)); cx.scale(h.face, 1);
     const run = h.on && Math.abs(h.vx) > 10 ? Math.floor(h.anim / 14) % 2 : -1;
     const body = '#5ccf5c', dark = '#2f8a3e', belly = '#d9f7a8';

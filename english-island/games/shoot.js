@@ -10,7 +10,7 @@
 //        saveLedger, saveMeta, afterPoints, points, gameWeekBestAll, gameCard, masteredCount, GAMES, toast, confetti
 // ═══════════════════════════════════════════════════════
 const WS = (() => {
-  const ID = 'shoot', NEED = 4, VER = '0.5';
+  const ID = 'shoot', NEED = 4, VER = '0.6';
   const TIME = 180, CAP = 20;
   const S_PER_PT = 200;               // 每 200 分 1 ⭐（4000 分滿 20）— 待實玩後調整
   const LW = 360;                     // 邏輯寬度
@@ -101,7 +101,7 @@ const WS = (() => {
     if (d > 18 && aim.dy > 6) {   // 要往下拉才算（往上推不會投）
       const k = VMAX / PULL, b = game.ball;
       b.vx = -aim.dx * k; b.vy = -aim.dy * k; b.state = 'fly'; b.t = 0; b.touched = false; b.top = b.y;
-      game.shots++;
+      game.shots++; game.qShots++;
     }
     aim = null;
   }
@@ -123,7 +123,7 @@ const WS = (() => {
         <div>🏀 ${L(`投進正確的籃框 +${BASKET}；空心球（沒碰到籃框）再 +${SWISH}`, `Right hoop +${BASKET}; swish (no rim) +${SWISH}`)}</div>
         <div>🔥 ${L(`連進 3 球以上，每球再 +${STREAK}`, `3+ in a row: +${STREAK} each`)}</div>
         <div>✨ ${L(`籃框發金光＝黃金時間，${FEVER_LEN} 秒內投進分數 ×2`, `Golden hoops = GOLDEN TIME: ×2 for ${FEVER_LEN}s`)}</div>
-        <div>🎁 ${L('每連進 2 球選一個道具；連進 1／2／3／4 球依序開放：籃框變大、完整瞄準線、時間 +7 秒、下一球 ×2（開放後不會再關）', 'Every 2 in a row: pick a power-up. Streaks of 1/2/3/4 unlock bigger hoops, full aim line, +7 s, next basket ×2 (they stay unlocked)')}</div>
+        <div>🎁 ${L('一球就投進可以選一個道具；連進 1／2／3／4 球依序開放：籃框變大、完整瞄準線、時間 +7 秒、下一球 ×2（開放後不會再關）', 'First-shot basket: pick a power-up. Streaks of 1/2/3/4 unlock bigger hoops, full aim line, +7 s, next basket ×2 (they stay unlocked)')}</div>
         <div>✏️ ${L('投進錯的籃框，要拼出這個字才能繼續（時間不會停）', 'Wrong hoop = spell the word (clock keeps running)')}</div>
         <div>↕️ ${L(`第 ${MOVE_FROM} 題起籃框會上下移動，第 ${WIND_FROM} 題起有風 🌬️`, `Hoops move from word ${MOVE_FROM}; wind from word ${WIND_FROM} 🌬️`)}</div>
         <div>⭐ ${trial ? L('試玩模式：不計分', 'Trial: not scored') : L(`每 ${S_PER_PT} 分 1 顆星，最多 ${CAP}；所有遊戲每週只算最高一局`, `1 ⭐ per ${S_PER_PT} points, up to ${CAP}; best game of the week counts`)}</div>
@@ -159,6 +159,7 @@ const WS = (() => {
     g.n++;
     g.q = { w, opts, ans: opts.indexOf(w) };
     g.wind = g.n >= WIND_FROM ? (Math.random() < 0.5 ? -1 : 1) * (60 + Math.random() * 110) : 0;
+    g.qShots = 0;   // 這一題出手幾次（一次就進才給道具）
     const pw = g.power; g.power = null; g.usePower = pw;   // 這一題用的道具
     g.hoops = opts.map((o, i) => ({ i, x: 0, y: 0, by: 0, ph: Math.random() * 6, amp: 0, sp: 0, flash: 0, big: pw === 'big', gone: false }));
     showQ(); layoutHoops(false);   // 先放題目，籃框才知道要往下讓多少
@@ -246,7 +247,7 @@ const WS = (() => {
       const tag = m > 1 ? ` (×${m})` : '';
       banner(m > 1 ? '✨' : !b.touched ? '💫' : '🏀', (!b.touched ? L(`空心球！+${pts}`, `Swish! +${pts}`) : L(`進了！+${pts}`, `Nice! +${pts}`)) + tag,
         g.streak >= 3 ? L(`連進 ${g.streak} 球 🔥`, `${g.streak} in a row 🔥`) : `${g.q.w.word} = ${short(g.q.w)}`, '#CCFF00');
-      g.after = g.streak % 2 === 0 ? offerPower : nextQ; g.pause = 0.75;
+      g.after = g.qShots <= 1 ? offerPower : nextQ; g.pause = 0.75;   // 一球就進才給道具；投第二次才進就直接下一題
     } else {
       g.wrong++; g.streak = 0;
       burst(h.x, h.y, '#ff6b57');
@@ -256,7 +257,7 @@ const WS = (() => {
   }
   function offerPower() {
     const g = game; g.choosing = Date.now(); aim = null; showQ();
-    pane(`<div class="wj-card"><div class="wj-kicker">🔥 ${L(`連進 ${g.streak} 球！選一個道具（下一題用）`, `${g.streak} in a row! Pick a power-up for the next word`)}</div>
+    pane(`<div class="wj-card"><div class="wj-kicker">🔥 ${L('一球就進！選一個道具（下一題用）', 'First-shot basket! Pick a power-up for the next word')}</div>
       <div class="ws-pw">${POWERS.map((p) => (g.bestStreak >= p.need
         ? `<button class="btn ghost" data-ws="pw" data-pw="${p.id}"><span>${p.ic}</span>${L(...p.name)}</button>`
         : `<button class="btn ghost off" disabled><span>🔒</span>${L(...p.name)}<small>${L(`連進 ${p.need} 球開放`, `${p.need} in a row to unlock`)}</small></button>`)).join('')}</div>
@@ -502,7 +503,7 @@ const WS = (() => {
     }
   }
   // 測試用：直接投出（vx, vy 是初速），或直接判定進某個籃框
-  const _t = { get game() { return game; }, shoot(vx, vy) { const b = game.ball; Object.assign(b, { vx, vy, state: 'fly', t: 0, touched: false, top: b.y }); game.shots++; },
+  const _t = { get game() { return game; }, shoot(vx, vy) { const b = game.ball; Object.assign(b, { vx, vy, state: 'fly', t: 0, touched: false, top: b.y }); game.shots++; game.qShots++; },
     land, check, end, toPts, REST, mult, get VH() { return VH; }, get trial() { return trial; } };
   return { id: ID, need: NEED, card, bestText, open, close, _t };
 })();
