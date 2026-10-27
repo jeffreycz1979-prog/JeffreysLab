@@ -2626,11 +2626,11 @@ function pickMatch(btn) {
   document.querySelectorAll(`[data-${side}]`).forEach((b) => b.classList.remove('sel'));
   btn.classList.add('sel');
   if (side === 'ml') speakQuick(st.byId[btn.dataset.ml].word);
-  const L = document.querySelector('.mt.sel[data-ml]'), Rt = document.querySelector('.mt.sel[data-mr]');
-  if (!L || !Rt) return;
-  if (L.dataset.ml === Rt.dataset.mr) {
-    [L, Rt].forEach((b) => { b.classList.remove('sel'); b.classList.add('ok'); b.disabled = true; });
-    if (!q.done.includes(L.dataset.ml)) q.done.push(L.dataset.ml);
+  const Lb = document.querySelector('.mt.sel[data-ml]'), Rt = document.querySelector('.mt.sel[data-mr]');   // 不能叫 L（會蓋掉語言函式 L()）
+  if (!Lb || !Rt) return;
+  if (Lb.dataset.ml === Rt.dataset.mr) {
+    [Lb, Rt].forEach((b) => { b.classList.remove('sel'); b.classList.add('ok'); b.disabled = true; });
+    if (!q.done.includes(Lb.dataset.ml)) q.done.push(Lb.dataset.ml);
     if (q.done.length === q.ws.length) {
       const ok = q.miss === 0;
       scoreQ(ok, q.missed || []);
@@ -2638,8 +2638,8 @@ function pickMatch(btn) {
     }
   } else {
     q.miss++; q.missed = q.missed || [];
-    const w = st.byId[L.dataset.ml]; if (!q.missed.includes(w)) q.missed.push(w);
-    [L, Rt].forEach((b) => { b.classList.remove('sel'); b.classList.add('bad'); setTimeout(() => b.classList.remove('bad'), 350); });
+    const w = st.byId[Lb.dataset.ml]; if (!q.missed.includes(w)) q.missed.push(w);
+    [Lb, Rt].forEach((b) => { b.classList.remove('sel'); b.classList.add('bad'); setTimeout(() => b.classList.remove('bad'), 350); });
   }
 }
 function gramFeedback(ok, right) {   // 文法題不加入單字複習，只顯示正確句子和規則
