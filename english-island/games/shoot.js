@@ -10,7 +10,7 @@
 //        saveLedger, saveMeta, afterPoints, points, gameWeekBestAll, gameCard, masteredCount, GAMES, toast, confetti
 // ═══════════════════════════════════════════════════════
 const WS = (() => {
-  const ID = 'shoot', NEED = 4, VER = '0.6';
+  const ID = 'shoot', NEED = 4, VER = '0.7';
   const TIME = 180, CAP = 20;
   const S_PER_PT = 200;               // 每 200 分 1 ⭐（4000 分滿 20）— 待實玩後調整
   const LW = 360;                     // 邏輯寬度
@@ -121,9 +121,9 @@ const WS = (() => {
       <div class="wj-rules">
         <div>👇 ${L('在下面按住，往後拉（像彈弓），放開就投出去；拉越遠越用力', 'Press near the bottom, pull back like a slingshot, let go to shoot')}</div>
         <div>🏀 ${L(`投進正確的籃框 +${BASKET}；空心球（沒碰到籃框）再 +${SWISH}`, `Right hoop +${BASKET}; swish (no rim) +${SWISH}`)}</div>
-        <div>🔥 ${L(`連進 3 球以上，每球再 +${STREAK}`, `3+ in a row: +${STREAK} each`)}</div>
+        <div>🔥 ${L(`連續答對 3 題以上，每題再 +${STREAK}`, `3+ in a row: +${STREAK} each`)}</div>
         <div>✨ ${L(`籃框發金光＝黃金時間，${FEVER_LEN} 秒內投進分數 ×2`, `Golden hoops = GOLDEN TIME: ×2 for ${FEVER_LEN}s`)}</div>
-        <div>🎁 ${L('一球就投進可以選一個道具；連進 1／2／3／4 球依序開放：籃框變大、完整瞄準線、時間 +7 秒、下一球 ×2（開放後不會再關）', 'First-shot basket: pick a power-up. Streaks of 1/2/3/4 unlock bigger hoops, full aim line, +7 s, next basket ×2 (they stay unlocked)')}</div>
+        <div>🎁 ${L('一球就投進、或連續答對 2 題（投歪重投也算）可以選一個道具；連進 1／2／3／4 題依序開放：籃框變大、完整瞄準線、時間 +7 秒、下一球 ×2（開放後不會再關）', 'First-shot basket or every 2 in a row (retries OK): pick a power-up. Streaks of 1/2/3/4 unlock bigger hoops, full aim line, +7 s, next basket ×2 (they stay unlocked)')}</div>
         <div>✏️ ${L('投進錯的籃框，要拼出這個字才能繼續（時間不會停）', 'Wrong hoop = spell the word (clock keeps running)')}</div>
         <div>↕️ ${L(`第 ${MOVE_FROM} 題起籃框會上下移動，第 ${WIND_FROM} 題起有風 🌬️`, `Hoops move from word ${MOVE_FROM}; wind from word ${WIND_FROM} 🌬️`)}</div>
         <div>⭐ ${trial ? L('試玩模式：不計分', 'Trial: not scored') : L(`每 ${S_PER_PT} 分 1 顆星，最多 ${CAP}；所有遊戲每週只算最高一局`, `1 ⭐ per ${S_PER_PT} points, up to ${CAP}; best game of the week counts`)}</div>
@@ -247,7 +247,8 @@ const WS = (() => {
       const tag = m > 1 ? ` (×${m})` : '';
       banner(m > 1 ? '✨' : !b.touched ? '💫' : '🏀', (!b.touched ? L(`空心球！+${pts}`, `Swish! +${pts}`) : L(`進了！+${pts}`, `Nice! +${pts}`)) + tag,
         g.streak >= 3 ? L(`連進 ${g.streak} 球 🔥`, `${g.streak} in a row 🔥`) : `${g.q.w.word} = ${short(g.q.w)}`, '#CCFF00');
-      g.after = g.qShots <= 1 ? offerPower : nextQ; g.pause = 0.75;   // 一球就進才給道具；投第二次才進就直接下一題
+      g.firstShot = g.qShots <= 1;
+      g.after = g.firstShot || g.streak % 2 === 0 ? offerPower : nextQ; g.pause = 0.75;   // 一球就進，或連進 2、4、6… 題，就給道具
     } else {
       g.wrong++; g.streak = 0;
       burst(h.x, h.y, '#ff6b57');
@@ -257,10 +258,10 @@ const WS = (() => {
   }
   function offerPower() {
     const g = game; g.choosing = Date.now(); aim = null; showQ();
-    pane(`<div class="wj-card"><div class="wj-kicker">🔥 ${L('一球就進！選一個道具（下一題用）', 'First-shot basket! Pick a power-up for the next word')}</div>
+    pane(`<div class="wj-card"><div class="wj-kicker">🔥 ${g.firstShot ? L('一球就進！選一個道具（下一題用）', 'First-shot basket! Pick a power-up for the next word') : L(`連進 ${g.streak} 題！選一個道具（下一題用）`, `${g.streak} in a row! Pick a power-up for the next word`)}</div>
       <div class="ws-pw">${POWERS.map((p) => (g.bestStreak >= p.need
         ? `<button class="btn ghost" data-ws="pw" data-pw="${p.id}"><span>${p.ic}</span>${L(...p.name)}</button>`
-        : `<button class="btn ghost off" disabled><span>🔒</span>${L(...p.name)}<small>${L(`連進 ${p.need} 球開放`, `${p.need} in a row to unlock`)}</small></button>`)).join('')}</div>
+        : `<button class="btn ghost off" disabled><span>🔒</span>${L(...p.name)}<small>${L(`連續答對 ${p.need} 題開放`, `${p.need} in a row to unlock`)}</small></button>`)).join('')}</div>
       <p class="wj-small">${L('選的時候時間暫停', 'The clock is paused')}</p></div>`);
   }
   function pickPower(id) {
@@ -273,7 +274,7 @@ const WS = (() => {
     const p = POWERS.find((x) => x.id === id); banner(p.ic, L(p.name[0], p.name[1]), id === 'time' ? '' : L('這一題可以用', 'For this word'), '#4ECDC4');
   }
   function miss() {
-    const g = game; g.streak = 0;
+    // 投歪不會中斷「連進」（連進＝連續答對幾題，只有投錯籃框才歸零）
     banner('💨', L('沒進，再投一次', 'Missed — try again'), '', '#4ECDC4');
     resetBall();
   }
