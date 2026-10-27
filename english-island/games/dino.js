@@ -9,12 +9,12 @@
 //        saveLedger, saveMeta, afterPoints, points, gameWeekBestAll, gameCard, masteredCount, GAMES, toast, confetti
 // ═══════════════════════════════════════════════════════
 const WD = (() => {
-  const ID = 'dino', NEED = 5, VER = '0.4';
-  const TIME = 180, CAP = 20, S_PER_PT = 200;   // 每 200 分 1 ⭐（4000 分滿 20）— 待實玩後調整
+  const ID = 'dino', NEED = 5, VER = '0.5';
+  const TIME = 180, CAP = 20, S_PER_PT = 300;   // 每 300 分 1 ⭐（6000 分滿 20；v0.4 試玩 4754 分就滿 20，太好拿）
   const T = 24, ROWS = 11, WH = ROWS * T;         // 磚塊大小、地圖列數、世界高度
   const GROUND = 9;                               // 地面從第 9 列開始（第 9、10 列是土）
   const ACC = 900, VMAX = 150, FRIC = 1300, GRAV = 1500, JUMP = 470, HOLD = 0.22;
-  const ENERGY = 30, DRAIN = 0.5, E_WRONG = 5, E_HIT = 8, E_PIT = 6;   // 體力 60 秒耗完；答對補滿
+  const ENERGY = 30, DRAIN = 0.5, E_RIGHT = 15, E_WRONG = 5, E_HIT = 8, E_PIT = 6;   // 體力 60 秒耗完；答對補 30 秒（15）
   const AW = 3;   // 答案磚寬（格）
   const P = { coin: 10, stomp: 50, right: 100, streak: 50, flag: 300 };
   const E = 0, GD = 1, BR = 2, QB = 3, UB = 4, PIPE = 5, ST = 6, AB = 8;   // 地圖格子種類
@@ -22,7 +22,14 @@ const WD = (() => {
     { name: L('草原', 'Grassland'), sky: ['#7ec8f7', '#c9ecff'], hill: '#5fbf5f', hill2: '#86d36e', top: '#4caf50', dirt: '#a0622d', dot: '#7c4a21', brick: '#c8642b', cloud: true },
     { name: L('洞穴', 'Cave'), sky: ['#1b1530', '#2e2450'], hill: '#3a2f63', hill2: '#4a3d78', top: '#6b6a8f', dirt: '#4a4566', dot: '#36324d', brick: '#7a6f9e', cloud: false },
     { name: L('城堡', 'Castle'), sky: ['#2a0f12', '#5a1d1d'], hill: '#4a1818', hill2: '#6a2424', top: '#8a8a8a', dirt: '#5e5e66', dot: '#46464d', brick: '#8f8f99', cloud: false, lava: true },
+    // 第 4 關：浮在雲上的小平台，一路往前跳，飛彈從右邊飛來
+    { kind: 'sky', name: L('雲端空島', 'Sky Island'), tip: L('小心飛彈！可以從上面踩', 'Watch out for missiles — stomp them!'),
+      sky: ['#4fa9ea', '#dff3ff'], hill: 'rgba(255,255,255,.55)', hill2: 'rgba(255,255,255,.3)', top: '#ffffff', dirt: '#cfdcee', dot: '#b4c4dc', brick: '#e7b04a', cloud: true },
+    // 第 5 關：海底，按跳＝往上游（可以一直按），魚會游來游去
+    { kind: 'sea', name: L('海底世界', 'Under the Sea'), tip: L('按跳＝往上游，可以一直按', 'Tap jump to swim up — again and again'),
+      sky: ['#0e6ea3', '#062f4d'], hill: '#0a4a6c', hill2: '#0d5c84', top: '#e6c983', dirt: '#c8a560', dot: '#a8873f', brick: '#3b97b0', cloud: false, sea: true },
   ];
+  const themeOf = (n) => THEMES[(n - 1) % THEMES.length];   // 第 6 關起再輪一次（越來越難）
   let cv, cx, root, k = 2, oy = 0, VW = 300, dpr = 1;
   let game = null, raf = 0, trial = false, releaseAll = () => {}, lastW = 0, lastH = 0, portrait = false;
   const keys = { l: false, r: false, j: false };
@@ -137,7 +144,8 @@ const WD = (() => {
         <div>📱 ${L('手機橫著玩：左半邊按住＝走（手指左右滑換方向），右半邊按＝跳（按久跳更高）；鍵盤：方向鍵＋空白鍵', 'Play sideways: hold the left half to walk (slide to turn), tap the right half to jump (hold = higher); keyboard: arrows + space')}</div>
         <div>❓ ${L('用頭頂「？」磚塊會跳出題目，點正確的中文意思（答題時時間暫停）', 'Bump a ? block, then tap the right meaning (clock pauses)')}</div>
         <div>✅ ${L(`答對 +${P.right}、體力補滿一大段；連對 3 題起每題再 +${P.streak}`, `Right +${P.right} and energy; 3+ in a row: +${P.streak} each`)}</div>
-        <div>⚡ ${L(`體力條會慢慢減少，答對就補滿；掉坑 −${E_PIT}、被甲蟲撞到 −${E_HIT}`, `Energy drains slowly; a right answer refills it. Fall −${E_PIT}, beetle −${E_HIT}`)}</div>
+        <div>🗺️ ${L('草原 → 洞穴 → 城堡 → 雲端空島（飛彈）→ 海底世界（游泳），之後再輪一次、越來越難', 'Grassland → Cave → Castle → Sky Island (missiles) → Under the Sea (swim), then again — harder')}</div>
+        <div>⚡ ${L(`體力 60 秒會用完，答對 +30 秒；掉坑 −${E_PIT}、被敵人撞到 −${E_HIT}`, `Energy lasts 60 s; a right answer adds 30 s. Fall −${E_PIT}, enemy hit −${E_HIT}`)}</div>
         <div>👟 ${L(`從上面踩敵人 +${P.stomp}・🪙 金幣 +${P.coin}・🚩 碰到旗子過關 +${P.flag}`, `Stomp enemies +${P.stomp} · 🪙 +${P.coin} · 🚩 flag +${P.flag}`)}</div>
         <div>✏️ ${L('體力用完：拼對一個字就能繼續（拼字時時間暫停）', 'Out of energy: spell a word to keep going (clock pauses)')}</div>
         <div>⭐ ${trial ? L('試玩模式：不計分', 'Trial: not scored') : L(`每 ${S_PER_PT} 分 1 顆星，最多 ${CAP}；所有遊戲每週只算最高一局`, `1 ⭐ per ${S_PER_PT} points, up to ${CAP}; best game of the week counts`)}</div>
@@ -156,7 +164,9 @@ const WD = (() => {
   // ── 關卡產生：每關長度、坑、平台、？磚塊（後面留一段平地放答案磚）、水管、敵人、金幣、旗子 ──
   function rng(seed) { let s = seed >>> 0; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); }
   function buildLevel(n) {
-    const R = rng(Date.now() + n * 977), cols = 130 + n * 25, map = [], ents = [];
+    const th = themeOf(n), d = Math.min(n, 7);   // d：難度（第 7 關後不再加）
+    const R = rng(Date.now() + n * 977), cols = 130 + d * 22, map = [], ents = [];
+    if (th.kind === 'sky') return buildSky(n, d, R, cols, th);
     for (let c = 0; c < cols; c++) { const col = new Array(ROWS).fill(E); col[GROUND] = GD; col[GROUND + 1] = GD; map.push(col); }
     const free = new Array(cols).fill(true);   // 這一欄還沒放東西
     const reserve = (a, b) => { for (let c = a; c <= b && c < cols; c++) free[c] = false; };
@@ -167,8 +177,8 @@ const WD = (() => {
     // 坑：在還沒用到的地方挖 2～3 格（後面幾關比較多、比較寬）
     for (let c = 10; c < cols - 18; c++) {
       if (!free[c] || !free[c + 1] || !free[c + 2] || !free[c + 3]) continue;
-      if (R() < 0.09 + n * 0.04) {
-        const wdt = 2 + (R() < 0.3 + n * 0.15 ? 1 : 0);
+      if (R() < 0.09 + d * 0.03 + (th.sea ? 0.05 : 0)) {
+        const wdt = 2 + (R() < 0.25 + d * 0.1 ? 1 : 0) + (th.sea ? 1 : 0);
         for (let i = 0; i < wdt; i++) { map[c + i][GROUND] = E; map[c + i][GROUND + 1] = E; }
         for (let i = 0; i < wdt; i++) ents.push({ t: 'coin', x: (c + i) * T + 6, y: 5 * T + 6, w: 12, h: 12 });
         reserve(c - 2, c + wdt + 2); c += wdt + 3;
@@ -192,13 +202,43 @@ const WD = (() => {
     }
     // 敵人：放在平地上（每關越後面越多、越快）
     for (let c = 14; c < cols - 18; c++) {
-      if (map[c][GROUND] === GD && map[c][GROUND - 1] === E && R() < 0.035 + n * 0.015 && !qs.some((q) => c > q - 3 && c < q + 4))
-        ents.push({ t: 'bug', x: c * T + 2, y: GROUND * T - 18, w: 20, h: 18, vx: -(28 + n * 10), alive: true });
+      if (th.sea) break;
+      if (map[c][GROUND] === GD && map[c][GROUND - 1] === E && R() < 0.035 + d * 0.012 && !qs.some((q) => c > q - 3 && c < q + 4))
+        ents.push({ t: 'bug', x: c * T + 2, y: GROUND * T - 18, w: 20, h: 18, vx: -(28 + d * 8), alive: true });
+    }
+    if (th.sea) {   // 海底：魚在水裡游、水中多一些金幣
+      for (let c = 16; c < cols - 18; c += 9 + Math.floor(R() * 7)) {
+        const y = (2 + Math.floor(R() * 6)) * T + 4;
+        ents.push({ t: 'fish', x: c * T, y, by: y, w: 22, h: 14, vx: -(30 + d * 6 + R() * 20), ph: R() * 6, alive: true });
+      }
+      for (let c = 12; c < cols - 18; c += 5 + Math.floor(R() * 6)) ents.push({ t: 'coin', x: c * T + 6, y: (2 + Math.floor(R() * 6)) * T + 6, w: 12, h: 12 });
     }
     // 結尾：石階＋旗子
     for (let i = 0; i < 4; i++) for (let j = 0; j <= i; j++) map[cols - 15 + i][GROUND - 1 - j] = ST;
     const flagX = (cols - 8) * T + 10;
-    return { n, cols, map, ents, flagX, theme: THEMES[Math.min(n, THEMES.length) - 1] || THEMES[THEMES.length - 1] };
+    return { n, cols, map, ents, flagX, theme: th };
+  }
+  // 雲端空島：沒有地面，一塊一塊高高低低的平台（最多往上 2 格、空隙 2～3 格），？磚塊在平台上方
+  function buildSky(n, d, R, cols, th) {
+    const map = [], ents = [];
+    for (let c = 0; c < cols; c++) map.push(new Array(ROWS).fill(E));
+    const solidCol = (c, row) => { map[c][row] = GD; if (row === GROUND) map[c][GROUND + 1] = GD; };
+    for (let c = 0; c < 9; c++) solidCol(c, GROUND);
+    let c = 9, row = GROUND, k2 = 0;
+    while (c < cols - 20) {
+      const gap = 2 + (R() < 0.2 + d * 0.06 ? 1 : 0);
+      for (let i = 0; i < gap; i++) ents.push({ t: 'coin', x: (c + i) * T + 6, y: (row - 2) * T + 6, w: 12, h: 12 });
+      c += gap;
+      row = Math.max(5, Math.min(GROUND, row + [-2, -1, 0, 1, 2][Math.floor(R() * 5)]));
+      const len = 3 + Math.floor(R() * Math.max(2, 6 - Math.floor(d / 3)));
+      for (let i = 0; i < len && c + i < cols - 20; i++) solidCol(c + i, row);
+      if (++k2 % 2 === 0 && len >= 3 && row - 3 >= 1) map[c + 1][row - 3] = QB;   // 每兩塊平台一個？
+      else if (R() < 0.5) for (let i = 0; i < len; i++) ents.push({ t: 'coin', x: (c + i) * T + 6, y: (row - 1) * T + 6, w: 12, h: 12 });
+      c += len;
+    }
+    for (let x = cols - 20; x < cols; x++) solidCol(x, GROUND);
+    for (let i = 0; i < 4; i++) for (let j = 0; j <= i; j++) map[cols - 15 + i][GROUND - 1 - j] = ST;
+    return { n, cols, map, ents, flagX: (cols - 8) * T + 10, theme: th, missileGap: Math.max(1.3, 3 - d * 0.2) };
   }
 
   // ── 遊戲 ──
@@ -214,9 +254,9 @@ const WD = (() => {
   function nextLevel() {
     const g = game; g.n++;
     g.lv = buildLevel(g.n); g.q = null; showQ();
-    g.hero = { x: 3 * T, y: GROUND * T - 22, w: 16, h: 22, vx: 0, vy: 0, on: false, face: 1, hold: 0, inv: 1.5, safeX: 3 * T, anim: 0 };
-    g.camX = 0;
-    banner('🚩', `${g.n}-1 ${g.lv.theme.name}`, L('出發！', "Let's go!"), '#CCFF00');
+    g.hero = { x: 3 * T, y: GROUND * T - 22, w: 16, h: 22, vx: 0, vy: 0, on: false, face: 1, hold: 0, inv: 1.5, safeX: 3 * T, safeY: GROUND * T - 22, anim: 0 };
+    g.camX = 0; g.mT = 2.5;
+    banner('🚩', `${g.n}-1 ${g.lv.theme.name}`, g.lv.theme.tip || L('出發！', "Let's go!"), '#CCFF00');
   }
   const tile = (c, r) => { const m = game.lv.map; if (c < 0) return ST; if (c >= m.length || r < 0) return E; if (r >= ROWS) return E; return m[c][r]; };
   const solid = (v) => v !== E;
@@ -248,10 +288,12 @@ const WD = (() => {
     const dir = (keys.r ? 1 : 0) - (keys.l ? 1 : 0);
     if (dir) { h.vx += dir * ACC * (h.on || Math.sign(h.vx) !== dir ? 1 : 0.6) * dt; h.face = dir; }
     else if (h.on) { const f = FRIC * dt; h.vx = Math.abs(h.vx) <= f ? 0 : h.vx - Math.sign(h.vx) * f; }   // 空中放開方向鍵：保持衝力
-    h.vx = Math.max(-VMAX, Math.min(VMAX, h.vx));
+    const sea = !!lv.theme.sea, vmax = sea ? 125 : VMAX;
+    h.vx = Math.max(-vmax, Math.min(vmax, h.vx));
     // 跳：按著跳躍鍵時重力變小（按久跳高）
     if (h.hold > 0) { h.hold -= dt; if (!keys.j) h.hold = 0; }
-    h.vy += GRAV * (h.hold > 0 && h.vy < 0 ? 0.45 : 1) * dt; h.vy = Math.min(h.vy, 700);
+    if (sea) { h.vy += GRAV * 0.28 * dt; h.vy = Math.min(h.vy, 120); }   // 水裡：慢慢往下沉
+    else { h.vy += GRAV * (h.hold > 0 && h.vy < 0 ? 0.45 : 1) * dt; h.vy = Math.min(h.vy, 700); }
     if (h.inv > 0) h.inv -= dt;
     h.anim += Math.abs(h.vx) * dt;
     // 水平移動＋碰撞
@@ -262,8 +304,15 @@ const WD = (() => {
     h.y += h.vy * dt; h.on = false;
     collideY(h);
     g.coyote = h.on ? 0.09 : Math.max(0, g.coyote - dt);   // 剛走出平台邊緣 0.09 秒內還能跳
+    if (sea && g.buf > 0) { h.vy = -235; h.on = false; g.buf = 0; g.fx.push({ t: 0.7, x: h.x + 12, y: h.y + 4, bub: 1 }); }   // 水裡：每按一下往上游
     if (g.buf > 0) { g.buf -= dt; if (g.coyote > 0 && h.vy >= 0) { h.vy = -JUMP; h.on = false; h.hold = keys.j ? HOLD : 0.06; g.buf = 0; g.coyote = 0; } }
-    if (h.on && h.x > h.safeX && solid(tile(Math.floor((h.x + h.w / 2) / T), GROUND))) h.safeX = h.x;
+    const footR = Math.floor((h.y + h.h + 1) / T);
+    if (h.on && solid(tile(Math.floor((h.x + 1) / T), footR)) && solid(tile(Math.floor((h.x + h.w - 1) / T), footR))) { h.safeX = h.x; h.safeY = h.y; }   // 兩腳都踩在地上才記為安全點
+    // 雲端空島：飛彈從畫面右邊飛來
+    if (lv.theme.kind === 'sky' && (g.mT -= dt) <= 0) {
+      g.mT = lv.missileGap + Math.random() * 1.2;
+      lv.ents.push({ t: 'missile', x: g.camX + VW + 20, y: (2 + Math.floor(Math.random() * 7)) * T + 6, w: 26, h: 12, vx: -(150 + Math.min(g.n, 7) * 10), alive: true });
+    }
     // 掉進坑
     if (h.y > WH + 30) return pitFall();
     // 鏡頭：平常英雄在畫面 35% 的位置；有題目時往前看（20%），讓三塊答案磚都看得到；只往前、平滑移動
@@ -279,6 +328,17 @@ const WD = (() => {
         if (hit(h, e)) {
           if (h.vy > 60 && h.y + h.h - e.y < 12) {   // 從上面踩
             e.alive = false; h.vy = -320; g.score += P.stomp; g.stomps++;
+            pop(e.x + e.w / 2, e.y, `+${P.stomp}`, '#ffd23f');
+          } else if (h.inv <= 0) { hurt(e); if (g.energy <= 0) return die('hungry'); }
+        }
+      } else if ((e.t === 'missile' || e.t === 'fish') && e.alive) {
+        if (e.t === 'fish' && e.x > g.camX + VW + 40) continue;
+        e.x += e.vx * dt;
+        if (e.t === 'fish') e.y = e.by + Math.sin(g.clock * 2 + e.ph) * 10;
+        if (e.x < g.camX - 80) { e.alive = false; continue; }
+        if (hit(h, e)) {
+          if (h.vy > 40 && h.y + h.h - e.y < 12) {   // 從上面踩
+            e.alive = false; h.vy = sea ? -200 : -320; g.score += P.stomp; g.stomps++;
             pop(e.x + e.w / 2, e.y, `+${P.stomp}`, '#ffd23f');
           } else if (h.inv <= 0) { hurt(e); if (g.energy <= 0) return die('hungry'); }
         }
@@ -338,9 +398,9 @@ const WD = (() => {
     g.q = null; pane(''); g.last = performance.now();
     if (ok) {
       g.right++; g.streak++; g.best = Math.max(g.best, g.streak);
-      const pts = P.right + (g.streak >= 3 ? P.streak : 0); g.score += pts; g.energy = ENERGY;
+      const pts = P.right + (g.streak >= 3 ? P.streak : 0); g.score += pts; g.energy = Math.min(ENERGY, g.energy + E_RIGHT);
       for (let k = 0; k < 8; k++) g.fx.push({ t: 0.9, x: x0, y: y0, vx: (k - 3.5) * 32, vy: -280 - (k % 3) * 30, coin: true });
-      banner('✅', L(`答對！+${pts}　⚡ 體力補滿`, `Correct! +${pts}  ⚡ full energy`), `${q.w.word} = ${short(q.w)}${g.streak >= 3 ? `　🔥${g.streak}` : ''}`, '#CCFF00');
+      banner('✅', L(`答對！+${pts}　⚡ +30 秒`, `Correct! +${pts}  ⚡ +30 s`), `${q.w.word} = ${short(q.w)}${g.streak >= 3 ? `　🔥${g.streak}` : ''}`, '#CCFF00');
     } else {
       g.wrong++; g.streak = 0; g.energy = Math.max(1, g.energy - E_WRONG);
       banner('✕', L(`不對喔　⚡−${E_WRONG}`, `Not quite  ⚡−${E_WRONG}`), `${q.w.word} = ${short(q.w)}`, '#ff6b57');
@@ -358,7 +418,7 @@ const WD = (() => {
   }
   function respawn() {
     const g = game, h = g.hero;
-    h.x = Math.max(0, h.safeX - 12); h.y = GROUND * T - h.h - 2 * T; h.vx = 0; h.vy = 0; h.inv = 2;   // safeX 一定是站過的地板
+    h.x = h.safeX; h.y = h.safeY - 2; h.vx = 0; h.vy = 0; h.inv = 2;   // 回到最後兩腳站穩的地方
     g.camX = Math.min(g.camX, Math.max(0, h.x - VW * 0.3));
   }
   function showQ() { const el = $('wdQ'); if (el) { el.style.display = 'none'; el.innerHTML = ''; } }
@@ -485,12 +545,19 @@ const WD = (() => {
       for (let i = 0; i < 30; i++) { const x = ((i * 53 - camX * 0.1) % VW + VW) % VW, y = (i * 37) % (GROUND * T - 60); cx.fillRect(x, y, 1.5, 1.5); }
     }
     hills(0.25, th.hill2, 90, 220); hills(0.45, th.hill, 60, 150);
+    if (th.sea) {   // 海底：光束和往上飄的泡泡
+      cx.fillStyle = 'rgba(255,255,255,.06)';
+      for (let i = 0; i < 4; i++) { const x = ((i * 190 - camX * 0.15) % (VW + 200) + VW + 200) % (VW + 200) - 100; cx.beginPath(); cx.moveTo(x, 0); cx.lineTo(x + 40, 0); cx.lineTo(x + 110, GROUND * T); cx.lineTo(x + 60, GROUND * T); cx.fill(); }
+      cx.strokeStyle = 'rgba(200,240,255,.35)'; cx.lineWidth = 1;
+      for (let i = 0; i < 18; i++) { const x = ((i * 61 - camX * 0.3) % VW + VW) % VW, y = GROUND * T - ((i * 47 + (g ? g.clock : 0) * 30) % (GROUND * T)); cx.beginPath(); cx.arc(x, y, 1.5 + (i % 3), 0, 7); cx.stroke(); }
+    }
     if (!g) { cx.fillStyle = th.top; cx.fillRect(0, GROUND * T, VW, 6); cx.fillStyle = th.dirt; cx.fillRect(0, GROUND * T + 6, VW, H / k); return; }
     const lv = g.lv;
     cx.translate(-Math.round(camX), 0);
     const c0 = Math.floor(camX / T) - 1, c1 = Math.ceil((camX + VW) / T) + 1;
     // 地面下方延伸（填滿畫面下緣）
     for (let c = c0; c <= c1; c++) {
+      if (th.kind === 'sky') continue;   // 空島：平台下面不畫土
       if (tile(c, GROUND) !== GD) { if (th.lava && c >= 0 && c < lv.cols) { cx.fillStyle = `hsl(${12 + Math.sin(g.clock * 3 + c) * 6},90%,50%)`; cx.fillRect(c * T, WH - 10, T, (H - oy) / k); } continue; }
       cx.fillStyle = th.dirt; cx.fillRect(c * T - 0.5, WH - 1, T + 1, (H - oy) / k - WH + 2);
     }
@@ -512,10 +579,13 @@ const WD = (() => {
         cx.fillStyle = '#ffd23f'; cx.beginPath(); cx.ellipse(e.x + 6, e.y + 6, 2 + 4 * s, 6, 0, 0, 7); cx.fill();
         cx.fillStyle = '#c99a1a'; cx.fillRect(e.x + 5.5, e.y + 3, 1, 6 * s + 0.5);
       } else if (e.t === 'bug' && e.alive) drawBug(e);
+      else if (e.t === 'missile' && e.alive) drawMissile(e);
+      else if (e.t === 'fish' && e.alive) drawFish(e);
     });
     // 特效
     g.fx.forEach((f) => {
       if (f.coin) { f.x += f.vx * 0.016; f.y += f.vy * 0.016; f.vy += 900 * 0.016; cx.fillStyle = '#ffd23f'; cx.beginPath(); cx.arc(f.x, f.y, 4, 0, 7); cx.fill(); }
+      else if (f.bub) { f.y -= 1.2; cx.globalAlpha = Math.min(1, f.t * 1.5); cx.strokeStyle = '#cfefff'; cx.lineWidth = 1.2; cx.beginPath(); cx.arc(f.x, f.y, 3, 0, 7); cx.arc(f.x + 5, f.y - 6, 2, 0, 7); cx.stroke(); cx.globalAlpha = 1; }
       else if (f.txt) { f.y -= 0.6; cx.globalAlpha = Math.min(1, f.t * 2); cx.fillStyle = f.c; cx.font = '800 11px Syne, sans-serif'; cx.textAlign = 'center'; cx.fillText(f.txt, f.x, f.y); cx.globalAlpha = 1; }
     });
     drawHero(g.hero);
@@ -560,6 +630,21 @@ const WD = (() => {
     cx.fillStyle = '#2b1240'; cx.fillRect(x + 3 + legs, y + 13, 3, 5); cx.fillRect(x + e.w - 6 - legs, y + 13, 3, 5);
     cx.fillStyle = '#fff'; const ex = e.vx < 0 ? x + 4 : x + e.w - 9; cx.fillRect(ex, y + 4, 5, 5); cx.fillStyle = '#000'; cx.fillRect(ex + (e.vx < 0 ? 0 : 3), y + 6, 2, 2);
   }
+  function drawMissile(e) {   // 原創造型：灰色火箭＋尾焰
+    const x = e.x, y = e.y, f = Math.sin(game.clock * 30) * 2;
+    cx.fillStyle = '#ff9a3c'; cx.beginPath(); cx.moveTo(x + 22, y + 2); cx.lineTo(x + 32 + f, y + 6); cx.lineTo(x + 22, y + 10); cx.fill();
+    cx.fillStyle = '#5b6170'; cx.beginPath(); cx.moveTo(x, y + 6); cx.lineTo(x + 8, y); cx.lineTo(x + 24, y); cx.lineTo(x + 24, y + 12); cx.lineTo(x + 8, y + 12); cx.fill();
+    cx.fillStyle = '#ff6b57'; cx.beginPath(); cx.moveTo(x, y + 6); cx.lineTo(x + 8, y); cx.lineTo(x + 8, y + 12); cx.fill();
+    cx.fillStyle = '#3d424d'; cx.fillRect(x + 18, y - 3, 5, 3); cx.fillRect(x + 18, y + 12, 5, 3);
+    cx.fillStyle = 'rgba(255,255,255,.35)'; cx.fillRect(x + 9, y + 2, 13, 2);
+  }
+  function drawFish(e) {   // 原創造型：圓圓的小魚
+    const x = e.x, y = e.y, t = Math.sin(game.clock * 10) * 3;
+    cx.fillStyle = '#ff8c42'; cx.beginPath(); cx.ellipse(x + 9, y + 7, 9, 7, 0, 0, 7); cx.fill();
+    cx.beginPath(); cx.moveTo(x + 16, y + 7); cx.lineTo(x + 23, y + 1 + t); cx.lineTo(x + 23, y + 13 - t); cx.fill();
+    cx.fillStyle = '#ffd1a8'; cx.beginPath(); cx.ellipse(x + 8, y + 9, 5, 3, 0, 0, 7); cx.fill();
+    cx.fillStyle = '#fff'; cx.fillRect(x + 3, y + 3, 4, 4); cx.fillStyle = '#000'; cx.fillRect(x + 3, y + 4, 2, 2);
+  }
   function drawHero(h) {
     if (h.inv > 0 && Math.floor(h.inv * 10) % 2) return;   // 無敵時閃爍
     cx.save(); cx.translate(Math.round(h.x + h.w / 2), Math.round(h.y)); cx.scale(h.face, 1);
@@ -598,7 +683,7 @@ const WD = (() => {
       close();
     }
   }
-  const _t = { get game() { return game; }, keys, jumpPress, check, end, toPts, ask, die, get trial() { return trial; }, get VW() { return VW; }, T, GROUND };
+  const _t = { nextLevel, get game() { return game; }, keys, jumpPress, check, end, toPts, ask, die, get trial() { return trial; }, get VW() { return VW; }, T, GROUND };
   return { id: ID, need: NEED, card, bestText, open, close, _t };
 })();
 GAMES.push(WD);

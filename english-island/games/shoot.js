@@ -10,7 +10,7 @@
 //        saveLedger, saveMeta, afterPoints, points, gameWeekBestAll, gameCard, masteredCount, GAMES, toast, confetti
 // ═══════════════════════════════════════════════════════
 const WS = (() => {
-  const ID = 'shoot', NEED = 4, VER = '0.4';
+  const ID = 'shoot', NEED = 4, VER = '0.5';
   const TIME = 180, CAP = 20;
   const S_PER_PT = 200;               // 每 200 分 1 ⭐（4000 分滿 20）— 待實玩後調整
   const LW = 360;                     // 邏輯寬度
@@ -35,10 +35,11 @@ const WS = (() => {
   const GOLD = '#ffd23f';
   // 道具：連進 2 球（之後每 2 球）可以選一個，用在下一題
   const POWERS = [
-    { id: 'x2', ic: '💰', name: ['下一球投進分數 ×2', 'Next basket ×2'] },
-    { id: 'time', ic: '⏱️', name: ['遊戲時間 +7 秒', '+7 seconds'] },
-    { id: 'big', ic: '⭕', name: ['籃框全部變大', 'Bigger hoops'] },
-    { id: 'aim', ic: '🎯', name: ['完整瞄準線', 'Full aim line'] },
+    // need：這一局最多連進幾球才開放（開放後不會再關掉）
+    { id: 'big', need: 1, ic: '⭕', name: ['籃框全部變大', 'Bigger hoops'] },
+    { id: 'aim', need: 2, ic: '🎯', name: ['完整瞄準線', 'Full aim line'] },
+    { id: 'time', need: 3, ic: '⏱️', name: ['遊戲時間 +7 秒', '+7 seconds'] },
+    { id: 'x2', need: 4, ic: '💰', name: ['下一球投進分數 ×2', 'Next basket ×2'] },
   ];
   const rimOf = (h) => (h.big ? 46 : RIM);
 
@@ -59,7 +60,7 @@ const WS = (() => {
       const st2 = document.createElement('style'); st2.id = 'wsCss';
       st2.textContent = `.ws-pw{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0 6px}
         .ws-pw .btn{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:14px;line-height:1.3;padding:12px 8px;border-color:#4ECDC4;min-height:92px}
-        .ws-pw .btn span{font-size:28px}`;
+        .ws-pw .btn span{font-size:28px}.ws-pw .btn.off{opacity:.35;border-color:#555}.ws-pw .btn small{font-size:11px;opacity:.8}`;
       document.head.appendChild(st2);
     }
     cv = root.querySelector('canvas'); cx = cv.getContext('2d');
@@ -122,7 +123,7 @@ const WS = (() => {
         <div>🏀 ${L(`投進正確的籃框 +${BASKET}；空心球（沒碰到籃框）再 +${SWISH}`, `Right hoop +${BASKET}; swish (no rim) +${SWISH}`)}</div>
         <div>🔥 ${L(`連進 3 球以上，每球再 +${STREAK}`, `3+ in a row: +${STREAK} each`)}</div>
         <div>✨ ${L(`籃框發金光＝黃金時間，${FEVER_LEN} 秒內投進分數 ×2`, `Golden hoops = GOLDEN TIME: ×2 for ${FEVER_LEN}s`)}</div>
-        <div>🎁 ${L('連進 2 球可以選一個道具：下一球 ×2／時間 +7 秒／籃框變大／完整瞄準線', 'Every 2 in a row: pick a power-up (next basket ×2 / +7 s / bigger hoops / full aim line)')}</div>
+        <div>🎁 ${L('每連進 2 球選一個道具；連進 1／2／3／4 球依序開放：籃框變大、完整瞄準線、時間 +7 秒、下一球 ×2（開放後不會再關）', 'Every 2 in a row: pick a power-up. Streaks of 1/2/3/4 unlock bigger hoops, full aim line, +7 s, next basket ×2 (they stay unlocked)')}</div>
         <div>✏️ ${L('投進錯的籃框，要拼出這個字才能繼續（時間不會停）', 'Wrong hoop = spell the word (clock keeps running)')}</div>
         <div>↕️ ${L(`第 ${MOVE_FROM} 題起籃框會上下移動，第 ${WIND_FROM} 題起有風 🌬️`, `Hoops move from word ${MOVE_FROM}; wind from word ${WIND_FROM} 🌬️`)}</div>
         <div>⭐ ${trial ? L('試玩模式：不計分', 'Trial: not scored') : L(`每 ${S_PER_PT} 分 1 顆星，最多 ${CAP}；所有遊戲每週只算最高一局`, `1 ⭐ per ${S_PER_PT} points, up to ${CAP}; best game of the week counts`)}</div>
@@ -256,11 +257,14 @@ const WS = (() => {
   function offerPower() {
     const g = game; g.choosing = Date.now(); aim = null; showQ();
     pane(`<div class="wj-card"><div class="wj-kicker">🔥 ${L(`連進 ${g.streak} 球！選一個道具（下一題用）`, `${g.streak} in a row! Pick a power-up for the next word`)}</div>
-      <div class="ws-pw">${POWERS.map((p) => `<button class="btn ghost" data-ws="pw" data-pw="${p.id}"><span>${p.ic}</span>${L(...p.name)}</button>`).join('')}</div>
+      <div class="ws-pw">${POWERS.map((p) => (g.bestStreak >= p.need
+        ? `<button class="btn ghost" data-ws="pw" data-pw="${p.id}"><span>${p.ic}</span>${L(...p.name)}</button>`
+        : `<button class="btn ghost off" disabled><span>🔒</span>${L(...p.name)}<small>${L(`連進 ${p.need} 球開放`, `${p.need} in a row to unlock`)}</small></button>`)).join('')}</div>
       <p class="wj-small">${L('選的時候時間暫停', 'The clock is paused')}</p></div>`);
   }
   function pickPower(id) {
     const g = game; if (!g || !g.choosing) return;
+    const pw = POWERS.find((x) => x.id === id); if (!pw || g.bestStreak < pw.need) return;
     g.t0 += Date.now() - g.choosing; g.choosing = null; g.last = performance.now();   // 選道具的時間不算
     g.powers++; pane('');
     if (id === 'time') g.t0 += 7000; else g.power = id;   // +7 秒馬上生效；其他用在下一題
