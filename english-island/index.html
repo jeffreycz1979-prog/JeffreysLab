@@ -3104,6 +3104,9 @@ document.addEventListener('keydown', (e) => {
     renderFilters(); renderHome();
     if (!before && $('v-review').classList.contains('active')) buildQueue();
   }
+  // 試玩新遊戲：網址加 ?try=shoot（不用解鎖、不計分），給學生先試手感
+  const tryGame = new URLSearchParams(location.search).get('try');
+  if (tryGame) { const gm = GAMES.find((x) => x.id === tryGame); if (gm && st.words.length) setTimeout(() => gm.open({ trial: true }), 300); }
   if ('serviceWorker' in navigator && !qs) {
     navigator.serviceWorker.register('/JeffreysLab/english-island/sw.js', { scope: '/JeffreysLab/english-island/' }).catch(() => {});
   }
@@ -3112,6 +3115,7 @@ document.addEventListener('keydown', (e) => {
 <script src="games/jump.js?v=1.5"></script>
 <script src="games/blaster.js?v=1.5"></script>
 <script src="games/run.js?v=1.1"></script>
+<script src="games/shoot.js?v=0.1"></script>
 <script src="cloud.js?v=2"></script>
 </body>
 </html>
