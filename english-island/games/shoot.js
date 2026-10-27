@@ -10,7 +10,7 @@
 //        saveLedger, saveMeta, afterPoints, points, gameWeekBestAll, gameCard, masteredCount, GAMES, toast, confetti
 // ═══════════════════════════════════════════════════════
 const WS = (() => {
-  const ID = 'shoot', NEED = 4, VER = '0.7';
+  const ID = 'shoot', NEED = 4, VER = '0.8';
   const TIME = 180, CAP = 20;
   const S_PER_PT = 200;               // 每 200 分 1 ⭐（4000 分滿 20）— 待實玩後調整
   const LW = 360;                     // 邏輯寬度
@@ -175,7 +175,7 @@ const WS = (() => {
         h.amp = n >= MOVE_FROM ? Math.min(46, 16 + (n - MOVE_FROM) * 4) : 0;
         h.sp = n >= MOVE_FROM ? 1.1 + Math.random() * 0.9 : 0;
       }
-      h.by = Math.max(VH * h.yr + 40, topY() + 8 + 66 + h.amp); h.y = h.by;   // 籃板（高 66）不能被題目擋到，連上下移動的幅度也算
+      h.by = Math.max(VH * h.yr + 40, topY() + 40 + 66 + h.amp); h.y = h.by;   // 籃板（高 66）不能擋到題目和黃金時間字樣（留 32），連上下移動的幅度也算
     });
   }
   // 題目框下緣（換成遊戲座標）；iPhone 瀏海／動態島會把題目往下推
@@ -247,18 +247,18 @@ const WS = (() => {
       const tag = m > 1 ? ` (×${m})` : '';
       banner(m > 1 ? '✨' : !b.touched ? '💫' : '🏀', (!b.touched ? L(`空心球！+${pts}`, `Swish! +${pts}`) : L(`進了！+${pts}`, `Nice! +${pts}`)) + tag,
         g.streak >= 3 ? L(`連進 ${g.streak} 球 🔥`, `${g.streak} in a row 🔥`) : `${g.q.w.word} = ${short(g.q.w)}`, '#CCFF00');
-      g.firstShot = g.qShots <= 1;
-      g.after = g.firstShot || g.streak % 2 === 0 ? offerPower : nextQ; g.pause = 0.75;   // 一球就進，或連進 2、4、6… 題，就給道具
+      g.firstShot = g.qShots <= 1; g.since = (g.since || 0) + 1;   // since：上次選道具後又連續答對幾題
+      g.after = g.firstShot || g.since >= 2 ? offerPower : nextQ; g.pause = 0.75;   // 一球就進，或（不管投幾次）連續答對 2 題，就給道具
     } else {
-      g.wrong++; g.streak = 0;
+      g.wrong++; g.streak = 0; g.since = 0;
       burst(h.x, h.y, '#ff6b57');
       banner('✕', L('投錯籃框了', 'Wrong hoop'), `${g.q.w.word} = ${short(g.q.w)}`, '#ff6b57');
       g.after = () => openSpell(g.q.w); g.pause = 0.9;
     }
   }
   function offerPower() {
-    const g = game; g.choosing = Date.now(); aim = null; showQ();
-    pane(`<div class="wj-card"><div class="wj-kicker">🔥 ${g.firstShot ? L('一球就進！選一個道具（下一題用）', 'First-shot basket! Pick a power-up for the next word') : L(`連進 ${g.streak} 題！選一個道具（下一題用）`, `${g.streak} in a row! Pick a power-up for the next word`)}</div>
+    const g = game; g.choosing = Date.now(); g.since = 0; aim = null; showQ();
+    pane(`<div class="wj-card"><div class="wj-kicker">🔥 ${g.firstShot ? L('一球就進！選一個道具（下一題用）', 'First-shot basket! Pick a power-up for the next word') : L('連續答對 2 題！選一個道具（下一題用）', '2 in a row! Pick a power-up for the next word')}</div>
       <div class="ws-pw">${POWERS.map((p) => (g.bestStreak >= p.need
         ? `<button class="btn ghost" data-ws="pw" data-pw="${p.id}"><span>${p.ic}</span>${L(...p.name)}</button>`
         : `<button class="btn ghost off" disabled><span>🔒</span>${L(...p.name)}<small>${L(`連續答對 ${p.need} 題開放`, `${p.need} in a row to unlock`)}</small></button>`)).join('')}</div>
@@ -386,12 +386,13 @@ const WS = (() => {
     cx.strokeStyle = 'rgba(255,255,255,.7)'; cx.lineWidth = 3; cx.beginPath(); cx.ellipse(LW / 2, VH - 60, 120, 40, 0, Math.PI, 0); cx.stroke();
     const g = game;
     if (!g) return;
-    // 風
-    if (g.wind && !g.over) {
-      cx.save(); cx.globalAlpha = 0.8; cx.fillStyle = '#4ECDC4'; cx.font = '700 13px "Noto Sans TC", sans-serif'; cx.textAlign = 'center';
-      const dir = g.wind > 0 ? '→' : '←', n = Math.round(Math.abs(g.wind) / 60);
-      cx.fillText(`🌬️ ${L('風', 'Wind')} ${dir.repeat(Math.max(1, n))}`, LW / 2, topY() + 18);   // 題目下方
-      cx.restore();
+    // 風（第 11 題起每題都有，方向與強度隨機）：標在球下方的地板上，瞄準時一定看得到
+    if (g.wind && !g.over && !g.spell) {
+      const dir = g.wind > 0 ? '→' : '←', n = Math.round(Math.abs(g.wind) / 60), t = `🌬️ ${L('風', 'Wind')} ${dir.repeat(Math.max(1, n))}`, r = REST();
+      cx.save(); cx.font = '800 14px "Noto Sans TC", sans-serif'; cx.textAlign = 'center';
+      const tw = cx.measureText(t).width + 20; cx.fillStyle = 'rgba(10,20,30,.7)';
+      cx.beginPath(); cx.roundRect ? cx.roundRect(r.x - tw / 2, r.y + 62, tw, 24, 12) : cx.rect(r.x - tw / 2, r.y + 62, tw, 24); cx.fill();
+      cx.fillStyle = '#4ECDC4'; cx.fillText(t, r.x, r.y + 79); cx.restore();
     }
     if (fever() && !g.over) {   // 黃金時間：畫面四周金光＋閃亮
       const left = Math.ceil(g.feverEnd - elapsed()), pul = 0.5 + 0.5 * Math.sin(g.clock / 160);
@@ -406,7 +407,7 @@ const WS = (() => {
         cx.beginPath(); cx.moveTo(sx - 5, sy); cx.lineTo(sx, sy + 1.5); cx.lineTo(sx + 5, sy); cx.lineTo(sx, sy - 1.5); cx.fill();
       }
       cx.globalAlpha = 1; cx.font = '800 16px Syne, "Noto Sans TC", sans-serif'; cx.textAlign = 'center';
-      cx.shadowColor = GOLD; cx.shadowBlur = 12; cx.fillStyle = GOLD; cx.fillText(`✨ GOLDEN TIME ×2 · ${left}s`, LW / 2, topY() + (g.wind ? 40 : 20)); cx.restore();
+      cx.shadowColor = GOLD; cx.shadowBlur = 12; cx.fillStyle = GOLD; cx.fillText(`✨ GOLDEN TIME ×2 · ${left}s`, LW / 2, topY() + 22); cx.restore();
     }
     if (g.spell) return;   // 拼字時只留球場背景
     g.hoops.forEach((h) => drawHoop(h, 'back'));
