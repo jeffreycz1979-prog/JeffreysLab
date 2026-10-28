@@ -3311,6 +3311,9 @@ document.addEventListener('keydown', (e) => {
     renderFilters(); renderHome();
     if (!before && $('v-review').classList.contains('active')) buildQueue();
   }
+  // 試玩遊戲：網址加 ?try=shoot／dino／horde（不用解鎖、不計分）
+  const tryGame = new URLSearchParams(location.search).get('try');
+  if (tryGame) { const gm = GAMES.find((x) => x.id === tryGame); if (gm && st.words.length) setTimeout(() => gm.open({ trial: true }), 300); }
   if ('serviceWorker' in navigator && !qs) {
     navigator.serviceWorker.register('/JeffreysLab/thp5/sw.js', { scope: '/JeffreysLab/thp5/' }).catch(() => {});
   }
@@ -3319,5 +3322,8 @@ document.addEventListener('keydown', (e) => {
 <script src="games/jump.js?v=1.5"></script>
 <script src="games/blaster.js?v=1.5"></script>
 <script src="games/run.js?v=1.1"></script>
+<script src="games/shoot.js?v=0.8"></script>
+<script src="games/dino.js?v=0.6"></script>
+<script src="games/horde.js?v=0.4"></script>
 </body>
 </html>
