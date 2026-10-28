@@ -1,6 +1,6 @@
 // 英文島 THP5 班級版 - Service Worker（scope：/JeffreysLab/thp5/）
 // 頁面與程式改成網路優先；改了檔案仍建議把版本號 +1，舊快取會自動清除
-const CACHE_NAME = 'thp5-v5';
+const CACHE_NAME = 'thp5-v6';
 
 const PRECACHE_URLS = [
   '/JeffreysLab/thp5/',
@@ -15,6 +15,7 @@ const PRECACHE_URLS = [
   '/JeffreysLab/thp5/games/shoot.js?v=0.8',
   '/JeffreysLab/thp5/games/dino.js?v=0.6',
   '/JeffreysLab/thp5/games/horde.js?v=0.4',
+  '/JeffreysLab/thp5/cloud.js?v=1',
   '/JeffreysLab/icons/icon-192.png',
   '/JeffreysLab/icons/icon-512.png',
 ];
