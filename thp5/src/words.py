@@ -204,7 +204,7 @@ U['U9'] = [
   ('snow', 'n.', 'sno', '雪', 'soft white ice that falls from the sky', 'We play in the snow in winter.', '冬天我們在雪中玩。'),
 ]
 
-OPEN = {'U1', 'U2', 'U3'}   # 開放的單元（其他填 N＝未開放）
+OPEN = {'U1', 'U2', 'U3', 'U4', 'U5', 'U6'}   # 開放的單元（其他填 N＝未開放）
 HEAD = ['ID', '單字', '類型', '詞性', '音標', '中文', '英文定義', '例句', '例句中文', '教材', '單元', '課次', 'CEFR', '狀態', '備註', '開放']
 
 def kind(word, pos):

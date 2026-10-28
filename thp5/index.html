@@ -1015,7 +1015,7 @@ function rowsToWords(rows) {
   }));
 }
 // 單元開放：Sheet 有「開放」欄就照它（填 N 的字不開放）；沒有這欄就只開放 DEFAULT_OPEN
-const DEFAULT_OPEN = ['U1', 'U2', 'U3'];
+const DEFAULT_OPEN = ['U1', 'U2', 'U3', 'U4', 'U5', 'U6'];
 function setWords(words) {
   const useCol = words.some((w) => w.openCol);
   const isOpen = (w) => (useCol ? w.open !== false : DEFAULT_OPEN.includes(w.unit));
