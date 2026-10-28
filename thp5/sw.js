@@ -1,6 +1,6 @@
 // 英文島 THP5 班級版 - Service Worker（scope：/JeffreysLab/thp5/）
 // 頁面與程式改成網路優先；改了檔案仍建議把版本號 +1，舊快取會自動清除
-const CACHE_NAME = 'thp5-v3';
+const CACHE_NAME = 'thp5-v4';
 
 const PRECACHE_URLS = [
   '/JeffreysLab/thp5/',

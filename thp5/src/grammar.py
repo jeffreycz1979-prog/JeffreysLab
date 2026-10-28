@@ -495,5 +495,14 @@ for u in G['cards']:
         for w in s['words']: assert '[' in w and ']' in w, w
     assert len(G['phonics'][u]['practice']) == 24, u
 
+# 句型教學頁（圖解、公式、上色例句）：見 lessons.py
+import re
+from lessons import LESSONS
+for u, ls in LESSONS.items():
+    assert u in G['cards'], u
+    for x in ls:
+        for en, zh in x['eg']:
+            assert re.sub(r'\{[SBVTCNAPO]:[^{}]+\}', '', en).count('{') == 0, (u, en)
+G['lessons'] = LESSONS
 json.dump(G, open(sys.argv[1], 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
 print('ok', {u: (len(G['questions'][u]), len(G['listening'][u])) for u in G['cards']})

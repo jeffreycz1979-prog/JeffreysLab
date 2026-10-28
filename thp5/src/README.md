@@ -10,4 +10,6 @@ python3 words.py ../words.csv
 python3 grammar.py ../grammar.json
 ```
 
-開放單元：`words.py` 的 `OPEN`（目前 U1–U3）。
+開放單元：`words.py` 的 `OPEN`（目前 U1–U6）。
+
+句型教學頁（圖解、公式、上色例句）：`lessons.py`，由 `grammar.py` 一起寫進 grammar.json 的 `lessons`。

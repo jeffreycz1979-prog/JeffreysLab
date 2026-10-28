@@ -428,6 +428,35 @@ nav button.on{color:var(--lime);font-weight:700}
 .ph-w{border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:6px 12px;font-family:'Syne',sans-serif;font-size:16px;font-weight:700}
 .ph-w em{font-style:normal;color:var(--coral)}
 .ph-w.sm{font-size:14px;padding:5px 10px;font-weight:600}
+/* 句型教學頁（圖解、公式、上色例句）與練習 */
+.r-S{color:#4ECDC4}.r-B{color:#CCFF00}.r-V{color:#FF8A65}.r-T{color:#B48CFF}.r-C{color:#FFB547}.r-N{color:#FF5A5A}.r-A{color:#7FD3FF}.r-P{color:#FF9AC1}.r-O{color:var(--ink)}
+.rlegend{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:12px;font-weight:700;margin:6px 0 10px}
+.lesson{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:14px 14px 12px;margin-bottom:12px}
+.lesson .lh{display:flex;gap:10px;align-items:center}
+.lesson .ln{flex:none;width:30px;height:30px;border-radius:50%;background:var(--lime);color:#10140a;font:800 15px Syne,sans-serif;display:flex;align-items:center;justify-content:center}
+.lesson .lh b{display:block;font-size:17px;color:var(--ink)}.lesson .lh small{color:var(--muted);font-size:12px;font-family:Syne,sans-serif}
+.lesson .lex{font-size:15px;line-height:1.6;margin:10px 0 6px;color:var(--ink)}
+.lesson .tl{width:100%;max-width:420px;display:block;margin:6px auto 4px;background:var(--panel);border-radius:14px}
+.tl .tl-l{font-size:12px;fill:#9aa0b8;text-anchor:middle;font-weight:700}.tl .tl-l.now{fill:#CCFF00}.tl .tl-l.p{fill:#B48CFF}
+.tl .tl-b{font-size:13px;fill:#10140a;text-anchor:middle;font-weight:800}.tl .tl-b.c{fill:#fff}
+.tl .tl-s{font-size:12px;fill:#c7cbe0;text-anchor:middle;font-weight:600}.tl .tl-big{font-size:28px;fill:#fff;text-anchor:middle;font-weight:800}
+.lesson .lsec{font-size:12px;color:var(--muted);font-weight:800;letter-spacing:.06em;margin:12px 0 6px}
+.fml{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-bottom:6px}
+.fml .fc{background:var(--panel);border:1.5px solid currentColor;border-radius:10px;padding:5px 9px;font-weight:800;font-size:14px}
+.fml i{font-style:normal;color:var(--muted);font-weight:800}
+.ltb{display:grid;grid-template-columns:1fr;gap:4px;margin:6px 0}.ltb div{display:flex;justify-content:space-between;gap:10px;background:var(--panel);border-radius:10px;padding:6px 10px;font-size:14px}
+.ltb span{color:#4ECDC4;font-weight:700}.ltb b{color:#CCFF00}
+.leg{display:flex;align-items:center;gap:10px;background:var(--panel);border-radius:12px;padding:8px 10px;margin-bottom:6px}
+.leg>div{flex:1;min-width:0}.leg .en{font-size:16px;font-weight:600;line-height:1.5}.leg .en span{font-weight:800}.leg small{color:var(--muted);font-size:13px}
+.ltip{margin-top:8px;font-size:13px;color:#FFB547;background:rgba(255,181,71,.1);border-radius:10px;padding:8px 10px}
+.prbar{background:var(--card);border:1.5px solid var(--lime);border-radius:18px;padding:12px 14px;font-size:14px;margin:4px 0 8px}
+.prhead{display:flex;justify-content:space-between;align-items:center;font-weight:800;margin-bottom:6px}.prhead b{font-family:Syne,sans-serif;color:var(--lime)}
+.prdots{display:flex;gap:6px;margin-bottom:12px}.prdots i{flex:1;height:6px;border-radius:3px;background:var(--panel)}.prdots i.now{background:var(--mint)}.prdots i.ok{background:var(--lime)}.prdots i.bad{background:var(--coral)}
+.prbox{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px}
+.prq{font-size:18px;font-weight:700;line-height:1.5;margin-bottom:10px}.prq u{color:var(--lime)}
+.prfb{margin:12px 0 10px;padding:10px 12px;border-radius:12px;font-weight:800}.prfb.ok{background:rgba(204,255,0,.12);color:var(--lime)}.prfb.bad{background:rgba(255,107,87,.12);color:var(--coral)}
+.prfb small{display:block;color:var(--ink);font-weight:500;margin-top:4px}
+.prres{text-align:center;padding:20px 6px}.prres .big{font:800 54px Syne,sans-serif;color:var(--lime)}.prres p{font-size:16px;margin:8px 0 16px}
 .gmis .x{color:var(--coral);text-decoration:line-through}.gmis .o{color:var(--mint);font-weight:700}.gmis small{color:var(--muted)}
 .qunit .acts{display:flex;gap:6px;flex:none}
 .qunit .gbtn{background:var(--panel);border:1.5px solid var(--line);color:var(--ink);font-weight:700;font-size:13px;border-radius:12px;padding:8px 10px}
@@ -1629,16 +1658,19 @@ function unitStations(u) {
   const ws = st.words.filter((w) => w.unit === u), n = ws.length;
   const k = { known: 0, learn: 0, hard: 0, new: 0 }; ws.forEach((w) => k[statusOf(w)]++);
   const studied = n - k.new, best = (st.meta.quizBest || {})[u];
-  const hasPh = !!(GRAM.phonics || {})[u], hasCard = !!((GRAM.cards || {})[u] || (GRAM.everyday || {})[u]) || hasPh;
+  const hasPh = !!(GRAM.phonics || {})[u], hasCard = !!((GRAM.lessons || {})[u] || (GRAM.cards || {})[u] || (GRAM.everyday || {})[u]);
   const seen = !!(st.meta.gseen || {})[u];
   const gramReady = Object.keys(GRAM.cards || {}).length > 0;   // grammar.json 還沒載入時，沒有小卡的單元先不算完成
   const need = Math.ceil(n * RECALL_SHARE);
   const S = [
     { key: 'words', ic: '🃏', zh: '字彙', en: 'Words', done: n > 0 && studied >= n, pct: n ? studied / n : 0,
       txt: L(`${n} 個字・學過 ${studied}`, `${n} words · studied ${studied}`), act: `data-unit="${esc(u)}"`, btn: L('複習 ▶', 'Review ▶') },
-    { key: 'pattern', ic: '📘', zh: '句型', en: 'Patterns', done: hasCard ? seen : gramReady, pct: (hasCard ? seen : gramReady) ? 1 : 0,
-      txt: hasCard ? (seen ? L(hasPh ? '看過文法和發音小卡' : '看過文法和生活句型小卡', 'Grammar cards read') : L(hasPh ? '看一次文法和發音小卡' : '看一次文法和生活句型小卡', hasPh ? 'Read the grammar & phonics cards' : 'Read the grammar cards')) : L('這個單元沒有文法小卡', 'No grammar card'),
-      act: hasCard ? `data-gcard="${esc(u)}"` : '', btn: L('看小卡', 'Open') },
+    { key: 'pattern', ic: '📘', zh: '句型', en: 'Patterns', done: hasCard ? pracBest(u, 'g') >= PR_PASS : gramReady, pct: hasCard ? Math.min(1, pracBest(u, 'g') / PR_PASS) : gramReady ? 1 : 0,
+      txt: hasCard ? (pracBest(u, 'g') >= PR_PASS ? L(`句型練習 ${pracBest(u, 'g')} / ${PR_N}`, `Grammar practice ${pracBest(u, 'g')} / ${PR_N}`) : L(`看圖解學句型，練習 ${PR_N} 題答對 ${PR_PASS} 題`, `Learn the patterns, then ${PR_PASS} / ${PR_N} in practice`)) : L('這個單元沒有句型', 'No grammar'),
+      act: hasCard ? `data-gpat="${esc(u)}"` : '', btn: L('學句型', 'Learn') },
+    ...(hasPh ? [{ key: 'phonics', ic: '🔤', zh: '發音', en: 'Phonics', done: pracBest(u, 'p') >= PR_PASS, pct: Math.min(1, pracBest(u, 'p') / PR_PASS),
+      txt: pracBest(u, 'p') >= PR_PASS ? L(`發音練習 ${pracBest(u, 'p')} / ${PR_N}`, `Phonics practice ${pracBest(u, 'p')} / ${PR_N}`) : L(`聽例字學發音，練習 ${PR_N} 題答對 ${PR_PASS} 題`, `Listen and learn, then ${PR_PASS} / ${PR_N} in practice`),
+      act: `data-gph="${esc(u)}"`, btn: L('學發音', 'Learn') }] : []),
     { key: 'quiz', ic: '🎯', zh: '挑戰', en: 'Challenge', done: isMastered(u), pct: best == null ? 0 : Math.min(1, best / MASTER_PCT),
       txt: best == null ? L(`10 題拿到 ${MASTER_PCT}% 就過關`, `Score ${MASTER_PCT}% on 10 questions`) : L(`最佳 ${best}%・${MASTER_PCT}% 過關`, `Best ${best}% · pass at ${MASTER_PCT}%`),
       act: `data-qunit="${esc(u)}"`, btn: L('挑戰 ▶', 'Go ▶') },
@@ -1864,7 +1896,7 @@ function openUnit(u) {
       ${s.act ? `<button class="go" ${s.act}>${s.btn}</button>` : `<button class="go" disabled>${s.btn}</button>`}</div>`).join('')}
     <p class="unote">${info.full
       ? L(`🏁 ${esc(u)} 的島蓋好了！記得偶爾回來複習，${FADE_DAYS} 天沒練旗子會褪色。`, `🏁 ${esc(u)} is built! Come back now and then — the flag fades after ${FADE_DAYS} days.`)
-      : L('每完成一站，這座島就多蓋一層樓；四站都完成就插上旗子。挑戰過關還會開放獎勵遊戲。', 'Each station adds a floor. Finish all four to raise the flag — passing the challenge also unlocks bonus games.')}</p>
+      : L(`每完成一站，這座島就多蓋一層樓；${info.total} 站都完成就插上旗子。挑戰過關還會開放獎勵遊戲。`, `Each station adds a floor. Finish all ${info.total} to raise the flag — passing the challenge also unlocks bonus games.`)}</p>
     <div class="btnrow" style="margin-top:12px"><button class="btn ghost" data-close="1">${L('關閉', 'Close')}</button></div>`;
   $('modal').classList.add('show');
 }
@@ -2741,7 +2773,174 @@ function cardHTMLp(p, label) {   // 發音小卡（grammar.json 的 phonics）�
         <div class="ph-words">${p.practice.map((w) => `<button class="ph-w sm" data-say="${esc(w)}">${esc(w)}</button>`).join('')}</div>` : ''}
     </div>`;
 }
-function openGrammar(unit) {
+// ═══ 句型站、發音站（v2.0）：先教再練，練習 5 題答對 4 題才算完成 ═══
+const PR_N = 5, PR_PASS = 4;
+const ROLE = { S: ['主詞', 'Subject'], B: ['be／助動詞', 'be / helper'], V: ['動詞', 'Verb'], T: ['時間', 'Time'], C: ['連接詞', 'Linker'], N: ['否定', 'Not'], A: ['形容詞／副詞', 'Adj / Adv'], P: ['介系詞', 'Preposition'] };
+const egHTML = (en) => esc(en).replace(/\{([SBVTCNAPO]):([^{}]+)\}/g, (m, r, t) => `<span class="r-${r}">${t}</span>`);
+const egPlain = (en) => en.replace(/\{[SBVTCNAPO]:([^{}]+)\}/g, '$1');
+// 圖解（時間軸／比較／移動…）：純 SVG
+function tlSVG(t) {
+  if (!t || !t.type) return '';
+  const W = 320, e = (s) => esc(String(s || ''));
+  const axis = (y = 70) => `<line x1="16" y1="${y}" x2="304" y2="${y}" stroke="#4a5068" stroke-width="3" stroke-linecap="round"/><path d="M296 ${y - 6} L306 ${y} L296 ${y + 6}" fill="none" stroke="#4a5068" stroke-width="3"/>
+    <text x="40" y="${y + 20}" class="tl-l">${L('過去', 'Past')}</text><text x="160" y="${y + 20}" class="tl-l now">${L('現在', 'Now')}</text><text x="280" y="${y + 20}" class="tl-l">${L('未來', 'Future')}</text>
+    <line x1="160" y1="${y - 7}" x2="160" y2="${y + 7}" stroke="#CCFF00" stroke-width="3"/>`;
+  const box = (x, y, w, txt, c) => `<rect x="${x}" y="${y}" width="${w}" height="26" rx="8" fill="${c}" opacity=".9"/><text x="${x + w / 2}" y="${y + 18}" class="tl-b">${e(txt)}</text>`;
+  const arrow = (x1, x2, y, c, dash) => `<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="${c}" stroke-width="3" ${dash ? 'stroke-dasharray="6 5"' : ''}/><path d="M${x2 - Math.sign(x2 - x1) * 9} ${y - 6} L${x2} ${y} L${x2 - Math.sign(x2 - x1) * 9} ${y + 6}" fill="none" stroke="${c}" stroke-width="3"/>`;
+  const bar = (x, y, w, h, c, lab) => `<rect x="${x}" y="${y - h}" width="${w}" height="${h}" rx="6" fill="${c}"/><text x="${x + w / 2}" y="${y + 16}" class="tl-l">${e(lab)}</text>`;
+  let g = '', H = 100;
+  switch (t.type) {
+    case 'now': g = axis() + `<circle cx="160" cy="70" r="9" fill="#FF8A65"><animate attributeName="r" values="7;12;7" dur="1.4s" repeatCount="indefinite"/></circle><text x="160" y="40" class="tl-b c">🔁 ${e(t.a || L('正在做', 'happening now'))}</text>`; break;
+    case 'pastpoint': g = axis() + `<path d="M60 52 q8 -8 16 0 t16 0 t16 0 t16 0" fill="none" stroke="#FF8A65" stroke-width="4"/><line x1="84" y1="60" x2="84" y2="78" stroke="#B48CFF" stroke-width="3"/><circle cx="84" cy="70" r="6" fill="#B48CFF"/>
+      <text x="84" y="32" class="tl-b c">🔁 ${e(t.b)}</text><text x="84" y="104" class="tl-l p">⏰ ${e(t.a)}</text>`; H = 112; break;
+    case 'future': g = axis() + arrow(160, 262, 50, '#CCFF00') + `<circle cx="262" cy="70" r="7" fill="#B48CFF"/><text x="210" y="38" class="tl-b c">${e(t.b)}</text><text x="262" y="104" class="tl-l p">${e(t.a)}</text>`; H = 112; break;
+    case 'plan': g = axis() + arrow(160, 262, 50, '#CCFF00', 1) + `<text x="160" y="36" class="tl-b c">💭 ${e(t.a)}</text>`; break;
+    case 'ago': g = axis() + arrow(160, 64, 50, '#B48CFF') + `<circle cx="64" cy="70" r="7" fill="#FF8A65"/><text x="112" y="38" class="tl-b c">⏪ ${e(t.a)}</text>`; break;
+    case 'pastlist': g = axis() + (t.list || []).map((s, i) => { const x = 28 + i * 34; return `<line x1="${x}" y1="64" x2="${x}" y2="76" stroke="#B48CFF" stroke-width="3"/><text x="${x}" y="${i % 2 ? 50 : 36}" class="tl-s">${e(s)}</text>`; }).join('') + `<text x="160" y="40" class="tl-l now">← ${L('都已經過去了 → 用過去式', 'all in the past → past tense')}</text>`; break;
+    case 'seq': g = axis() + box(28, 36, 104, `① ${t.a}`, '#4ECDC4') + arrow(138, 168, 49, '#FFB547') + box(172, 36, 112, `② ${t.b}`, '#FF8A65') + `<text x="160" y="24" class="tl-s">① before ②　／　② after ①</text>`; break;
+    case 'simul': g = box(40, 10, 240, `① ${t.a}`, '#4ECDC4') + box(40, 42, 240, `② ${t.b}`, '#FF8A65') + `<text x="160" y="88" class="tl-s">${L('① 和 ② 同時發生', '① and ② happen at the same time')}</text>`; H = 98; break;
+    case 'interrupt': g = axis() + box(16, 40, 136, `🔁 ${t.a}`, '#4ECDC4') + `<path d="M108 4 L96 26 L106 26 L94 50" fill="none" stroke="#FFD23F" stroke-width="4" stroke-linejoin="round"/><text x="122" y="20" class="tl-b c" text-anchor="start" style="text-anchor:start">⚡ ${e(t.b)}</text>`; break;
+    case 'cond': g = box(16, 30, 128, `🤔 ${t.a}`, '#FFB547') + arrow(150, 178, 43, '#CCFF00') + box(184, 30, 120, `👉 ${t.b}`, '#4ECDC4') + `<text x="80" y="80" class="tl-s">${L('條件（現在式）', 'condition (present)')}</text><text x="244" y="80" class="tl-s">${L('結果（should / will）', 'result (should / will)')}</text>`; H = 92; break;
+    case 'change': g = box(30, 30, 100, t.a, '#4a5068') + arrow(140, 180, 43, '#CCFF00') + box(190, 30, 100, t.b, '#FF8A65') + `<text x="160" y="22" class="tl-s">get</text>`; H = 72; break;
+    case 'span': g = axis(64) + `<rect x="70" y="40" width="160" height="12" rx="6" fill="#FF8A65"/><text x="70" y="30" class="tl-b c">🚩 ${e(t.a)}</text><text x="230" y="30" class="tl-b c">🏁 ${e(t.b)}</text>`; H = 96; break;
+    case 'equal': g = bar(80, 80, 50, 56, '#4ECDC4', t.a) + bar(190, 80, 50, 56, '#FF8A65', t.b) + `<text x="160" y="56" class="tl-big">=</text>`; H = 104; break;
+    case 'more': g = bar(80, 80, 50, 34, '#4a5068', t.a) + bar(190, 80, 50, 62, '#FF8A65', t.b) + `<text x="160" y="56" class="tl-big">&lt;</text>`; H = 104; break;
+    case 'most': g = bar(50, 82, 44, 26, '#4a5068', '') + bar(138, 82, 44, 44, '#4ECDC4', '') + bar(226, 82, 44, 66, '#FF8A65', '') + `<text x="248" y="12" class="tl-big" style="font-size:18px">👑</text>`; H = 92; break;
+    case 'max': g = `<rect x="30" y="30" width="260" height="22" rx="11" fill="#2a3048"/><rect x="30" y="30" width="260" height="22" rx="11" fill="url(#mxg)"/><text x="160" y="72" class="tl-s">${L('用盡全力 100%', 'all-out 100%')} 💪</text>
+      <defs><linearGradient id="mxg"><stop offset="0" stop-color="#4ECDC4"/><stop offset="1" stop-color="#CCFF00"/></linearGradient></defs>`; H = 84; break;
+    case 'tenses': g = axis() + box(18, 30, 92, t.a, '#B48CFF') + box(114, 30, 92, t.b, '#4ECDC4') + box(210, 30, 92, t.c, '#CCFF00'); break;
+    case 'people': g = [['👤❓', 'someone'], ['👥', 'everyone'], ['🚫', 'no one'], ['❔', 'anyone']].map(([ic, w], i) => `<text x="${40 + i * 80}" y="40" class="tl-big" style="font-size:26px">${ic}</text><text x="${40 + i * 80}" y="68" class="tl-s">${w}</text>`).join(''); H = 80; break;
+    case 'senses': g = [['👀', 'look'], ['👃', 'smell'], ['👂', 'sound'], ['👅', 'taste'], ['✋', 'feel']].map(([ic, w], i) => `<text x="${32 + i * 64}" y="40" class="tl-big" style="font-size:26px">${ic}</text><text x="${32 + i * 64}" y="68" class="tl-s">${w}</text>`).join(''); H = 80; break;
+    case 'see': g = `<text x="60" y="52" class="tl-big" style="font-size:34px">👀</text>` + arrow(90, 150, 42, '#CCFF00') + box(160, 28, 140, '🐭 digging…', '#FF8A65') + `<text x="230" y="74" class="tl-s">${L('對方「正在做」→ V-ing', 'they are doing it → V-ing')}</text>`; H = 86; break;
+    case 'tag': g = box(24, 30, 120, 'The girl', '#4ECDC4') + `<text x="160" y="48" class="tl-b c" style="fill:#FF9AC1">with</text>` + box(180, 30, 120, '👀 big eyes', '#7FD3FF') + `<text x="160" y="82" class="tl-s">${L('「哪一個女孩？」→ 有大眼睛的那個', 'Which girl? The one with big eyes')}</text>`; H = 92; break;
+    case 'adverb': g = box(30, 30, 100, `${t.a}（${L('形容詞', 'adj.')}）`, '#4a5068') + arrow(140, 180, 43, '#CCFF00') + box(190, 30, 100, `${t.b}`, '#7FD3FF') + `<text x="160" y="22" class="tl-s">+ ly</text>`; H = 72; break;
+    case 'conj': g = `<text x="80" y="36" class="tl-b c">👍 ＋ <tspan style="fill:#FFB547">and</tspan> ＋ 👍</text><text x="240" y="36" class="tl-b c">👍 ＋ <tspan style="fill:#FFB547">but</tspan> ＋ 👎</text><text x="80" y="64" class="tl-s">${L('方向一樣', 'same direction')}</text><text x="240" y="64" class="tl-s">${L('一正一反', 'opposite')}</text>`; H = 76; break;
+    case 'clock': g = `<text x="70" y="50" class="tl-big" style="font-size:36px">⏰</text><text x="200" y="34" class="tl-b c">time <tspan style="fill:#FF9AC1">to</tspan> + <tspan style="fill:#FF8A65">${L('動作', 'action')}</tspan></text><text x="200" y="62" class="tl-b c">time <tspan style="fill:#FF9AC1">for</tspan> + ${L('名詞', 'noun')}</text>`; H = 76; break;
+    case 'advice': g = `<text x="70" y="50" class="tl-big" style="font-size:36px">💡</text><text x="200" y="34" class="tl-b c">should ✅ ${L('這樣做比較好', 'good idea')}</text><text x="200" y="62" class="tl-b c" style="fill:#FF5A5A">shouldn't ❌ ${L('不要這樣做', 'bad idea')}</text>`; H = 76; break;
+    case 'moves': g = [['across', 'M10 40 H70', 'M30 20 V60 M50 20 V60'], ['along', 'M10 52 H70', 'M10 62 H70'], ['around', 'M40 18 A22 22 0 1 1 39 18', 'M34 34 h12 v12 h-12z'], ['between', 'M40 18 V62', 'M18 30 h10 v20 h-10z M52 30 h10 v20 h-10z'], ['over', 'M10 56 Q40 0 70 56', 'M30 46 h20 v14 h-20z'], ['through', 'M10 40 H70', 'M28 24 h24 v32 h-24z']]
+      .map(([w, path, obj], i) => { const x = (i % 3) * 104 + 6, y = Math.floor(i / 3) * 76; return `<g transform="translate(${x} ${y})"><path d="${obj}" fill="none" stroke="#6b7390" stroke-width="3"/><path d="${path}" fill="none" stroke="#FF8A65" stroke-width="3" stroke-dasharray="5 4"/><text x="40" y="74" class="tl-s">${w}</text></g>`; }).join(''); H = 154; break;
+    default: return '';
+  }
+  return `<svg class="tl" viewBox="0 0 ${W} ${H}" role="img">${g}</svg>`;
+}
+function lessonHTML(x, i) {
+  return `<div class="lesson"><div class="lh"><span class="ln">${i + 1}</span><div><b>${esc(x.t)}</b><small>${esc(x.en)}</small></div></div>
+    <p class="lex">${esc(x.ex)}</p>
+    ${tlSVG(x.tl)}
+    <div class="lsec">${L('公式', 'Formula')}</div>
+    ${(x.f || []).map((row) => `<div class="fml">${row.map(([t, r], k) => `${k ? '<i>＋</i>' : ''}<span class="fc r-${r}">${esc(t)}</span>`).join('')}</div>`).join('')}
+    ${x.tb ? `<div class="ltb">${x.tb.map(([a, b]) => `<div><span>${esc(a)}</span><b>${esc(b)}</b></div>`).join('')}</div>` : ''}
+    <div class="lsec">${L('例句（點 🔊 聽）', 'Examples (tap 🔊)')}</div>
+    ${(x.eg || []).map(([en, zh]) => `<div class="leg"><div><div class="en">${egHTML(en)}</div><small>${esc(zh)}</small></div><button class="spk small" data-say="${esc(egPlain(en))}">🔊</button></div>`).join('')}
+    ${x.tip ? `<div class="ltip">💡 ${esc(x.tip)}</div>` : ''}</div>`;
+}
+const legendHTML = () => `<div class="rlegend">${Object.entries(ROLE).map(([r, n]) => `<span class="r-${r}">■ ${L(n[0], n[1])}</span>`).join('')}</div>`;
+const pracBest = (u, k) => ((st.meta.gprac || {})[u] || {})[k] || 0;
+function openPattern(unit) {
+  const ls = (GRAM.lessons || {})[unit], c = (GRAM.cards || {})[unit], e = (GRAM.everyday || {})[unit];
+  if (!ls && !c && !e) return toast('這個單元還沒有句型教學');
+  const best = pracBest(unit, 'g');
+  $('sheet').innerHTML = `<div class="qtype" style="text-align:left">📘 ${esc(unit)} ${L('句型教學', 'Grammar lesson')}${c ? `・${esc(c.title)}` : ''}</div>
+    ${ls ? legendHTML() + ls.map(lessonHTML).join('') : c ? cardHTMLg(c, `📘 ${esc(unit)} 文法 GRAMMAR`) : ''}
+    ${c && (c.mistakes || []).length ? `<div class="gcard"><div class="sec">常見錯誤 COMMON MISTAKES</div>${c.mistakes.map(([x, o, why]) => `<div class="gmis"><span class="x">✕ ${esc(x)}</span><span class="o">✓ ${esc(o)}</span><small>${esc(why)}</small></div>`).join('')}</div>` : ''}
+    ${e ? cardHTMLg(e, `🗣️ ${esc(unit)} 生活句型 EVERYDAY ENGLISH`) : ''}
+    <div class="prbar"><div>${best >= PR_PASS ? `✅ ${L(`練習最佳 ${best} / ${PR_N}`, `Best ${best} / ${PR_N}`)}` : L(`看完了嗎？練習 ${PR_N} 題，答對 ${PR_PASS} 題就完成這一站`, `Practice ${PR_N} questions — ${PR_PASS} right to finish`)}</div>
+      <div class="btnrow"><button class="btn" data-prac="${esc(unit)}" data-kind="g">${L('開始練習 ▶', 'Practice ▶')}</button><button class="btn ghost" data-close="1">${L('關閉', 'Close')}</button></div></div>`;
+  $('modal').classList.add('show'); $('sheet').scrollTop = 0;
+}
+function openPhonics(unit) {
+  const ph = (GRAM.phonics || {})[unit]; if (!ph) return toast('這個單元還沒有發音教學');
+  const best = pracBest(unit, 'p');
+  $('sheet').innerHTML = cardHTMLp(ph, `🔤 ${esc(unit)} 發音 PHONICS`) + `
+    <div class="prbar"><div>${best >= PR_PASS ? `✅ ${L(`練習最佳 ${best} / ${PR_N}`, `Best ${best} / ${PR_N}`)}` : L(`先點例字聽聽看，再練習 ${PR_N} 題（答對 ${PR_PASS} 題完成）`, `Listen to the examples, then practice ${PR_N} questions`)}</div>
+      <div class="btnrow"><button class="btn" data-prac="${esc(unit)}" data-kind="p">${L('開始練習 ▶', 'Practice ▶')}</button><button class="btn ghost" data-close="1">${L('關閉', 'Close')}</button></div></div>`;
+  $('modal').classList.add('show'); $('sheet').scrollTop = 0;
+}
+// ── 練習題 ──
+const pr = { u: '', k: 'g', qs: [], i: 0, right: 0, done: false, tray: [] };
+const shuf = (q) => { const idx = shuffle(q.opts.map((_, i) => i)); return { ...q, opts: idx.map((i) => q.opts[i]), a: idx.indexOf(q.a) }; };
+function phonicsQs(u) {   // 發音題：聽字選音、看哪個字有這個音，加上 grammar.json 裡的發音聽辨題
+  const ph = GRAM.phonics[u], snd = ph.sounds || [], clean = (w) => w.replace(/[[\]]/g, '');
+  const others = Object.entries(GRAM.phonics).filter(([k]) => k !== u).flatMap(([, p]) => p.sounds.flatMap((s) => s.words.map(clean)));
+  const out = [];
+  if (snd.length >= 2) snd.forEach((s) => s.words.forEach((w) => out.push({ type: 'phear', say: clean(w), q: L('聽聽看，這個字是哪一個音？', 'Which sound do you hear?'), opts: snd.map((x) => `${x.name} [${x.ipa}]`), a: snd.indexOf(s), tip: `${clean(w)}：${s.name} [${s.ipa}]` })));
+  snd.forEach((s) => s.words.forEach((w) => {
+    const pool = snd.filter((x) => x !== s).flatMap((x) => x.words.map(clean)).filter((x) => x !== clean(w));
+    const wrong = shuffle(pool.length >= 2 ? pool : pool.concat(shuffle(others))).filter((x, i, a) => a.indexOf(x) === i && x !== clean(w)).slice(0, 2);
+    if (wrong.length === 2) out.push({ type: 'pword', q: L(`哪一個字有 ${s.name} [${s.ipa}] 的音？`, `Which word has ${s.name} [${s.ipa}]?`), opts: [clean(w), ...wrong], a: 0, tip: `${clean(w)}：${s.rule || s.name}`, sayAll: 1 });
+  }));
+  const ls = (GRAM.listening[u] || []).filter((q) => q.label).map((q) => ({ ...q, type: 'lpick' }));
+  return [...shuffle(ls).slice(0, 2), ...shuffle(out)];
+}
+function startPractice(u, k) {
+  let pool;
+  if (k === 'p') pool = phonicsQs(u);
+  else {
+    const g = shuffle(GRAM.questions[u] || []), l = shuffle((GRAM.listening[u] || []).filter((q) => !q.label));
+    pool = [...g.slice(0, 3), ...l.slice(0, 2)];   // 3 題文法＋2 題聽力
+  }
+  pool = pool.slice(0, PR_N).map((q) => (q.opts ? shuf(q) : q));
+  if (!pool.length) return toast('題目還沒準備好');
+  Object.assign(pr, { u, k, qs: shuffle(pool), i: 0, right: 0, done: false, tray: [] });
+  renderPr();
+}
+function renderPr() {
+  const q = pr.qs[pr.i], n = pr.qs.length;
+  const head = `<div class="prhead"><span>${pr.k === 'p' ? '🔤' : '📘'} ${esc(pr.u)} ${pr.k === 'p' ? L('發音練習', 'Phonics practice') : L('句型練習', 'Grammar practice')}</span><b>${pr.i + 1} / ${n}</b></div>
+    <div class="prdots">${pr.qs.map((x, i) => `<i class="${i < pr.i ? (x.ok ? 'ok' : 'bad') : i === pr.i ? 'now' : ''}"></i>`).join('')}</div>`;
+  let body = '';
+  const listen = q.say ? `<div class="qmid"><button class="spk" data-say="${esc(q.say)}">🔊</button><button class="spk turtle" data-say="${esc(q.say)}" data-slow="1">🐢</button></div>` : '';
+  if (q.type === 'order' || q.type === 'lorder') {
+    if (!pr.tray.length && !q.pool) q.pool = shuffle(q.words.map((w, i) => ({ w, i })));
+    const sayAll = q.type === 'lorder' ? `<div class="qmid"><button class="spk" data-say="${esc(q.words.join(' '))}">🔊</button></div>` : '';
+    body = `<div class="prq">${L('把字排成正確的句子', 'Put the words in order')}</div>${sayAll}
+      <div class="otray">${pr.tray.map((x, k) => `<button class="tok" data-ptile="t${k}">${esc(x.w)}</button>`).join('') || `<span class="hint">${L('點下面的字', 'Tap the words below')}</span>`}</div>
+      <div class="opool">${q.pool.map((x, k) => (pr.tray.includes(x) ? '' : `<button class="tok" data-ptile="p${k}">${esc(x.w)}</button>`)).join('')}</div>
+      ${pr.tray.length === q.words.length && !q.done ? `<button class="btn wide" data-act="pcheck">${L('確認', 'Check')}</button>` : ''}`;
+  } else {
+    const qt = q.q ? `<div class="prq">${esc(q.q).replace('___', '<u>____</u>')}</div>` : `<div class="prq">${L('聽句子，選出你聽到的', 'Choose what you hear')}</div>`;
+    body = (q.type === 'pword' || q.type === 'phear' ? `<div class="prq">${esc(q.q)}</div>` : qt) + (q.type === 'phear' || q.type === 'lpick' || q.type === 'lfill' ? listen : '') +
+      `<div class="opts">${q.opts.map((o, k) => `<button class="opt ${q.type === 'lpick' || q.type === 'choice' && o.length > 18 ? '' : 'en'} ${q.done ? (k === q.a ? 'ok' : k === q.pick ? 'bad' : '') : ''}" data-pans="${k}" ${q.done ? 'disabled' : ''}>${esc(o)}</button>`).join('')}</div>`;
+  }
+  const fb = q.done ? `<div class="prfb ${q.ok ? 'ok' : 'bad'}">${q.ok ? '✓ Correct!' : `✕ ${esc(q.answer || '')}`}${q.tip ? `<small>💡 ${esc(q.tip)}</small>` : ''}</div>
+    <button class="btn wide" data-act="pnext">${pr.i + 1 < n ? 'Next ▶' : L('看結果 ▶', 'Results ▶')}</button>` : '';
+  $('sheet').innerHTML = head + `<div class="prbox">${body}${fb}</div>`;
+  if (!q.done && q.say && !q.spoken) { q.spoken = 1; setTimeout(() => speak(q.say), 250); }
+}
+function prAnswer(k) {
+  const q = pr.qs[pr.i]; if (!q || q.done) return;
+  q.done = true; q.pick = k; q.ok = k === q.a; q.answer = q.opts[q.a]; if (q.ok) pr.right++;
+  if (q.type === 'pword') speak(q.opts[q.a]); else if (q.type === 'choice' && q.q) speak(q.q.replace('___', q.opts[q.a]));
+  renderPr();
+}
+function prTile(t) {
+  const q = pr.qs[pr.i]; if (q.done) return;
+  const id = t.dataset.ptile;
+  if (id[0] === 'p') pr.tray.push(q.pool[+id.slice(1)]); else pr.tray.splice(+id.slice(1), 1);
+  renderPr();
+}
+function prCheckOrder() {
+  const q = pr.qs[pr.i], s = pr.tray.map((x) => x.w).join(' '), ans = q.words.join(' ');
+  q.done = true; q.ok = s === ans; q.answer = ans; if (q.ok) pr.right++;
+  speak(ans); renderPr();
+}
+function prNext() {
+  pr.tray = [];
+  if (pr.i + 1 < pr.qs.length) { pr.i++; return renderPr(); }
+  const u = pr.u, k = pr.k, sc = pr.right, pass = sc >= PR_PASS, first = pass && pracBest(u, k) < PR_PASS;
+  st.meta.gprac = st.meta.gprac || {}; const m = st.meta.gprac[u] || (st.meta.gprac[u] = {});
+  if (sc > (m[k] || 0)) m[k] = sc;
+  if (k === 'g') { st.meta.gseen = st.meta.gseen || {}; if (!st.meta.gseen[u]) st.meta.gseen[u] = Date.now(); }
+  saveMeta(); if ($('v-home').classList.contains('active')) renderIsland();
+  if (first) setTimeout(() => confetti(50), 200);
+  $('sheet').innerHTML = `<div class="prres"><div class="big">${sc} / ${pr.qs.length}</div>
+    <p>${pass ? (first ? L(`🎉 完成${k === 'p' ? '發音' : '句型'}站！島上多蓋一層樓`, '🎉 Station complete! One more floor on the island') : L('👍 很穩！', '👍 Nice!')) : L(`再差一點！答對 ${PR_PASS} 題就完成，回去看一下教學再試試`, `Almost! Get ${PR_PASS} right — review the lesson and try again`)}</p>
+    <div class="btnrow"><button class="btn" data-prac="${esc(u)}" data-kind="${k}">${L('再練一次', 'Again')}</button>
+      <button class="btn ghost" ${k === 'p' ? `data-gph="${esc(u)}"` : `data-gpat="${esc(u)}"`}>${L('回到教學', 'Lesson')}</button>
+      <button class="btn ghost" data-close="1">${L('關閉', 'Close')}</button></div></div>`;
+}
+function openGrammar(unit) {   // 舊入口（挑戰結果、單字頁）：有句型教學頁就開教學頁
+  if ((GRAM.lessons || {})[unit] || (GRAM.cards || {})[unit]) return openPattern(unit);
   const c = (GRAM.cards || {})[unit], e = (GRAM.everyday || {})[unit], ph = (GRAM.phonics || {})[unit];
   if (!c && !e && !ph) return toast('這個單元還沒有文法小卡');
   st.meta.gseen = st.meta.gseen || {};   // 英文島「句型」站：看過小卡就算完成
@@ -2927,6 +3126,13 @@ document.addEventListener('click', (e) => {
   if (t.dataset.close) { clearInterval(openProof._i); $('modal').classList.remove('show'); return checkLock(); }
   if (t.dataset.qunit) { $('modal').classList.remove('show'); return startQuiz(t.dataset.qunit); }
   if (t.dataset.gcard) return openGrammar(t.dataset.gcard);
+  if (t.dataset.gpat) return openPattern(t.dataset.gpat);
+  if (t.dataset.gph) return openPhonics(t.dataset.gph);
+  if (t.dataset.prac) return startPractice(t.dataset.prac, t.dataset.kind);
+  if (t.dataset.pans != null) return prAnswer(+t.dataset.pans);
+  if (t.dataset.ptile != null) return prTile(t);
+  if (t.dataset.act === 'pnext') return prNext();
+  if (t.dataset.act === 'pcheck') return prCheckOrder();
   if (t.dataset.gopt != null) return pickGOpt(t);
   if (t.dataset.opool != null || t.dataset.otray != null) return tapOrder(t);
   if (t.dataset.act === 'gorder') return checkOrder();
