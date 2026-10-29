@@ -467,6 +467,10 @@ nav button.on{color:var(--lime);font-weight:700}
 .clue{margin:12px 0 10px;padding:12px;border-radius:12px;background:#2b2418;border:2px dashed #FFB547;color:var(--ink)}
 .clue b{color:#FFB547;display:block;margin-bottom:4px}.clue .ans{color:var(--coral);font-weight:800}
 .bigchest{font-size:72px;line-height:1;margin:6px 0}.chestpts{display:inline-block;margin-top:6px;padding:6px 14px;border-radius:20px;background:rgba(255,181,71,.15);color:#FFB547;font-weight:800}
+.wch{cursor:pointer}.wch .wchb{animation:wbob 1.6s ease-in-out infinite;transform-box:fill-box}
+@keyframes wbob{50%{transform:translateY(-3px)}}.wch .wglow{animation:wglow 1.6s ease-in-out infinite}@keyframes wglow{50%{opacity:.08}}
+.wch.tired{opacity:.65}.wch.tired .wchb{animation:none}
+.wchintro{text-align:center;padding:10px 6px}.wchintro .bigchest{font-size:64px}.wchintro p{margin:8px 0}
 .prres{text-align:center;padding:20px 6px}.prres .big{font:800 54px Syne,sans-serif;color:var(--lime)}.prres p{font-size:16px;margin:8px 0 16px}
 .gmis .x{color:var(--coral);text-decoration:line-through}.gmis .o{color:var(--mint);font-weight:700}.gmis small{color:var(--muted)}
 .qunit .acts{display:flex;gap:6px;flex:none}
@@ -980,7 +984,7 @@ function points() {
     spot += Math.min(SPOT_CAP, W[k].spot || 0);   // 抽查：每週最多 15
   }
   let chest = 0;
-  st.ledger.bonus.forEach((b) => { if (b.k.startsWith('wk') || b.k.startsWith('streak')) streak += b.p; else if (b.k.startsWith('chest:')) chest += b.p; else master += b.p; });
+  st.ledger.bonus.forEach((b) => { if (b.k.startsWith('wk') || b.k.startsWith('streak')) streak += b.p; else if (b.k.startsWith('chest:') || b.k.startsWith('wchest:')) chest += b.p; else master += b.p; });
   return { card, goal, streak, quiz: quiz + master, quizOnly: quiz, master, game, spot, chest, total: card + goal + streak + quiz + master + game + spot + chest };
 }
 // 10/15 刷分漏洞修正：挑戰一次最多 35 分；最佳超過 100% 的單元收回精熟（可重新挑戰拿回）
@@ -1769,6 +1773,16 @@ function islandDecor(lay) {
       + DECO.tree(128, 330, .8, 1.5) + DECO.bush(120, 300, .8) + DECO.bush(270, 456, .7),
   };
 }
+const CHEST_ICON = (w) => `<svg width="${w}" height="${w * .8}" viewBox="-14 -27 28 22" aria-hidden="true"><rect x="-11" y="-14" width="22" height="14" rx="2" fill="#B9773A" stroke="#1a3a1a" stroke-width="1.6"/>
+  <path d="M-11 -14 Q0 -25 11 -14 Z" fill="#E09A4A" stroke="#1a3a1a" stroke-width="1.6" stroke-linejoin="round"/><rect x="-3" y="-12" width="6" height="7" rx="1.2" fill="#FFD84D" stroke="#1a3a1a" stroke-width="1.1"/></svg>`;
+function chestsSVG() {
+  return weekChests().filter((c) => !c.opened).map((c) => `<g class="wch ${c.tried ? 'tired' : ''}" data-chest="${c.i}" transform="translate(${c.x} ${c.y})" role="button" tabindex="0" aria-label="${L('神秘寶箱', 'Mystery chest')}">
+    <ellipse cx="0" cy="1" rx="13" ry="4" fill="#1a3a1a" opacity=".18"/>${c.tried ? '' : '<circle class="wglow" cy="-10" r="17" fill="#FFD84D" opacity=".4"/>'}
+    <g class="wchb"><rect x="-11" y="-14" width="22" height="14" rx="2" fill="#B9773A" stroke="#1a3a1a" stroke-width="1.8"/>
+    <path d="M-11 -14 Q0 -25 11 -14 Z" fill="#E09A4A" stroke="#1a3a1a" stroke-width="1.8" stroke-linejoin="round"/>
+    <rect x="-3" y="-12" width="6" height="7" rx="1.2" fill="#FFD84D" stroke="#1a3a1a" stroke-width="1.2"/>
+    ${c.tried ? '<text y="-22" text-anchor="middle" font-size="11">💤</text>' : ''}</g></g>`).join('');
+}
 function renderIsland() {
   const open = allUnits(), locked = st.lockedUnits || [];
   const units = [...open.map((u) => ({ u, locked: false })), ...locked.map((u) => ({ u, locked: true }))].slice(0, 9);
@@ -1818,14 +1832,15 @@ function renderIsland() {
     <path id="islandRoad" d="${ISLAND_ROAD[lay]}" fill="none" stroke="#D8CFB8" stroke-width="16" stroke-linecap="round"/>
     <path d="${ISLAND_ROAD[lay]}" fill="none" stroke="#ffffff" stroke-width="3" stroke-dasharray="2 10" stroke-linecap="round"/>
     <g class="deco">${D.objects}</g>
-    ${tiles}<g class="deco">${D.sky}</g><g id="hero"></g></svg>`;
+    ${tiles}${chestsSVG()}<g class="deco">${D.sky}</g><g id="hero"></g></svg>`;
   placeHero();
   const on3 = use3D();
   $('island').hidden = on3; $('island3d').hidden = !on3;
   $('mapTog').style.display = webglOK && !st.map3dFailed ? '' : 'none';
   $('mapTog').textContent = on3 ? '2D' : '3D';
   if (on3) ensure3D();
-  $('islandSum').textContent = L(`蓋好 ${fullCount} / ${units.length} 座`, `${fullCount} / ${units.length} built`);
+  const wl = wchLeft();
+  $('islandSum').textContent = L(`蓋好 ${fullCount} / ${units.length} 座`, `${fullCount} / ${units.length} built`) + (wl ? L(`・寶箱 ${wl}`, ` · ${wl} chest${wl > 1 ? 's' : ''}`) : '');
   const unlocked = GAMES.filter((g) => masteredCount() >= g.need).length;
   $('islandPort').innerHTML = `<i>🎮</i><span>${L('遊戲港口', 'Game Harbor')}<small>${L('挑戰過關的單元越多，開放越多獎勵遊戲', 'Pass more unit challenges to unlock more games')}</small></span><b>${unlocked} / ${GAMES.length}</b>`;
 }
@@ -1871,6 +1886,8 @@ const island3dHost = {
   tileTap(code) { openUnit(code); },
   arrive(code) { st.meta.avatarAt = code; saveMeta(); openUnit(code); },
   heroTap() { openAvCreator(); },
+  chests: () => weekChests().filter((c) => !c.opened),
+  chestTap(i) { openWeekChest(i); },
   reduce: matchMedia('(prefers-reduced-motion: reduce)').matches,
   lang: () => (EN() ? 'en' : 'zh'),
   active: () => $('v-home').classList.contains('active') && !document.hidden && use3D() && !$('modal').classList.contains('show'),
@@ -1882,7 +1899,7 @@ function ensure3D() {
   if (i3dLoading) return;
   i3dLoading = (async () => {
     try {
-      const mod = await import('./island3d.js?v=2');
+      const mod = await import('./island3d.js?v=3');
       i3d = await mod.createIsland3D($('island3d'), island3dHost);
       $('island3d').classList.add('ready');
     } catch (e) {
@@ -2409,6 +2426,7 @@ function renderMe() {
     <div class="srow"><div>${L('🎮 獎勵遊戲', '🎮 Bonus game')}<small>${L('精熟 1／2／3 個單元依序解鎖 3 款；所有遊戲每週共用，只算最高一局', 'Master 1 / 2 / 3 units to unlock 3 games; all games share one weekly best')}</small></div><b>0～${GAME_CAP}</b></div>
     <div class="srow"><div>${L('🛍 角色商店', '🛍 Character shop')}<small>${L(`用積分買衣服、帽子、配件、寵物（一般 ${PRICE_BASIC}、很酷的 ${PRICE_COOL}、換色 ${PRICE_COLOR}）；只扣可用積分，總積分和等級不會變少。目前可用 ${walletPts()}`, `Spend points on outfits, hats, extras and pets (${PRICE_BASIC} / ${PRICE_COOL} / colors ${PRICE_COLOR}). Your total and rank never go down. Now: ${walletPts()}`)}</small></div><b>💰</b></div>
     <div class="srow"><div>${L('🗺️ 尋寶大寶箱', '🗺️ Treasure chest')}<small>${L(`句型、發音尋寶答對 ${PR_PASS} 題以上，打開終點大寶箱（每單元各一次）`, `${PR_PASS}+ right in a grammar or phonics hunt (once each per unit)`)}</small></div><b>+${CHEST_PTS}</b></div>
+    <div class="srow"><div>${L('🎁 島上神秘寶箱', '🎁 Mystery chests')}<small>${L(`每週一島上冒出 ${WCH_N} 個寶箱，混合複習答對 ${PR_PASS} 題打開（每週最多 ${WCH_N * WCH_PTS}）`, `${WCH_N} new chests every Monday; ${PR_PASS}+ right opens one (max ${WCH_N * WCH_PTS} / week)`)}</small></div><b>+${WCH_PTS}</b></div>
     <div class="srow"><div>${L('單元精熟', 'Unit mastery')}<small>${L(`某單元第一次拿到 ${MASTER_PCT}% 以上（每單元一次）`, `First time scoring ${MASTER_PCT}%+ on a unit (once per unit)`)}</small></div><b>+${MASTER_PTS}</b></div>
     <div class="srow"><div>${L('同一單元重複挑戰', 'Retrying a unit')}<small>${L('每週只算最高的一次，打破本週紀錄才會補差額', 'Only your best score each week counts')}</small></div><b>📈</b></div>
     <div class="srow"><div>${L('精熟要維持', 'Keep your badge')}<small>${L(`🏅 單元 ${FADE_DAYS} 天沒練會褪色，不扣分，回來練就恢復`, `🏅 fades after ${FADE_DAYS} days without practice — no points lost`)}</small></div><b>🏅</b></div>`;
@@ -2903,7 +2921,7 @@ function startPractice(u, k) {
 }
 function renderPr() {
   const q = pr.qs[pr.i], n = pr.qs.length;
-  const head = `<div class="prhead"><span>🗺️ ${esc(pr.u)} ${pr.k === 'p' ? L('發音尋寶', 'Phonics hunt') : L('句型尋寶', 'Grammar hunt')}</span><b>${pr.i + 1} / ${n}</b></div>` + trailHTML();
+  const head = `<div class="prhead"><span>${pr.k === 'w' ? `🎁 ${L('神秘寶箱', 'Mystery chest')}` : `🗺️ ${esc(pr.u)} ${pr.k === 'p' ? L('發音尋寶', 'Phonics hunt') : L('句型尋寶', 'Grammar hunt')}`}</span><b>${pr.i + 1} / ${n}</b></div>` + trailHTML();
   let body = '';
   const listen = q.say ? `<div class="qmid"><button class="spk" data-say="${esc(q.say)}">🔊</button><button class="spk turtle" data-say="${esc(q.say)}" data-slow="1">🐢</button></div>` : '';
   if (q.type === 'order' || q.type === 'lorder') {
@@ -2916,7 +2934,7 @@ function renderPr() {
   } else {
     const qt = q.q ? `<div class="prq">${esc(q.q).replace('___', '<u>____</u>')}</div>` : `<div class="prq">${L('聽句子，選出你聽到的', 'Choose what you hear')}</div>`;
     body = (q.type === 'pword' || q.type === 'phear' ? `<div class="prq">${esc(q.q)}</div>` : qt) + (q.type === 'phear' || q.type === 'lpick' || q.type === 'lfill' ? listen : '') +
-      `<div class="opts">${q.opts.map((o, k) => `<button class="opt ${q.type === 'lpick' || q.type === 'choice' && o.length > 18 ? '' : 'en'} ${q.done ? (k === q.a ? 'ok' : k === q.pick ? 'bad' : '') : ''}" data-pans="${k}" ${q.done ? 'disabled' : ''}>${esc(o)}</button>`).join('')}</div>`;
+      `<div class="opts">${q.opts.map((o, k) => `<button class="opt ${q.type === 'lpick' || q.type === 'vmean' || q.type === 'choice' && o.length > 18 ? '' : 'en'} ${q.done ? (k === q.a ? 'ok' : k === q.pick ? 'bad' : '') : ''}" data-pans="${k}" ${q.done ? 'disabled' : ''}>${esc(o)}</button>`).join('')}</div>`;
   }
   const fb = q.done ? (q.ok ? `<div class="prfb ok">💰 ${L('寶箱打開了！', 'Chest opened!')} Correct!${q.tip ? `<small>💡 ${esc(q.tip)}</small>` : ''}</div>`
     : `<div class="clue"><b>🔒 ${L('寶箱鎖住了・線索卡', 'Locked! Clue card')}</b>${L('正確答案', 'Answer')}：<span class="ans">${esc(q.answer || '')}</span>${q.tip ? `<div style="margin-top:6px">🔎 ${esc(q.tip)}</div>` : ''}</div>`) + `
@@ -2940,7 +2958,7 @@ function trailHTML(fin) {
 function prAnswer(k) {
   const q = pr.qs[pr.i]; if (!q || q.done) return;
   q.done = true; q.pick = k; q.ok = k === q.a; q.answer = q.opts[q.a]; if (q.ok) pr.right++;
-  if (q.type === 'pword') speak(q.opts[q.a]); else if (q.type === 'choice' && q.q) speak(q.q.replace('___', q.opts[q.a]));
+  if (q.type === 'pword') speak(q.opts[q.a]); else if (q.word) speak(q.word); else if (q.type === 'choice' && q.q) speak(q.q.replace('___', q.opts[q.a]));
   renderPr();
 }
 function prTile(t) {
@@ -2957,6 +2975,7 @@ function prCheckOrder() {
 function prNext() {
   pr.tray = [];
   if (pr.i + 1 < pr.qs.length) { pr.i++; return renderPr(); }
+  if (pr.k === 'w') return wchResult();
   const u = pr.u, k = pr.k, sc = pr.right, pass = sc >= PR_PASS, first = pass && pracBest(u, k) < PR_PASS;
   const chest = pass && !chestOpened(u, k);
   if (chest) { st.ledger.bonus.push({ t: Date.now(), k: chestKey(u, k), p: CHEST_PTS }); saveLedger(); renderHeader(); }
@@ -2971,6 +2990,70 @@ function prNext() {
     <div class="btnrow"><button class="btn" data-prac="${esc(u)}" data-kind="${k}">${L('再練一次', 'Again')}</button>
       <button class="btn ghost" ${k === 'p' ? `data-gph="${esc(u)}"` : `data-gpat="${esc(u)}"`}>${L('回到教學', 'Lesson')}</button>
       <button class="btn ghost" data-close="1">${L('關閉', 'Close')}</button></div></div>`;
+}
+// ── 每週島上寶箱：每週一刷新 3 個，藏在島上不同地方；裡面是已開放單元的混合複習題 ──
+// 答對 4 / 5 打開 +10 ⭐（一週最多 30，和遊戲上限分開算）；沒打開的話寶箱留在原地，隔天才能再挑戰
+const WCH_N = 3, WCH_PTS = 10;
+const WCH_SPOTS = [[110, 215], [255, 228], [125, 355], [265, 335], [248, 442], [265, 178], [205, 78], [55, 100]];   // 2D 座標，避開地塊和小路
+const wchKey = (wk, i) => `wchest:${wk}:${i}`;
+const islandLay = () => (Math.min(9, allUnits().length + (st.lockedUnits || []).length) <= 6 ? 6 : 9);
+function seeded(str) {
+  let h = 2166136261; for (const c of str) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); }
+  return () => { h ^= h << 13; h ^= h >>> 17; h ^= h << 5; return ((h >>> 0) % 100000) / 100000; };
+}
+function wchState() { const wk = thisWeek(); if (!st.meta.wch || st.meta.wch.wk !== wk) st.meta.wch = { wk, tried: {} }; return st.meta.wch; }
+function weekChests() {
+  if (!st.profile || !allUnits().length) return [];
+  const wk = thisWeek(), pos = ISLAND_POS[islandLay()], m = wchState();
+  const free = WCH_SPOTS.filter(([x, y]) => !pos.some(([tx, ty]) => x > tx - 8 && x < tx + 104 && y > ty + 34 && y < ty + 136));
+  const rnd = seeded(wk + '|' + studentId());
+  const pick = free.map((p) => [rnd(), p]).sort((a, b) => a[0] - b[0]).map((x) => x[1]).slice(0, WCH_N);
+  return pick.map(([x, y], i) => ({ i, x, y, opened: st.ledger.bonus.some((b) => b.k === wchKey(wk, i)), tried: m.tried[i] === todayKey() }));
+}
+const wchLeft = () => weekChests().filter((c) => !c.opened).length;
+function chestQs() {
+  const us = allUnits();
+  const gq = shuffle(us.flatMap((u) => (GRAM.questions || {})[u] || [])).slice(0, 2);
+  const phU = shuffle(us.filter((u) => (GRAM.phonics || {})[u]));
+  const ph = phU.length ? shuffle(phonicsQs(phU[0]).filter((q) => q.type !== 'lpick')).slice(0, 1) : [];
+  const ws = shuffle(st.words.filter((w) => w.zh && w.word)).slice(0, PR_N - gq.length - ph.length);
+  const vq = ws.map((w, k) => {
+    const d = distract(w, 2);
+    return k % 2
+      ? { type: 'vword', q: L(`「${w.zh}」的英文是哪一個？`, `Which word means "${w.zh}"?`), opts: [w.word, ...d.map((x) => x.word)], a: 0, tip: `${w.word}：${w.zh}`, word: w.word }
+      : { type: 'vmean', q: L(`${w.word} 是什麼意思？`, `What does "${w.word}" mean?`), opts: [w.zh, ...d.map((x) => x.zh)], a: 0, tip: `${w.word}：${w.zh}`, word: w.word };
+  });
+  return shuffle([...gq, ...ph, ...vq]).map((q) => (q.opts ? shuf(q) : { ...q }));
+}
+function openWeekChest(i) {
+  const c = weekChests().find((x) => x.i === i); if (!c) return;
+  if (c.opened) return toast(L('這個寶箱已經打開了', 'Already opened'));
+  if (c.tried) return toast(L('💤 寶箱睡著了，明天再來挑戰！', '💤 Come back tomorrow!'));
+  $('sheet').innerHTML = `<div class="wchintro"><div class="pop">${CHEST_ICON(96)}</div>
+    <h3 style="margin:6px 0;text-align:center">${L('你發現了一個神秘寶箱！', 'You found a mystery chest!')}</h3>
+    <p>${L(`裡面是之前單元的混合題（單字、句型、發音）<br>${PR_N} 題答對 ${PR_PASS} 題就能打開，<b style="color:#FFB547">+${WCH_PTS} ⭐</b>`, `Mixed review from your units.<br>${PR_PASS} / ${PR_N} right opens it: <b style="color:#FFB547">+${WCH_PTS} ⭐</b>`)}</p>
+    <p class="hint">${L('沒打開的話，寶箱會睡著，明天才能再試。每週一島上會冒出新寶箱。', 'If it stays locked, try again tomorrow. New chests every Monday.')}</p>
+    <div class="btnrow" style="margin-top:12px"><button class="btn" data-wgo="${i}">${L('打開看看 ▶', 'Open it ▶')}</button><button class="btn ghost" data-close="1">${L('等一下', 'Later')}</button></div></div>`;
+  $('modal').classList.add('show'); $('sheet').scrollTop = 0;
+}
+function startWeekChest(i) {
+  const qs = chestQs(); if (qs.length < 3) return toast('題目還沒準備好');
+  Object.assign(pr, { u: '', k: 'w', ci: i, qs, i: 0, right: 0, done: false, tray: [] });
+  renderPr();
+}
+function wchResult() {
+  const i = pr.ci, sc = pr.right, pass = sc >= PR_PASS, wk = thisWeek(), m = wchState();
+  let got = false;
+  if (pass && !st.ledger.bonus.some((b) => b.k === wchKey(wk, i))) { st.ledger.bonus.push({ t: Date.now(), k: wchKey(wk, i), p: WCH_PTS }); got = true; saveLedger(); renderHeader(); }
+  if (!pass) m.tried[i] = todayKey();
+  saveMeta(); if ($('v-home').classList.contains('active')) renderIsland();
+  if (got) setTimeout(() => confetti(60), 200);
+  const left = wchLeft();
+  $('sheet').innerHTML = trailHTML(true) + `<div class="prres"><div class="bigchest pop">${pass ? '💰' : '💤'}</div><div class="big" style="font-size:40px">${sc} / ${pr.qs.length}</div>
+    ${got ? `<div class="chestpts">💰 ${L('寶箱打開了！', 'Chest opened!')} +${WCH_PTS} ⭐</div>` : ''}
+    <p>${pass ? (left ? L(`這週島上還藏著 ${left} 個寶箱，去找找看！`, `${left} more chest${left > 1 ? 's' : ''} hidden this week!`) : L('這週的寶箱全部找到了！下週一會有新的 🎉', 'All chests found! New ones on Monday 🎉'))
+      : L(`差一點！寶箱睡著了，明天再來挑戰（要答對 ${PR_PASS} 題）`, `So close! Try again tomorrow (${PR_PASS} right to open)`)}</p>
+    <div class="btnrow"><button class="btn" data-close="1">${L('回島上', 'Back to island')}</button></div></div>`;
 }
 function openGrammar(unit) {   // 舊入口（挑戰結果、單字頁）：有句型教學頁就開教學頁
   if ((GRAM.lessons || {})[unit] || (GRAM.cards || {})[unit]) return openPattern(unit);
@@ -3101,6 +3184,8 @@ $('onbGo').onclick = async () => {
 document.addEventListener('click', (e) => {
   if (st.walking && e.target.closest('#island')) { st.walkSkip = true; return; }   // 走路中點島嶼＝跳過動畫
   if (e.target.closest('[data-hero]')) return openAvCreator();
+  const wc = e.target.closest('[data-chest]');
+  if (wc) return openWeekChest(+wc.getAttribute('data-chest'));
   const tile = e.target.closest('[data-iunit]');
   if (tile) return goUnit(tile.getAttribute('data-iunit'));
   const t = e.target.closest('button,[data-id]'); if (!t) return;
@@ -3162,6 +3247,7 @@ document.addEventListener('click', (e) => {
   if (t.dataset.gpat) return openPattern(t.dataset.gpat);
   if (t.dataset.gph) return openPhonics(t.dataset.gph);
   if (t.dataset.prac) return startPractice(t.dataset.prac, t.dataset.kind);
+  if (t.dataset.wgo != null) return startWeekChest(+t.dataset.wgo);
   if (t.dataset.pans != null) return prAnswer(+t.dataset.pans);
   if (t.dataset.ptile != null) return prTile(t);
   if (t.dataset.act === 'pnext') return prNext();

@@ -289,6 +289,30 @@ export async function createIsland3D(el, host) {
 
   // ── 走路路線：黃色圓點沿小路排到目的地，走過的點消失；終點一支倒立的旗標上下浮動 ──
   const routeG = new THREE.Group(); scene.add(routeG);
+
+  // ── 每週神秘寶箱：位置用 2D 座標，點了交給 host.chestTap ──
+  const chestG = new THREE.Group(); scene.add(chestG);
+  let chestPick = [], chestSig = '';
+  function buildChests(list) {
+    const sig = JSON.stringify(list.map((c) => [c.i, c.x, c.y, c.tried])); if (sig === chestSig) return; chestSig = sig;
+    chestG.clear(); chestPick = [];
+    list.forEach((c) => {
+      const [x, z] = W(c.x, c.y), g = new THREE.Group(); g.position.set(x, GROUND, z);
+      const box = new THREE.Group(); box.scale.setScalar(1.4); g.add(box);
+      box.add(mesh(new THREE.BoxGeometry(1.5, 0.9, 1.0), M(0xB9773A), 0, 0.45, 0));
+      box.add(mesh(new THREE.CylinderGeometry(0.5, 0.5, 1.5, 8, 1, false, 0, Math.PI), M(0xE09A4A), 0, 0.9, 0).rotateZ(Math.PI / 2));
+      box.add(mesh(new THREE.BoxGeometry(0.34, 0.42, 0.08), M(0xFFD84D), 0, 0.7, 0.52, false));
+      [-0.55, 0.55].forEach((bx) => box.add(mesh(new THREE.BoxGeometry(0.12, 0.92, 1.04), M(0x6B4423), bx, 0.46, 0, false)));
+      if (!c.tried) {
+        const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.9, 7, 12, 1, true), new THREE.MeshBasicMaterial({ color: 0xFFD84D, transparent: true, opacity: 0.28, depthWrite: false, side: THREE.DoubleSide }));
+        beam.position.y = 3.5; beam.userData.beam = 1; g.add(beam); beam.userData.chest = c.i; chestPick.push(beam);
+      }
+      box.children.forEach((m) => { m.userData.chest = c.i; chestPick.push(m); });
+      g.userData = { box, tried: c.tried, p: c.i * 1.7 };
+      if (c.tried) box.scale.setScalar(1.2);
+      chestG.add(g);
+    });
+  }
   const dotGeo = new THREE.SphereGeometry(0.2, 8, 6), dotMat = new THREE.MeshBasicMaterial({ color: 0xFFC93D });
   const pinMat = new THREE.MeshLambertMaterial({ color: 0xFFC93D, emissive: 0xFFA800, emissiveIntensity: 0.5 });
   let routeEnd = null;
@@ -325,6 +349,8 @@ export async function createIsland3D(el, host) {
     ptr.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
     ray.setFromCamera(ptr, camera);
     if (ray.intersectObject(hero, false).length) return host.heroTap();
+    const ch = chestPick.length && ray.intersectObjects(chestPick, false)[0];
+    if (ch && host.chestTap) return host.chestTap(ch.object.userData.chest);
     const hit = ray.intersectObjects(pickables, false)[0]; if (!hit) return;
     const t = tileByCode(hit.object.userData.unit); if (!t) return;
     if (t.u.locked) { t.bounce = performance.now(); return host.tileTap(t.u.code); }
@@ -345,6 +371,7 @@ export async function createIsland3D(el, host) {
     const L = host.layout();
     if (L.lay !== curLay) buildLayout(L);
     buildTiles(host.units());
+    if (host.chests) buildChests(host.chests());
     const at = tileByCode(host.heroAt()) || tiles.find((t) => !t.u.locked);
     if (at && !walking) { heroLen = standLen(at); placeHero(heroLen); hero.position.y = groundAt(hero.position.x, hero.position.z); }
     if (view === 'eye' && !walking && !follow) controls.target.copy(heroTarget());
@@ -395,6 +422,7 @@ export async function createIsland3D(el, host) {
       drifters.forEach((d) => (d.g.position.x = d.x0 + Math.sin(t * d.sp + d.p) * 4));
       bobbers.forEach((b) => { b.g.position.y = b.y + Math.sin(t * 1.8 + b.p) * 0.08; if (b.swim) { b.g.position.x = b.swim.cx + Math.cos(t * 0.4) * b.swim.rx; b.g.position.z = b.swim.cz + Math.sin(t * 0.4) * b.swim.rz; b.g.rotation.y = -t * 0.4; } });
       boat.position.y = -0.3 + Math.sin(t * 1.8) * 0.12; boat.rotation.z = Math.sin(t * 1.3) * 0.08; boat.position.x = boatX + Math.sin(t * 0.15) * 3;
+      chestG.children.forEach((g) => { if (g.userData.tried) return; g.userData.box.position.y = Math.abs(Math.sin(t * 2.4 + g.userData.p)) * 0.35; g.userData.box.rotation.y = Math.sin(t * 0.9 + g.userData.p) * 0.5; });
       tiles.forEach((x) => x.plat.children.forEach((c) => { if (c.userData.flag) c.rotation.y = Math.sin(t * 3) * 0.25; if (c.userData.spin) c.rotation.y = t * 0.8; }));
     }
     tiles.forEach((x) => {
