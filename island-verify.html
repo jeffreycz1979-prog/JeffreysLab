@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>兌換券驗證</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Noto+Sans+TC:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--green:#1a3a1a;--lime:#CCFF00;--mint:#4ECDC4;--bg:#F4F1EB;--card:#fff;--ink:#1d2416;--muted:#6f7766;--line:#ddd8cc;--ok:#2e8b57;--bad:#d64531;--warn:#c78400}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 'Noto Sans TC',sans-serif}
+main{max-width:560px;margin:0 auto;padding:20px 16px 40px}
+h1{font:800 24px/1.2 Syne,'Noto Sans TC',sans-serif;color:var(--green);margin:0}
+h1 small{display:block;font:700 12px/1.6 Syne,sans-serif;letter-spacing:.12em;color:var(--muted)}
+h2{font-size:16px;margin:24px 0 8px;color:var(--green)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-top:14px}
+label{display:block;font-weight:600;font-size:13px;color:var(--muted);margin:10px 0 4px}
+input,select{width:100%;padding:11px 12px;border:1.5px solid var(--line);border-radius:10px;font:600 16px 'Noto Sans TC',sans-serif;background:#fff;color:var(--ink)}
+input:focus,select:focus{outline:none;border-color:var(--mint)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.res{margin-top:14px;padding:14px;border-radius:12px;background:#f6f8f2;font-size:14px}
+.res .code{font:800 30px/1.2 Syne,monospace;letter-spacing:.12em;color:var(--green)}
+.ok{background:#e6f5ec;color:var(--ok)}.bad{background:#fdecea;color:var(--bad)}.warn{background:#fff6dd;color:var(--warn)}
+.res b{font-size:17px}
+button{border:0;border-radius:12px;padding:12px 16px;font:800 15px 'Noto Sans TC',sans-serif;cursor:pointer;background:var(--green);color:var(--lime)}
+button.ghost{background:#fff;color:var(--green);border:1.5px solid var(--line)}
+button:disabled{opacity:.4;cursor:default}
+.btns{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line)}
+th{color:var(--muted);font-weight:600}
+.note{font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body>
+<main>
+  <h1>兌換券驗證<small>VOUCHER CHECK · 老師專用</small></h1>
+  <p class="note">對照學生截圖的兌換券：填入序號、項目、張數、日期，算出正確的驗證碼。發卡紀錄只存在這台裝置的瀏覽器。</p>
+
+  <div class="card">
+    <label for="app">班級版本</label>
+    <select id="app">
+      <option value="THP11·JeffreysLab·2026">THP11 英文島</option>
+      <option value="THP5·JeffreysLab·2026">THP5 英文島</option>
+      <option value="EnglishIsland·JeffreysLab·2026">測試島 english-island</option>
+    </select>
+    <label for="ser">序號（兌換券上的 #ID-序號，例如 62UX-03）</label>
+    <input id="ser" placeholder="62UX-03" autocapitalize="characters" autocomplete="off">
+    <div class="row">
+      <div><label for="kind">項目</label>
+        <select id="kind"><option value="scratch">🎰 刮刮樂</option><option value="cards5">🃏 5 張點數卡</option><option value="drink">🥤 一杯飲料</option></select></div>
+      <div><label for="cards">張數</label><input id="cards" type="number" inputmode="numeric" min="0" max="50"></div>
+    </div>
+    <div class="row">
+      <div><label for="d">兌換日期</label><input id="d" type="date"></div>
+      <div><label for="code">學生的驗證碼（選填）</label><input id="code" placeholder="6 碼" autocapitalize="characters" autocomplete="off" maxlength="6"></div>
+    </div>
+    <div class="res" id="res">填好上面的欄位就會算出驗證碼。</div>
+    <div class="btns"><button id="rec" disabled>✓ 記錄已發卡</button><button class="ghost" id="clr">清空欄位</button></div>
+  </div>
+
+  <h2>發卡紀錄 <span class="note" id="cnt"></span></h2>
+  <div class="card" style="padding:8px 12px"><table><thead><tr><th>序號</th><th>項目</th><th>張數</th><th>兌換日</th><th>發卡日</th></tr></thead><tbody id="log"></tbody></table></div>
+  <div class="btns"><button class="ghost" id="csv">匯出 CSV</button></div>
+</main>
+<script>
+// 與英文島 index.html 的 hash（cyrb53）、rdCode 完全相同
+function hash(str) {
+  let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+  for (let i = 0; i < str.length; i++) { const c = str.charCodeAt(i); h1 = Math.imul(h1 ^ c, 2654435761); h2 = Math.imul(h2 ^ c, 1597334677); }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36).toUpperCase();
+}
+const rdCode = (salt, sid, n, kind, cards, d) => hash(salt + '|RD|' + sid + '|' + n + '|' + kind + '|' + cards + '|' + d).replace(/[^A-Z0-9]/g, '').slice(-6).padStart(6, '0');
+const KN = { scratch: '🎰 刮刮樂', cards5: '🃏 5 張卡', drink: '🥤 飲料' };
+const $ = (id) => document.getElementById(id);
+const LOG_KEY = 'island-verify-log';
+const load = () => { try { return JSON.parse(localStorage.getItem(LOG_KEY)) || []; } catch (e) { return []; } };
+const save = (l) => { try { localStorage.setItem(LOG_KEY, JSON.stringify(l)); } catch (e) {} };
+const today = () => { const t = new Date(); return t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') + '-' + String(t.getDate()).padStart(2, '0'); };
+$('d').value = today();
+
+function parse() {
+  const m = $('ser').value.trim().toUpperCase().replace(/^#/, '').match(/^([A-Z0-9]{4})-(\d{1,4})$/);
+  return m ? { sid: m[1], n: +m[2] } : null;
+}
+let cur = null;
+function calc() {
+  const kind = $('kind').value;
+  if (kind === 'cards5') $('cards').value = 5;
+  if (kind === 'drink') $('cards').value = 0;
+  $('cards').disabled = kind !== 'scratch';
+  const s = parse(), cards = $('cards').value, d = $('d').value, res = $('res');
+  cur = null; $('rec').disabled = true; res.className = 'res';
+  if (!s) { res.textContent = '序號格式：4 碼 ID＋「-」＋數字，例如 62UX-03'; return; }
+  if (cards === '' || !d) { res.textContent = '請填張數和日期'; return; }
+  const c = +cards;
+  if (kind === 'scratch' && (c < 3 || c > 50)) { res.className = 'res bad'; res.innerHTML = '<b>刮刮樂只會是 3～50 張</b>'; return; }
+  const app = $('app').options[$('app').selectedIndex].text;
+  const code = rdCode($('app').value, s.sid, s.n, kind, c, d);
+  const typed = $('code').value.trim().toUpperCase();
+  const log = load(), same = log.filter((r) => r.app === app && r.sid === s.sid);
+  const dup = same.find((r) => r.n === s.n), maxN = same.reduce((a, r) => Math.max(a, r.n), 0);
+  let html = `正確的驗證碼<div class="code">${code}</div>`;
+  if (typed.length === 6) {
+    if (typed === code) { res.className = 'res ok'; html += '<b>✅ 驗證碼正確</b>'; }
+    else { res.className = 'res bad'; html += '<b>❌ 驗證碼不符</b><br>請再核對項目、張數、日期；都對的話，兌換券可能是假的'; }
+  }
+  if (dup) { res.className = 'res bad'; html += `<br><b>⛔ 這個序號已經在 ${dup.at} 發過了，不要再發</b>`; }
+  else if (s.n < maxN) { res.className = 'res bad'; html += `<br><b>⛔ 序號比上次（#${s.sid}-${String(maxN).padStart(2, '0')}）小，資料可能被還原過，先不要發</b>`; }
+  else if (maxN && s.n > maxN + 1) { if (!res.className.includes('bad')) res.className = 'res warn'; html += `<br>⚠️ 中間跳過 ${s.n - maxN - 1} 張（可能有沒來領的兌換券）`; }
+  res.innerHTML = html;
+  if (!dup && s.n >= maxN && (typed.length !== 6 || typed === code)) { cur = { app, sid: s.sid, n: s.n, kind, cards: c, d, at: today() }; $('rec').disabled = false; }
+}
+function draw() {
+  const log = load().slice().reverse();
+  $('cnt').textContent = log.length ? `共 ${log.length} 筆・${log.reduce((a, r) => a + r.cards, 0)} 張卡` : '';
+  $('log').innerHTML = log.map((r) => `<tr><td>#${r.sid}-${String(r.n).padStart(2, '0')}<br><span class="note">${r.app}</span></td><td>${KN[r.kind]}</td><td>${r.cards || '—'}</td><td>${r.d}</td><td>${r.at}</td></tr>`).join('') || '<tr><td colspan="5" class="note">還沒有紀錄</td></tr>';
+}
+['app', 'ser', 'kind', 'cards', 'd', 'code'].forEach((id) => $(id).addEventListener('input', calc));
+$('rec').onclick = () => { if (!cur) return; const l = load(); l.push(cur); save(l); draw(); $('ser').value = ''; $('code').value = ''; $('cards').value = ''; calc(); $('ser').focus(); };
+$('clr').onclick = () => { $('ser').value = ''; $('code').value = ''; $('cards').value = ''; $('d').value = today(); calc(); };
+$('csv').onclick = () => {
+  const rows = [['班級', '學生ID', '序號', '項目', '張數', '兌換日', '發卡日'], ...load().map((r) => [r.app, r.sid, r.n, KN[r.kind], r.cards, r.d, r.at])];
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['﻿' + rows.map((r) => r.join(',')).join('\n')], { type: 'text/csv' }));
+  a.download = '兌換發卡紀錄-' + today() + '.csv'; a.click();
+};
+calc(); draw();
+</script>
+</body>
+</html>
