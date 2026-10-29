@@ -181,6 +181,47 @@ main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .av.walk .pet{animation:petHop .3s ease-in-out infinite alternate}
 @keyframes petIdle{to{transform:translateY(-1px)}}
 @keyframes petHop{to{transform:translateY(-4px)}}
+/* 📮 信箱、宣言、同學分身 */
+.island-head > div:first-child{flex:none}.island-head b{white-space:nowrap}
+#islandSum{min-width:0;text-align:center;line-height:1.25;white-space:normal}
+.mail-btn{position:relative;margin-left:auto;border:2px solid var(--green);background:#fff;border-radius:12px;font-size:18px;line-height:1;padding:5px 8px;cursor:pointer}
+.mail-btn i{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;border-radius:9px;background:var(--coral);color:#fff;font:800 11px/18px Syne,sans-serif;font-style:normal;padding:0 4px;border:2px solid #fff}
+.mail-btn.shake{animation:shake .5s 2}
+.decl-strip{margin:0 12px 10px;padding:8px 12px;border-radius:14px;background:#fff;border:2px solid var(--green);font-size:13px;color:var(--green);display:flex;gap:8px;align-items:center;cursor:pointer}
+.decl-strip b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.decl-strip small{flex:none;font-size:11px;color:#5d6b5d}
+#mates [data-mate]{cursor:pointer}
+.mtabs{display:flex;gap:6px;margin:10px 0}
+.mtabs button{flex:1;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:8px 4px;font:700 13px 'Noto Sans TC',sans-serif;cursor:pointer;position:relative}
+.mtabs button.on{border-color:var(--lime);color:var(--lime)}
+.mtabs button i{position:absolute;top:-6px;right:-4px;background:var(--coral);color:#fff;border-radius:8px;font:800 10px/16px Syne;font-style:normal;padding:0 5px}
+.mkind{display:flex;gap:8px;margin:8px 0}
+.mkind button{flex:1;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:14px;padding:10px 6px;font:700 14px 'Noto Sans TC',sans-serif;cursor:pointer;text-align:left}
+.mkind button small{display:block;font-weight:400;font-size:11px;color:var(--muted);margin-top:2px}
+.mkind button.on{border-color:var(--lime);box-shadow:0 0 0 3px rgba(204,255,0,.25)}
+.mta{width:100%;min-height:84px;border-radius:14px;border:2px solid var(--line);background:var(--card);color:var(--ink);padding:10px 12px;font:16px/1.5 'Noto Sans TC',sans-serif;resize:none;box-sizing:border-box}
+.mta:focus{outline:none;border-color:var(--mint)}
+.mcount{font-size:12px;color:var(--muted);text-align:right;margin-top:4px}
+.mlist{display:flex;flex-direction:column;gap:10px}
+.mitem{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:10px 12px}
+.mitem .mt{font-size:15px;line-height:1.5;word-break:break-word}
+.mitem .mm{font-size:11px;color:var(--muted);margin-top:4px;display:flex;gap:8px;flex-wrap:wrap}
+.mitem .mr{margin-top:8px;padding:8px 10px;border-radius:12px;background:#1f2a12;border:1px solid var(--lime);font-size:14px;line-height:1.5}
+.mitem .mr b{color:var(--lime);font-size:12px;display:block}
+.mitem.new{border-color:var(--lime)}
+.mpill{display:inline-block;padding:1px 8px;border-radius:10px;font-size:11px;font-weight:700}
+.mpill.wait{background:#3a3220;color:var(--amber)}.mpill.ok{background:#1f2a12;color:var(--lime)}.mpill.priv{background:#262d40;color:var(--muted)}
+.mboard{display:flex;gap:10px;align-items:flex-start}
+.mboard .ava2{width:52px;height:64px;flex:none;border-radius:14px;background:#C9EEEA;overflow:hidden}
+.mboard .ava2 svg{width:100%;height:100%}
+.mlike{border:1.5px solid var(--line);background:transparent;color:var(--ink);border-radius:12px;padding:4px 10px;font-size:13px;cursor:pointer}
+.mlike.on{border-color:var(--coral);color:var(--coral)}
+.mempty{text-align:center;color:var(--muted);font-size:14px;padding:22px 0}
+.mletter{background:#FFFBE8;color:#2a2a1a;border-radius:18px;padding:18px 16px;border:3px solid var(--amber);font-size:16px;line-height:1.7}
+.mletter h4{margin:0 0 6px;font-size:13px;color:#8a6a1a}
+.mletter .q{font-size:13px;color:#6b6b52;border-left:3px solid #e6d9a8;padding-left:8px;margin-bottom:10px}
+.flyer{position:fixed;z-index:60;font-size:34px;pointer-events:auto;cursor:pointer;filter:drop-shadow(0 4px 6px rgba(0,0,0,.25));will-change:transform}
+.flyer svg{width:46px;height:46px;display:block}
 /* 平板、電腦：島嶼在左，本週目標在右 */
 @media (min-width:900px){
   #v-home{max-width:1080px}
@@ -633,6 +674,7 @@ nav button.on{color:var(--lime);font-weight:700}
       <div class="island-head">
         <div><b>探索英文島</b><small>ENGLISH ISLAND</small></div>
         <span id="islandSum"></span>
+        <button class="mail-btn" id="mailBtn" aria-label="信箱" hidden>📮<i id="mailDot" hidden></i></button>
         <button class="map-tog" id="mapTog" aria-label="切換 2D／3D 地圖" style="display:none">3D</button>
       </div>
       <div class="island" id="island"></div>
@@ -640,6 +682,7 @@ nav button.on{color:var(--lime);font-weight:700}
         <div class="i3d-load">3D 地圖載入中…</div>
         <div class="i3d-views"><button data-i3v="bird" data-en="Bird">鳥瞰</button><button data-i3v="eye" data-en="Walk">平視</button><button data-i3v="top" data-en="Top">俯視</button><button data-i3v="reset" aria-label="重設視角">↺</button></div>
       </div>
+      <div class="decl-strip" id="declStrip" hidden></div>
       <button class="island-port" data-v="v-quiz" id="islandPort"></button>
     </div>
     <div class="hero">
@@ -1832,8 +1875,9 @@ function renderIsland() {
     <path id="islandRoad" d="${ISLAND_ROAD[lay]}" fill="none" stroke="#D8CFB8" stroke-width="16" stroke-linecap="round"/>
     <path d="${ISLAND_ROAD[lay]}" fill="none" stroke="#ffffff" stroke-width="3" stroke-dasharray="2 10" stroke-linecap="round"/>
     <g class="deco">${D.objects}</g>
-    ${tiles}${chestsSVG()}<g class="deco">${D.sky}</g><g id="hero"></g></svg>`;
+    ${tiles}${chestsSVG()}<g class="deco">${D.sky}</g><g id="mates"></g><g id="hero"></g></svg>`;
   placeHero();
+  if (window.islandMsg) islandMsg.draw2D();   // 同學分身（msg.js）
   const on3 = use3D();
   $('island').hidden = on3; $('island3d').hidden = !on3;
   $('mapTog').style.display = webglOK && !st.map3dFailed ? '' : 'none';
@@ -1849,26 +1893,51 @@ const webglOK = (() => { try { const c = document.createElement('canvas'); retur
 const use3D = () => webglOK && !st.map3dFailed && st.set.map3d !== false;
 let i3d = null, i3dLoading = null;
 const heroBubble = () => { const fresh = !(st.profile && st.profile.look); return fresh ? 'edit' : (st.meta.avNew || []).length ? 'shop' : ''; };
-function heroCanvas() {   // 角色（含寵物）＋頭上的泡泡 → 畫布，給 3D 當看板貼圖
+// 走路姿勢：p＝一步循環的位置（0～1）。把 CSS 動畫換成固定角度，給 3D 看板逐格用
+// 腿以髖部為軸前後擺、手跟對側的腳一起擺；兩腳交錯經過時身體最高；寵物每一步跳一下
+function posedSVG(svg, p) {
+  const s = Math.sin(p * Math.PI * 2), a = (s * 28).toFixed(1), b = (-s * 22).toFixed(1);
+  const lift = (-(1 - Math.abs(s)) * 3.2).toFixed(2), hop = (-Math.abs(Math.sin(p * Math.PI * 2)) * 5).toFixed(2);
+  return svg.replace('<g class="bob">', `<g class="bob" transform="translate(0 ${lift})">`)
+    .replace('<g class="legL">', `<g class="legL" transform="rotate(${a} 42.5 102)">`)
+    .replace('<g class="legR">', `<g class="legR" transform="rotate(${-a} 57.5 102)">`)
+    .replace('<g class="armL">', `<g class="armL" transform="rotate(${b} 26.5 83)">`)
+    .replace('<g class="armR">', `<g class="armR" transform="rotate(${-b} 73.5 83)">`)
+    .replace('<g class="pet">', `<g class="pet" transform="translate(0 ${hop})">`);
+}
+const HERO_STEPS = 8;   // 一步循環切 8 格
+// 角色 → 畫布（給 3D 當看板貼圖）。pose 有值＝走路姿勢；flip＝面向左（只鏡像角色，頭上的字不反過來）
+// tags：頭上的標籤，由上往下 [{text, bg, fg, size}]；scale＝畫布大小（同學分身用 2/3）
+function avatarCanvas(look, pose, flip, tags, scale = 1) {
   return new Promise((res) => {
-    const svg = avatarSVG(lookOf(), '', 'full').replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" width="264" height="304" ');
+    let svg = avatarSVG(look, '', 'full').replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" width="264" height="304" ');
+    if (pose != null) svg = posedSVG(svg, pose);
     const img = new Image();
     img.onload = () => {
-      const c = document.createElement('canvas'); c.width = 264; c.height = 384;
-      const g = c.getContext('2d'); g.drawImage(img, 0, 80, 264, 304);
-      const b = heroBubble();
-      if (b) {
-        const txt = b === 'edit' ? L('捏我！', 'Edit me!') : L('🛍 去購物！', '🛍 Shop!');
-        g.font = '700 30px "Noto Sans TC", system-ui, sans-serif'; const w = g.measureText(txt).width + 36;
-        g.fillStyle = '#1a3a1a'; g.beginPath(); g.roundRect(112 - w / 2, 14, w, 50, 25); g.fill();
-        g.beginPath(); g.moveTo(102, 62); g.lineTo(112, 76); g.lineTo(122, 62); g.fill();
-        g.fillStyle = '#CCFF00'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(txt, 112, 40);
-      }
+      const c = document.createElement('canvas'); c.width = Math.round(264 * scale); c.height = Math.round(384 * scale);
+      const g = c.getContext('2d'); g.scale(scale, scale);
+      g.save(); if (flip) { g.translate(264, 0); g.scale(-1, 1); } g.drawImage(img, 0, 80, 264, 304); g.restore();
+      const hx = flip ? 152 : 112;   // 頭頂位置（翻面後在另一邊）
+      let y = 14;
+      (tags || []).forEach((t, i, all) => {
+        const fs = t.size || 30, h = fs + 20;
+        g.font = `700 ${fs}px "Noto Sans TC", system-ui, sans-serif`;
+        const w = Math.min(256, g.measureText(t.text).width + 36), bx = Math.max(4, Math.min(260 - w, hx - w / 2));
+        g.fillStyle = t.bg; g.beginPath(); g.roundRect(bx, y, w, h, h / 2); g.fill();
+        if (i === all.length - 1) { g.beginPath(); g.moveTo(hx - 10, y + h - 2); g.lineTo(hx, y + h + 12); g.lineTo(hx + 10, y + h - 2); g.fill(); }
+        g.fillStyle = t.fg; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(t.text, bx + w / 2, y + h / 2 + 1, w - 24);
+        y += h + 6;
+      });
       res(c);
     };
     img.onerror = () => res(null);
     img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
   });
+}
+function heroCanvas(pose, flip) {   // 自己的角色（含寵物）＋頭上的泡泡
+  const b = heroBubble();
+  const tags = b ? [{ text: b === 'edit' ? L('捏我！', 'Edit me!') : L('🛍 去購物！', '🛍 Shop!'), bg: '#1a3a1a', fg: '#CCFF00' }] : [];
+  return avatarCanvas(lookOf(), pose, flip, tags);
 }
 const island3dHost = {
   layout() { const n = Math.min(9, allUnits().length + (st.lockedUnits || []).length), lay = n <= 6 ? 6 : 9; return { lay, pos: ISLAND_POS[lay], road: ISLAND_ROAD[lay] }; },
@@ -1883,9 +1952,14 @@ const island3dHost = {
   heroAt() { const open = allUnits(); let at = st.meta.avatarAt; if (!open.includes(at)) at = open.find((u) => !unitStations(u).full) || open[0]; return at; },
   heroKey: () => JSON.stringify(lookOf()) + '|' + heroBubble() + '|' + EN(),
   heroCanvas,
+  heroFlipCanvas: () => heroCanvas(null, true),
+  heroWalkFrames: (flip) => Promise.all(Array.from({ length: HERO_STEPS }, (_, i) => heroCanvas(i / HERO_STEPS, flip))),
   tileTap(code) { openUnit(code); },
   arrive(code) { st.meta.avatarAt = code; saveMeta(); openUnit(code); },
   heroTap() { openAvCreator(); },
+  mates: () => (window.islandMsg ? islandMsg.mates() : []),   // 同學分身 [{key, at, look, tags}]
+  mateCanvas: (m, pose, flip) => avatarCanvas(m.look, pose, flip, m.tags, 0.66),
+  mateTap: (key) => window.islandMsg && islandMsg.openMate(key),
   chests: () => weekChests().filter((c) => !c.opened),
   chestTap(i) { openWeekChest(i); },
   reduce: matchMedia('(prefers-reduced-motion: reduce)').matches,
@@ -1899,7 +1973,7 @@ function ensure3D() {
   if (i3dLoading) return;
   i3dLoading = (async () => {
     try {
-      const mod = await import('./island3d.js?v=3');
+      const mod = await import('./island3d.js?v=4');
       i3d = await mod.createIsland3D($('island3d'), island3dHost);
       $('island3d').classList.add('ready');
     } catch (e) {
@@ -2046,6 +2120,13 @@ function sanitizeLook(l) {   // 還沒解鎖的東西換回預設（例如解鎖
   return out;
 }
 const lookOf = () => sanitizeLook((st.profile && st.profile.look) || {});
+// 別人的造型（從後台拿到的）：每一欄都只接受已知的選項和顏色編號，其他一律換回預設，避免奇怪的資料混進畫面
+function safeLook(l) {
+  const out = { ...DEFAULT_LOOK }; if (!l || typeof l !== 'object') return out;
+  Object.keys(AV_OPTS).forEach((k) => { if (AV_OPTS[k].some((o) => o[0] === l[k])) out[k] = l[k]; });
+  [['skin', AV_SKIN], ['hairC', AV_HAIRC], ['topC', AV_TOPC], ['botC', AV_BOTC]].forEach(([k, a]) => { if (Number.isInteger(l[k]) && l[k] >= 0 && l[k] < a.length) out[k] = l[k]; });
+  return out;
+}
 function randomLook() {
   const r = (a) => a[Math.floor(Math.random() * a.length)];
   const free = (k) => AV_OPTS[k].map((o) => o[0]).filter((v) => !avLock(k, v));
@@ -3444,6 +3525,7 @@ document.addEventListener('keydown', (e) => {
 <script src="games/shoot.js?v=0.8"></script>
 <script src="games/dino.js?v=0.6"></script>
 <script src="games/horde.js?v=0.4"></script>
-<script src="cloud.js?v=1"></script>
+<script src="cloud.js?v=2"></script>
+<script src="msg.js?v=1"></script>
 </body>
 </html>

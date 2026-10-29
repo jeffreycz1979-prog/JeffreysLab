@@ -8,7 +8,9 @@
   const MAX_LEN = 60, PULL_GAP = 60000, MATE_MAX = 12;
   const BAD = /幹|靠北|靠杯|白癡|白痴|智障|去死|垃圾|笨蛋|fuck|shit|bitch|stupid|idiot/i;   // 常見不雅字，後台會再擋一次
   const C = () => window.cloud;
-  const on = () => !!(C() && C().on && C().auth && C().auth());
+  const authed = () => !!(C() && C().on && C().auth && C().auth());
+  let served = false;   // 後台第一次成功回應 inbox 才顯示信箱（後台還沒裝 留言.gs 時整個功能藏起來）
+  const on = () => authed() && served;
   let box = { mine: [], drops: [], board: [], mates: [], used: 0, max: 3 };
   let pulledAt = 0, pulling = null, tab = 'write', kind = 'decl', flying = false;
   const fmt = (t) => { const d = new Date(t); return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
@@ -18,17 +20,18 @@
 
   // ── 拉信：打開 App、回到首頁時（最多每分鐘一次）──
   async function pull(force) {
-    if (!on()) return;
+    if (!authed()) return;
     if (pulling) return pulling;
     if (!force && Date.now() - pulledAt < PULL_GAP) return;
     pulling = (async () => {
       try {
         const d = await C().api('inbox', { since: pulledAt });
+        served = true;
         box = { mine: d.mine || [], drops: d.drops || [], board: d.board || [], mates: d.mates || [], used: d.used || 0, max: d.max || 3 };
         pulledAt = Date.now();
         try { await db.set('msgbox', box); } catch (e) {}
         paint(); deliver();
-      } catch (e) { /* 沒網路：下次再拉 */ }
+      } catch (e) { if (/沒有這個 action/.test(e.message)) { served = false; pulledAt = Date.now() + 29 * 60000; paint(); } }   // 後台還沒裝 留言.gs：30 分鐘後再試，不要一直打；其他錯誤（沒網路）下次再拉
       finally { pulling = null; }
     })();
     return pulling;
@@ -272,14 +275,14 @@
     if (t.dataset.mnext) { if (unreadReplies().length || unreadDrops().length) return openLetter(); $('modal').classList.remove('show'); return; }
   }, true);
   document.addEventListener('input', (e) => { if (e.target.id === 'mText') $('mCount').textContent = e.target.value.length; });
-  addEventListener('cloud-auth', () => { paint(); if (on()) { pull(true); syncAvatar(); } });
+  addEventListener('cloud-auth', () => { if (!authed()) served = false; paint(); if (authed()) pull(true).then(syncAvatar); });
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') pull(false); });
-  setInterval(() => { if (on()) { syncAvatar(); deliver(); if ($('v-home').classList.contains('active')) pull(false); } }, 15000);
+  setInterval(() => { if (!authed()) return; if (on()) { syncAvatar(); deliver(); } if ($('v-home').classList.contains('active')) pull(false); }, 15000);
   const ready = () => (st.ready ? Promise.resolve() : new Promise((r) => addEventListener('island-ready', r, { once: true })));
   ready().then(async () => {
     try { const b = await db.get('msgbox'); if (b) box = b; avKey = (await db.get('msgav')) || ''; } catch (e) {}
     paint();
-    if (on()) { pull(true); syncAvatar(); }
+    if (authed()) pull(true).then(syncAvatar);
   });
 
   window.islandMsg = { open, pull, paint, draw2D, mates, openMate, deliver, syncAvatar, _box: () => box };
