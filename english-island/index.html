@@ -570,6 +570,19 @@ nav button.on{color:var(--lime);font-weight:700}
 .wj-ctl button{border:1.5px solid var(--line);background:var(--panel);border-radius:14px;padding:10px 6px;font-weight:700;font-size:15px}
 .wj-ctl button small{display:block;font-size:11px;font-weight:400;color:var(--muted);margin-top:2px}
 .wj-ctl button.on{border-color:var(--lime);background:#26331a;color:var(--lime)}
+/* 🎰 刮刮樂 */
+.sc-wrap{text-align:center}
+.sc-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0 10px}
+.sc-cell{position:relative;aspect-ratio:3/4;border-radius:16px;background:#fffbe8;border:3px solid var(--amber);overflow:hidden;touch-action:none;transition:transform .25s,box-shadow .25s}
+.sc-num{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--green);font:800 40px/1 Syne,'Noto Sans TC',sans-serif}
+.sc-num small{font:600 12px/1.4 'Noto Sans TC',sans-serif;color:#6b6b52;margin-top:4px}
+.sc-cell canvas{position:absolute;inset:0;width:100%;height:100%;cursor:grab}
+.sc-cell.win{border-color:var(--lime);box-shadow:0 0 0 4px rgba(204,255,0,.35),0 0 24px rgba(204,255,0,.6);transform:scale(1.06)}
+.sc-cell.lose{opacity:.45}
+.sc-msg{min-height:52px;font-size:15px;color:var(--muted)}
+.sc-msg b{display:block;font:800 30px/1.2 Syne,'Noto Sans TC',sans-serif;color:var(--lime)}
+.sc-gold{position:fixed;inset:0;z-index:9999;pointer-events:none;background:radial-gradient(circle,rgba(255,215,0,.55),rgba(255,181,71,.15) 60%,transparent 80%);animation:scgold 1.8s ease-out forwards}
+@keyframes scgold{0%{opacity:0}15%{opacity:1}100%{opacity:0}}
 </style>
 </head>
 <body>
@@ -2026,8 +2039,8 @@ function openRedeem() {
     return `<div class="srow"><div>${EN() ? k.en : k.zh}<small>${what}・${price}${b ? `<br>🔒 ${b[0]}` : ''}</small></div>
       <button class="btn${b ? ' ghost' : ''}" style="white-space:nowrap" data-rdgo="${kind}" ${b ? 'disabled' : ''}>${L('兌換', 'Redeem')}</button></div>`;
   };
-  const hist = rdList().slice().reverse().map((r) => `<div class="srow"><div>#${rdSerial(r)}　${EN() ? RD_KINDS[r.kind].en : RD_KINDS[r.kind].zh}${r.cards ? ` × ${r.cards}` : ''}<small>${r.d}</small></div>
-      <button class="btn ghost" data-rdshow="${r.n}">${L('兌換券', 'Voucher')}</button></div>`).join('');
+  const hist = rdList().slice().reverse().map((r) => `<div class="srow"><div>#${rdSerial(r)}　${EN() ? RD_KINDS[r.kind].en : RD_KINDS[r.kind].zh}${r.cards && !(r.slots && !r.open) ? ` × ${r.cards}` : ''}<small>${r.d}</small></div>
+      ${r.slots && !r.open ? `<button class="btn" data-rdscr="${r.n}">${L('繼續刮', 'Scratch')}</button>` : `<button class="btn ghost" data-rdshow="${r.n}">${L('兌換券', 'Voucher')}</button>`}</div>`).join('');
   $('sheet').innerHTML = `<h3 style="margin-top:0">🎟️ ${L('積分兌換', 'Redeem points')} <small>REDEEM</small></h3>
     <div class="note">${L(`總積分 ${points().total}・商店花費 ${spentPts()}・可用積分 ${walletPts()}。兌換只扣可用積分，總積分和等級不會變少。`, `Total ${points().total} · shop ${spentPts()} · to spend ${walletPts()}. Your total and rank never go down.`)}</div>
     <div class="set" style="margin-top:10px">${row('drink')}${row('cards5')}${row('scratch')}</div>
@@ -2045,13 +2058,80 @@ async function doRedeem(kind) {
   if (rdBlock(kind)) return openRedeem();   // 再檢查一次（防止連點）
   const k = RD_KINDS[kind], list = rdList();
   const r = { n: list.reduce((a, x) => Math.max(a, x.n), 0) + 1, kind, cost: k.cost, cards: kind === 'scratch' ? scratchDraw() : k.cards, d: todayKey(), t: Date.now() };
+  if (kind === 'scratch') { r.slots = scratchSlots(r.cards); r.open = false; }
   st.ledger.redeem = [...list, r];   // 先寫進帳本、簽章存檔，才顯示結果
   await saveLedger();
-  if (kind === 'scratch' && r.cards >= 20) confetti(r.cards >= 50 ? 160 : 90); else confetti(50);
+  if (kind === 'scratch') return openScratch(r.n);
+  confetti(50);
   showVoucher(r.n);
+}
+// 三格：兩格是獎品張數，另一格是干擾數字（照同一個機率表抽、和獎品不同，不刻意放大獎）
+function scratchSlots(prize) {
+  let d = scratchDraw(); while (d === prize) d = scratchDraw();
+  const s = [prize, prize, d], u = new Uint32Array(3); crypto.getRandomValues(u);
+  for (let i = 2; i > 0; i--) { const j = u[i] % (i + 1); [s[i], s[j]] = [s[j], s[i]]; }
+  return s;
+}
+function openScratch(n) {
+  const r = rdList().find((x) => x.n === n); if (!r || !r.slots) return;
+  const cell = (v, i) => `<div class="sc-cell" data-sc="${i}"><div class="sc-num">${v}<small>${L('張', 'cards')}</small></div><canvas></canvas></div>`;
+  $('sheet').innerHTML = `<div class="sc-wrap">
+      <h3 style="margin:0">🎰 ${L('刮刮樂', 'Scratch card')} <small>#${rdSerial(r)}</small></h3>
+      <div class="note" style="margin-top:6px">${L('用手指刮開三格，<b>兩格數字一樣</b>就是你拿到的點數卡張數！', 'Scratch all three — <b>two matching numbers</b> are your prize!')}</div>
+      <div class="sc-row">${r.slots.map(cell).join('')}</div>
+      <div class="sc-msg" id="scMsg">${L('開始刮吧 ✨', 'Start scratching ✨')}</div>
+      <div class="btnrow" style="margin-top:10px"><button class="btn ghost" data-scall="1">${L('一次全部刮開', 'Reveal all')}</button></div>
+    </div>`;
+  $('modal').classList.add('show');
+  const shown = [false, false, false];
+  const reveal = (i) => {
+    if (shown[i]) return; shown[i] = true;
+    const c = $('sheet').querySelector(`[data-sc="${i}"] canvas`); if (c) c.style.transition = 'opacity .35s', c.style.opacity = '0', setTimeout(() => c.remove(), 400);
+    check();
+  };
+  const check = () => {
+    const open = shown.map((s, i) => (s ? r.slots[i] : null)).filter((v) => v !== null);
+    const pair = open.find((v, i) => open.indexOf(v) !== i);
+    if (pair === undefined && open.length < 3) {
+      if (open.length) $('scMsg').innerHTML = open.length === 1 ? L('再刮一格…', 'Keep going…') : L('還沒一樣！刮最後一格 👀', 'No match yet — one more 👀');
+      return;
+    }
+    if (check.done) return; check.done = true;
+    setTimeout(() => { [0, 1, 2].forEach(reveal); finish(); }, pair !== undefined && open.length < 3 ? 600 : 0);
+  };
+  const finish = async () => {
+    $('sheet').querySelectorAll('.sc-cell').forEach((el) => el.classList.add(r.slots[+el.dataset.sc] === r.cards ? 'win' : 'lose'));
+    $('scMsg').innerHTML = `<b>${r.cards} ${L('張！', 'cards!')}</b>${r.cards >= 50 ? L('🎉 超級大獎！', '🎉 JACKPOT!') : r.cards >= 20 ? L('太幸運了！', 'So lucky!') : L('恭喜！', 'Nice!')}`;
+    if (r.cards >= 50) { const g = document.createElement('div'); g.className = 'sc-gold'; document.body.appendChild(g); setTimeout(() => g.remove(), 1900); confetti(180); }
+    else confetti(r.cards >= 20 ? 100 : 50);
+    $('sheet').querySelector('.btnrow').innerHTML = `<button class="btn" data-rdshow="${r.n}">${L('看兌換券（截圖給老師）', 'Show voucher')}</button>`;
+    if (!r.open) { r.open = true; await saveLedger(); }
+  };
+  // 銀漆：canvas 用 destination-out 擦掉；刮掉約一半自動全開
+  $('sheet').querySelectorAll('.sc-cell').forEach((el) => {
+    const i = +el.dataset.sc, cv = el.querySelector('canvas'), dpr = Math.min(2, devicePixelRatio || 1);
+    const W = el.clientWidth, H = el.clientHeight; cv.width = W * dpr; cv.height = H * dpr;
+    const g = cv.getContext('2d', { willReadFrequently: true }); g.scale(dpr, dpr);
+    const gr = g.createLinearGradient(0, 0, W, H); gr.addColorStop(0, '#c9ced6'); gr.addColorStop(.5, '#eef1f5'); gr.addColorStop(1, '#a9b0ba');
+    g.fillStyle = gr; g.fillRect(0, 0, W, H);
+    g.fillStyle = 'rgba(80,90,105,.55)'; g.font = `700 ${Math.round(W * .3)}px Syne,sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('?', W / 2, H / 2);
+    g.globalCompositeOperation = 'destination-out'; g.lineCap = g.lineJoin = 'round'; g.lineWidth = Math.max(26, W * .28);
+    let last = null, moves = 0;
+    const pt = (e) => { const b = cv.getBoundingClientRect(); return [e.clientX - b.left, e.clientY - b.top]; };
+    const cleared = () => { const d = g.getImageData(0, 0, cv.width, cv.height).data; let n = 0, k = 0; for (let p = 3; p < d.length; p += 64) { k++; if (d[p] === 0) n++; } return n / k; };
+    cv.addEventListener('pointerdown', (e) => { cv.setPointerCapture(e.pointerId); last = pt(e); g.beginPath(); g.arc(last[0], last[1], g.lineWidth / 2, 0, 7); g.fill(); });
+    cv.addEventListener('pointermove', (e) => {
+      if (!last) return; const p = pt(e); g.beginPath(); g.moveTo(last[0], last[1]); g.lineTo(p[0], p[1]); g.stroke(); last = p;
+      if (++moves % 6 === 0 && cleared() > 0.5) { last = null; reveal(i); }
+    });
+    const up = () => { if (last && cleared() > 0.5) reveal(i); last = null; };
+    cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+  });
+  openScratch.revealAll = () => { if (!check.done) [0, 1, 2].forEach((i) => { shown[i] = true; const c = $('sheet').querySelector(`[data-sc="${i}"] canvas`); if (c) c.remove(); }); check(); };
 }
 function showVoucher(n) {
   const r = rdList().find((x) => x.n === n); if (!r) return;
+  if (r.slots && !r.open) return openScratch(n);
   const k = RD_KINDS[r.kind];
   $('sheet').innerHTML = `<div class="proof">
       <div class="pava">${avaHTML()}</div>
@@ -2060,6 +2140,7 @@ function showVoucher(n) {
       <div class="plabel" style="margin-top:10px">${L('兌換券 VOUCHER', 'VOUCHER')}</div>
       <div class="ptotal" style="font-size:30px">${EN() ? k.en : k.zh}</div>
       ${r.cards ? `<div class="ptotal">${r.cards}</div><div class="plabel">${L('張點數卡 CLASS CARDS', 'CLASS CARDS')}</div>` : ''}
+      ${r.slots ? `<div class="plabel" style="margin-top:4px">${L('刮出', 'Scratched')} ${r.slots.join('・')}</div>` : ''}
       <div class="pgrid"><div><b>#${rdSerial(r)}</b>${L('序號', 'Serial')}</div><div><b>${r.d}</b>${L('兌換日期', 'Date')}</div></div>
       <div class="pfoot"><span>${L('請截圖給老師', 'Show your teacher')}<br><span class="clock" id="clock"></span></span>
         <span style="text-align:right">${L('驗證碼', 'Code')}<br><span class="code">${rdCode(r)}</span></span></div>
@@ -3022,6 +3103,8 @@ document.addEventListener('click', (e) => {
   if (t.dataset.rdgo) return confirmRedeem(t.dataset.rdgo);
   if (t.dataset.rdok) { t.disabled = true; return doRedeem(t.dataset.rdok); }
   if (t.dataset.rdshow) return showVoucher(+t.dataset.rdshow);
+  if (t.dataset.rdscr) return openScratch(+t.dataset.rdscr);
+  if (t.dataset.scall) return openScratch.revealAll && openScratch.revealAll();
   if (t.dataset.act === 'profile') return openOnboarding(true);
   if (t.dataset.close) { clearInterval(openProof._i); $('modal').classList.remove('show'); return checkLock(); }
   if (t.dataset.qunit) { $('modal').classList.remove('show'); return startQuiz(t.dataset.qunit); }
