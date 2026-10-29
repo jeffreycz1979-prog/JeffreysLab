@@ -7,7 +7,7 @@ const PRECACHE_URLS = [
   '/JeffreysLab/english-island/index.html',
   '/JeffreysLab/english-island/manifest.json',
   '/JeffreysLab/english-island/grammar.json',
-  '/JeffreysLab/english-island/island3d.js?v=2',
+  '/JeffreysLab/english-island/island3d.js?v=5',
   '/JeffreysLab/english-island/games/jump.js?v=1.5',
   '/JeffreysLab/english-island/games/blaster.js?v=1.5',
   '/JeffreysLab/english-island/games/run.js?v=1.1',
