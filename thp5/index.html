@@ -456,6 +456,17 @@ nav button.on{color:var(--lime);font-weight:700}
 .prq{font-size:18px;font-weight:700;line-height:1.5;margin-bottom:10px}.prq u{color:var(--lime)}
 .prfb{margin:12px 0 10px;padding:10px 12px;border-radius:12px;font-weight:800}.prfb.ok{background:rgba(204,255,0,.12);color:var(--lime)}.prfb.bad{background:rgba(255,107,87,.12);color:var(--coral)}
 .prfb small{display:block;color:var(--ink);font-weight:500;margin-top:4px}
+.trail{position:relative;display:flex;align-items:flex-end;justify-content:space-between;margin:4px 2px 14px;padding:44px 4px 6px}
+.trail:before{content:'';position:absolute;left:14px;right:22px;bottom:20px;border-top:3px dashed #4a5068}
+.tn{position:relative;z-index:1;width:36px;height:36px;display:grid;place-items:center;font-size:24px;border-radius:50%;background:var(--panel);border:2px solid #4a5068}
+.tn.ok{border-color:var(--lime);background:rgba(204,255,0,.12)}.tn.bad{border-color:var(--coral);background:rgba(255,107,87,.12)}.tn.now{border-color:var(--mint);box-shadow:0 0 0 4px rgba(78,205,196,.25)}
+.tn.fin{width:48px;height:48px;font-size:32px;border-color:#FFB547}
+.trav{position:absolute;bottom:46px;width:38px;height:38px;overflow:hidden;transform:translateX(-50%);transition:left .5s ease;animation:hop .9s ease-in-out infinite}
+@keyframes hop{50%{transform:translate(-50%,-5px)}}
+.pop{animation:pop .5s ease}@keyframes pop{0%{transform:scale(.4)}60%{transform:scale(1.3)}100%{transform:scale(1)}}
+.clue{margin:12px 0 10px;padding:12px;border-radius:12px;background:#2b2418;border:2px dashed #FFB547;color:var(--ink)}
+.clue b{color:#FFB547;display:block;margin-bottom:4px}.clue .ans{color:var(--coral);font-weight:800}
+.bigchest{font-size:72px;line-height:1;margin:6px 0}.chestpts{display:inline-block;margin-top:6px;padding:6px 14px;border-radius:20px;background:rgba(255,181,71,.15);color:#FFB547;font-weight:800}
 .prres{text-align:center;padding:20px 6px}.prres .big{font:800 54px Syne,sans-serif;color:var(--lime)}.prres p{font-size:16px;margin:8px 0 16px}
 .gmis .x{color:var(--coral);text-decoration:line-through}.gmis .o{color:var(--mint);font-weight:700}.gmis small{color:var(--muted)}
 .qunit .acts{display:flex;gap:6px;flex:none}
@@ -968,8 +979,9 @@ function points() {
     game += bestOf(W[k].gb);   // 遊戲：所有遊戲共用，每週取最高一局，最多 20
     spot += Math.min(SPOT_CAP, W[k].spot || 0);   // 抽查：每週最多 15
   }
-  st.ledger.bonus.forEach((b) => { if (b.k.startsWith('wk') || b.k.startsWith('streak')) streak += b.p; else master += b.p; });
-  return { card, goal, streak, quiz: quiz + master, quizOnly: quiz, master, game, spot, total: card + goal + streak + quiz + master + game + spot };
+  let chest = 0;
+  st.ledger.bonus.forEach((b) => { if (b.k.startsWith('wk') || b.k.startsWith('streak')) streak += b.p; else if (b.k.startsWith('chest:')) chest += b.p; else master += b.p; });
+  return { card, goal, streak, quiz: quiz + master, quizOnly: quiz, master, game, spot, chest, total: card + goal + streak + quiz + master + game + spot + chest };
 }
 // 10/15 刷分漏洞修正：挑戰一次最多 35 分；最佳超過 100% 的單元收回精熟（可重新挑戰拿回）
 const QUIZ_MAX_PTS = 35;
@@ -2396,6 +2408,7 @@ function renderMe() {
     <div class="srow"><div>${L('🔍 抽查通過', '🔍 Quick check passed')}<small>${L(`按「記得／太簡單」時隨機抽查，意思和拼字都對；每週最多 ${SPOT_CAP} 分。答錯那張不算分`, `Random checks when you tap Got it / Easy; up to ${SPOT_CAP} a week. A miss doesn't count`)}</small></div><b>+1</b></div>
     <div class="srow"><div>${L('🎮 獎勵遊戲', '🎮 Bonus game')}<small>${L('精熟 1／2／3 個單元依序解鎖 3 款；所有遊戲每週共用，只算最高一局', 'Master 1 / 2 / 3 units to unlock 3 games; all games share one weekly best')}</small></div><b>0～${GAME_CAP}</b></div>
     <div class="srow"><div>${L('🛍 角色商店', '🛍 Character shop')}<small>${L(`用積分買衣服、帽子、配件、寵物（一般 ${PRICE_BASIC}、很酷的 ${PRICE_COOL}、換色 ${PRICE_COLOR}）；只扣可用積分，總積分和等級不會變少。目前可用 ${walletPts()}`, `Spend points on outfits, hats, extras and pets (${PRICE_BASIC} / ${PRICE_COOL} / colors ${PRICE_COLOR}). Your total and rank never go down. Now: ${walletPts()}`)}</small></div><b>💰</b></div>
+    <div class="srow"><div>${L('🗺️ 尋寶大寶箱', '🗺️ Treasure chest')}<small>${L(`句型、發音尋寶答對 ${PR_PASS} 題以上，打開終點大寶箱（每單元各一次）`, `${PR_PASS}+ right in a grammar or phonics hunt (once each per unit)`)}</small></div><b>+${CHEST_PTS}</b></div>
     <div class="srow"><div>${L('單元精熟', 'Unit mastery')}<small>${L(`某單元第一次拿到 ${MASTER_PCT}% 以上（每單元一次）`, `First time scoring ${MASTER_PCT}%+ on a unit (once per unit)`)}</small></div><b>+${MASTER_PTS}</b></div>
     <div class="srow"><div>${L('同一單元重複挑戰', 'Retrying a unit')}<small>${L('每週只算最高的一次，打破本週紀錄才會補差額', 'Only your best score each week counts')}</small></div><b>📈</b></div>
     <div class="srow"><div>${L('精熟要維持', 'Keep your badge')}<small>${L(`🏅 單元 ${FADE_DAYS} 天沒練會褪色，不扣分，回來練就恢復`, `🏅 fades after ${FADE_DAYS} days without practice — no points lost`)}</small></div><b>🏅</b></div>`;
@@ -2423,6 +2436,7 @@ function openProof() {
       <div class="pgrid">
         <div><b>${P.card}${P.spot ? ` <small style="font-size:12px;color:var(--amber)">+${P.spot}</small>` : ''}</b>${L('複習＋抽查', 'Review + checks')}</div><div><b>${P.goal}</b>${L('每週目標', 'Weekly goal')}</div>
         <div><b>${P.quizOnly}</b>${L('挑戰', 'Quiz')}</div><div><b>${P.master}</b>${L('單元精熟', 'Mastery')}</div>
+        <div><b>${P.chest}</b>${L('🗺️ 尋寶寶箱', '🗺️ Treasure')}</div><div><b>${st.ledger.bonus.filter((b) => b.k.startsWith('chest:')).length}</b>${L('開過的大寶箱', 'Chests opened')}</div>
         <div><b>${P.streak}</b>${L('連續獎勵', 'Streak bonus')}</div><div><b>🔥 ${streakNow()} ${L('週', 'wk')}</b>${L('目前連續', 'Current streak')}</div>
         <div><b>${totalCards}</b>${L('總複習張數', 'Cards reviewed')}</div><div><b>${acc}</b>${L('挑戰正確率', 'Quiz accuracy')}</div>
         <div><b>${spentPts()}</b>${L('🛍 商店花費', '🛍 Spent in shop')}</div><div><b>${walletPts()}</b>${L('💰 可用積分', '💰 Points to spend')}</div>
@@ -2775,6 +2789,9 @@ function cardHTMLp(p, label) {   // 發音小卡（grammar.json 的 phonics）�
 }
 // ═══ 句型站、發音站（v2.0）：先教再練，練習 5 題答對 4 題才算完成 ═══
 const PR_N = 5, PR_PASS = 4;
+const CHEST_PTS = 30;   // 尋寶終點大寶箱：每單元句型、發音各一次
+const chestKey = (u, k) => `chest:${u}:${k}`;
+const chestOpened = (u, k) => st.ledger.bonus.some((b) => b.k === chestKey(u, k));
 const ROLE = { S: ['主詞', 'Subject'], B: ['be／助動詞', 'be / helper'], V: ['動詞', 'Verb'], T: ['時間', 'Time'], C: ['連接詞', 'Linker'], N: ['否定', 'Not'], A: ['形容詞／副詞', 'Adj / Adv'], P: ['介系詞', 'Preposition'] };
 const egHTML = (en) => esc(en).replace(/\{([SBVTCNAPO]):([^{}]+)\}/g, (m, r, t) => `<span class="r-${r}">${t}</span>`);
 const egPlain = (en) => en.replace(/\{[SBVTCNAPO]:([^{}]+)\}/g, '$1');
@@ -2844,16 +2861,16 @@ function openPattern(unit) {
     ${ls ? legendHTML() + ls.map(lessonHTML).join('') : c ? cardHTMLg(c, `📘 ${esc(unit)} 文法 GRAMMAR`) : ''}
     ${c && (c.mistakes || []).length ? `<div class="gcard"><div class="sec">常見錯誤 COMMON MISTAKES</div>${c.mistakes.map(([x, o, why]) => `<div class="gmis"><span class="x">✕ ${esc(x)}</span><span class="o">✓ ${esc(o)}</span><small>${esc(why)}</small></div>`).join('')}</div>` : ''}
     ${e ? cardHTMLg(e, `🗣️ ${esc(unit)} 生活句型 EVERYDAY ENGLISH`) : ''}
-    <div class="prbar"><div>${best >= PR_PASS ? `✅ ${L(`練習最佳 ${best} / ${PR_N}`, `Best ${best} / ${PR_N}`)}` : L(`看完了嗎？練習 ${PR_N} 題，答對 ${PR_PASS} 題就完成這一站`, `Practice ${PR_N} questions — ${PR_PASS} right to finish`)}</div>
-      <div class="btnrow"><button class="btn" data-prac="${esc(unit)}" data-kind="g">${L('開始練習 ▶', 'Practice ▶')}</button><button class="btn ghost" data-close="1">${L('關閉', 'Close')}</button></div></div>`;
+    <div class="prbar"><div>${best >= PR_PASS ? `✅ ${L(`練習最佳 ${best} / ${PR_N}`, `Best ${best} / ${PR_N}`)}` : L(`看完了嗎？出發尋寶！${PR_N} 個寶箱答對 ${PR_PASS} 個，打開終點大寶箱 +${CHEST_PTS} ⭐`, `Ready? Open ${PR_PASS} of ${PR_N} chests to unlock the treasure (+${CHEST_PTS} ⭐)`)}</div>
+      <div class="btnrow"><button class="btn" data-prac="${esc(unit)}" data-kind="g">${L('出發尋寶 ▶', 'Start the hunt ▶')}</button><button class="btn ghost" data-close="1">${L('關閉', 'Close')}</button></div></div>`;
   $('modal').classList.add('show'); $('sheet').scrollTop = 0;
 }
 function openPhonics(unit) {
   const ph = (GRAM.phonics || {})[unit]; if (!ph) return toast('這個單元還沒有發音教學');
   const best = pracBest(unit, 'p');
   $('sheet').innerHTML = cardHTMLp(ph, `🔤 ${esc(unit)} 發音 PHONICS`) + `
-    <div class="prbar"><div>${best >= PR_PASS ? `✅ ${L(`練習最佳 ${best} / ${PR_N}`, `Best ${best} / ${PR_N}`)}` : L(`先點例字聽聽看，再練習 ${PR_N} 題（答對 ${PR_PASS} 題完成）`, `Listen to the examples, then practice ${PR_N} questions`)}</div>
-      <div class="btnrow"><button class="btn" data-prac="${esc(unit)}" data-kind="p">${L('開始練習 ▶', 'Practice ▶')}</button><button class="btn ghost" data-close="1">${L('關閉', 'Close')}</button></div></div>`;
+    <div class="prbar"><div>${best >= PR_PASS ? `✅ ${L(`練習最佳 ${best} / ${PR_N}`, `Best ${best} / ${PR_N}`)}` : L(`先點例字聽聽看，再出發尋寶！答對 ${PR_PASS} 個寶箱打開大寶箱 +${CHEST_PTS} ⭐`, `Listen first, then open ${PR_PASS} of ${PR_N} chests (+${CHEST_PTS} ⭐)`)}</div>
+      <div class="btnrow"><button class="btn" data-prac="${esc(unit)}" data-kind="p">${L('出發尋寶 ▶', 'Start the hunt ▶')}</button><button class="btn ghost" data-close="1">${L('關閉', 'Close')}</button></div></div>`;
   $('modal').classList.add('show'); $('sheet').scrollTop = 0;
 }
 // ── 練習題 ──
@@ -2886,8 +2903,7 @@ function startPractice(u, k) {
 }
 function renderPr() {
   const q = pr.qs[pr.i], n = pr.qs.length;
-  const head = `<div class="prhead"><span>${pr.k === 'p' ? '🔤' : '📘'} ${esc(pr.u)} ${pr.k === 'p' ? L('發音練習', 'Phonics practice') : L('句型練習', 'Grammar practice')}</span><b>${pr.i + 1} / ${n}</b></div>
-    <div class="prdots">${pr.qs.map((x, i) => `<i class="${i < pr.i ? (x.ok ? 'ok' : 'bad') : i === pr.i ? 'now' : ''}"></i>`).join('')}</div>`;
+  const head = `<div class="prhead"><span>🗺️ ${esc(pr.u)} ${pr.k === 'p' ? L('發音尋寶', 'Phonics hunt') : L('句型尋寶', 'Grammar hunt')}</span><b>${pr.i + 1} / ${n}</b></div>` + trailHTML();
   let body = '';
   const listen = q.say ? `<div class="qmid"><button class="spk" data-say="${esc(q.say)}">🔊</button><button class="spk turtle" data-say="${esc(q.say)}" data-slow="1">🐢</button></div>` : '';
   if (q.type === 'order' || q.type === 'lorder') {
@@ -2902,10 +2918,24 @@ function renderPr() {
     body = (q.type === 'pword' || q.type === 'phear' ? `<div class="prq">${esc(q.q)}</div>` : qt) + (q.type === 'phear' || q.type === 'lpick' || q.type === 'lfill' ? listen : '') +
       `<div class="opts">${q.opts.map((o, k) => `<button class="opt ${q.type === 'lpick' || q.type === 'choice' && o.length > 18 ? '' : 'en'} ${q.done ? (k === q.a ? 'ok' : k === q.pick ? 'bad' : '') : ''}" data-pans="${k}" ${q.done ? 'disabled' : ''}>${esc(o)}</button>`).join('')}</div>`;
   }
-  const fb = q.done ? `<div class="prfb ${q.ok ? 'ok' : 'bad'}">${q.ok ? '✓ Correct!' : `✕ ${esc(q.answer || '')}`}${q.tip ? `<small>💡 ${esc(q.tip)}</small>` : ''}</div>
+  const fb = q.done ? (q.ok ? `<div class="prfb ok">💰 ${L('寶箱打開了！', 'Chest opened!')} Correct!${q.tip ? `<small>💡 ${esc(q.tip)}</small>` : ''}</div>`
+    : `<div class="clue"><b>🔒 ${L('寶箱鎖住了・線索卡', 'Locked! Clue card')}</b>${L('正確答案', 'Answer')}：<span class="ans">${esc(q.answer || '')}</span>${q.tip ? `<div style="margin-top:6px">🔎 ${esc(q.tip)}</div>` : ''}</div>`) + `
     <button class="btn wide" data-act="pnext">${pr.i + 1 < n ? 'Next ▶' : L('看結果 ▶', 'Results ▶')}</button>` : '';
   $('sheet').innerHTML = head + `<div class="prbox">${body}${fb}</div>`;
   if (!q.done && q.say && !q.spoken) { q.spoken = 1; setTimeout(() => speak(q.say), 250); }
+}
+// 尋寶路線：每題一個寶箱，終點大寶箱；角色走在目前那一格上面
+function trailHTML(fin) {
+  const n = pr.qs.length, pos = fin ? n : pr.i;
+  const node = (x, i) => {
+    const cls = x.done ? (x.ok ? 'ok' : 'bad') : i === pr.i && !fin ? 'now' : '';
+    const ic = x.done ? (x.ok ? '💰' : '🔒') : '📦';
+    return `<div class="tn ${cls} ${x.done && i === pr.i && !fin ? 'pop' : ''}">${ic}</div>`;
+  };
+  const left = `calc(${(pos + 0.5) / (n + 1) * 100}% ${pos === n ? '+ 4px' : ''})`;
+  let av = '';
+  try { av = avatarSVG(lookOf(), 'trav', 'head').replace('class="av trav"', `class="av trav" style="left:${left}"`); } catch (e) {}
+  return `<div class="trail">${pr.qs.map(node).join('')}<div class="tn fin">${fin ? (pr.right >= PR_PASS ? '🎉' : '🔒') : '🎁'}</div>${av}</div>`;
 }
 function prAnswer(k) {
   const q = pr.qs[pr.i]; if (!q || q.done) return;
@@ -2928,13 +2958,16 @@ function prNext() {
   pr.tray = [];
   if (pr.i + 1 < pr.qs.length) { pr.i++; return renderPr(); }
   const u = pr.u, k = pr.k, sc = pr.right, pass = sc >= PR_PASS, first = pass && pracBest(u, k) < PR_PASS;
+  const chest = pass && !chestOpened(u, k);
+  if (chest) { st.ledger.bonus.push({ t: Date.now(), k: chestKey(u, k), p: CHEST_PTS }); saveLedger(); renderHeader(); }
   st.meta.gprac = st.meta.gprac || {}; const m = st.meta.gprac[u] || (st.meta.gprac[u] = {});
   if (sc > (m[k] || 0)) m[k] = sc;
   if (k === 'g') { st.meta.gseen = st.meta.gseen || {}; if (!st.meta.gseen[u]) st.meta.gseen[u] = Date.now(); }
   saveMeta(); if ($('v-home').classList.contains('active')) renderIsland();
-  if (first) setTimeout(() => confetti(50), 200);
-  $('sheet').innerHTML = `<div class="prres"><div class="big">${sc} / ${pr.qs.length}</div>
-    <p>${pass ? (first ? L(`🎉 完成${k === 'p' ? '發音' : '句型'}站！島上多蓋一層樓`, '🎉 Station complete! One more floor on the island') : L('👍 很穩！', '👍 Nice!')) : L(`再差一點！答對 ${PR_PASS} 題就完成，回去看一下教學再試試`, `Almost! Get ${PR_PASS} right — review the lesson and try again`)}</p>
+  if (first || chest) setTimeout(() => confetti(chest ? 70 : 50), 200);
+  $('sheet').innerHTML = trailHTML(true) + `<div class="prres"><div class="bigchest ${pass ? 'pop' : ''}">${pass ? '🎁' : '🔒'}</div><div class="big" style="font-size:40px">${sc} / ${pr.qs.length}</div>
+    ${chest ? `<div class="chestpts">💰 ${L('大寶箱打開了！', 'Treasure chest opened!')} +${CHEST_PTS} ⭐</div>` : pass ? `<div class="chestpts" style="opacity:.7">${L('這個大寶箱已經開過了・練習不加分', 'Already opened · practice only')}</div>` : ''}
+    <p>${pass ? (first ? L(`🎉 完成${k === 'p' ? '發音' : '句型'}站！島上多蓋一層樓`, '🎉 Station complete! One more floor on the island') : L('👍 很穩！', '👍 Nice!')) : L(`大寶箱還鎖著！答對 ${PR_PASS} 題才打得開，回去看一下教學再試試`, `Still locked! Get ${PR_PASS} right — review the lesson and try again`)}</p>
     <div class="btnrow"><button class="btn" data-prac="${esc(u)}" data-kind="${k}">${L('再練一次', 'Again')}</button>
       <button class="btn ghost" ${k === 'p' ? `data-gph="${esc(u)}"` : `data-gpat="${esc(u)}"`}>${L('回到教學', 'Lesson')}</button>
       <button class="btn ghost" data-close="1">${L('關閉', 'Close')}</button></div></div>`;
