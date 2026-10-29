@@ -1805,20 +1805,37 @@ const webglOK = (() => { try { const c = document.createElement('canvas'); retur
 const use3D = () => webglOK && !st.map3dFailed && st.set.map3d !== false;
 let i3d = null, i3dLoading = null;
 const heroBubble = () => { const fresh = !(st.profile && st.profile.look); return fresh ? 'edit' : (st.meta.avNew || []).length ? 'shop' : ''; };
-function heroCanvas() {   // 角色（含寵物）＋頭上的泡泡 → 畫布，給 3D 當看板貼圖
+// 走路姿勢：p＝一步循環的位置（0～1）。把 CSS 動畫換成固定角度，給 3D 看板逐格用
+// 腿以髖部為軸前後擺、手跟對側的腳一起擺；兩腳交錯經過時身體最高；寵物每一步跳一下
+function posedSVG(svg, p) {
+  const s = Math.sin(p * Math.PI * 2), a = (s * 28).toFixed(1), b = (-s * 22).toFixed(1);
+  const lift = (-(1 - Math.abs(s)) * 3.2).toFixed(2), hop = (-Math.abs(Math.sin(p * Math.PI * 2)) * 5).toFixed(2);
+  return svg.replace('<g class="bob">', `<g class="bob" transform="translate(0 ${lift})">`)
+    .replace('<g class="legL">', `<g class="legL" transform="rotate(${a} 42.5 102)">`)
+    .replace('<g class="legR">', `<g class="legR" transform="rotate(${-a} 57.5 102)">`)
+    .replace('<g class="armL">', `<g class="armL" transform="rotate(${b} 26.5 83)">`)
+    .replace('<g class="armR">', `<g class="armR" transform="rotate(${-b} 73.5 83)">`)
+    .replace('<g class="pet">', `<g class="pet" transform="translate(0 ${hop})">`);
+}
+const HERO_STEPS = 8;   // 一步循環切 8 格
+// pose 有值＝走路姿勢；flip＝面向左（只鏡像角色，泡泡的字不反過來）
+function heroCanvas(pose, flip) {   // 角色（含寵物）＋頭上的泡泡 → 畫布，給 3D 當看板貼圖
   return new Promise((res) => {
-    const svg = avatarSVG(lookOf(), '', 'full').replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" width="264" height="304" ');
+    let svg = avatarSVG(lookOf(), '', 'full').replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" width="264" height="304" ');
+    if (pose != null) svg = posedSVG(svg, pose);
     const img = new Image();
     img.onload = () => {
       const c = document.createElement('canvas'); c.width = 264; c.height = 384;
-      const g = c.getContext('2d'); g.drawImage(img, 0, 80, 264, 304);
-      const b = heroBubble();
+      const g = c.getContext('2d');
+      g.save(); if (flip) { g.translate(264, 0); g.scale(-1, 1); } g.drawImage(img, 0, 80, 264, 304); g.restore();
+      const b = heroBubble(), hx = flip ? 152 : 112;   // 頭頂位置（翻面後在另一邊）
       if (b) {
         const txt = b === 'edit' ? L('捏我！', 'Edit me!') : L('🛍 去購物！', '🛍 Shop!');
-        g.font = '700 30px "Noto Sans TC", system-ui, sans-serif'; const w = g.measureText(txt).width + 36;
-        g.fillStyle = '#1a3a1a'; g.beginPath(); g.roundRect(112 - w / 2, 14, w, 50, 25); g.fill();
-        g.beginPath(); g.moveTo(102, 62); g.lineTo(112, 76); g.lineTo(122, 62); g.fill();
-        g.fillStyle = '#CCFF00'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(txt, 112, 40);
+        g.font = '700 30px "Noto Sans TC", system-ui, sans-serif'; const w = Math.min(256, g.measureText(txt).width + 36);
+        const bx = Math.max(4, Math.min(260 - w, hx - w / 2));
+        g.fillStyle = '#1a3a1a'; g.beginPath(); g.roundRect(bx, 14, w, 50, 25); g.fill();
+        g.beginPath(); g.moveTo(hx - 10, 62); g.lineTo(hx, 76); g.lineTo(hx + 10, 62); g.fill();
+        g.fillStyle = '#CCFF00'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(txt, bx + w / 2, 40);
       }
       res(c);
     };
@@ -1839,6 +1856,8 @@ const island3dHost = {
   heroAt() { const open = allUnits(); let at = st.meta.avatarAt; if (!open.includes(at)) at = open.find((u) => !unitStations(u).full) || open[0]; return at; },
   heroKey: () => JSON.stringify(lookOf()) + '|' + heroBubble() + '|' + EN(),
   heroCanvas,
+  heroFlipCanvas: () => heroCanvas(null, true),
+  heroWalkFrames: (flip) => Promise.all(Array.from({ length: HERO_STEPS }, (_, i) => heroCanvas(i / HERO_STEPS, flip))),
   tileTap(code) { openUnit(code); },
   arrive(code) { st.meta.avatarAt = code; saveMeta(); openUnit(code); },
   heroTap() { openAvCreator(); },
@@ -1853,7 +1872,7 @@ function ensure3D() {
   if (i3dLoading) return;
   i3dLoading = (async () => {
     try {
-      const mod = await import('./island3d.js?v=2');
+      const mod = await import('./island3d.js?v=4');
       i3d = await mod.createIsland3D($('island3d'), island3dHost);
       $('island3d').classList.add('ready');
     } catch (e) {

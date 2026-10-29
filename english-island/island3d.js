@@ -239,19 +239,39 @@ export async function createIsland3D(el, host) {
   // ── 角色：學生捏的造型，做成永遠面向鏡頭的看板（含寵物）──
   const heroMat = new THREE.SpriteMaterial({ transparent: true, depthWrite: false });
   const hero = new THREE.Sprite(heroMat); hero.renderOrder = 4; scene.add(hero);
+  const STRIDE = 3.4;   // 走一個完整步伐（左右各一步）的距離，約 0.42 秒
   const HERO_H = 5.4, HERO_CX = 0.424, HERO_CY = 0.021;
   hero.scale.set(HERO_H * 264 / 384, HERO_H, 1); hero.center.set(HERO_CX, HERO_CY);
   let heroKey = '', heroLen = 0, heroFlip = false, walking = null;
+  // 貼圖：[面右, 面左] 各一組；站著一張、走路一步切成幾格（手腳真的前後擺）。面左的圖另外畫，泡泡的字才不會反過來
+  let idleTex = [null, null], walkTex = [[], []], step = -1;
+  const toTex = (cv) => { const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; return t; };
   async function refreshHero() {
     const k = host.heroKey(); if (k === heroKey) return; heroKey = k;
     const cv = await host.heroCanvas(); if (!cv) return;
-    if (heroMat.map) heroMat.map.dispose();
-    heroMat.map = new THREE.CanvasTexture(cv); heroMat.map.colorSpace = THREE.SRGBColorSpace; heroMat.needsUpdate = true;
-    setFlip(heroFlip, true);
+    const old = [...idleTex, ...walkTex[0], ...walkTex[1]];
+    idleTex = [toTex(cv), null]; walkTex = [[], []];
+    showHero(); old.forEach((t) => t && t.dispose());
+    const cvL = host.heroFlipCanvas ? await host.heroFlipCanvas() : null;
+    if (k !== heroKey) return;
+    if (cvL) { idleTex[1] = toTex(cvL); showHero(); }
+    if (host.heroWalkFrames && !host.reduce) {
+      const [r, l] = await Promise.all([host.heroWalkFrames(false), host.heroWalkFrames(true)]);
+      if (k === heroKey && r.every(Boolean) && l.every(Boolean)) walkTex = [r.map(toTex), l.map(toTex)];
+    }
+  }
+  // 依「面向、站或走、第幾格」選貼圖；沒有面左的圖時退回把面右的圖鏡像
+  function showHero() {
+    const side = heroFlip ? 1 : 0, w = walkTex[side];
+    let t = step >= 0 && w.length ? w[step % w.length] : idleTex[side], mirror = false;
+    if (!t) { t = step >= 0 && walkTex[0].length ? walkTex[0][step % walkTex[0].length] : idleTex[0]; mirror = heroFlip; }
+    if (!t) return;
+    t.repeat.x = mirror ? -1 : 1; t.offset.x = mirror ? 1 : 0;
+    if (heroMat.map !== t) { heroMat.map = t; heroMat.needsUpdate = true; }
   }
   function setFlip(f, force) {
-    if (!heroMat.map || (f === heroFlip && !force)) return; heroFlip = f;
-    heroMat.map.repeat.x = f ? -1 : 1; heroMat.map.offset.x = f ? 1 : 0; hero.center.x = f ? 1 - HERO_CX : HERO_CX;
+    if (f === heroFlip && !force) return; heroFlip = f;
+    hero.center.x = f ? 1 - HERO_CX : HERO_CX; showHero();
   }
   function placeHero(l) { const r = roadAt(l); hero.position.x = r.x; hero.position.z = r.z; }
 
@@ -365,11 +385,12 @@ export async function createIsland3D(el, host) {
       heroLen = walking.from + (walking.to - walking.from) * walkEase(k); placeHero(heroLen);
       const after = proj.copy(hero.position).project(camera).x;
       if (Math.abs(after - before) > 0.0005) setFlip(after < before);
-      heroMat.rotation = Math.sin(now / 70) * 0.07;
+      if (walkTex[0].length) { step = Math.floor(Math.abs(heroLen - walking.from) / STRIDE * walkTex[0].length); showHero(); heroMat.rotation = Math.sin(now / 70) * 0.02; }   // 依走過的距離換格，起步、停下時腳步跟著變慢，不會原地滑步
+      else heroMat.rotation = Math.sin(now / 70) * 0.07;
       const dir = Math.sign(walking.to - walking.from);
       routeG.children.forEach((d) => { if (d.userData.l != null) d.visible = dir * (d.userData.l - heroLen) > 0.3; });
       if (k >= 1) {
-        const code = walking.t.u.code; walking = null; heroMat.rotation = 0; follow = false; pill.hidden = true; clearRoute();
+        const code = walking.t.u.code; walking = null; heroMat.rotation = 0; step = -1; showHero(); follow = false; pill.hidden = true; clearRoute();
         hero.position.y = groundAt(hero.position.x, hero.position.z);
         const toT = heroTarget(), s = new THREE.Spherical().setFromVector3(camera.position.clone().sub(controls.target));
         s.radius = FOLLOW.dist; s.phi = FOLLOW.polar;   // 抵達：鏡頭停在角色身邊
