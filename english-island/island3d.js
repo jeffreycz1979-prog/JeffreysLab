@@ -275,6 +275,63 @@ export async function createIsland3D(el, host) {
   }
   function placeHero(l) { const r = roadAt(l); hero.position.x = r.x; hero.position.z = r.z; }
 
+  // ── 同學分身：在他最後去的單元附近沿小路散步（走一段、停一下）；手腳一樣會擺 ──
+  const MATE_STEPS = 4, MATE_H = HERO_H * 0.82;
+  const matesG = new THREE.Group(); scene.add(matesG);
+  let mateList = [], matesKey = '';
+  async function refreshMates() {
+    const list = host.mates ? host.mates() : [];
+    const k = JSON.stringify(list.map((m) => [m.key, m.at, m.look, m.tags])); if (k === matesKey) { placeMateHomes(); return; } matesKey = k;
+    mateList.forEach((m) => { m.tex.forEach((side) => side.forEach((t) => t && t.dispose())); m.sp.material.dispose(); matesG.remove(m.sp); });
+    mateList = [];
+    for (const [i, m] of list.entries()) {
+      const mat = new THREE.SpriteMaterial({ transparent: true, depthWrite: false });
+      const sp = new THREE.Sprite(mat); sp.renderOrder = 3; sp.userData.mate = m.key;
+      sp.scale.set(MATE_H * 264 / 384, MATE_H, 1); sp.center.set(HERO_CX, HERO_CY);
+      matesG.add(sp);
+      const w = { key: m.key, at: m.at, i, sp, tex: [[], []], home: 0, l: 0, to: 0, pause: 800 + i * 900, left: i % 2 === 0, moving: false, dist: 0 };
+      mateList.push(w);
+      // 先畫站著的兩張（面右、面左），走路的格子之後再補
+      const [r0, l0] = await Promise.all([host.mateCanvas(m, null, false), host.mateCanvas(m, null, true)]);
+      if (k !== matesKey) return;
+      w.tex[0][0] = r0 && toTex(r0); w.tex[1][0] = l0 && toTex(l0);
+      if (!host.reduce) {
+        const fr = await Promise.all([false, true].flatMap((f) => Array.from({ length: MATE_STEPS }, (_, j) => host.mateCanvas(m, j / MATE_STEPS, f))));
+        if (k !== matesKey) return;
+        for (let j = 0; j < MATE_STEPS; j++) { w.tex[0][1 + j] = fr[j] && toTex(fr[j]); w.tex[1][1 + j] = fr[MATE_STEPS + j] && toTex(fr[MATE_STEPS + j]); }
+      }
+      showMate(w);
+    }
+    placeMateHomes();
+  }
+  function placeMateHomes() {
+    mateList.forEach((w) => {
+      const t = tileByCode(w.at) || tiles.find((x) => !x.u.locked); if (!t) return;
+      const base = standLen(t), total = ROAD_LEN[ROAD_LEN.length - 1] || 1;
+      const home = Math.max(0.5, Math.min(total - 0.5, base + (w.i % 2 ? 1 : -1) * (2.2 + (w.i % 3) * 1.3)));
+      if (Math.abs(home - w.home) > 0.01) { w.home = home; w.l = home; w.to = home; placeMate(w); }
+    });
+  }
+  function placeMate(w) { const r = roadAt(w.l); w.sp.position.set(r.x, groundAt(r.x, r.z), r.z); }
+  function showMate(w) {
+    const side = w.left ? 1 : 0, set = w.tex[side];
+    const t = (w.moving && set[1 + (Math.floor(w.dist / (STRIDE * 0.8) * MATE_STEPS) % MATE_STEPS)]) || set[0] || w.tex[0][0];
+    if (t && w.sp.material.map !== t) { w.sp.material.map = t; w.sp.material.needsUpdate = true; }
+  }
+  function tickMates(dtMs) {
+    mateList.forEach((w) => {
+      if (!w.sp.material.map) return;
+      if (w.pause > 0) { w.pause -= dtMs; if (w.moving) { w.moving = false; showMate(w); } return; }
+      if (Math.abs(w.to - w.l) < 0.05) { w.to = w.home + (Math.random() * 2 - 1) * 2.6; w.pause = 1200 + Math.random() * 2800; w.moving = false; showMate(w); return; }
+      const dir = Math.sign(w.to - w.l), d = Math.min(Math.abs(w.to - w.l), dtMs / 1000 * 2.2);   // 慢慢散步（主角的 1/4 速度）
+      const before = proj.copy(w.sp.position).project(camera).x;
+      w.l += dir * d; w.dist += d; w.moving = true; placeMate(w);
+      const after = proj.copy(w.sp.position).project(camera).x;
+      if (Math.abs(after - before) > 0.0002) { const lf = after < before; if (lf !== w.left) { w.left = lf; w.sp.center.x = lf ? 1 - HERO_CX : HERO_CX; } }
+      showMate(w);
+    });
+  }
+
   // ── 視角 ──
   const controls = new OrbitControls(camera, renderer.domElement);
   Object.assign(controls, { enableDamping: true, dampingFactor: 0.08, enablePan: false, minDistance: 16, maxDistance: 85, maxPolarAngle: 1.32, minPolarAngle: 0.02, rotateSpeed: 0.7, zoomSpeed: 0.9 });
@@ -345,6 +402,7 @@ export async function createIsland3D(el, host) {
     ptr.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
     ray.setFromCamera(ptr, camera);
     if (ray.intersectObject(hero, false).length) return host.heroTap();
+    const mh = ray.intersectObjects(matesG.children, false)[0]; if (mh && host.mateTap) return host.mateTap(mh.object.userData.mate);
     const hit = ray.intersectObjects(pickables, false)[0]; if (!hit) return;
     const t = tileByCode(hit.object.userData.unit); if (!t) return;
     if (t.u.locked) { t.bounce = performance.now(); return host.tileTap(t.u.code); }
@@ -369,6 +427,7 @@ export async function createIsland3D(el, host) {
     if (at && !walking) { heroLen = standLen(at); placeHero(heroLen); hero.position.y = groundAt(hero.position.x, hero.position.z); }
     if (view === 'eye' && !walking && !follow) controls.target.copy(heroTarget());
     await refreshHero();
+    refreshMates();
   }
 
   // ── 動畫迴圈：首頁看不到時暫停，省電 ──
@@ -405,6 +464,7 @@ export async function createIsland3D(el, host) {
       controls.target.lerp(heroTarget(), ft);
       camera.position.copy(controls.target).add(new THREE.Vector3().setFromSpherical(s));
     }
+    if (motion) tickMates(dt * 1000);
     if (routeEnd && motion) routeEnd.position.y = routeEnd.userData.y + Math.sin(t * 4) * 0.25;
     const gy = groundAt(hero.position.x, hero.position.z) + (walking ? Math.abs(Math.sin(now / 70)) * 0.18 : motion ? Math.sin(t * 2.2) * 0.04 : 0);
     hero.position.y += (gy - hero.position.y) * 0.35;

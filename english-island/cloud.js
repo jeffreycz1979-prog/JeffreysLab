@@ -178,6 +178,7 @@
   // ── 畫面：我的 → 雲端帳號；登入後隱藏轉移碼 ──
   const hhmm = (t) => { const d = new Date(t); return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
   function render() {
+    dispatchEvent(new Event('cloud-auth'));   // 留言（msg.js）跟著登入狀態顯示信箱
     const box = $('cloudBox'); if (!box) return;
     box.style.display = '';
     box.innerHTML = auth
@@ -200,6 +201,9 @@
     if (a === 'cloudout') return logout();
   });
   document.addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.target.id === 'cPin' || e.target.id === 'cSid')) { const b = document.querySelector('[data-act="cloudgo"]'); if (b) submitLogin(b); } });
+
+  window.cloud.api = api;
+  window.cloud.auth = () => auth;
 
   // ── 啟動：等主程式讀完進度，再讀登入狀態；網址帶 ?k= 就用小卡代碼自動登入 ──
   const ready = () => (st.ready ? Promise.resolve() : new Promise((r) => addEventListener('island-ready', r, { once: true })));
@@ -249,6 +253,60 @@
       M.progress[sid] = { data: p.data, summary: p.summary, at: Date.now(), prev: p.drop && prev ? prev.data : (prev && prev.prev) };
       save(); return ok({ serverAt: M.progress[sid].at });
     }
+    // ── 留言（同英文島後台「留言.gs」）──
+    M.msgs = M.msgs || []; M.drops = M.drops || []; M.avs = M.avs || {}; M.likes = M.likes || {};
+    if (!M.seeded) {   // 假同學：給畫面測試用
+      M.seeded = true;
+      M.avs['1199'] = { nick: 'Cyril', cls: 'THP11', at: 'U2', look: { skin: 2, hair: 'spiky', hairC: 1, top: 'knight', pet: 'dog', hold: 'balloon' } };
+      M.avs['1198'] = { nick: 'Mia', cls: 'THP11', at: 'U3', look: { skin: 0, hair: 'long', hairC: 3, top: 'princess', deco: 'tiara', pet: 'unicorn' } };
+      M.avs['1197'] = { nick: 'Leo', cls: 'THP11', at: 'U1', look: { skin: 3, hair: 'curly', top: 'dino', hat: 'cap' } };
+      M.msgs.push({ id: 'M1', sid: '1198', type: 'decl', text: '這週我要背完 U3 的單字！', status: 'public', at: Date.now() - 864e5, likes: 2 });
+      M.msgs.push({ id: 'M2', sid: '1199', type: 'decl', text: 'Word Brawl 我要打到 20 分 💪', status: 'public', at: Date.now() - 36e5, likes: 0 });
+      save();
+    }
+    const me = M.students[sid] || {}, nickOf = (k) => (M.avs[k] && M.avs[k].nick) || (M.students[k] && M.students[k].nick) || '同學';
+    if (action === 'postMessage') {
+      const text = String(p.text || '').trim().slice(0, 60);
+      if (!text) return fail('內容是空的');
+      const today = new Date().toDateString(), used = M.msgs.filter((m) => m.sid === sid && new Date(m.at).toDateString() === today).length;
+      if (used >= 3) return fail('今天已經寫 3 則了，明天再寫吧');
+      const m = { id: 'M' + (M.msgs.length + 1) + Math.random().toString(36).slice(2, 5), sid, type: p.type === 'decl' ? 'decl' : 'whisper', text, status: p.type === 'decl' ? 'pending' : 'new', at: Date.now(), likes: 0 };
+      M.msgs.push(m); save();
+      return ok({ id: m.id, status: m.status, at: m.at, used: used + 1 });
+    }
+    if (action === 'setAvatar') { M.avs[sid] = { nick: String(p.nick || '').slice(0, 12), cls: me.cls, at: String(p.at || ''), look: p.look || {} }; save(); return ok({}); }
+    if (action === 'markRead') {
+      (p.ids || []).forEach((id) => { const m = M.msgs.find((x) => x.id === id && x.sid === sid); if (m) m.read = true; });
+      (p.drops || []).forEach((id) => { const d = M.drops.find((x) => x.id === id); if (d) { d.readBy = d.readBy || []; if (!d.readBy.includes(sid)) d.readBy.push(sid); } });
+      save(); return ok({});
+    }
+    if (action === 'likeDeclaration') {
+      const m = M.msgs.find((x) => x.id === p.id && x.status === 'public'); if (!m) return fail('找不到這則宣言');
+      const k = sid + '|' + m.id; if (m.sid === sid) return fail('不能給自己按讚');
+      if (!M.likes[k]) { M.likes[k] = 1; m.likes = (m.likes || 0) + 1; save(); }
+      return ok({ likes: m.likes, liked: true });
+    }
+    if (action === 'inbox') {
+      const today = new Date().toDateString();
+      const mine = M.msgs.filter((m) => m.sid === sid).slice(-30).map((m) => ({ id: m.id, type: m.type, text: m.text, status: m.status, reply: m.reply || '', replyAt: m.replyAt || 0, read: !!m.read, at: m.at, likes: m.likes || 0 }));
+      const drops = M.drops.filter((d) => (d.to === sid || d.to === me.cls) && (!d.until || d.until > Date.now())).map((d) => ({ id: d.id, text: d.text, at: d.at, to: d.to === sid ? 'me' : 'class', read: (d.readBy || []).includes(sid) }));
+      const pub = M.msgs.filter((m) => m.type === 'decl' && m.status === 'public' && m.sid !== sid && (M.avs[m.sid] || {}).cls === me.cls);
+      const board = pub.slice(-30).reverse().map((m) => ({ id: m.id, key: m.sid, nick: nickOf(m.sid), look: (M.avs[m.sid] || {}).look || {}, text: m.text, likes: m.likes || 0, liked: !!M.likes[sid + '|' + m.id], at: m.at }));
+      const mates = Object.keys(M.avs).filter((k) => k !== sid && M.avs[k].cls === me.cls).map((k) => {
+        const d = pub.filter((m) => m.sid === k).pop();
+        return { key: k, nick: M.avs[k].nick, at: M.avs[k].at, look: M.avs[k].look, decl: d ? { id: d.id, text: d.text, likes: d.likes || 0, liked: !!M.likes[sid + '|' + d.id] } : null };
+      });
+      return ok({ mine, drops, board, mates, used: M.msgs.filter((m) => m.sid === sid && new Date(m.at).toDateString() === today).length, max: 3, now: Date.now() });
+    }
     return fail('模擬後台沒有這個 action：' + action);
   }
+  // 模擬老師（只在 ?api=mock）：在 console 測試核准、回覆、空降
+  if (MOCK) window.mockTeacher = {
+    K: 'eisland-mock2',
+    _rw(fn) { const M = JSON.parse(localStorage.getItem(this.K)); fn(M); localStorage.setItem(this.K, JSON.stringify(M)); },
+    list() { return JSON.parse(localStorage.getItem(this.K)).msgs; },
+    reply(id, text, status) { this._rw((M) => { const m = M.msgs.find((x) => x.id === id); m.reply = text; m.replyAt = Date.now(); m.read = false; if (status) m.status = status; else if (m.type === 'whisper') m.status = 'seen'; }); },
+    review(id, status, reply) { this._rw((M) => { const m = M.msgs.find((x) => x.id === id); m.status = status; if (reply) { m.reply = reply; m.replyAt = Date.now(); m.read = false; } }); },
+    airdrop(to, text) { this._rw((M) => { M.drops = M.drops || []; M.drops.push({ id: 'D' + Date.now(), to, text, at: Date.now() }); }); },
+  };
 })();
