@@ -650,6 +650,7 @@ nav button.on{color:var(--lime);font-weight:700}
   <!-- ═══ 我的 ═══ -->
   <section class="view" id="v-me">
     <button class="btn wide" data-act="proof" data-en="🏆 Show my points">🏆 出示積分證明 Show my points</button>
+    <button class="btn wide ghost" data-act="redeem" data-en="🎟️ Redeem points" style="margin-top:8px">🎟️ 積分兌換 Redeem points</button>
     <h3 data-en="My rank">我的等級 <small>RANK</small></h3>
     <div class="rank" id="rank"></div>
     <h3 data-en="How to earn points">積分怎麼拿 <small>HOW TO EARN</small></h3>
@@ -1962,7 +1963,8 @@ const AV_PRICE = { 'color:hair': PRICE_COLOR, 'color:top': PRICE_COLOR, 'color:b
   if (v !== 'tee' && v !== 'none') AV_PRICE[k + ':' + v] = AV_COOL.includes(k + ':' + v) ? PRICE_COOL : PRICE_BASIC;
 }));
 const spentPts = () => (st.ledger.shop || []).reduce((a, b) => a + b.p, 0);
-const walletPts = () => Math.max(0, points().total - spentPts());
+const redeemSpent = () => (st.ledger.redeem || []).reduce((a, b) => a + (b.cost || 0), 0);
+const walletPts = () => Math.max(0, points().total - spentPts() - redeemSpent());
 const owns = (key) => (st.ledger.shop || []).some((b) => b.k === key);
 const avLock = (k, v) => { const key = k + ':' + v, pr = AV_PRICE[key]; return pr && !owns(key) ? pr : null; };   // 還沒買：回傳價格
 const COLOR_KEY = { hairC: 'hair', topC: 'top', botC: 'bot' };   // 膚色免費，不在這裡
@@ -1975,6 +1977,97 @@ async function buyItem(key) {
   await saveLedger();
   confetti(60); toast(L(`🛍 買到了：${avKeyName(key)}！剩 ${walletPts()} 積分`, `🛍 Got it: ${avKeyName(key)}! ${walletPts()} left`));
   return true;
+}
+
+// ═══════════════════════════════════════════════════════
+//  🎟️ 積分兌換（飲料／5 張點數卡／刮刮樂）
+//  紀錄在 st.ledger.redeem，跟積分一起簽章、跟著轉移碼走
+//  {n 序號, kind, cost, cards, d 日期, t}
+// ═══════════════════════════════════════════════════════
+const RD_TOTAL = 1000;        // 總積分門檻（同老師的飲料獎勵）
+const RD_SHOP = 500;          // 商店累計花費門檻（約一學期積分的 25%）
+const RD_KINDS = {
+  drink:   { cost: 0,    cards: 0, once: true, zh: '🥤 一杯飲料',      en: '🥤 A drink' },
+  cards5:  { cost: 600,  cards: 5,             zh: '🃏 5 張點數卡',     en: '🃏 5 class cards' },
+  scratch: { cost: 1000, cards: 0,             zh: '🎰 刮刮樂',         en: '🎰 Scratch card' },
+};
+// 刮刮樂機率（方案 D）：3～49 張每多 1 張機率 ×0.85，50 張大獎固定 6%；平均約 11 張
+const SC_RATIO = 0.85, SC_JACKPOT = 0.06;
+const SC_TABLE = (() => {
+  const w = []; for (let n = 3; n <= 49; n++) w.push([n, Math.pow(SC_RATIO, n - 3)]);
+  const s = w.reduce((a, x) => a + x[1], 0);
+  return [...w.map(([n, p]) => [n, p / s * (1 - SC_JACKPOT)]), [50, SC_JACKPOT]];
+})();
+function scratchDraw() {   // 用 crypto 亂數，每一刮獨立
+  const u = new Uint32Array(1); crypto.getRandomValues(u);
+  let r = u[0] / 4294967296;
+  for (const [n, p] of SC_TABLE) { if ((r -= p) < 0) return n; }
+  return 3;
+}
+const rdList = () => st.ledger.redeem || [];
+const rdSerial = (r) => `${studentId()}-${String(r.n).padStart(2, '0')}`;
+const rdCode = (r) => hash(SALT + '|RD|' + studentId() + '|' + r.n + '|' + r.kind + '|' + r.cards + '|' + r.d).replace(/[^A-Z0-9]/g, '').slice(-6).padStart(6, '0');
+function rdBlock(kind) {   // 不能兌換的原因（中文／英文）；可以兌換回傳 null
+  const k = RD_KINDS[kind], P = points().total;
+  if (st.tampered) return [L('積分資料異常，請找老師確認', 'Points data looks changed — see your teacher')];
+  if (st.ledger.clockBad) return [L('手機時間曾被調整過，請找老師確認', 'Phone time was changed — see your teacher')];
+  if (P < RD_TOTAL) return [L(`總積分再 ${RD_TOTAL - P} 分`, `${RD_TOTAL - P} more total points`)];
+  if (k.once && rdList().some((r) => r.kind === kind)) return [L('已經兌換過了', 'Already redeemed')];
+  if (kind === 'drink') return null;
+  if (spentPts() < RD_SHOP) return [L(`商店再花 ${RD_SHOP - spentPts()} 分就能開啟`, `Spend ${RD_SHOP - spentPts()} more in the shop to unlock`)];
+  if (walletPts() < k.cost) return [L(`可用積分還差 ${k.cost - walletPts()}`, `${k.cost - walletPts()} more points to spend`)];
+  return null;
+}
+function openRedeem() {
+  const row = (kind) => {
+    const k = RD_KINDS[kind], b = rdBlock(kind);
+    const price = k.cost ? L(`${k.cost} 可用積分`, `${k.cost} points`) : L('總積分滿 1000（每人一次，不扣分）', '1000 total points · once · free');
+    const what = kind === 'scratch' ? L('刮出 3～50 張點數卡', 'Win 3–50 class cards') : kind === 'cards5' ? L('換 5 張課堂點數卡', 'Get 5 class point cards') : L('老師請你喝一杯', 'A treat from your teacher');
+    return `<div class="srow"><div>${EN() ? k.en : k.zh}<small>${what}・${price}${b ? `<br>🔒 ${b[0]}` : ''}</small></div>
+      <button class="btn${b ? ' ghost' : ''}" style="white-space:nowrap" data-rdgo="${kind}" ${b ? 'disabled' : ''}>${L('兌換', 'Redeem')}</button></div>`;
+  };
+  const hist = rdList().slice().reverse().map((r) => `<div class="srow"><div>#${rdSerial(r)}　${EN() ? RD_KINDS[r.kind].en : RD_KINDS[r.kind].zh}${r.cards ? ` × ${r.cards}` : ''}<small>${r.d}</small></div>
+      <button class="btn ghost" data-rdshow="${r.n}">${L('兌換券', 'Voucher')}</button></div>`).join('');
+  $('sheet').innerHTML = `<h3 style="margin-top:0">🎟️ ${L('積分兌換', 'Redeem points')} <small>REDEEM</small></h3>
+    <div class="note">${L(`總積分 ${points().total}・商店花費 ${spentPts()}・可用積分 ${walletPts()}。兌換只扣可用積分，總積分和等級不會變少。`, `Total ${points().total} · shop ${spentPts()} · to spend ${walletPts()}. Your total and rank never go down.`)}</div>
+    <div class="set" style="margin-top:10px">${row('drink')}${row('cards5')}${row('scratch')}</div>
+    ${hist ? `<h3>${L('兌換紀錄', 'History')} <small>HISTORY</small></h3><div class="set">${hist}</div>` : ''}
+    <div class="btnrow" style="margin-top:14px"><button class="btn ghost" data-close="1">${L('關閉', 'Close')}</button></div>`;
+  $('modal').classList.add('show');
+}
+function confirmRedeem(kind) {
+  const k = RD_KINDS[kind];
+  $('sheet').innerHTML = `<h3 style="margin-top:0">${EN() ? k.en : k.zh}</h3>
+    <div class="note">${k.cost ? L(`會扣 ${k.cost} 可用積分（剩 ${walletPts() - k.cost}）。`, `Uses ${k.cost} points (${walletPts() - k.cost} left).`) : ''}${kind === 'scratch' ? L('按下確定的那一刻張數就決定了，重開 App 結果也一樣。', 'The result is decided when you tap — reopening the app won\'t change it.') : ''}${L('兌換後請截圖兌換券給老師。', 'Screenshot the voucher for your teacher.')}</div>
+    <div class="btnrow" style="margin-top:14px"><button class="btn ghost" data-rdback="1">${L('不要', 'Cancel')}</button><button class="btn" data-rdok="${kind}">${L('確定兌換', 'Redeem')}</button></div>`;
+}
+async function doRedeem(kind) {
+  if (rdBlock(kind)) return openRedeem();   // 再檢查一次（防止連點）
+  const k = RD_KINDS[kind], list = rdList();
+  const r = { n: list.reduce((a, x) => Math.max(a, x.n), 0) + 1, kind, cost: k.cost, cards: kind === 'scratch' ? scratchDraw() : k.cards, d: todayKey(), t: Date.now() };
+  st.ledger.redeem = [...list, r];   // 先寫進帳本、簽章存檔，才顯示結果
+  await saveLedger();
+  if (kind === 'scratch' && r.cards >= 20) confetti(r.cards >= 50 ? 160 : 90); else confetti(50);
+  showVoucher(r.n);
+}
+function showVoucher(n) {
+  const r = rdList().find((x) => x.n === n); if (!r) return;
+  const k = RD_KINDS[r.kind];
+  $('sheet').innerHTML = `<div class="proof">
+      <div class="pava">${avaHTML()}</div>
+      <div class="pname">${esc(st.profile.name)}</div>
+      <div class="pid">ID #${studentId()}</div>
+      <div class="plabel" style="margin-top:10px">${L('兌換券 VOUCHER', 'VOUCHER')}</div>
+      <div class="ptotal" style="font-size:30px">${EN() ? k.en : k.zh}</div>
+      ${r.cards ? `<div class="ptotal">${r.cards}</div><div class="plabel">${L('張點數卡 CLASS CARDS', 'CLASS CARDS')}</div>` : ''}
+      <div class="pgrid"><div><b>#${rdSerial(r)}</b>${L('序號', 'Serial')}</div><div><b>${r.d}</b>${L('兌換日期', 'Date')}</div></div>
+      <div class="pfoot"><span>${L('請截圖給老師', 'Show your teacher')}<br><span class="clock" id="clock"></span></span>
+        <span style="text-align:right">${L('驗證碼', 'Code')}<br><span class="code">${rdCode(r)}</span></span></div>
+    </div>
+    <div class="btnrow" style="margin-top:14px"><button class="btn ghost" data-rdback="1">${L('回兌換頁', 'Back')}</button><button class="btn ghost" data-close="1">${L('關閉', 'Close')}</button></div>`;
+  $('modal').classList.add('show');
+  const tick = () => { const c = $('clock'); if (!c) return clearInterval(openProof._i); c.textContent = new Date().toLocaleString('zh-TW', { hour12: false }); };
+  clearInterval(openProof._i); tick(); openProof._i = setInterval(tick, 1000);
 }
 const DEFAULT_LOOK = { skin: 1, eyes: 'dot', mouth: 'smile', hair: 'short', hairC: 0, top: 'tee', topC: 0, botC: 0, hat: 'none', deco: 'none', ear: 'none', acc: 'none', hold: 'none', pet: 'none' };
 function sanitizeLook(l) {   // 還沒解鎖的東西換回預設（例如解鎖規則改了）
@@ -2395,6 +2488,7 @@ function openProof() {
         <div><b>${P.streak}</b>${L('連續獎勵', 'Streak bonus')}</div><div><b>🔥 ${streakNow()} ${L('週', 'wk')}</b>${L('目前連續', 'Current streak')}</div>
         <div><b>${totalCards}</b>${L('總複習張數', 'Cards reviewed')}</div><div><b>${acc}</b>${L('挑戰正確率', 'Quiz accuracy')}</div>
         <div><b>${spentPts()}</b>${L('🛍 商店花費', '🛍 Spent in shop')}</div><div><b>${walletPts()}</b>${L('💰 可用積分', '💰 Points to spend')}</div>
+        ${rdList().length ? `<div><b>${rdList().length}</b>${L('🎟️ 兌換次數', '🎟️ Redemptions')}</div><div><b>${rdList().reduce((a, r) => a + r.cards, 0)}</b>${L('累計點數卡', 'Class cards')}</div>` : ''}
         <div><b>${P.game}</b>${L('🎮 獎勵遊戲', '🎮 Bonus game')}</div><div><b style="font-size:13px;line-height:1.5">${GAMES.map((g) => g.bestText()).filter(Boolean).join('<br>') || '—'}</b>${L('各遊戲最高紀錄', 'Game records')}</div>
       </div>
       <div class="pfoot"><span>${L(`學習 ${active} 天`, `${active} days of practice`)}<br><span class="clock" id="clock"></span></span>
@@ -2924,6 +3018,10 @@ document.addEventListener('click', (e) => {
   if (t.dataset.act === 'fill') return extraPractice(+t.dataset.n);
   if (t.dataset.act === 'hard') return practiceHard();
   if (t.dataset.act === 'proof') return openProof();
+  if (t.dataset.act === 'redeem' || t.dataset.rdback) { clearInterval(openProof._i); return openRedeem(); }
+  if (t.dataset.rdgo) return confirmRedeem(t.dataset.rdgo);
+  if (t.dataset.rdok) { t.disabled = true; return doRedeem(t.dataset.rdok); }
+  if (t.dataset.rdshow) return showVoucher(+t.dataset.rdshow);
   if (t.dataset.act === 'profile') return openOnboarding(true);
   if (t.dataset.close) { clearInterval(openProof._i); $('modal').classList.remove('show'); return checkLock(); }
   if (t.dataset.qunit) { $('modal').classList.remove('show'); return startQuiz(t.dataset.qunit); }
