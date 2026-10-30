@@ -5,7 +5,7 @@
 // 老師回覆 → 紙飛機飛到信箱；老師空降（給一個人或全班）→ 小鳥叼信飛來；點了才打開
 // 同學分身：同班同學的角色在他最後去的單元附近散步（不即時連線、不顯示真名和積分）
 (() => {
-  const MAX_LEN = 60, PULL_GAP = 60000, MATE_MAX = 12;
+  const MAX_LEN = 60, PULL_GAP = 30000, MATE_MAX = 12;
   const BAD = /幹|靠北|靠杯|白癡|白痴|智障|去死|垃圾|笨蛋|fuck|shit|bitch|stupid|idiot/i;   // 常見不雅字，後台會再擋一次
   const C = () => window.cloud;
   const authed = () => !!(C() && C().on && C().auth && C().auth());
@@ -13,6 +13,7 @@
   const on = () => authed() && served;
   let box = { mine: [], drops: [], board: [], mates: [], used: 0, max: 3 };
   let pulledAt = 0, pulling = null, tab = 'write', kind = 'decl', flying = false;
+  const likedHere = {};   // 這次打開 App 按過的讚（收信時伺服器資料可能比按讚早一步，不能被蓋掉）
   const fmt = (t) => { const d = new Date(t); return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
   const unreadReplies = () => box.mine.filter((m) => m.reply && !m.read);
   const unreadDrops = () => box.drops.filter((d) => !d.read);
@@ -28,6 +29,7 @@
         const d = await C().api('inbox', { since: pulledAt });
         served = true;
         box = { mine: d.mine || [], drops: d.drops || [], board: d.board || [], mates: d.mates || [], used: d.used || 0, max: d.max || 3 };
+        [...box.board, ...box.mates.map((m) => m.decl).filter(Boolean)].forEach((b) => { if (likedHere[b.id]) { b.liked = true; b.likes = Math.max(b.likes || 0, likedHere[b.id]); } });
         pulledAt = Date.now();
         try { await db.set('msgbox', box); } catch (e) {}
         paint(); deliver();
@@ -50,8 +52,9 @@
   }
 
   // ── 信箱 ──
-  function open(t) {
+  function open(t, fresh) {
     if (t) tab = t;
+    if (!fresh) Promise.resolve(pull(true)).then(() => { if ($('modal').classList.contains('show') && $('mBody') && tab !== 'write') open(tab, true); });   // 打開信箱一定重新收信
     const nR = unreadReplies().length + unreadDrops().length;
     const tabs = [['write', L('✏️ 寫信', '✏️ Write')], ['mine', L('📬 我的信', '📬 My letters'), nR], ['board', L('📌 公布欄', '📌 Board')]];
     $('sheet').innerHTML = `<h3 style="margin-top:0">📮 ${L('島上信箱', 'Island mailbox')} <small>MAILBOX</small></h3>
@@ -116,8 +119,10 @@
     btn.disabled = true;
     try {
       const r = await C().api('likeDeclaration', { id });
+      likedHere[id] = r.likes;
       [...box.board, ...box.mates.map((m) => m.decl).filter(Boolean)].forEach((b) => { if (b.id === id) { b.likes = r.likes; b.liked = true; } });
       btn.classList.add('on'); btn.textContent = `❤️ ${r.likes}`;
+      document.querySelectorAll(`[data-mlike="${CSS.escape(id)}"]`).forEach((x) => { x.classList.add('on'); x.disabled = true; x.textContent = `❤️ ${r.likes}`; });   // 畫面剛好重畫過也更新
     } catch (e) { toast(e.message); btn.disabled = false; }
   }
 
