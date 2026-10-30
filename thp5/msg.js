@@ -96,7 +96,7 @@
     if (BAD.test(text)) { $('mErr').textContent = L('有不適合的字，換個說法吧', 'Please use kind words'); return; }
     btn.disabled = true; btn.textContent = L('送出中…', 'Sending…'); $('mErr').textContent = '';
     try {
-      const r = await C().api('postMessage', { type: kind, text });
+      const r = await C().api('postMessage', { type: kind, text, at: st.meta.avatarAt || '' });
       box.mine.push({ id: r.id, type: kind, text, status: r.status, reply: '', replyAt: 0, read: true, at: r.at || Date.now(), likes: 0 });
       box.used = r.used != null ? r.used : box.used + 1;
       paint(); confetti(30);
