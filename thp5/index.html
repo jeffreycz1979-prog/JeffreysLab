@@ -187,9 +187,12 @@ main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .mail-btn{position:relative;margin-left:auto;border:2px solid var(--green);background:#fff;border-radius:12px;font-size:18px;line-height:1;padding:5px 8px;cursor:pointer}
 .mail-btn i{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;border-radius:9px;background:var(--coral);color:#fff;font:800 11px/18px Syne,sans-serif;font-style:normal;padding:0 4px;border:2px solid #fff}
 .mail-btn.shake{animation:shake .5s 2}
-.decl-strip{margin:0 12px 10px;padding:8px 12px;border-radius:14px;background:#fff;border:2px solid var(--green);font-size:13px;color:var(--green);display:flex;gap:8px;align-items:center;cursor:pointer}
+.decl-strip{margin:8px 12px 0;padding:6px 6px 6px 12px;border-radius:14px;background:#fff;border:2px solid var(--green);font-size:13px;color:var(--green);display:flex;gap:8px;align-items:center;cursor:pointer}
 .decl-strip b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.decl-strip b.new{color:#5d6b5d;font-weight:600}
 .decl-strip small{flex:none;font-size:11px;color:#5d6b5d}
+.decl-strip .dh{flex:none;border:1.5px solid var(--green);background:#fff;color:var(--green);border-radius:10px;padding:4px 8px;font:700 11px 'Noto Sans TC',sans-serif;cursor:pointer;white-space:nowrap}
+.decl-strip .dh.on{background:var(--green);color:var(--lime)}
 #mates [data-mate]{cursor:pointer}
 .mtabs{display:flex;gap:6px;margin:10px 0}
 .mtabs button{flex:1;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:8px 4px;font:700 13px 'Noto Sans TC',sans-serif;cursor:pointer;position:relative}
@@ -677,12 +680,12 @@ nav button.on{color:var(--lime);font-weight:700}
         <button class="mail-btn" id="mailBtn" aria-label="信箱" hidden>📮<i id="mailDot" hidden></i></button>
         <button class="map-tog" id="mapTog" aria-label="切換 2D／3D 地圖" style="display:none">3D</button>
       </div>
+      <div class="decl-strip" id="declStrip" hidden></div>
       <div class="island" id="island"></div>
       <div class="island3d" id="island3d" hidden>
         <div class="i3d-load">3D 地圖載入中…</div>
         <div class="i3d-views"><button data-i3v="bird" data-en="Bird">鳥瞰</button><button data-i3v="eye" data-en="Walk">平視</button><button data-i3v="top" data-en="Top">俯視</button><button data-i3v="reset" aria-label="重設視角">↺</button></div>
       </div>
-      <div class="decl-strip" id="declStrip" hidden></div>
       <button class="island-port" data-v="v-quiz" id="islandPort"></button>
     </div>
     <div class="hero">
@@ -1934,9 +1937,13 @@ function avatarCanvas(look, pose, flip, tags, scale = 1) {
     img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
   });
 }
+// 頭上的宣言（msg.js 決定：有登入、有宣言、開關打開才有字）
+const heroDecl = () => (window.islandMsg && islandMsg.headDecl ? islandMsg.headDecl() : '');
+const shortDecl = (t) => '📜 ' + (t.length > 12 ? t.slice(0, 12) + '…' : t);
 function heroCanvas(pose, flip) {   // 自己的角色（含寵物）＋頭上的泡泡
-  const b = heroBubble();
-  const tags = b ? [{ text: b === 'edit' ? L('捏我！', 'Edit me!') : L('🛍 去購物！', '🛍 Shop!'), bg: '#1a3a1a', fg: '#CCFF00' }] : [];
+  const b = heroBubble(), d = heroDecl(), tags = [];
+  if (d) tags.push({ text: shortDecl(d), bg: '#ffffff', fg: '#1a3a1a', size: 26 });
+  if (b) tags.push({ text: b === 'edit' ? L('捏我！', 'Edit me!') : L('🛍 去購物！', '🛍 Shop!'), bg: '#1a3a1a', fg: '#CCFF00' });
   return avatarCanvas(lookOf(), pose, flip, tags);
 }
 const island3dHost = {
@@ -1950,7 +1957,7 @@ const island3dHost = {
     });
   },
   heroAt() { const open = allUnits(); let at = st.meta.avatarAt; if (!open.includes(at)) at = open.find((u) => !unitStations(u).full) || open[0]; return at; },
-  heroKey: () => JSON.stringify(lookOf()) + '|' + heroBubble() + '|' + EN(),
+  heroKey: () => JSON.stringify(lookOf()) + '|' + heroBubble() + '|' + EN() + '|' + heroDecl(),
   heroCanvas,
   heroFlipCanvas: () => heroCanvas(null, true),
   heroWalkFrames: (flip) => Promise.all(Array.from({ length: HERO_STEPS }, (_, i) => heroCanvas(i / HERO_STEPS, flip))),
@@ -2024,7 +2031,10 @@ function placeHero() {
   box.innerHTML = `<g id="heroPos" data-hero="1" tabindex="0" role="button" aria-label="${L('我的角色，點我換造型', 'My character — tap to customize')}" style="cursor:pointer">
     <g id="heroFlip"><g class="av idle">${avatarParts(lookOf())}</g></g>
     ${fresh || news ? `<g><rect x="-16" y="-62" width="132" height="40" rx="20" fill="#1a3a1a"/><path d="M42 -23 L50 -12 L58 -23 Z" fill="#1a3a1a"/>
-      <text x="50" y="-35" text-anchor="middle" font-size="22" font-weight="700" fill="#CCFF00">${fresh ? L('捏我！', 'Edit me!') : L('🛍 去購物！', '🛍 Shop!')}</text></g>` : ''}</g>`;
+      <text x="50" y="-35" text-anchor="middle" font-size="22" font-weight="700" fill="#CCFF00">${fresh ? L('捏我！', 'Edit me!') : L('🛍 去購物！', '🛍 Shop!')}</text></g>` : ''}
+    ${heroDecl() ? `<g><rect x="-70" y="${fresh || news ? -114 : -66}" width="240" height="46" rx="23" fill="#ffffff" stroke="#1a3a1a" stroke-width="3"/>
+      ${fresh || news ? '' : '<path d="M42 -21 L50 -10 L58 -21 Z" fill="#ffffff" stroke="#1a3a1a" stroke-width="3" stroke-linejoin="round"/><rect x="40" y="-24" width="20" height="5" fill="#ffffff"/>'}
+      <text x="50" y="${fresh || news ? -83 : -35}" text-anchor="middle" font-size="27" font-weight="700" fill="#1a3a1a">${esc(shortDecl(heroDecl()))}</text></g>` : ''}</g>`;
   st.heroLen = st.roadLens[at]; st.heroLeft = !!st.heroLeft;
   setHero(st.heroLen, st.heroLeft);
 }
@@ -3526,6 +3536,6 @@ document.addEventListener('keydown', (e) => {
 <script src="games/dino.js?v=0.6"></script>
 <script src="games/horde.js?v=0.4"></script>
 <script src="cloud.js?v=2"></script>
-<script src="msg.js?v=3"></script>
+<script src="msg.js?v=4"></script>
 </body>
 </html>

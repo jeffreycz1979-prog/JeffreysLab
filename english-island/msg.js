@@ -39,16 +39,34 @@
     return pulling;
   }
 
-  // ── 首頁：信箱按鈕、未讀數、我的宣言 ──
+  // ── 頭上顯示宣言（自己和同學）：學生自己開關，預設開 ──
+  const headOn = () => st.set.declHead !== false;
+  function headDecl() { const d = on() && headOn() && myDecl(); return d ? d.text : ''; }
+  let heroKeyNow = '';
+  function refreshHero() {   // 宣言或開關改了：重畫自己的角色（2D）、通知 3D
+    const k = headDecl(); if (k === heroKeyNow) return; heroKeyNow = k;
+    if (typeof placeHero === 'function' && $('heroPos') && !st.walking) placeHero();
+    if (typeof i3d !== 'undefined' && i3d && i3d.update) i3d.update();
+  }
+  function toggleHead() {
+    st.set.declHead = !headOn(); saveSet();
+    toast(headOn() ? L('📜 頭上會顯示宣言', '📜 Declarations shown above heads') : L('頭上不顯示宣言了（暱稱照樣顯示）', 'Declarations hidden'));
+    matesKey = null; paint();
+  }
+
+  // ── 首頁：信箱按鈕、未讀數、我的宣言（地圖正上方）──
   function paint() {
     const btn = $('mailBtn'), strip = $('declStrip'); if (!btn) return;
-    btn.hidden = !on(); if (!on()) { strip.hidden = true; redrawMates(); return; }
+    btn.hidden = !on(); if (!on()) { strip.hidden = true; redrawMates(); refreshHero(); return; }
     const n = unreadReplies().length + unreadDrops().length;
     $('mailDot').hidden = !n; $('mailDot').textContent = n;
     const d = myDecl();
-    strip.hidden = !d;
-    if (d) strip.innerHTML = `📜 <b>${esc(d.text)}</b><small>${d.status === 'public' ? L('同學看得到', 'Public') : d.status === 'private' ? L('只在你的島上', 'Only on your island') : L('等老師核准', 'Waiting for teacher')}</small>`;
-    redrawMates();
+    strip.hidden = false;
+    const sw = `<button class="dh ${headOn() ? 'on' : ''}" data-declhead="1" aria-pressed="${headOn()}">${headOn() ? L('頭上顯示 ✓', 'Above head ✓') : L('頭上不顯示', 'Not above head')}</button>`;
+    strip.innerHTML = d
+      ? `📜 <b>${esc(d.text)}</b><small>${d.status === 'public' ? L('同學看得到', 'Public') : d.status === 'private' ? L('只在你的島上', 'Only on your island') : L('等老師核准', 'Waiting')}</small>${sw}`
+      : `📜 <b class="new">${L('寫下你這週的宣言 ›', 'Write your goal for this week ›')}</b>${sw}`;
+    redrawMates(); refreshHero();
   }
 
   // ── 信箱 ──
@@ -184,7 +202,7 @@
   // ── 同學分身 ──
   const mateTags = (m) => {
     const t = [];
-    if (m.decl) t.push({ text: '📜 ' + (m.decl.text.length > 12 ? m.decl.text.slice(0, 12) + '…' : m.decl.text), bg: '#ffffff', fg: '#1a3a1a', size: 26 });
+    if (m.decl && headOn()) t.push({ text: '📜 ' + (m.decl.text.length > 12 ? m.decl.text.slice(0, 12) + '…' : m.decl.text), bg: '#ffffff', fg: '#1a3a1a', size: 26 });
     t.push({ text: m.nick || L('同學', 'Classmate'), bg: '#1a3a1a', fg: '#CCFF00', size: 28 });
     return t;
   };
@@ -215,7 +233,7 @@
       const base = st.roadLens[m.at] != null ? st.roadLens[m.at] : total * 0.5;
       const home = Math.max(10, Math.min(total - 10, base + (i % 2 ? 1 : -1) * (24 + (i % 3) * 10)));
       walkers.push({ home, l: home, to: home, pause: 600 + i * 700, left: i % 2 === 0, moving: false });
-      const tag = m.decl ? (m.decl.text.length > 10 ? m.decl.text.slice(0, 10) + '…' : m.decl.text) : '';
+      const tag = m.decl && headOn() ? (m.decl.text.length > 10 ? m.decl.text.slice(0, 10) + '…' : m.decl.text) : '';
       return `<g data-mate="${esc(m.key)}" role="button" tabindex="0" aria-label="${esc(m.nick)}"><g class="mpos">
         <g class="mflip"><g class="av idle">${avatarParts(m.look)}</g></g>
         ${tag ? `<g><rect x="-70" y="-96" width="240" height="46" rx="23" fill="#ffffff" stroke="#1a3a1a" stroke-width="3"/><text x="50" y="-64" text-anchor="middle" font-size="27" font-weight="700" fill="#1a3a1a">📜 ${esc(tag)}</text></g>` : ''}
@@ -270,7 +288,8 @@
   // ── 事件 ──
   document.addEventListener('click', (e) => {
     if (e.target.closest('#mailBtn')) { if (deliver.cancel && flying) deliver.cancel(); return unreadReplies().length || unreadDrops().length ? openLetter() : open(); }
-    if (e.target.closest('#declStrip')) return open('mine');
+    if (e.target.closest('[data-declhead]')) { e.stopPropagation(); return toggleHead(); }
+    if (e.target.closest('#declStrip')) { if (!myDecl()) { tab = 'write'; kind = 'decl'; } return open(myDecl() ? 'mine' : 'write'); }
     const mt = e.target.closest('#mates [data-mate]'); if (mt) { e.stopPropagation(); return openMate(mt.dataset.mate); }
     const t = e.target.closest('[data-mtab],[data-mkind],[data-msend],[data-mlike],[data-mnext]'); if (!t) return;
     if (t.dataset.mtab) return open(t.dataset.mtab);
@@ -290,5 +309,5 @@
     if (authed()) pull(true).then(syncAvatar);
   });
 
-  window.islandMsg = { open, pull, paint, draw2D, mates, openMate, deliver, syncAvatar, _box: () => box };
+  window.islandMsg = { open, pull, paint, draw2D, mates, openMate, deliver, syncAvatar, headDecl, _box: () => box };
 })();
