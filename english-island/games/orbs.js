@@ -10,7 +10,7 @@
 //        saveLedger, saveMeta, afterPoints, points, gameWeekBestAll, gameCard, masteredCount, GAMES, toast, confetti
 // ═══════════════════════════════════════════════════════
 const WO = (() => {
-  const ID = 'orbs', NEED = 7, VER = '0.3';
+  const ID = 'orbs', NEED = 7, VER = '0.4';
   const UNIT = 'U7';                      // 題目單元（沒有這個單元就用全部單字）
   const TIME = 180, CAP = 20, S_PER_PT = 500;   // 10/31 Jeffrey 實玩 v0.2 打到第 7 關就 7000 分滿星 → 改成 10000 分滿 20
   const HAND = 20, SPELL = 15;            // 單手秒數、拼字秒數
@@ -38,13 +38,22 @@ const WO = (() => {
     cross: [[0, 1], [1, 0], [1, 1], [1, 2], [2, 1]],
   };
   const normKey = (cells) => { const r0 = Math.min(...cells.map((x) => x[0])), c0 = Math.min(...cells.map((x) => x[1])); return cells.map(([r, c]) => `${r - r0},${c - c0}`).sort().join('|'); };
+  // 每種形狀的所有轉向／鏡像（正規化成從 0,0 開始的格子）
   const VARIANTS = {};
+  const norm = (cells) => { const r0 = Math.min(...cells.map((x) => x[0])), c0 = Math.min(...cells.map((x) => x[1])); return cells.map(([r, c]) => [r - r0, c - c0]); };
   Object.entries(SHAPES).forEach(([id, sh]) => {
-    const set = new Set(); let cur = sh;
-    for (let i = 0; i < 4; i++) { cur = cur.map(([r, c]) => [c, -r]); set.add(normKey(cur)); set.add(normKey(cur.map(([r, c]) => [r, -c]))); }
-    VARIANTS[id] = set;
+    const out = {}; let cur = sh;
+    for (let i = 0; i < 4; i++) { cur = cur.map(([r, c]) => [c, -r]); [cur, cur.map(([r, c]) => [r, -c])].forEach((v) => { const n = norm(v); out[normKey(n)] = n; }); }
+    VARIANTS[id] = Object.values(out);
   });
-  const hasShape = (h, id) => h.some((x) => VARIANTS[id].has(normKey(x.cells)));
+  // 形狀盾：盤面上框出一個位置，同色珠要「剛好」填滿這個框才算（框外相連的同色也會讓它不成立）
+  const cellKey = (cells) => cells.map(([r, c]) => r * COLS + c).sort((a, b) => a - b).join(',');
+  function placeFrame(id) {
+    const v = shuffle(VARIANTS[id].slice())[0], H = Math.max(...v.map((x) => x[0])) + 1, W2 = Math.max(...v.map((x) => x[1])) + 1;
+    const r0 = rnd(ROWS - H + 1), c0 = rnd(COLS - W2 + 1);
+    return v.map(([r, c]) => [r + r0, c + c0]);
+  }
+  const hasFrame = (h, frame) => { const k = cellKey(frame); return h.some((x) => cellKey(x.cells) === k); };
   const dot = (k) => `<span class="wo-dot sm" style="background:${ORB[k].c}">${ORB[k].g}</span>`;
   const SHIELD = {
     c2: { ic: '🔗', zh: '2 combo', en: '2 combos', tip: () => L('一手消出 2 組以上', 'Make 2+ matches in one move'), test: (h) => h.length >= 2 },
@@ -54,10 +63,10 @@ const WO = (() => {
     k4: { ic: '🎨', zh: '4 色盾', en: '4 colors', tip: () => L('一手消到 4 種不同顏色', 'Clear 4 different colors in one move'), test: (h) => colorsOf(h).size >= 4 },
     cnt: { ic: '🔢', zh: '數量盾', en: 'Count', color: 1, tip: (k) => L(`一手消 ${dot(k)} 6 顆以上`, `Clear 6+ ${dot(k)} in one move`), test: (h, k) => h.filter((x) => x.c === k).reduce((a, x) => a + x.n, 0) >= 6 },
     ban: { ic: '🚫', zh: '禁色盾', en: 'No-color', color: 1, tip: (k) => L(`3 combo，而且不能消到 ${dot(k)}`, `3 combos without clearing ${dot(k)}`), test: (h, k) => h.length >= 3 && !h.some((x) => x.c === k) },
-    line4: { ic: '', shape: 'line4', zh: '一字盾', en: 'Line of 4', tip: () => L('消出剛好 4 顆的一直線（橫直都可以）', 'Clear exactly 4 in a straight line'), test: (h) => hasShape(h, 'line4') },
-    lshape: { ic: '', shape: 'lshape', zh: 'L 形盾', en: 'L shape', tip: () => L('消出剛好 5 顆的 L 形（可以轉向）', 'Clear an L of exactly 5 (any direction)'), test: (h) => hasShape(h, 'lshape') },
-    tshape: { ic: '', shape: 'tshape', zh: 'T 形盾', en: 'T shape', tip: () => L('消出剛好 5 顆的 T 形（可以轉向）', 'Clear a T of exactly 5 (any direction)'), test: (h) => hasShape(h, 'tshape') },
-    cross: { ic: '', shape: 'cross', zh: '十字盾', en: 'Cross', tip: () => L('消出剛好 5 顆的十字', 'Clear a cross of exactly 5'), test: (h) => hasShape(h, 'cross') },
+    line4: { ic: '', shape: 'line4', zh: '一字盾', en: 'Line of 4', tip: () => L('把同色珠轉進框框：剛好 4 顆排成一直線', 'Fill the frame: exactly 4 in a line'), test: (h, k, g) => hasFrame(h, g.frame) },
+    lshape: { ic: '', shape: 'lshape', zh: 'L 形盾', en: 'L shape', tip: () => L('把同色珠轉進框框：剛好 5 顆的 L 形', 'Fill the L-shaped frame with one color'), test: (h, k, g) => hasFrame(h, g.frame) },
+    tshape: { ic: '', shape: 'tshape', zh: 'T 形盾', en: 'T shape', tip: () => L('把同色珠轉進框框：剛好 5 顆的 T 形', 'Fill the T-shaped frame with one color'), test: (h, k, g) => hasFrame(h, g.frame) },
+    cross: { ic: '', shape: 'cross', zh: '十字盾', en: 'Cross', tip: () => L('把同色珠轉進框框：剛好 5 顆的十字', 'Fill the cross frame with one color'), test: (h, k, g) => hasFrame(h, g.frame) },
   };
   // 9 關（第 1–2 關選項關；第 8 關 L／T 隨機；第 9 關魔王兩階段）
   const LEVELS = [
@@ -178,7 +187,7 @@ const WO = (() => {
       const hit = hand.some((x) => x.c === ans), wrong = hand.some((x) => x.c !== ans && opt.includes(x.c));
       return { ok: hit && !wrong, why: wrong ? 'wrong' : hit ? '' : 'miss' };
     }
-    return { ok: SHIELD[g.sid].test(hand, g.sk), why: 'shield' };
+    return { ok: SHIELD[g.sid].test(hand, g.sk, g), why: 'shield' };
   }
 
   // ═════ 畫面 ═════
@@ -360,9 +369,10 @@ const WO = (() => {
     g.sid = sid;
     const cnt = [0, 0, 0, 0, 0, 0]; g.board.forEach((row) => row.forEach((k) => cnt[k]++));
     g.sk = sid === 'ban' ? cnt.indexOf(Math.max(...cnt)) : shuffle([0, 1, 2, 3, 4, 5])[0];   // 禁色挑最多的那色（比較有挑戰）
+    g.frame = SHIELD[sid].shape ? placeFrame(SHIELD[sid].shape) : null;
   }
-  function shapeSVG(id) {
-    const sh = SHAPES[id], R2 = Math.max(...sh.map((x) => x[0])) + 1, C2 = Math.max(...sh.map((x) => x[1])) + 1;
+  function shapeSVG(sh) {
+    const R2 = Math.max(...sh.map((x) => x[0])) + 1, C2 = Math.max(...sh.map((x) => x[1])) + 1;
     const on = new Set(sh.map(([r, c]) => r + ',' + c));
     let h = `<span class="wo-shape" style="grid-template-columns:repeat(${C2},12px)">`;
     for (let r = 0; r < R2; r++) for (let c = 0; c < C2; c++) h += `<i class="${on.has(r + ',' + c) ? '' : 'o'}"></i>`;
@@ -371,7 +381,7 @@ const WO = (() => {
   const lvName = (i) => (i === 8 ? L('第 9 關・魔王', 'Stage 9 · BOSS') : L(`第 ${i + 1} 關`, `Stage ${i + 1}`));
   function shieldHTML(sid, k, extra) {
     const s = SHIELD[sid];
-    return `<div class="wo-shield"><b>🛡️ ${s.shape ? shapeSVG(s.shape) : s.ic}</b><span>${EN() ? s.en : s.zh}</span><small>${s.tip(k)}${extra || ''}</small></div>`;
+    return `<div class="wo-shield"><b>🛡️ ${s.shape ? shapeSVG(game && game.frame ? norm(game.frame) : SHAPES[s.shape]) : s.ic}</b><span>${EN() ? s.en : s.zh}</span><small>${s.tip(k)}${extra || ''}</small></div>`;
   }
   const shName = (x) => (x === 'lt' ? L('L／T 形盾', 'L / T shape') : EN() ? SHIELD[x].en : SHIELD[x].zh);
   function nextText() {
@@ -475,7 +485,7 @@ const WO = (() => {
   const skillReady = () => game && game.atk - game.cd0 >= SKILL_CD;
   function skillBtn() {
     const b = root && root.querySelector('#woSk'); if (!b || !game) return;
-    b.style.display = game.over ? 'none' : '';
+    b.style.display = game.over || game.state === 'spell' || game.state === 'pick' ? 'none' : '';
     const n = Math.min(SKILL_CD, game.atk - game.cd0);
     b.classList.toggle('ready', skillReady());
     b.textContent = skillReady() ? L('✨ 技能！', '✨ SKILL!') : `✨ ${n}/${SKILL_CD}`;
@@ -484,13 +494,13 @@ const WO = (() => {
     const g = game; if (!g || g.state !== 'idle' || drag) return;
     if (!skillReady()) return toast(L(`再攻擊 ${SKILL_CD - (g.atk - g.cd0)} 次就能用技能`, `${SKILL_CD - (g.atk - g.cd0)} more attacks to unlock a skill`));
     g.pick = g.pick || shuffle(Object.keys(SKILLS)).slice(0, 3);   // 同一輪 CD 的三個選項固定，關掉再開不會換
-    g.state = 'pick'; $('woTop').style.visibility = 'hidden';
+    g.state = 'pick'; $('woTop').style.visibility = 'hidden'; skillBtn();
     pane(`<div class="wj-card"><div class="wj-kicker">✨ ${L('選一個技能', 'Pick a skill')}</div>
       <div class="wo-skills">${g.pick.map((k) => { const s = SKILLS[k]; return `<button class="btn" data-wo="useskill" data-k="${k}"><span>${s.ic}</span><div><b>${EN() ? s.en : s.zh}</b><small>${L(s.tip[0], s.tip[1])}</small></div></button>`; }).join('')}</div>
       <p class="wj-small">${L('用技能那一手的 combo 分數減半', 'Combo points are halved on a skill move')}</p>
       <div class="btnrow"><button class="btn ghost" data-wo="skillcancel">${L('先保留', 'Save it')}</button></div></div>`);
   }
-  function closeSkills() { const g = game; pane(''); $('woTop').style.visibility = ''; if (g && g.state === 'pick') g.state = 'idle'; }
+  function closeSkills() { const g = game; pane(''); $('woTop').style.visibility = ''; if (g && g.state === 'pick') g.state = 'idle'; skillBtn(); }
   function useSkill(k) {
     const g = game; if (!g || g.state !== 'pick') return;
     closeSkills();
@@ -529,7 +539,7 @@ const WO = (() => {
     const abc = 'abcdefghijklmnopqrstuvwxyz'.split('').filter((x) => !ans.includes(x));
     const dis = shuffle(extra).slice(0, 3); while (dis.length < 3) { const x = abc[rnd(abc.length)]; if (!dis.includes(x)) dis.push(x); }
     g.spell = { w, ans, tiles: shuffle([...ans, ...dis].map((ch, i) => ({ ch, i, used: false }))), got: 0, t0: now(), left: SPELL };
-    g.spells++; g.state = 'spell'; $('woTop').style.visibility = 'hidden';
+    g.spells++; g.state = 'spell'; $('woTop').style.visibility = 'hidden'; skillBtn();
     renderSpell();
     setTimeout(() => speak(ans), 250);
   }
@@ -557,7 +567,7 @@ const WO = (() => {
     const g = game; if (!g || !g.spell) return;
     g.spell = null; pane(''); $('woTop').style.visibility = '';
     if (LEVELS[g.lv].q) { g.spellQ = false; newQuestion(); }   // 選項關換一題再轉
-    g.state = 'idle'; showTop();
+    g.state = 'idle'; showTop(); skillBtn();
   }
 
   // ── 結束 ──
@@ -686,6 +696,21 @@ const WO = (() => {
       orb(x, y, k, rad, al);
     }
     cx.restore();
+    // 形狀盾的框：橘色發光外框（只畫外圍的邊）
+    if (g.frame && !g.over) {
+      const on = new Set(g.frame.map(([r, c]) => r * COLS + c)), pulse = 0.55 + Math.sin(t / 220) * 0.25;
+      cx.fillStyle = `rgba(255,181,71,${0.12 + pulse * 0.1})`;
+      g.frame.forEach(([r, c]) => cx.fillRect(c * CELL, BT + r * CELL, CELL, CELL));
+      cx.strokeStyle = `rgba(255,181,71,${pulse + 0.2})`; cx.lineWidth = 4; cx.lineCap = 'round'; cx.beginPath();
+      g.frame.forEach(([r, c]) => {
+        const x = c * CELL, y = BT + r * CELL;
+        if (!on.has((r - 1) * COLS + c) || r === 0) { cx.moveTo(x, y); cx.lineTo(x + CELL, y); }
+        if (!on.has((r + 1) * COLS + c) || r === ROWS - 1) { cx.moveTo(x, y + CELL); cx.lineTo(x + CELL, y + CELL); }
+        if (c === 0 || !on.has(r * COLS + c - 1)) { cx.moveTo(x, y); cx.lineTo(x, y + CELL); }
+        if (c === COLS - 1 || !on.has(r * COLS + c + 1)) { cx.moveTo(x + CELL, y); cx.lineTo(x + CELL, y + CELL); }
+      });
+      cx.stroke();
+    }
     // 自由排珠：紫色時間條＋選到的珠
     if (g.state === 'arrange' && g.arr) {
       const k = Math.max(0, g.arr.left / ARRANGE);
@@ -738,7 +763,7 @@ const WO = (() => {
     }
   }
   // 測試用
-  const _t = { get game() { return game; }, newBoard, useSkill, openSkills, setShield, SHAPES, findCombos, judge, LEVELS, SHIELD, attack, end, toPts, startSpell, endSpell, tapTile,
+  const _t = { get game() { return game; }, newBoard, useSkill, openSkills, setShield, SHAPES, hasFrame, findCombos, judge, LEVELS, SHIELD, attack, end, toPts, startSpell, endSpell, tapTile,
     setBoard(b) { game.board = b.map((r) => r.slice()); }, get BT() { return BT; }, CELL };
   return { id: ID, need: NEED, card, bestText, open, close, _t };
 })();
