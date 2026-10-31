@@ -10,7 +10,7 @@
 //        saveLedger, saveMeta, afterPoints, points, gameWeekBestAll, gameCard, masteredCount, GAMES, toast, confetti
 // ═══════════════════════════════════════════════════════
 const WO = (() => {
-  const ID = 'orbs', NEED = 7, VER = '0.5';
+  const ID = 'orbs', NEED = 7, VER = '0.6';
   const UNIT = 'U7';                      // 題目單元（沒有這個單元就用全部單字）
   const TIME = 180, CAP = 20, S_PER_PT = 500;   // 10/31 Jeffrey 實玩 v0.2 打到第 7 關就 7000 分滿星 → 改成 10000 分滿 20
   const HAND = 20, SPELL = 15;            // 單手秒數、拼字秒數
@@ -79,7 +79,7 @@ const WO = (() => {
     paint: { ic: '🎨', zh: '隨機轉色', en: 'Recolor', tip: ['把 6 顆珠子變成需要的顏色', 'Turn 6 orbs into the color you need'] },
     rainbow: { ic: '🌈', zh: '六屬直排', en: 'Rainbow columns', tip: ['盤面變成每直排一種顏色', 'Each column becomes one color'] },
     ten: { ic: '🔟', zh: '10 combo 版面', en: '10-combo board', tip: ['盤面排好 10 組三連，直接放開就消', 'A board with 10 ready-made matches'] },
-    free: { ic: '✋', zh: '自由排珠', en: 'Free arrange', tip: [`${ARRANGE} 秒內點兩顆珠互換，時間到自動攻擊`, `Tap two orbs to swap for ${ARRANGE}s, then auto-attack`] },
+    free: { ic: '✋', zh: '自由排珠', en: 'Free arrange', tip: [`${ARRANGE} 秒內可以一直轉珠，放開不會攻擊，時間到才攻擊`, `Drag as many times as you like for ${ARRANGE}s; attack when time is up`] },
   };
   let cv, cx, root, S = 1, VH = 640, BT = 300;   // BT＝珠盤上緣（邏輯座標）
   let game = null, raf = 0, trial = false, drag = null;
@@ -205,6 +205,10 @@ const WO = (() => {
       <button class="wo-sk" id="woSk" data-wo="skill" style="display:none">✨ 0/${SKILL_CD}</button>
       <div class="wj-pane" id="woPane"></div>`;
     document.body.appendChild(root);
+    if (!document.getElementById('woFont')) {   // 拼字用 Andika：l／i／h／n 好分辨
+      const f = document.createElement('link'); f.id = 'woFont'; f.rel = 'stylesheet';
+      f.href = 'https://fonts.googleapis.com/css2?family=Andika:wght@700&display=swap'; document.head.appendChild(f);
+    }
     if (!document.getElementById('woCss')) {
       const s = document.createElement('style'); s.id = 'woCss';
       s.textContent = `.wo .wj-hud span{white-space:nowrap;font-size:14px;padding:4px 9px}.wo .wj-hud .wj-t{font-size:12px;opacity:.75}.wo .wj-hud .wj-t.low{opacity:1}
@@ -227,14 +231,19 @@ const WO = (() => {
         .wo-shield{display:inline-flex;flex-direction:column;align-items:center;gap:2px;background:rgba(255,255,255,.06);border:2px solid #FFB547;border-radius:16px;padding:10px 18px}
         .wo-shield b{font-size:24px}.wo-shield span{font-size:20px;font-weight:800;color:#FFB547}.wo-shield small{font-size:13px;opacity:.85}
         .wo-next{margin-top:8px;font-size:12px;opacity:.7}
+        .wo-boss{width:150px;height:130px;margin:6px auto 0;display:block;animation:woFloat 2.4s ease-in-out infinite}
+        .wo-boss.hit{animation:woHit .6s ease-out}
+        @keyframes woFloat{50%{transform:translateY(-6px)}}
+        @keyframes woHit{0%{transform:translateX(0);filter:brightness(3)}20%{transform:translateX(-10px)}40%{transform:translateX(9px)}60%{transform:translateX(-6px)}100%{transform:none;filter:none}}
+        .wo-hp{display:flex;gap:6px;justify-content:center;margin:4px 0 6px}.wo-hp i{width:46px;height:9px;border-radius:5px;background:#FF5A5A;box-shadow:0 0 8px #FF5A5A}.wo-hp i.gone{background:#2a3048;box-shadow:none}
         .wo-res{margin-top:6px;font-size:18px;font-weight:800;min-height:24px}
         .wo-res.ok{color:#CCFF00}.wo-res.bad{color:#FF6B57}
         .wo-tiles{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:14px 0}
-        .wo-tile{width:44px;height:48px;border-radius:12px;border:2px solid #4ECDC4;background:#131826;color:#fff;font:800 22px Syne,sans-serif}
+        .wo-tile{width:44px;height:48px;border-radius:12px;border:2px solid #4ECDC4;background:#131826;color:#fff;font:700 26px Andika,'Comic Sans MS',system-ui,sans-serif;line-height:1}
         .wo-tile.used{visibility:hidden}.wo-tile.shake{animation:woShake .3s;border-color:#FF6B57}
         @keyframes woShake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
         .wo-slots{display:flex;justify-content:center;gap:5px;margin:12px 0 4px;flex-wrap:wrap}
-        .wo-slot{width:30px;height:38px;border-bottom:3px solid #4a5068;font:800 24px Syne,sans-serif;color:#CCFF00}
+        .wo-slot{width:28px;height:40px;border-bottom:3px solid #4a5068;font:700 28px Andika,'Comic Sans MS',system-ui,sans-serif;color:#CCFF00}
         .wo-bar{height:8px;border-radius:4px;background:#2a3048;overflow:hidden;margin:8px 0}.wo-bar i{display:block;height:100%;border-radius:4px}`;
       document.head.appendChild(s);
     }
@@ -259,19 +268,10 @@ const WO = (() => {
   const inBoard = (r, c) => r >= 0 && r < ROWS && c >= 0 && c < COLS;
 
   // ── 拖曳：按住一顆珠，經過的格子互換；手放開就攻擊 ──
-  const canDrag = () => game && game.state === 'idle' && !game.over;
+  // 自由排珠（arrange）：和平常一樣拖曳轉珠，但放開不攻擊，可以重新拿起別顆一直轉，時間到才攻擊
+  const canDrag = () => game && (game.state === 'idle' || game.state === 'arrange') && !game.over;
   function onDown(e) {
     if (sndOn()) audio();
-    if (game && game.state === 'arrange') {   // 自由排珠：點一顆、再點一顆就互換
-      const { r, c } = cellAt(toLogic(e)); if (!inBoard(r, c)) return;
-      e.preventDefault();
-      const ar = game.arr;
-      if (!ar.sel) { ar.sel = [r, c]; sfx('tile'); return; }
-      const [r0, c0] = ar.sel; ar.sel = null;
-      if (r0 === r && c0 === c) return;
-      const b = game.board, k = b[r0][c0]; b[r0][c0] = b[r][c]; b[r][c] = k; sfx('swap');
-      return;
-    }
     if (!canDrag()) return;
     const p = toLogic(e), { r, c } = cellAt(p);
     if (!inBoard(r, c)) return;
@@ -280,7 +280,7 @@ const WO = (() => {
     cv.setPointerCapture && cv.setPointerCapture(e.pointerId);
   }
   function onMove(e) {
-    if (!drag || !game || game.state !== 'idle') return;
+    if (!drag || !canDrag()) return;
     // 手指移動很快時，瀏覽器一次只回報一個點：把中間漏掉的點（coalesced events）都走一遍，珠子才不會「卡住不走」
     const evs = (e.getCoalescedEvents && e.getCoalescedEvents().length) ? e.getCoalescedEvents() : [e];
     evs.forEach(moveTo);
@@ -300,7 +300,7 @@ const WO = (() => {
     }
   }
   function swapTo(r, c) {
-    if (!drag.moved) { drag.moved = true; game.handT0 = now(); game.handLeft = HAND; }
+    if (!drag.moved) { drag.moved = true; if (game.state === 'idle') { game.handT0 = now(); game.handLeft = HAND; } }
     const b = game.board; b[drag.r][drag.c] = b[r][c]; b[r][c] = drag.k;
     game.swapFx.push({ r: drag.r, c: drag.c, t: now() }); sfx('swap');
     drag.r = r; drag.c = c;
@@ -403,6 +403,23 @@ const WO = (() => {
     const n = LEVELS[game.lv + 1]; if (!n) return '';
     return `<div class="wo-next">${L('下一關', 'Next')}：${n.s ? n.s.map((x) => `🛡️ ${shName(x)}`).join(' → ') : '❓'}</div>`;
   }
+  // 魔王：墨水大王（第二階段變紅、皇冠歪掉、生氣）
+  function bossSVG(phase, hit) {
+    const body = phase ? '#8a2b4a' : '#3b2a6e', light = phase ? '#c2416b' : '#5b45a8';
+    return `<svg class="wo-boss ${hit ? 'hit' : ''}" viewBox="0 0 150 130" aria-hidden="true">
+      <ellipse cx="75" cy="122" rx="48" ry="6" fill="#000" opacity=".35"/>
+      <path d="M22 118 C10 90 18 52 46 40 C60 34 90 34 104 40 C132 52 140 90 128 118 C118 110 112 122 102 114 C94 124 86 112 75 120 C64 112 56 124 48 114 C38 122 32 110 22 118 Z" fill="${body}"/>
+      <path d="M36 70 C40 54 56 46 72 46" stroke="${light}" stroke-width="6" stroke-linecap="round" fill="none" opacity=".7"/>
+      <g transform="${phase ? 'rotate(-14 75 30)' : ''}"><path d="M48 40 L52 14 L64 30 L75 8 L86 30 L98 14 L102 40 Z" fill="#FFD23F" stroke="#B8901F" stroke-width="2.5" stroke-linejoin="round"/>
+        <circle cx="75" cy="28" r="4" fill="#FF5A5A"/></g>
+      <ellipse cx="57" cy="76" rx="12" ry="${phase ? 9 : 13}" fill="#fff"/><ellipse cx="93" cy="76" rx="12" ry="${phase ? 9 : 13}" fill="#fff"/>
+      <circle cx="59" cy="79" r="6" fill="#0a0a14"/><circle cx="91" cy="79" r="6" fill="#0a0a14"/>
+      <circle cx="61" cy="77" r="2" fill="#fff"/><circle cx="93" cy="77" r="2" fill="#fff"/>
+      <path d="M44 ${phase ? 58 : 62} L68 ${phase ? 68 : 64} M106 ${phase ? 58 : 62} L82 ${phase ? 68 : 64}" stroke="#0a0a14" stroke-width="5" stroke-linecap="round"/>
+      <path d="M58 100 Q75 ${phase ? 90 : 110} 92 100" stroke="#0a0a14" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <path d="M64 100 l4 6 l4 -6 M78 100 l4 6 l4 -6" fill="#fff"/>
+    </svg>`;
+  }
   function showTop(res) {
     const g = game, lv = LEVELS[g.lv];
     let body = '';
@@ -416,7 +433,8 @@ const WO = (() => {
         return `<div class="wo-opt"><span class="wo-dot" style="background:${o.c}">${o.g}</span>${esc(answersOf(x)[0] || x.word)}</div>`;
       }).join('')}</div>`;
     } else {
-      body = shieldHTML(g.sid, g.sk, lv.boss ? L(`（第 ${g.phase + 1} / 2 階段）`, ` (phase ${g.phase + 1}/2)`) : '');
+      body = (lv.boss ? bossSVG(g.phase, res && res.ok) + `<div class="wo-hp"><i class="${g.phase >= 1 || g.bossDown ? 'gone' : ''}"></i><i class="${g.bossDown ? 'gone' : ''}"></i></div>` : '')
+        + shieldHTML(g.sid, g.sk, lv.boss ? L(`（第 ${g.phase + 1} / 2 階段）`, ` (phase ${g.phase + 1}/2)`) : '');
     }
     $('woTop').innerHTML = `<div class="lvname">${lvName(g.lv)}</div>${body}${res ? `<div class="wo-res ${res.ok ? 'ok' : 'bad'}">${res.t}</div>` : nextText()}`;
   }
@@ -649,7 +667,7 @@ const WO = (() => {
     }
     if (g.state === 'arrange' && g.arr) {
       g.arr.left = ARRANGE - (t - g.arr.t0) / 1000;
-      if (g.arr.left <= 0) { g.arr = null; g.state = 'idle'; attack(); }
+      if (g.arr.left <= 0) { g.arr = null; drag = null; g.state = 'idle'; attack(); }
     }
     if (g.shake) g.shake = Math.max(0, g.shake - dt * 30);
     hud(); draw();
@@ -732,11 +750,10 @@ const WO = (() => {
       const k = Math.max(0, g.arr.left / ARRANGE);
       cx.fillStyle = '#B48CFF'; cx.fillRect(8, BT - 12, (LW - 16) * k, 7);
       cx.fillStyle = '#B48CFF'; cx.font = '800 15px "Noto Sans TC", system-ui, sans-serif'; cx.textAlign = 'center';
-      cx.fillText(L('✋ 自由排珠：點兩顆互換，時間到自動攻擊', '✋ Tap two orbs to swap — auto-attack when time is up'), LW / 2, BT - 72);
-      if (g.arr.sel) { const [r, c] = g.arr.sel; cx.strokeStyle = '#B48CFF'; cx.lineWidth = 4; cx.strokeRect(c * CELL + 3, BT + r * CELL + 3, CELL - 6, CELL - 6); }
+      cx.fillText(L('✋ 自由排珠：可以一直轉，放開不會攻擊', '✋ Free arrange: drag freely, release won’t attack'), LW / 2, BT - 72);
     }
     // 拖著的珠：浮在手指上方一點
-    if (drag && g.state === 'idle') {
+    if (drag && (g.state === 'idle' || g.state === 'arrange')) {
       const k = drag.moved ? drag.k : null;
       if (k != null) orb(drag.x, drag.y - CELL * 0.35, k, CELL * 0.48, 0.92);
       else { cx.strokeStyle = '#CCFF00'; cx.lineWidth = 3; cx.strokeRect(drag.c * CELL + 2, BT + drag.r * CELL + 2, CELL - 4, CELL - 4); }
