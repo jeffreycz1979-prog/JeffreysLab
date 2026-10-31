@@ -10,14 +10,15 @@
 //        saveLedger, saveMeta, afterPoints, points, gameWeekBestAll, gameCard, masteredCount, GAMES, toast, confetti
 // ═══════════════════════════════════════════════════════
 const WO = (() => {
-  const ID = 'orbs', NEED = 7, VER = '0.2';
+  const ID = 'orbs', NEED = 7, VER = '0.3';
   const UNIT = 'U7';                      // 題目單元（沒有這個單元就用全部單字）
-  const TIME = 180, CAP = 20, S_PER_PT = 250;
+  const TIME = 180, CAP = 20, S_PER_PT = 500;   // 10/31 Jeffrey 實玩 v0.2 打到第 7 關就 7000 分滿星 → 改成 10000 分滿 20
   const HAND = 20, SPELL = 15;            // 單手秒數、拼字秒數
   const COLS = 6, ROWS = 5, LW = 360, CELL = LW / COLS;
   const COMBO = 50, CLEAR = 200, COMBO_CAP = 15;
   const MULT = [1, 1, 1.2, 1.2, 1.5, 1.5, 2, 2, 3];
-  const POP_MS = 260, FALL_MS = 230;
+  const POP_MS = 320, FALL_MS = 340, COMBO_GAP = 240;   // 一個一個 combo 依序消（像神魔），比較有攻擊的爽感
+  const SKILL_CD = 6, ARRANGE = 10, SKILL_COMBO = 0.5;  // 技能：每 6 次攻擊一次；自由排珠 10 秒；用技能那一手 combo 分數 ×0.5
   // 6 種珠：顏色＋圖案（色弱也分得出來）
   const ORB = [
     { c: '#FF5A5A', d: '#B8322F', g: '♥', n: ['紅', 'red'] },
@@ -27,23 +28,50 @@ const WO = (() => {
     { c: '#B48CFF', d: '#6E4FB8', g: '◆', n: ['紫', 'purple'] },
     { c: '#FF9AC1', d: '#C25C85', g: '✿', n: ['粉', 'pink'] },
   ];
-  // 盾牌：test(hand) 只看玩家那一手（hand＝[{c, n, cells}]，每個 combo 一筆）
+  // 盾牌：test(hand, k) 只看玩家那一手（hand＝[{c, n, cells}]，每個 combo 一筆；k＝這面盾指定的顏色）
   const colorsOf = (h) => new Set(h.map((x) => x.c));
-  const SHIELD = {
-    c2: { ic: '🔗', zh: '2 combo', en: '2 combos', tip: ['一手消出 2 組以上', 'Make 2+ matches in one move'], test: (h) => h.length >= 2 },
-    c3: { ic: '🔗', zh: '3 combo', en: '3 combos', tip: ['一手消出 3 組以上', 'Make 3+ matches in one move'], test: (h) => h.length >= 3 },
-    c4: { ic: '🔗', zh: '4 combo', en: '4 combos', tip: ['一手消出 4 組以上', 'Make 4+ matches in one move'], test: (h) => h.length >= 4 },
-    k3: { ic: '🎨', zh: '3 色盾', en: '3 colors', tip: ['一手消到 3 種不同顏色', 'Clear 3 different colors in one move'], test: (h) => colorsOf(h).size >= 3 },
-    k4: { ic: '🎨', zh: '4 色盾', en: '4 colors', tip: ['一手消到 4 種不同顏色', 'Clear 4 different colors in one move'], test: (h) => colorsOf(h).size >= 4 },
-    col: { ic: '▮', zh: '直排盾', en: 'Column', tip: ['消出一整直排（5 顆同色）', 'Clear a full column of 5'], test: (h) => h.some((x) => [...Array(COLS).keys()].some((c) => x.cells.filter(([r, cc]) => cc === c).length >= ROWS)) },
-    n5: { ic: '🔢', zh: '5 顆盾', en: '5 in a group', tip: ['一組消 5 顆以上', 'Clear 5+ orbs in one match'], test: (h) => h.some((x) => x.n >= 5) },
+  // 形狀：相連同色剛好等於該形狀才算（旋轉、鏡像都算；多一顆就不算）
+  const SHAPES = {
+    line4: [[0, 0], [0, 1], [0, 2], [0, 3]],
+    lshape: [[0, 0], [1, 0], [2, 0], [2, 1], [2, 2]],
+    tshape: [[0, 0], [0, 1], [0, 2], [1, 1], [2, 1]],
+    cross: [[0, 1], [1, 0], [1, 1], [1, 2], [2, 1]],
   };
-  // 9 關（第 1–2 關選項關；第 9 關魔王兩階段）
+  const normKey = (cells) => { const r0 = Math.min(...cells.map((x) => x[0])), c0 = Math.min(...cells.map((x) => x[1])); return cells.map(([r, c]) => `${r - r0},${c - c0}`).sort().join('|'); };
+  const VARIANTS = {};
+  Object.entries(SHAPES).forEach(([id, sh]) => {
+    const set = new Set(); let cur = sh;
+    for (let i = 0; i < 4; i++) { cur = cur.map(([r, c]) => [c, -r]); set.add(normKey(cur)); set.add(normKey(cur.map(([r, c]) => [r, -c]))); }
+    VARIANTS[id] = set;
+  });
+  const hasShape = (h, id) => h.some((x) => VARIANTS[id].has(normKey(x.cells)));
+  const dot = (k) => `<span class="wo-dot sm" style="background:${ORB[k].c}">${ORB[k].g}</span>`;
+  const SHIELD = {
+    c2: { ic: '🔗', zh: '2 combo', en: '2 combos', tip: () => L('一手消出 2 組以上', 'Make 2+ matches in one move'), test: (h) => h.length >= 2 },
+    c3: { ic: '🔗', zh: '3 combo', en: '3 combos', tip: () => L('一手消出 3 組以上', 'Make 3+ matches in one move'), test: (h) => h.length >= 3 },
+    c5: { ic: '🔗', zh: '5 combo', en: '5 combos', tip: () => L('一手消出 5 組以上', 'Make 5+ matches in one move'), test: (h) => h.length >= 5 },
+    k3: { ic: '🎨', zh: '3 色盾', en: '3 colors', tip: () => L('一手消到 3 種不同顏色', 'Clear 3 different colors in one move'), test: (h) => colorsOf(h).size >= 3 },
+    k4: { ic: '🎨', zh: '4 色盾', en: '4 colors', tip: () => L('一手消到 4 種不同顏色', 'Clear 4 different colors in one move'), test: (h) => colorsOf(h).size >= 4 },
+    cnt: { ic: '🔢', zh: '數量盾', en: 'Count', color: 1, tip: (k) => L(`一手消 ${dot(k)} 6 顆以上`, `Clear 6+ ${dot(k)} in one move`), test: (h, k) => h.filter((x) => x.c === k).reduce((a, x) => a + x.n, 0) >= 6 },
+    ban: { ic: '🚫', zh: '禁色盾', en: 'No-color', color: 1, tip: (k) => L(`3 combo，而且不能消到 ${dot(k)}`, `3 combos without clearing ${dot(k)}`), test: (h, k) => h.length >= 3 && !h.some((x) => x.c === k) },
+    line4: { ic: '', shape: 'line4', zh: '一字盾', en: 'Line of 4', tip: () => L('消出剛好 4 顆的一直線（橫直都可以）', 'Clear exactly 4 in a straight line'), test: (h) => hasShape(h, 'line4') },
+    lshape: { ic: '', shape: 'lshape', zh: 'L 形盾', en: 'L shape', tip: () => L('消出剛好 5 顆的 L 形（可以轉向）', 'Clear an L of exactly 5 (any direction)'), test: (h) => hasShape(h, 'lshape') },
+    tshape: { ic: '', shape: 'tshape', zh: 'T 形盾', en: 'T shape', tip: () => L('消出剛好 5 顆的 T 形（可以轉向）', 'Clear a T of exactly 5 (any direction)'), test: (h) => hasShape(h, 'tshape') },
+    cross: { ic: '', shape: 'cross', zh: '十字盾', en: 'Cross', tip: () => L('消出剛好 5 顆的十字', 'Clear a cross of exactly 5'), test: (h) => hasShape(h, 'cross') },
+  };
+  // 9 關（第 1–2 關選項關；第 8 關 L／T 隨機；第 9 關魔王兩階段）
   const LEVELS = [
     { q: 'zh2en' }, { q: 'listen' },
-    { s: ['c2'] }, { s: ['k3'] }, { s: ['c3'] }, { s: ['n5'] }, { s: ['c4'] }, { s: ['col'] },
-    { s: ['c3', 'k4'], boss: true },   // 魔王：第一階段 3 combo，第二階段 4 色
+    { s: ['c2'] }, { s: ['k3'] }, { s: ['cnt'] }, { s: ['line4'] }, { s: ['ban'] }, { s: ['lt'] },
+    { s: ['c5', 'cross'], boss: true },
   ];
+  // 技能（每 6 次攻擊三選一）
+  const SKILLS = {
+    paint: { ic: '🎨', zh: '隨機轉色', en: 'Recolor', tip: ['把 6 顆珠子變成需要的顏色', 'Turn 6 orbs into the color you need'] },
+    rainbow: { ic: '🌈', zh: '六屬直排', en: 'Rainbow columns', tip: ['盤面變成每直排一種顏色', 'Each column becomes one color'] },
+    ten: { ic: '🔟', zh: '10 combo 版面', en: '10-combo board', tip: ['盤面排好 10 組三連，直接放開就消', 'A board with 10 ready-made matches'] },
+    free: { ic: '✋', zh: '自由排珠', en: 'Free arrange', tip: [`${ARRANGE} 秒內點兩顆珠互換，時間到自動攻擊`, `Tap two orbs to swap for ${ARRANGE}s, then auto-attack`] },
+  };
   let cv, cx, root, S = 1, VH = 640, BT = 300;   // BT＝珠盤上緣（邏輯座標）
   let game = null, raf = 0, trial = false, drag = null;
 
@@ -150,8 +178,7 @@ const WO = (() => {
       const hit = hand.some((x) => x.c === ans), wrong = hand.some((x) => x.c !== ans && opt.includes(x.c));
       return { ok: hit && !wrong, why: wrong ? 'wrong' : hit ? '' : 'miss' };
     }
-    const sid = lv.s[lv.boss ? g.phase : 0];
-    return { ok: SHIELD[sid].test(hand), why: 'shield' };
+    return { ok: SHIELD[g.sid].test(hand, g.sk), why: 'shield' };
   }
 
   // ═════ 畫面 ═════
@@ -164,12 +191,21 @@ const WO = (() => {
       <div class="wj-hud"><button class="wj-x" data-wo="quit">✕</button>
         <span class="wo-snd" id="woSnd" data-wo="snd">🔊</span>
         <span class="wj-t" id="woT">3:00</span><span class="wj-h" id="woS">0</span><span class="wj-p" id="woP">⭐ 0</span></div>
+      <button class="wo-sk" id="woSk" data-wo="skill" style="display:none">✨ 0/${SKILL_CD}</button>
       <div class="wj-pane" id="woPane"></div>`;
     document.body.appendChild(root);
     if (!document.getElementById('woCss')) {
       const s = document.createElement('style'); s.id = 'woCss';
       s.textContent = `.wo .wj-hud span{white-space:nowrap;font-size:14px;padding:4px 9px}.wo .wj-hud .wj-t{font-size:12px;opacity:.75}.wo .wj-hud .wj-t.low{opacity:1}
         .wo .wj-hud .wo-snd{pointer-events:auto;cursor:pointer;font-size:14px}
+        .wo-dot.sm{width:22px;height:22px;font-size:12px;display:inline-grid;vertical-align:-5px;margin:0 2px}
+        .wo-shape{display:inline-grid;gap:2px;vertical-align:middle}.wo-shape i{width:12px;height:12px;border-radius:3px;background:#FFB547}.wo-shape i.o{background:transparent}
+        .wo-sk{position:absolute;left:10px;z-index:3;border-radius:14px;border:2px solid #4a5068;background:#131826;color:#aab;font:800 13px Syne,'Noto Sans TC',sans-serif;padding:6px 12px}
+        .wo-sk.ready{border-color:#CCFF00;color:#0a0a14;background:#CCFF00;animation:woGlow 1s ease-in-out infinite}
+        @keyframes woGlow{50%{box-shadow:0 0 18px #CCFF00}}
+        .wo-skills{display:flex;flex-direction:column;gap:10px;margin:14px 0}
+        .wo-skills .btn{display:flex;align-items:center;gap:12px;text-align:left;border-color:#4ECDC4;padding:12px 14px}
+        .wo-skills .btn span{font-size:28px}.wo-skills .btn small{display:block;font-size:12px;opacity:.75;font-weight:500}
         .wo-top{position:absolute;left:10px;right:10px;top:calc(env(safe-area-inset-top,0px) + 54px);z-index:2;text-align:center;pointer-events:none}
         .wo-top .lvname{font:800 13px Syne,sans-serif;color:#4ECDC4;letter-spacing:.06em}
         .wo-top .prompt{font-size:22px;font-weight:800;margin:4px 0 8px;line-height:1.3}
@@ -204,6 +240,7 @@ const WO = (() => {
     cv.width = w * dpr; cv.height = h * dpr; cv.style.width = w + 'px'; cv.style.height = h + 'px';
     S = (w * dpr) / LW; VH = (h * dpr) / S;
     BT = VH - ROWS * CELL - 14 - (parseFloat(getComputedStyle(root).paddingBottom) || 0);
+    const sk = root.querySelector('#woSk'); if (sk) sk.style.top = ((BT - 52) / VH * h) + 'px';
   }
   const pane = (html) => { const p = root.querySelector('#woPane'); p.innerHTML = html; p.style.display = html ? '' : 'none'; };
   const toLogic = (e) => { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * LW, y: (e.clientY - r.top) / r.height * VH }; };
@@ -213,6 +250,16 @@ const WO = (() => {
   // ── 拖曳：按住一顆珠，經過的格子互換；手放開就攻擊 ──
   const canDrag = () => game && game.state === 'idle' && !game.over;
   function onDown(e) {
+    if (game && game.state === 'arrange') {   // 自由排珠：點一顆、再點一顆就互換
+      const { r, c } = cellAt(toLogic(e)); if (!inBoard(r, c)) return;
+      e.preventDefault();
+      const ar = game.arr;
+      if (!ar.sel) { ar.sel = [r, c]; sfx('tile'); return; }
+      const [r0, c0] = ar.sel; ar.sel = null;
+      if (r0 === r && c0 === c) return;
+      const b = game.board, k = b[r0][c0]; b[r0][c0] = b[r][c]; b[r][c] = k; sfx('swap');
+      return;
+    }
     if (!canDrag()) return;
     const p = toLogic(e), { r, c } = cellAt(p);
     if (!inBoard(r, c)) return;
@@ -237,7 +284,7 @@ const WO = (() => {
   function onUp() {
     if (!drag) return;
     const d = drag; drag = null;
-    if (game && game.state === 'idle' && d.moved) attack();
+    if (game && game.state === 'idle' && (d.moved || findCombos(game.board).length)) attack();   // 盤面已經有三連（技能版面）時，點一下也能攻擊
   }
 
   // ── 開始畫面 ──
@@ -246,7 +293,7 @@ const WO = (() => {
     if (!trial && !unlocked()) return toast(L(`精熟 ${NEED} 個單元後解鎖`, `Master ${NEED} units to unlock`));
     if (wordPool().length < 6) return toast(L('單字太少，還不能玩', 'Not enough words yet'));
     mount(); root.classList.add('show'); resize();
-    $('woSnd').textContent = sndOn() ? '🔊' : '🔇';
+    $('woSnd').textContent = sndOn() ? '🔊' : '🔇'; root.querySelector('#woSk').style.display = 'none';
     document.body.style.overflow = 'hidden';
     const best = gameWeekBestAll(), pb = (st.meta.games && st.meta.games[ID] && st.meta.games[ID].best) || 0;
     $('woTop').innerHTML = '';
@@ -259,6 +306,7 @@ const WO = (() => {
         <div>💥 ${L('橫的或直的 3 顆以上同色就會消除；消完會掉新珠，連鎖也算分', '3+ in a row or column clear; new orbs fall and chains score too')}</div>
         <div>❓ ${L('第 1–2 關：3 種顏色各代表一個答案，消到正確答案的顏色，而且不要消到錯的答案顏色', 'Stages 1–2: each of 3 colors is an answer — clear the right one, avoid the wrong ones')}</div>
         <div>🛡️ ${L('第 3 關起：照盾牌的條件轉珠（例如一手 3 combo）；盤面會留到下一關', 'From stage 3: break the shield (e.g. 3 combos in one move); the board carries over')}</div>
+        <div>✨ ${L(`每攻擊 ${SKILL_CD} 次可以選一個技能（轉色、直排、10 combo 版面、自由排珠），也可以先保留`, `Every ${SKILL_CD} attacks you can pick a skill — or save it`)}</div>
         <div>✏️ ${L('沒過關要拼一個單字，拼完再挑戰同一關（時間會一直走）', 'Miss = spell a word, then try the same stage again (clock keeps running)')}</div>
         <div>⭐ ${trial ? L('試玩模式：不計分', 'Trial: not scored') : L(`每 ${S_PER_PT} 分 1 顆星，最多 ${CAP}；所有遊戲每週只算最高一局，超過只記個人最高分`, `1 ⭐ per ${S_PER_PT} points, up to ${CAP}; best game of the week counts`)}</div>
       </div>
@@ -281,6 +329,7 @@ const WO = (() => {
       left: TIME, last: now(), state: 'idle', handT0: 0, handLeft: HAND,
       score: 0, combos: 0, bestHand: 0, fails: 0, spells: 0, maxLv: 1, bossDown: false,
       anim: null, fx: [], swapFx: [], spell: null, over: false, recent: [], msg: null,
+      atk: 0, cd0: 0, skillHand: false, skillsUsed: 0, arr: null, sid: '', sk: 0, shake: 0,
     };
     enterLevel();
     cancelAnimationFrame(raf); raf = requestAnimationFrame(loop);
@@ -288,8 +337,8 @@ const WO = (() => {
   function enterLevel() {
     const g = game, lv = LEVELS[g.lv];
     g.phase = 0; g.maxLv = Math.max(g.maxLv, g.lv + 1);
-    if (lv.q) newQuestion(); else g.q = null;
-    showTop();
+    if (lv.q) newQuestion(); else { g.q = null; setShield(); }
+    showTop(); skillBtn();
   }
   function newQuestion() {
     const g = game, pool = wordPool().filter((w) => !g.recent.includes(w.id));
@@ -304,14 +353,30 @@ const WO = (() => {
     g.recent.push(w.id); if (g.recent.length > 6) g.recent.shift();
     if (g.q.type === 'listen') setTimeout(() => speak(answersOf(w)[0] || w.word), 350);
   }
-  const lvName = (i) => (i === 8 ? L('第 9 關・魔王', 'Stage 9 · BOSS') : L(`第 ${i + 1} 關`, `Stage ${i + 1}`));
-  function shieldHTML(sid, extra) {
-    const s = SHIELD[sid];
-    return `<div class="wo-shield"><b>🛡️ ${s.ic}</b><span>${EN() ? s.en : s.zh}</span><small>${L(s.tip[0], s.tip[1])}${extra || ''}</small></div>`;
+  function setShield() {   // 這一關（這一階段）的盾：L／T 隨機；有指定顏色的盾挑一色
+    const g = game, lv = LEVELS[g.lv];
+    let sid = lv.s[lv.boss ? g.phase : 0];
+    if (sid === 'lt') sid = Math.random() < 0.5 ? 'lshape' : 'tshape';
+    g.sid = sid;
+    const cnt = [0, 0, 0, 0, 0, 0]; g.board.forEach((row) => row.forEach((k) => cnt[k]++));
+    g.sk = sid === 'ban' ? cnt.indexOf(Math.max(...cnt)) : shuffle([0, 1, 2, 3, 4, 5])[0];   // 禁色挑最多的那色（比較有挑戰）
   }
+  function shapeSVG(id) {
+    const sh = SHAPES[id], R2 = Math.max(...sh.map((x) => x[0])) + 1, C2 = Math.max(...sh.map((x) => x[1])) + 1;
+    const on = new Set(sh.map(([r, c]) => r + ',' + c));
+    let h = `<span class="wo-shape" style="grid-template-columns:repeat(${C2},12px)">`;
+    for (let r = 0; r < R2; r++) for (let c = 0; c < C2; c++) h += `<i class="${on.has(r + ',' + c) ? '' : 'o'}"></i>`;
+    return h + '</span>';
+  }
+  const lvName = (i) => (i === 8 ? L('第 9 關・魔王', 'Stage 9 · BOSS') : L(`第 ${i + 1} 關`, `Stage ${i + 1}`));
+  function shieldHTML(sid, k, extra) {
+    const s = SHIELD[sid];
+    return `<div class="wo-shield"><b>🛡️ ${s.shape ? shapeSVG(s.shape) : s.ic}</b><span>${EN() ? s.en : s.zh}</span><small>${s.tip(k)}${extra || ''}</small></div>`;
+  }
+  const shName = (x) => (x === 'lt' ? L('L／T 形盾', 'L / T shape') : EN() ? SHIELD[x].en : SHIELD[x].zh);
   function nextText() {
     const n = LEVELS[game.lv + 1]; if (!n) return '';
-    return `<div class="wo-next">${L('下一關', 'Next')}：${n.s ? n.s.map((x) => `🛡️ ${EN() ? SHIELD[x].en : SHIELD[x].zh}`).join(' → ') : '❓'}</div>`;
+    return `<div class="wo-next">${L('下一關', 'Next')}：${n.s ? n.s.map((x) => `🛡️ ${shName(x)}`).join(' → ') : '❓'}</div>`;
   }
   function showTop(res) {
     const g = game, lv = LEVELS[g.lv];
@@ -326,8 +391,7 @@ const WO = (() => {
         return `<div class="wo-opt"><span class="wo-dot" style="background:${o.c}">${o.g}</span>${esc(answersOf(x)[0] || x.word)}</div>`;
       }).join('')}</div>`;
     } else {
-      const sid = lv.s[lv.boss ? g.phase : 0];
-      body = shieldHTML(sid, lv.boss ? L(`（第 ${g.phase + 1} / 2 階段）`, ` (phase ${g.phase + 1}/2)`) : '');
+      body = shieldHTML(g.sid, g.sk, lv.boss ? L(`（第 ${g.phase + 1} / 2 階段）`, ` (phase ${g.phase + 1}/2)`) : '');
     }
     $('woTop').innerHTML = `<div class="lvname">${lvName(g.lv)}</div>${body}${res ? `<div class="wo-res ${res.ok ? 'ok' : 'bad'}">${res.t}</div>` : nextText()}`;
   }
@@ -336,16 +400,28 @@ const WO = (() => {
   function attack() {
     const g = game; drag = null;
     const hand = findCombos(g.board);
-    g.hand = hand; g.sky = []; g.state = 'anim';
+    g.hand = hand; g.sky = []; g.state = 'anim'; g.comboNow = null;
     g.bestHand = Math.max(g.bestHand, hand.length);
     if (hand.length) popStep(hand, true); else finishHand();
   }
+  // 一個 combo 一個 combo 依序消：每個間隔 COMBO_GAP，數字一路往上跳
   function popStep(combos, first) {
-    const g = game;
-    g.anim = { type: 'pop', t0: now(), cells: combos.flatMap((x) => x.cells), combos, first };
-    let n = first ? 0 : g.hand.length + g.sky.length;
-    combos.forEach((x, j) => { sfx('pop', n, j * 0.07); n++; const [r, c] = x.cells[0]; g.fx.push({ txt: `${n} combo`, x: (c + 0.5) * CELL, y: BT + (r + 0.5) * CELL, t: now(), col: ORB[x.c].c }); });
+    const g = game, base = first ? 0 : g.hand.length + g.sky.length;
+    const order = combos.slice().sort((a, b) => Math.min(...a.cells.map((x) => x[0] * 10 + x[1])) - Math.min(...b.cells.map((x) => x[0] * 10 + x[1])));
+    const idx = {}; order.forEach((x, j) => x.cells.forEach(([r, c]) => (idx[r * COLS + c] = j)));
+    g.anim = { type: 'pop', t0: now(), cells: combos.flatMap((x) => x.cells), order, idx, base, fired: 0, dur: (order.length - 1) * COMBO_GAP + POP_MS };
     if (!first) g.sky.push(...combos);
+  }
+  function popTick(t) {   // 每個 combo 開始消的瞬間：音效、數字、震動
+    const g = game, a = g.anim;
+    while (a.fired < a.order.length && t - a.t0 >= a.fired * COMBO_GAP) {
+      const x = a.order[a.fired], n = a.base + a.fired + 1;
+      sfx('pop', n - 1, 0);
+      const cy = x.cells.reduce((s2, c) => s2 + c[0], 0) / x.n, cxx = x.cells.reduce((s2, c) => s2 + c[1], 0) / x.n;
+      g.fx.push({ txt: `${n} Combo`, x: (cxx + 0.5) * CELL, y: BT + (cy + 0.5) * CELL, t, col: ORB[x.c].c, big: n >= 5 ? 2 : 0 });
+      g.comboNow = { n, t }; g.shake = Math.min(6, 2 + n * 0.5);
+      a.fired++;
+    }
   }
   function afterPop() {   // 消掉、往下掉、補珠
     const g = game, b = g.board;
@@ -371,13 +447,15 @@ const WO = (() => {
     const res = judge(lv, hand, g);
     const handN = Math.min(COMBO_CAP, hand.length), skyN = Math.min(COMBO_CAP - handN, g.sky.length);
     let gain;
-    if (res.ok) gain = Math.round(handN * COMBO * m * 2 + skyN * COMBO * m + CLEAR * m);
-    else gain = (handN + skyN) * COMBO;
+    const sm = g.skillHand ? SKILL_COMBO : 1;
+    if (res.ok) gain = Math.round((handN * COMBO * m * 2 + skyN * COMBO * m) * sm + CLEAR * m);
+    else gain = Math.round((handN + skyN) * COMBO * sm);
+    g.skillHand = false; g.atk++; skillBtn();
     g.score += gain; g.combos += hand.length + g.sky.length;
     if (gain) g.fx.push({ txt: `+${gain}`, x: LW / 2, y: BT - 18, t: now(), col: res.ok ? '#CCFF00' : '#ffffff', big: 1 });
     sfx(res.ok ? 'win' : 'lose');
     if (res.ok) {
-      if (lv.boss && g.phase === 0) { g.phase = 1; showTop({ ok: true, t: L('💥 第一階段破了！', '💥 Phase 1 down!') }); setTimeout(() => game === g && !g.over && showTop(), 1100); g.state = 'idle'; return; }
+      if (lv.boss && g.phase === 0) { g.phase = 1; setShield(); showTop({ ok: true, t: L('💥 第一階段破了！', '💥 Phase 1 down!') }); setTimeout(() => game === g && !g.over && showTop(), 1100); g.state = 'idle'; return; }
       if (lv.boss) { g.bossDown = true; showTop({ ok: true, t: L('🏆 魔王擊破！', '🏆 Boss defeated!') }); g.state = 'done'; setTimeout(() => game === g && end(true), 1400); return; }
       showTop({ ok: true, t: lv.q ? L('✓ 答對了！', '✓ Correct!') : L('🛡️ 破盾！', '🛡️ Shield broken!') });
       g.state = 'wait';
@@ -391,6 +469,51 @@ const WO = (() => {
       g.state = 'wait';
       setTimeout(() => { if (game === g && !g.over) startSpell(); }, 1000);
     }
+  }
+
+  // ── 技能：每 SKILL_CD 次攻擊可以選一次（三選一，可以先保留）──
+  const skillReady = () => game && game.atk - game.cd0 >= SKILL_CD;
+  function skillBtn() {
+    const b = root && root.querySelector('#woSk'); if (!b || !game) return;
+    b.style.display = game.over ? 'none' : '';
+    const n = Math.min(SKILL_CD, game.atk - game.cd0);
+    b.classList.toggle('ready', skillReady());
+    b.textContent = skillReady() ? L('✨ 技能！', '✨ SKILL!') : `✨ ${n}/${SKILL_CD}`;
+  }
+  function openSkills() {
+    const g = game; if (!g || g.state !== 'idle' || drag) return;
+    if (!skillReady()) return toast(L(`再攻擊 ${SKILL_CD - (g.atk - g.cd0)} 次就能用技能`, `${SKILL_CD - (g.atk - g.cd0)} more attacks to unlock a skill`));
+    g.pick = g.pick || shuffle(Object.keys(SKILLS)).slice(0, 3);   // 同一輪 CD 的三個選項固定，關掉再開不會換
+    g.state = 'pick'; $('woTop').style.visibility = 'hidden';
+    pane(`<div class="wj-card"><div class="wj-kicker">✨ ${L('選一個技能', 'Pick a skill')}</div>
+      <div class="wo-skills">${g.pick.map((k) => { const s = SKILLS[k]; return `<button class="btn" data-wo="useskill" data-k="${k}"><span>${s.ic}</span><div><b>${EN() ? s.en : s.zh}</b><small>${L(s.tip[0], s.tip[1])}</small></div></button>`; }).join('')}</div>
+      <p class="wj-small">${L('用技能那一手的 combo 分數減半', 'Combo points are halved on a skill move')}</p>
+      <div class="btnrow"><button class="btn ghost" data-wo="skillcancel">${L('先保留', 'Save it')}</button></div></div>`);
+  }
+  function closeSkills() { const g = game; pane(''); $('woTop').style.visibility = ''; if (g && g.state === 'pick') g.state = 'idle'; }
+  function useSkill(k) {
+    const g = game; if (!g || g.state !== 'pick') return;
+    closeSkills();
+    const b = g.board, cnt = [0, 0, 0, 0, 0, 0]; b.forEach((row) => row.forEach((x) => cnt[x]++));
+    const banned = g.sid === 'ban' ? g.sk : -1;
+    if (k === 'paint') {
+      let tgt = g.q ? g.q.colors[g.q.a] : g.sid === 'cnt' ? g.sk : -1;
+      if (tgt < 0) tgt = cnt.map((n, i) => [n, i]).filter(([, i]) => i !== banned).sort((a2, b2) => b2[0] - a2[0])[0][1];
+      const cells = shuffle(b.flatMap((row, r) => row.map((x, c) => [r, c, x])).filter(([, , x]) => x !== tgt)).slice(0, 6);
+      cells.forEach(([r, c]) => (b[r][c] = tgt));
+    } else if (k === 'rainbow') {
+      const perm = shuffle([0, 1, 2, 3, 4, 5]); for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) b[r][c] = perm[c];
+    } else if (k === 'ten') {
+      let prev = [-1, -1];
+      for (let r = 0; r < ROWS; r++) {
+        let A, B; do { [A, B] = shuffle([0, 1, 2, 3, 4, 5]); } while (A === prev[0] || B === prev[1] || A === banned || B === banned);
+        for (let c = 0; c < COLS; c++) b[r][c] = c < 3 ? A : B; prev = [A, B];
+      }
+    }
+    g.cd0 = g.atk; g.pick = null; g.skillHand = true; g.skillsUsed++; skillBtn();
+    sfx('win');
+    if (k === 'free') { g.state = 'arrange'; g.arr = { t0: now(), left: ARRANGE, sel: null }; }
+    else g.fx.push({ txt: L('放開或點一下就攻擊！', 'Tap or drag to attack!'), x: LW / 2, y: BT - 40, t: now(), col: '#CCFF00', big: 1 });
   }
 
   // ── 拼字（字母方塊；限時 15 秒，時間會一直走）──
@@ -440,7 +563,7 @@ const WO = (() => {
   // ── 結束 ──
   function end(clear) {
     const g = game; if (!g || g.over) return;
-    g.over = true; g.spell = null; drag = null; g.state = 'over';
+    g.over = true; g.spell = null; drag = null; g.state = 'over'; g.arr = null; skillBtn();
     cancelAnimationFrame(raf);
     const sc = g.score, pts = toPts(sc);
     let gain = 0, prev = 0, record = false, best = sc;
@@ -480,7 +603,7 @@ const WO = (() => {
     raf = requestAnimationFrame(loop);
     const g = game; if (!g || g.over) return;
     const t = now(), dt = Math.min(0.1, (t - g.last) / 1000); g.last = t;
-    if (!document.hidden && (g.state === 'idle' || g.state === 'spell')) {
+    if (!document.hidden && (g.state === 'idle' || g.state === 'spell' || g.state === 'arrange' || g.state === 'pick')) {
       g.left -= dt;
       if (g.left <= 0) { g.left = 0; hud(); return end(false); }
     }
@@ -494,9 +617,15 @@ const WO = (() => {
       if (s.left <= 0) endSpell();
     }
     if (g.anim) {
-      const k = (t - g.anim.t0) / (g.anim.type === 'pop' ? POP_MS : FALL_MS);
+      if (g.anim.type === 'pop') popTick(t);
+      const k = (t - g.anim.t0) / (g.anim.type === 'pop' ? g.anim.dur : FALL_MS);
       if (k >= 1) { if (g.anim.type === 'pop') afterPop(); else afterFall(); }
     }
+    if (g.state === 'arrange' && g.arr) {
+      g.arr.left = ARRANGE - (t - g.arr.t0) / 1000;
+      if (g.arr.left <= 0) { g.arr = null; g.state = 'idle'; attack(); }
+    }
+    if (g.shake) g.shake = Math.max(0, g.shake - dt * 30);
     hud(); draw();
   }
 
@@ -539,8 +668,8 @@ const WO = (() => {
       return;
     }
     const t = now(), a = g.anim;
-    const popSet = a && a.type === 'pop' ? new Set(a.cells.map(([r, c]) => r * COLS + c)) : null;
-    const pk = a && a.type === 'pop' ? Math.min(1, (t - a.t0) / POP_MS) : 0;
+    const popIdx = a && a.type === 'pop' ? a.idx : null;
+    if (g.shake) cx.translate((Math.random() - 0.5) * g.shake, (Math.random() - 0.5) * g.shake);
     const fk = a && a.type === 'fall' ? Math.min(1, (t - a.t0) / FALL_MS) : 1;
     // 盤面上方的區域遮掉（掉落的珠從上面滑進來）
     cx.save(); cx.beginPath(); cx.rect(0, BT, LW, ROWS * CELL); cx.clip();
@@ -548,16 +677,37 @@ const WO = (() => {
       const k = g.board[r][c]; if (k == null) continue;
       if (drag && drag.moved && drag.r === r && drag.c === c) continue;
       let x = (c + 0.5) * CELL, y = BT + (r + 0.5) * CELL, rad = CELL * 0.42, al = 1;
-      if (popSet && popSet.has(r * COLS + c)) { rad *= 1 + pk * 0.35; al = 1 - pk; }
+      if (popIdx && popIdx[r * COLS + c] != null) {
+        const pk = Math.max(0, Math.min(1, (t - a.t0 - popIdx[r * COLS + c] * COMBO_GAP) / POP_MS));
+        if (pk > 0) { rad *= pk < 0.3 ? 1 + pk : 1.3 - (pk - 0.3) * 1.3; al = pk < 0.3 ? 1 : 1 - (pk - 0.3) / 0.7; }
+        else { rad *= 1 + Math.sin(t / 60) * 0.03; }
+      }
       if (a && a.type === 'fall' && a.fall[r][c]) y -= a.fall[r][c] * CELL * (1 - fk * fk);
       orb(x, y, k, rad, al);
     }
     cx.restore();
+    // 自由排珠：紫色時間條＋選到的珠
+    if (g.state === 'arrange' && g.arr) {
+      const k = Math.max(0, g.arr.left / ARRANGE);
+      cx.fillStyle = '#B48CFF'; cx.fillRect(8, BT - 12, (LW - 16) * k, 7);
+      cx.fillStyle = '#B48CFF'; cx.font = '800 15px "Noto Sans TC", system-ui, sans-serif'; cx.textAlign = 'center';
+      cx.fillText(L('✋ 自由排珠：點兩顆互換，時間到自動攻擊', '✋ Tap two orbs to swap — auto-attack when time is up'), LW / 2, BT - 72);
+      if (g.arr.sel) { const [r, c] = g.arr.sel; cx.strokeStyle = '#B48CFF'; cx.lineWidth = 4; cx.strokeRect(c * CELL + 3, BT + r * CELL + 3, CELL - 6, CELL - 6); }
+    }
     // 拖著的珠：浮在手指上方一點
     if (drag && g.state === 'idle') {
       const k = drag.moved ? drag.k : null;
       if (k != null) orb(drag.x, drag.y - CELL * 0.35, k, CELL * 0.48, 0.92);
       else { cx.strokeStyle = '#CCFF00'; cx.lineWidth = 3; cx.strokeRect(drag.c * CELL + 2, BT + drag.r * CELL + 2, CELL - 4, CELL - 4); }
+    }
+    // 盤面上方的大 combo 數字
+    if (g.comboNow && t - g.comboNow.t < 1300 && (g.state === 'anim' || g.state === 'wait')) {
+      const k = Math.min(1, (t - g.comboNow.t) / 160), n = g.comboNow.n;
+      cx.save(); cx.translate(LW / 2, BT - 70); cx.scale(0.6 + k * 0.4 + (1 - k) * 0.5, 0.6 + k * 0.4 + (1 - k) * 0.5);
+      cx.font = `800 ${n >= 8 ? 46 : n >= 5 ? 40 : 34}px Syne, system-ui, sans-serif`; cx.textAlign = 'center'; cx.textBaseline = 'middle';
+      cx.lineWidth = 6; cx.strokeStyle = 'rgba(0,0,0,.7)'; cx.strokeText(`${n} COMBO`, 0, 0);
+      cx.fillStyle = n >= 8 ? '#FF5A5A' : n >= 5 ? '#FFD23F' : '#CCFF00'; cx.fillText(`${n} COMBO`, 0, 0);
+      cx.restore();
     }
     // 文字特效
     g.fx = g.fx.filter((f) => t - f.t < 900);
@@ -577,6 +727,9 @@ const WO = (() => {
     if (a === 'start') { audio(); if (typeof unlockAudio === 'function') unlockAudio(); start(); }
     if (a === 'close') close();
     if (a === 'tile') { sfx('tile'); tapTile(+t.dataset.k); }
+    if (a === 'skill') openSkills();
+    if (a === 'skillcancel') closeSkills();
+    if (a === 'useskill') useSkill(t.dataset.k);
     if (a === 'say' && game && game.q) speak(answersOf(game.q.w)[0] || game.q.w.word);
     if (a === 'sayspell' && game && game.spell) speak(game.spell.ans);
     if (a === 'quit') {
@@ -585,7 +738,7 @@ const WO = (() => {
     }
   }
   // 測試用
-  const _t = { get game() { return game; }, newBoard, findCombos, judge, LEVELS, SHIELD, attack, end, toPts, startSpell, endSpell, tapTile,
+  const _t = { get game() { return game; }, newBoard, useSkill, openSkills, setShield, SHAPES, findCombos, judge, LEVELS, SHIELD, attack, end, toPts, startSpell, endSpell, tapTile,
     setBoard(b) { game.board = b.map((r) => r.slice()); }, get BT() { return BT; }, CELL };
   return { id: ID, need: NEED, card, bestText, open, close, _t };
 })();
