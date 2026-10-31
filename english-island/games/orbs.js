@@ -10,7 +10,7 @@
 //        saveLedger, saveMeta, afterPoints, points, gameWeekBestAll, gameCard, masteredCount, GAMES, toast, confetti
 // ═══════════════════════════════════════════════════════
 const WO = (() => {
-  const ID = 'orbs', NEED = 7, VER = '0.1';
+  const ID = 'orbs', NEED = 7, VER = '0.2';
   const UNIT = 'U7';                      // 題目單元（沒有這個單元就用全部單字）
   const TIME = 180, CAP = 20, S_PER_PT = 250;
   const HAND = 20, SPELL = 15;            // 單手秒數、拼字秒數
@@ -56,6 +56,47 @@ const WO = (() => {
   const bestText = () => { const b = st.meta.games && st.meta.games[ID] && st.meta.games[ID].best; return b ? `Word Orbs ${b}` : ''; };
   const short = (w) => String(meaning(w) || '').split(/[；;,，]/)[0].trim();
   const now = () => performance.now();
+
+  // ═════ 音效：Web Audio 即時合成（不用音檔）═════
+  // 換珠「喀」、消除「啵」（combo 越多音越高）、落地「咚」、過關／失敗提示音
+  let ac = null, master = null;
+  const sndOn = () => !(st.set && st.set.orbsMute);
+  function audio() {
+    if (!ac) {
+      try { ac = new (window.AudioContext || window.webkitAudioContext)(); master = ac.createGain(); master.gain.value = 0.55; master.connect(ac.destination); } catch (e) { return null; }
+    }
+    if (ac.state === 'suspended') ac.resume();
+    return ac;
+  }
+  let noiseBuf = null;
+  function noise() {
+    if (noiseBuf) return noiseBuf;
+    noiseBuf = ac.createBuffer(1, ac.sampleRate * 0.2, ac.sampleRate);
+    const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    return noiseBuf;
+  }
+  function tone(f, dur, { type = 'sine', vol = 0.3, at = 0, slide = 0 } = {}) {
+    const t = ac.currentTime + at, o = ac.createOscillator(), g = ac.createGain();
+    o.type = type; o.frequency.setValueAtTime(f, t); if (slide) o.frequency.exponentialRampToValueAtTime(f * slide, t + dur);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.006); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(master); o.start(t); o.stop(t + dur + 0.02);
+  }
+  function click(freq, vol, dur = 0.05, at = 0) {   // 濾過的雜訊＝石頭／玻璃互撞
+    const t = ac.currentTime + at, s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+    s.buffer = noise(); f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = 6;
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    s.connect(f); f.connect(g); g.connect(master); s.start(t); s.stop(t + dur + 0.02);
+  }
+  const PENTA = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21, 24, 26, 28, 31, 33];
+  const SFX = {
+    swap() { click(2600 + Math.random() * 900, 0.5, 0.04); tone(1800 + Math.random() * 300, 0.035, { vol: 0.05, type: 'triangle' }); },
+    pop(i, at) { const f = 520 * Math.pow(2, PENTA[Math.min(i, PENTA.length - 1)] / 12); tone(f, 0.16, { vol: 0.22, at, slide: 1.5 }); click(3800, 0.25, 0.03, at); },
+    land() { tone(140, 0.09, { vol: 0.18, slide: 0.6 }); click(900, 0.15, 0.05); },
+    win() { [0, 4, 7, 12].forEach((n, i) => tone(523 * Math.pow(2, n / 12), 0.18, { vol: 0.18, at: i * 0.08, type: 'triangle' })); },
+    lose() { tone(220, 0.25, { vol: 0.15, type: 'sawtooth', slide: 0.7 }); },
+    tile() { click(2000, 0.3, 0.03); tone(880, 0.06, { vol: 0.08 }); },
+  };
+  function sfx(name, ...a) { if (!sndOn()) return; if (!audio()) return; try { SFX[name](...a); } catch (e) {} }
 
   // ═════ 純邏輯（不碰畫面，可以用 Node 測）═════
   const rnd = (n) => Math.floor(Math.random() * n);
@@ -121,13 +162,14 @@ const WO = (() => {
     root.innerHTML = `<canvas></canvas>
       <div class="wo-top" id="woTop"></div>
       <div class="wj-hud"><button class="wj-x" data-wo="quit">✕</button>
-        <span class="wo-lv" id="woLv">1 / 9</span>
+        <span class="wo-snd" id="woSnd" data-wo="snd">🔊</span>
         <span class="wj-t" id="woT">3:00</span><span class="wj-h" id="woS">0</span><span class="wj-p" id="woP">⭐ 0</span></div>
       <div class="wj-pane" id="woPane"></div>`;
     document.body.appendChild(root);
     if (!document.getElementById('woCss')) {
       const s = document.createElement('style'); s.id = 'woCss';
-      s.textContent = `.wo .wj-hud .wj-t{font-size:12px;opacity:.75}.wo .wj-hud .wj-t.low{opacity:1}
+      s.textContent = `.wo .wj-hud span{white-space:nowrap;font-size:14px;padding:4px 9px}.wo .wj-hud .wj-t{font-size:12px;opacity:.75}.wo .wj-hud .wj-t.low{opacity:1}
+        .wo .wj-hud .wo-snd{pointer-events:auto;cursor:pointer;font-size:14px}
         .wo-top{position:absolute;left:10px;right:10px;top:calc(env(safe-area-inset-top,0px) + 54px);z-index:2;text-align:center;pointer-events:none}
         .wo-top .lvname{font:800 13px Syne,sans-serif;color:#4ECDC4;letter-spacing:.06em}
         .wo-top .prompt{font-size:22px;font-weight:800;margin:4px 0 8px;line-height:1.3}
@@ -189,7 +231,7 @@ const WO = (() => {
     if (Math.hypot(fr - r, fc - c) > 0.42) return;
     if (!drag.moved) { drag.moved = true; game.handT0 = now(); game.handLeft = HAND; }
     const b = game.board; b[drag.r][drag.c] = b[r][c]; b[r][c] = drag.k;
-    game.swapFx.push({ r: drag.r, c: drag.c, t: now() });
+    game.swapFx.push({ r: drag.r, c: drag.c, t: now() }); sfx('swap');
     drag.r = r; drag.c = c;
   }
   function onUp() {
@@ -204,6 +246,7 @@ const WO = (() => {
     if (!trial && !unlocked()) return toast(L(`精熟 ${NEED} 個單元後解鎖`, `Master ${NEED} units to unlock`));
     if (wordPool().length < 6) return toast(L('單字太少，還不能玩', 'Not enough words yet'));
     mount(); root.classList.add('show'); resize();
+    $('woSnd').textContent = sndOn() ? '🔊' : '🔇';
     document.body.style.overflow = 'hidden';
     const best = gameWeekBestAll(), pb = (st.meta.games && st.meta.games[ID] && st.meta.games[ID].best) || 0;
     $('woTop').innerHTML = '';
@@ -287,7 +330,6 @@ const WO = (() => {
       body = shieldHTML(sid, lv.boss ? L(`（第 ${g.phase + 1} / 2 階段）`, ` (phase ${g.phase + 1}/2)`) : '');
     }
     $('woTop').innerHTML = `<div class="lvname">${lvName(g.lv)}</div>${body}${res ? `<div class="wo-res ${res.ok ? 'ok' : 'bad'}">${res.t}</div>` : nextText()}`;
-    $('woLv').textContent = `${g.lv + 1} / 9`;
   }
 
   // ── 攻擊：結算玩家那一手 → 消除動畫 → 天降連鎖 → 判定 ──
@@ -302,7 +344,7 @@ const WO = (() => {
     const g = game;
     g.anim = { type: 'pop', t0: now(), cells: combos.flatMap((x) => x.cells), combos, first };
     let n = first ? 0 : g.hand.length + g.sky.length;
-    combos.forEach((x) => { n++; const [r, c] = x.cells[0]; g.fx.push({ txt: `${n} combo`, x: (c + 0.5) * CELL, y: BT + (r + 0.5) * CELL, t: now(), col: ORB[x.c].c }); });
+    combos.forEach((x, j) => { sfx('pop', n, j * 0.07); n++; const [r, c] = x.cells[0]; g.fx.push({ txt: `${n} combo`, x: (c + 0.5) * CELL, y: BT + (r + 0.5) * CELL, t: now(), col: ORB[x.c].c }); });
     if (!first) g.sky.push(...combos);
   }
   function afterPop() {   // 消掉、往下掉、補珠
@@ -317,6 +359,7 @@ const WO = (() => {
       }
     }
     g.anim = { type: 'fall', t0: now(), fall };
+    setTimeout(() => sfx('land'), FALL_MS * 0.8);
   }
   function afterFall() {
     const more = findCombos(game.board);
@@ -332,6 +375,7 @@ const WO = (() => {
     else gain = (handN + skyN) * COMBO;
     g.score += gain; g.combos += hand.length + g.sky.length;
     if (gain) g.fx.push({ txt: `+${gain}`, x: LW / 2, y: BT - 18, t: now(), col: res.ok ? '#CCFF00' : '#ffffff', big: 1 });
+    sfx(res.ok ? 'win' : 'lose');
     if (res.ok) {
       if (lv.boss && g.phase === 0) { g.phase = 1; showTop({ ok: true, t: L('💥 第一階段破了！', '💥 Phase 1 down!') }); setTimeout(() => game === g && !g.over && showTop(), 1100); g.state = 'idle'; return; }
       if (lv.boss) { g.bossDown = true; showTop({ ok: true, t: L('🏆 魔王擊破！', '🏆 Boss defeated!') }); g.state = 'done'; setTimeout(() => game === g && end(true), 1400); return; }
@@ -342,7 +386,7 @@ const WO = (() => {
       g.fails++;
       const t = lv.q
         ? (res.why === 'wrong' ? L('✕ 消到錯的答案了', '✕ You cleared a wrong answer') : L(`✕ 沒有消到 ${ORB[g.q.colors[g.q.a]].g} 答案色`, '✕ Missed the answer color'))
-        : L('✕ 沒有破盾', '✕ Shield held');
+        : L(`✕ 沒有破盾・你轉了 ${hand.length} combo${g.sky.length ? `（天降 ${g.sky.length} 不算）` : ''}`, `✕ Shield held · your move: ${hand.length} combo${g.sky.length ? ` (+${g.sky.length} skyfall don't count)` : ''}`);
       showTop({ ok: false, t: t + (lv.q ? `・${esc(answersOf(g.q.w)[0] || g.q.w.word)}` : '') });
       g.state = 'wait';
       setTimeout(() => { if (game === g && !g.over) startSpell(); }, 1000);
@@ -529,9 +573,10 @@ const WO = (() => {
   function onClick(e) {
     const t = e.target.closest('[data-wo]'); if (!t) return;
     const a = t.dataset.wo;
-    if (a === 'start') { if (typeof unlockAudio === 'function') unlockAudio(); start(); }
+    if (a === 'snd') { st.set.orbsMute = sndOn(); if (typeof saveSet === 'function') saveSet(); $('woSnd').textContent = sndOn() ? '🔊' : '🔇'; if (sndOn()) sfx('tile'); return; }
+    if (a === 'start') { audio(); if (typeof unlockAudio === 'function') unlockAudio(); start(); }
     if (a === 'close') close();
-    if (a === 'tile') tapTile(+t.dataset.k);
+    if (a === 'tile') { sfx('tile'); tapTile(+t.dataset.k); }
     if (a === 'say' && game && game.q) speak(answersOf(game.q.w)[0] || game.q.w.word);
     if (a === 'sayspell' && game && game.spell) speak(game.spell.ans);
     if (a === 'quit') {
