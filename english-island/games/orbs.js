@@ -10,7 +10,7 @@
 //        saveLedger, saveMeta, afterPoints, points, gameWeekBestAll, gameCard, masteredCount, GAMES, toast, confetti
 // ═══════════════════════════════════════════════════════
 const WO = (() => {
-  const ID = 'orbs', NEED = 7, VER = '0.4';
+  const ID = 'orbs', NEED = 7, VER = '0.5';
   const UNIT = 'U7';                      // 題目單元（沒有這個單元就用全部單字）
   const TIME = 180, CAP = 20, S_PER_PT = 500;   // 10/31 Jeffrey 實玩 v0.2 打到第 7 關就 7000 分滿星 → 改成 10000 分滿 20
   const HAND = 20, SPELL = 15;            // 單手秒數、拼字秒數
@@ -61,7 +61,7 @@ const WO = (() => {
     c5: { ic: '🔗', zh: '5 combo', en: '5 combos', tip: () => L('一手消出 5 組以上', 'Make 5+ matches in one move'), test: (h) => h.length >= 5 },
     k3: { ic: '🎨', zh: '3 色盾', en: '3 colors', tip: () => L('一手消到 3 種不同顏色', 'Clear 3 different colors in one move'), test: (h) => colorsOf(h).size >= 3 },
     k4: { ic: '🎨', zh: '4 色盾', en: '4 colors', tip: () => L('一手消到 4 種不同顏色', 'Clear 4 different colors in one move'), test: (h) => colorsOf(h).size >= 4 },
-    cnt: { ic: '🔢', zh: '數量盾', en: 'Count', color: 1, tip: (k) => L(`一手消 ${dot(k)} 6 顆以上`, `Clear 6+ ${dot(k)} in one move`), test: (h, k) => h.filter((x) => x.c === k).reduce((a, x) => a + x.n, 0) >= 6 },
+    cnt: { ic: '🔢', zh: '數量盾', en: 'Count', color: 1, tip: (k) => L(`一手消 ${dot(k)} 共 6 顆以上（幾組加起來都算）`, `Clear 6+ ${dot(k)} in one move (groups add up)`), test: (h, k) => h.filter((x) => x.c === k).reduce((a, x) => a + x.n, 0) >= 6 },
     ban: { ic: '🚫', zh: '禁色盾', en: 'No-color', color: 1, tip: (k) => L(`3 combo，而且不能消到 ${dot(k)}`, `3 combos without clearing ${dot(k)}`), test: (h, k) => h.length >= 3 && !h.some((x) => x.c === k) },
     line4: { ic: '', shape: 'line4', zh: '一字盾', en: 'Line of 4', tip: () => L('把同色珠轉進框框：剛好 4 顆排成一直線', 'Fill the frame: exactly 4 in a line'), test: (h, k, g) => hasFrame(h, g.frame) },
     lshape: { ic: '', shape: 'lshape', zh: 'L 形盾', en: 'L shape', tip: () => L('把同色珠轉進框框：剛好 5 顆的 L 形', 'Fill the L-shaped frame with one color'), test: (h, k, g) => hasFrame(h, g.frame) },
@@ -102,7 +102,9 @@ const WO = (() => {
     if (!ac) {
       try { ac = new (window.AudioContext || window.webkitAudioContext)(); master = ac.createGain(); master.gain.value = 0.55; master.connect(ac.destination); } catch (e) { return null; }
     }
-    if (ac.state === 'suspended') ac.resume();
+    // iOS 播過朗讀或切 App 後會變成 interrupted／suspended：不是 running 就叫醒；已關掉就重建
+    if (ac.state === 'closed') { ac = null; return audio(); }
+    if (ac.state !== 'running') ac.resume().catch(() => {});
     return ac;
   }
   let noiseBuf = null;
@@ -259,6 +261,7 @@ const WO = (() => {
   // ── 拖曳：按住一顆珠，經過的格子互換；手放開就攻擊 ──
   const canDrag = () => game && game.state === 'idle' && !game.over;
   function onDown(e) {
+    if (sndOn()) audio();
     if (game && game.state === 'arrange') {   // 自由排珠：點一顆、再點一顆就互換
       const { r, c } = cellAt(toLogic(e)); if (!inBoard(r, c)) return;
       e.preventDefault();
@@ -278,13 +281,25 @@ const WO = (() => {
   }
   function onMove(e) {
     if (!drag || !game || game.state !== 'idle') return;
-    const p = toLogic(e); drag.x = p.x; drag.y = Math.max(BT - CELL * 0.4, Math.min(BT + ROWS * CELL + CELL * 0.4, p.y));
-    // 進入相鄰格（含斜角）且離該格中心夠近才換，避免邊界抖動
+    // 手指移動很快時，瀏覽器一次只回報一個點：把中間漏掉的點（coalesced events）都走一遍，珠子才不會「卡住不走」
+    const evs = (e.getCoalescedEvents && e.getCoalescedEvents().length) ? e.getCoalescedEvents() : [e];
+    evs.forEach(moveTo);
+  }
+  function moveTo(e) {
+    if (!drag) return;
+    const p = toLogic(e); drag.x = Math.max(0, Math.min(LW - 0.01, p.x)); drag.y = Math.max(BT - CELL * 0.4, Math.min(BT + ROWS * CELL + CELL * 0.4, p.y));
     const fr = (drag.y - BT) / CELL - 0.5, fc = drag.x / CELL - 0.5;
-    const r = Math.round(fr), c = Math.round(fc);
-    if (!inBoard(r, c) || (r === drag.r && c === drag.c)) return;
-    if (Math.abs(r - drag.r) > 1 || Math.abs(c - drag.c) > 1) return;
-    if (Math.hypot(fr - r, fc - c) > 0.42) return;
+    const r = Math.max(0, Math.min(ROWS - 1, Math.round(fr))), c = Math.max(0, Math.min(COLS - 1, Math.round(fc)));
+    if (r === drag.r && c === drag.c) return;
+    // 相鄰格要離中心夠近才換（避免在格線上抖動）；跳過好幾格時直接沿路一格一格換過去
+    const far = Math.abs(r - drag.r) > 1 || Math.abs(c - drag.c) > 1;
+    if (!far && Math.hypot(fr - r, fc - c) > 0.45) return;
+    while (drag.r !== r || drag.c !== c) {
+      const nr = drag.r + Math.sign(r - drag.r), nc = drag.c + Math.sign(c - drag.c);
+      swapTo(nr, nc);
+    }
+  }
+  function swapTo(r, c) {
     if (!drag.moved) { drag.moved = true; game.handT0 = now(); game.handLeft = HAND; }
     const b = game.board; b[drag.r][drag.c] = b[r][c]; b[r][c] = drag.k;
     game.swapFx.push({ r: drag.r, c: drag.c, t: now() }); sfx('swap');
@@ -493,7 +508,8 @@ const WO = (() => {
   function openSkills() {
     const g = game; if (!g || g.state !== 'idle' || drag) return;
     if (!skillReady()) return toast(L(`再攻擊 ${SKILL_CD - (g.atk - g.cd0)} 次就能用技能`, `${SKILL_CD - (g.atk - g.cd0)} more attacks to unlock a skill`));
-    g.pick = g.pick || shuffle(Object.keys(SKILLS)).slice(0, 3);   // 同一輪 CD 的三個選項固定，關掉再開不會換
+    // 自由排珠一定在選項裡（不會轉的學生靠它破形狀盾），另外兩個隨機；同一輪 CD 的選項固定，關掉再開不會換
+    g.pick = g.pick || ['free', ...shuffle(['paint', 'rainbow', 'ten']).slice(0, 2)];
     g.state = 'pick'; $('woTop').style.visibility = 'hidden'; skillBtn();
     pane(`<div class="wj-card"><div class="wj-kicker">✨ ${L('選一個技能', 'Pick a skill')}</div>
       <div class="wo-skills">${g.pick.map((k) => { const s = SKILLS[k]; return `<button class="btn" data-wo="useskill" data-k="${k}"><span>${s.ic}</span><div><b>${EN() ? s.en : s.zh}</b><small>${L(s.tip[0], s.tip[1])}</small></div></button>`; }).join('')}</div>
