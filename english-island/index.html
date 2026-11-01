@@ -744,7 +744,7 @@ nav button.on{color:var(--lime);font-weight:700}
         </div>
       </div>
     </div>
-    <p class="hint">Jeffrey's Lab · 英文順起來．探索英文島 v1.9（THP11 內容）</p>
+    <p class="hint">Jeffrey's Lab · 英文順起來．探索英文島 v1.9.1（THP11 內容）</p>
   </section>
 </main>
 
@@ -2726,8 +2726,8 @@ async function loadGrammar() {
 }
 const qz = { unit: '', qs: [], i: 0, right: 0, combo: 0, pts: 0, wrong: [], answered: false, result: null };
 const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
-const norm = (s) => s.toLowerCase().replace(/[’‘]/g, "'").replace(/\s+/g, ' ').trim();
-const blanks = (a) => a.split(' ').map((wd, i) => `<span class="hw">${wd.split('').map((c, j) => (i === 0 && j === 0 ? esc(c) : c === '-' || c === "'" ? c : '_')).join(' ')}</span>`).join('');   // 拼字提示：一個字一組不斷行，' 和 - 直接顯示
+const norm = (s) => s.toLowerCase().replace(/[’‘]/g, "'").replace(/\s*(?:\.{2,}|…+|。{2,})\s*/g, ' … ').replace(/\s+/g, ' ').trim();   // 「...」「…」都當成同一個空格記號
+const blanks = (a) => a.split(' ').map((wd, i) => wd === '…' ? '<span class="hw">…</span>' : `<span class="hw">${wd.split('').map((c, j) => (i === 0 && j === 0 ? esc(c) : c === '-' || c === "'" ? c : '_')).join(' ')}</span>`).join('');   // 拼字提示：一個字一組不斷行，' 和 - 直接顯示
 function answersOf(w) {   // 可接受的拼法：括號裡的字打或不打都算對（roll (one's) eyes → roll one's eyes／roll eyes），斜線兩種都算對
   const forms = [w.word.replace(/[()]/g, ''), w.word.replace(/\s*\([^)]*\)\s*/g, ' ')];   // 第一個＝完整片語，拼字提示用這個
   const out = [];
@@ -2736,6 +2736,9 @@ function answersOf(w) {   // 可接受的拼法：括號裡的字打或不打都
     const m = base.match(/^(.*?)(\S+)\/(\S+)(.*)$/);
     if (m) out.push(norm(m[1] + m[2] + m[4]), norm(m[1] + m[3] + m[4])); else out.push(norm(base));
   });
+  // 「give … to」這類片語：中間的 … 可以不打，或填 sth／sb／something／someone／it
+  const GAP = ['', 'sth', 'sb', 'something', 'someone', 'somebody', 'it'];
+  out.slice().forEach((a) => { if (a.includes('…')) GAP.forEach((g) => out.push(norm(a.replace(/…/g, g)))); });
   return [...new Set(out)];
 }
 function clozeOf(w) {
