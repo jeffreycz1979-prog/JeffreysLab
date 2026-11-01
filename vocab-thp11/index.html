@@ -421,6 +421,13 @@ nav button.on{color:var(--lime);font-weight:700}
 .grule b{display:block;color:var(--mint);font-size:13px;margin-bottom:3px}
 .grule i{font-family:'Syne',sans-serif;font-style:normal;font-size:15px}
 .gmis{display:grid;grid-template-columns:1fr;gap:2px;font-size:14px;margin-top:8px;background:var(--panel);border-radius:12px;padding:10px 12px}
+.phs{background:var(--panel);border-radius:12px;padding:10px 12px;margin-top:8px}
+.phs .ph-h{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.phs .ph-h b{color:var(--mint);font-size:15px}.phs .ph-h .ipa{font-family:serif;font-size:16px;color:var(--lime)}
+.phs small{display:block;color:var(--muted);font-size:12px;margin:2px 0 6px}
+.ph-words{display:flex;flex-wrap:wrap;gap:6px}
+.ph-w{border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:6px 12px;font-family:'Syne',sans-serif;font-size:16px;font-weight:700}
+.ph-w em{font-style:normal;color:var(--coral)}
+.ph-w.sm{font-size:14px;padding:5px 10px;font-weight:600}
 .gmis .x{color:var(--coral);text-decoration:line-through}.gmis .o{color:var(--mint);font-weight:700}.gmis small{color:var(--muted)}
 .qunit .acts{display:flex;gap:6px;flex:none}
 .qunit .gbtn{background:var(--panel);border:1.5px solid var(--line);color:var(--ink);font-weight:700;font-size:13px;border-radius:12px;padding:8px 10px}
@@ -563,6 +570,64 @@ nav button.on{color:var(--lime);font-weight:700}
 .wj-ctl button{border:1.5px solid var(--line);background:var(--panel);border-radius:14px;padding:10px 6px;font-weight:700;font-size:15px}
 .wj-ctl button small{display:block;font-size:11px;font-weight:400;color:var(--muted);margin-top:2px}
 .wj-ctl button.on{border-color:var(--lime);background:#26331a;color:var(--lime)}
+/* 📮 信箱、宣言、同學分身 */
+.island-head > div:first-child{flex:none}.island-head b{white-space:nowrap}
+#islandSum{min-width:0;text-align:center;line-height:1.25;white-space:normal}
+.mail-btn{position:relative;margin-left:auto;border:2px solid var(--green);background:#fff;border-radius:12px;font-size:18px;line-height:1;padding:5px 8px;cursor:pointer}
+.mail-btn i{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;border-radius:9px;background:var(--coral);color:#fff;font:800 11px/18px Syne,sans-serif;font-style:normal;padding:0 4px;border:2px solid #fff}
+.mail-btn.shake{animation:shake .5s 2}
+.decl-strip{margin:8px 12px 0;padding:6px 6px 6px 12px;border-radius:14px;background:#fff;border:2px solid var(--green);font-size:13px;color:var(--green);display:flex;gap:8px;align-items:center;cursor:pointer}
+.decl-strip[hidden]{display:none}
+.decl-strip b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.decl-strip b.new{color:#5d6b5d;font-weight:600}
+.decl-strip small{flex:none;font-size:11px;color:#5d6b5d}
+.decl-strip .dh{flex:none;border:1.5px solid var(--green);background:#fff;color:var(--green);border-radius:10px;padding:4px 8px;font:700 11px 'Noto Sans TC',sans-serif;cursor:pointer;white-space:nowrap}
+.decl-strip .dh.on{background:var(--green);color:var(--lime)}
+#mates [data-mate]{cursor:pointer}
+.mtabs{display:flex;gap:6px;margin:10px 0}
+.mtabs button{flex:1;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:8px 4px;font:700 13px 'Noto Sans TC',sans-serif;cursor:pointer;position:relative}
+.mtabs button.on{border-color:var(--lime);color:var(--lime)}
+.mtabs button i{position:absolute;top:-6px;right:-4px;background:var(--coral);color:#fff;border-radius:8px;font:800 10px/16px Syne;font-style:normal;padding:0 5px}
+.mkind{display:flex;gap:8px;margin:8px 0}
+.mkind button{flex:1;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:14px;padding:10px 6px;font:700 14px 'Noto Sans TC',sans-serif;cursor:pointer;text-align:left}
+.mkind button small{display:block;font-weight:400;font-size:11px;color:var(--muted);margin-top:2px}
+.mkind button.on{border-color:var(--lime);box-shadow:0 0 0 3px rgba(204,255,0,.25)}
+.mta{width:100%;min-height:84px;border-radius:14px;border:2px solid var(--line);background:var(--card);color:var(--ink);padding:10px 12px;font:16px/1.5 'Noto Sans TC',sans-serif;resize:none;box-sizing:border-box}
+.mta:focus{outline:none;border-color:var(--mint)}
+.mcount{font-size:12px;color:var(--muted);text-align:right;margin-top:4px}
+.mlist{display:flex;flex-direction:column;gap:10px}
+.mitem{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:10px 12px}
+.mitem .mt{font-size:15px;line-height:1.5;word-break:break-word}
+.mitem .mm{font-size:11px;color:var(--muted);margin-top:4px;display:flex;gap:8px;flex-wrap:wrap}
+.mitem .mr{margin-top:8px;padding:8px 10px;border-radius:12px;background:#1f2a12;border:1px solid var(--lime);font-size:14px;line-height:1.5}
+.mitem .mr b{color:var(--lime);font-size:12px;display:block}
+.mitem.new{border-color:var(--lime)}
+.mpill{display:inline-block;padding:1px 8px;border-radius:10px;font-size:11px;font-weight:700}
+.mpill.wait{background:#3a3220;color:var(--amber)}.mpill.ok{background:#1f2a12;color:var(--lime)}.mpill.priv{background:#262d40;color:var(--muted)}
+.mboard{display:flex;gap:10px;align-items:flex-start}
+.mboard .ava2{width:52px;height:64px;flex:none;border-radius:14px;background:#C9EEEA;overflow:hidden}
+.mboard .ava2 svg{width:100%;height:100%}
+.mlike{border:1.5px solid var(--line);background:transparent;color:var(--ink);border-radius:12px;padding:4px 10px;font-size:13px;cursor:pointer}
+.mlike.on{border-color:var(--coral);color:var(--coral)}
+.mempty{text-align:center;color:var(--muted);font-size:14px;padding:22px 0}
+.mletter{background:#FFFBE8;color:#2a2a1a;border-radius:18px;padding:18px 16px;border:3px solid var(--amber);font-size:16px;line-height:1.7}
+.mletter h4{margin:0 0 6px;font-size:13px;color:#8a6a1a}
+.mletter .q{font-size:13px;color:#6b6b52;border-left:3px solid #e6d9a8;padding-left:8px;margin-bottom:10px}
+.flyer{position:fixed;z-index:60;font-size:34px;pointer-events:auto;cursor:pointer;filter:drop-shadow(0 4px 6px rgba(0,0,0,.25));will-change:transform}
+.flyer svg{width:46px;height:46px;display:block}
+/* 🎰 刮刮樂 */
+.sc-wrap{text-align:center}
+.sc-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0 10px}
+.sc-cell{position:relative;aspect-ratio:3/4;border-radius:16px;background:#fffbe8;border:3px solid var(--amber);overflow:hidden;touch-action:none;transition:transform .25s,box-shadow .25s}
+.sc-num{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--green);font:800 40px/1 Syne,'Noto Sans TC',sans-serif}
+.sc-num small{font:600 12px/1.4 'Noto Sans TC',sans-serif;color:#6b6b52;margin-top:4px}
+.sc-cell canvas{position:absolute;inset:0;width:100%;height:100%;cursor:grab}
+.sc-cell.win{border-color:var(--lime);box-shadow:0 0 0 4px rgba(204,255,0,.35),0 0 24px rgba(204,255,0,.6);transform:scale(1.06)}
+.sc-cell.lose{opacity:.45}
+.sc-msg{min-height:52px;font-size:15px;color:var(--muted)}
+.sc-msg b{display:block;font:800 30px/1.2 Syne,'Noto Sans TC',sans-serif;color:var(--lime)}
+.sc-gold{position:fixed;inset:0;z-index:9999;pointer-events:none;background:radial-gradient(circle,rgba(255,215,0,.55),rgba(255,181,71,.15) 60%,transparent 80%);animation:scgold 1.8s ease-out forwards}
+@keyframes scgold{0%{opacity:0}15%{opacity:1}100%{opacity:0}}
 </style>
 </head>
 <body>
@@ -582,8 +647,10 @@ nav button.on{color:var(--lime);font-weight:700}
       <div class="island-head">
         <div><b>探索英文島</b><small>ENGLISH ISLAND</small></div>
         <span id="islandSum"></span>
+        <button class="mail-btn" id="mailBtn" aria-label="信箱" hidden>📮<i id="mailDot" hidden></i></button>
         <button class="map-tog" id="mapTog" aria-label="切換 2D／3D 地圖" style="display:none">3D</button>
       </div>
+      <div class="decl-strip" id="declStrip" hidden></div>
       <div class="island" id="island"></div>
       <div class="island3d" id="island3d" hidden>
         <div class="i3d-load">3D 地圖載入中…</div>
@@ -643,6 +710,7 @@ nav button.on{color:var(--lime);font-weight:700}
   <!-- ═══ 我的 ═══ -->
   <section class="view" id="v-me">
     <button class="btn wide" data-act="proof" data-en="🏆 Show my points">🏆 出示積分證明 Show my points</button>
+    <button class="btn wide ghost" data-act="redeem" data-en="🎟️ Redeem points" style="margin-top:8px">🎟️ 積分兌換 Redeem points</button>
     <h3 data-en="My rank">我的等級 <small>RANK</small></h3>
     <div class="rank" id="rank"></div>
     <h3 data-en="How to earn points">積分怎麼拿 <small>HOW TO EARN</small></h3>
@@ -676,7 +744,7 @@ nav button.on{color:var(--lime);font-weight:700}
         </div>
       </div>
     </div>
-    <p class="hint">Jeffrey's Lab · 英文順起來．探索英文島 v1.8.1（THP11 正式版）</p>
+    <p class="hint">Jeffrey's Lab · 英文順起來．探索英文島 v2.0（THP11 正式版）</p>
   </section>
 </main>
 
@@ -912,7 +980,9 @@ const bestOf = (gb) => Math.min(GAME_CAP, Math.max(0, ...Object.values(gb || {})
 const gameWeekBestAll = () => bestOf((weeks()[thisWeek()] || {}).gb);
 // 遊戲註冊：精熟幾個單元就開放幾款（need＝需要的精熟單元數）
 const GAMES = [];
-const masteredCount = () => new Set(st.ledger.bonus.filter((b) => b.k.startsWith('master:')).map((b) => b.k.slice(7))).size;
+// 測試版：全部單元開放、遊戲不看精熟門檻（正式版 THP11／THP5 沒有這個開關）
+const TEST_ALL_OPEN = false;   // 正式版一律 false
+const masteredCount = () => TEST_ALL_OPEN ? 99 : new Set(st.ledger.bonus.filter((b) => b.k.startsWith('master:')).map((b) => b.k.slice(7))).size;
 function gameCard(g) {
   const ok = masteredCount() >= g.need, best = gameWeekBestAll();
   return `<div class="gamecard ${ok ? '' : 'off'}">
@@ -1011,7 +1081,7 @@ function rowsToWords(rows) {
 const DEFAULT_OPEN = ['U1', 'U2', 'U3'];
 function setWords(words) {
   const useCol = words.some((w) => w.openCol);
-  const isOpen = (w) => (useCol ? w.open !== false : DEFAULT_OPEN.includes(w.unit));
+  const isOpen = (w) => TEST_ALL_OPEN || (useCol ? w.open !== false : DEFAULT_OPEN.includes(w.unit));
   st.allWords = words;
   st.words = words.filter(isOpen);
   st.lockedUnits = [...new Set(words.filter((w) => !isOpen(w)).map((w) => w.unit))].filter((u) => !st.words.some((w) => w.unit === u)).sort(natSort);
@@ -1621,7 +1691,7 @@ function unitStations(u) {
   const ws = st.words.filter((w) => w.unit === u), n = ws.length;
   const k = { known: 0, learn: 0, hard: 0, new: 0 }; ws.forEach((w) => k[statusOf(w)]++);
   const studied = n - k.new, best = (st.meta.quizBest || {})[u];
-  const hasCard = !!((GRAM.cards || {})[u] || (GRAM.everyday || {})[u]);
+  const hasPh = !!(GRAM.phonics || {})[u], hasCard = !!((GRAM.cards || {})[u] || (GRAM.everyday || {})[u]) || hasPh;
   const seen = !!(st.meta.gseen || {})[u];
   const gramReady = Object.keys(GRAM.cards || {}).length > 0;   // grammar.json 還沒載入時，沒有小卡的單元先不算完成
   const need = Math.ceil(n * RECALL_SHARE);
@@ -1629,7 +1699,7 @@ function unitStations(u) {
     { key: 'words', ic: '🃏', zh: '字彙', en: 'Words', done: n > 0 && studied >= n, pct: n ? studied / n : 0,
       txt: L(`${n} 個字・學過 ${studied}`, `${n} words · studied ${studied}`), act: `data-unit="${esc(u)}"`, btn: L('複習 ▶', 'Review ▶') },
     { key: 'pattern', ic: '📘', zh: '句型', en: 'Patterns', done: hasCard ? seen : gramReady, pct: (hasCard ? seen : gramReady) ? 1 : 0,
-      txt: hasCard ? (seen ? L('看過文法和生活句型小卡', 'Grammar cards read') : L('看一次文法和生活句型小卡', 'Read the grammar cards')) : L('這個單元沒有文法小卡', 'No grammar card'),
+      txt: hasCard ? (seen ? L(hasPh ? '看過文法和發音小卡' : '看過文法和生活句型小卡', 'Grammar cards read') : L(hasPh ? '看一次文法和發音小卡' : '看一次文法和生活句型小卡', hasPh ? 'Read the grammar & phonics cards' : 'Read the grammar cards')) : L('這個單元沒有文法小卡', 'No grammar card'),
       act: hasCard ? `data-gcard="${esc(u)}"` : '', btn: L('看小卡', 'Open') },
     { key: 'quiz', ic: '🎯', zh: '挑戰', en: 'Challenge', done: isMastered(u), pct: best == null ? 0 : Math.min(1, best / MASTER_PCT),
       txt: best == null ? L(`10 題拿到 ${MASTER_PCT}% 就過關`, `Score ${MASTER_PCT}% on 10 questions`) : L(`最佳 ${best}%・${MASTER_PCT}% 過關`, `Best ${best}% · pass at ${MASTER_PCT}%`),
@@ -1766,8 +1836,9 @@ function renderIsland() {
     <path id="islandRoad" d="${ISLAND_ROAD[lay]}" fill="none" stroke="#D8CFB8" stroke-width="16" stroke-linecap="round"/>
     <path d="${ISLAND_ROAD[lay]}" fill="none" stroke="#ffffff" stroke-width="3" stroke-dasharray="2 10" stroke-linecap="round"/>
     <g class="deco">${D.objects}</g>
-    ${tiles}<g class="deco">${D.sky}</g><g id="hero"></g></svg>`;
+    ${tiles}<g class="deco">${D.sky}</g><g id="mates"></g><g id="hero"></g></svg>`;
   placeHero();
+  if (window.islandMsg) islandMsg.draw2D();   // 同學分身（msg.js）
   const on3 = use3D();
   $('island').hidden = on3; $('island3d').hidden = !on3;
   $('mapTog').style.display = webglOK && !st.map3dFailed ? '' : 'none';
@@ -1782,26 +1853,55 @@ const webglOK = (() => { try { const c = document.createElement('canvas'); retur
 const use3D = () => webglOK && !st.map3dFailed && st.set.map3d !== false;
 let i3d = null, i3dLoading = null;
 const heroBubble = () => { const fresh = !(st.profile && st.profile.look); return fresh ? 'edit' : (st.meta.avNew || []).length ? 'shop' : ''; };
-function heroCanvas() {   // 角色（含寵物）＋頭上的泡泡 → 畫布，給 3D 當看板貼圖
+// 走路姿勢：p＝一步循環的位置（0～1）。把 CSS 動畫換成固定角度，給 3D 看板逐格用
+// 腿以髖部為軸前後擺、手跟對側的腳一起擺；兩腳交錯經過時身體最高；寵物每一步跳一下
+function posedSVG(svg, p) {
+  const s = Math.sin(p * Math.PI * 2), a = (s * 28).toFixed(1), b = (-s * 22).toFixed(1);
+  const lift = (-(1 - Math.abs(s)) * 3.2).toFixed(2), hop = (-Math.abs(Math.sin(p * Math.PI * 2)) * 5).toFixed(2);
+  return svg.replace('<g class="bob">', `<g class="bob" transform="translate(0 ${lift})">`)
+    .replace('<g class="legL">', `<g class="legL" transform="rotate(${a} 42.5 102)">`)
+    .replace('<g class="legR">', `<g class="legR" transform="rotate(${-a} 57.5 102)">`)
+    .replace('<g class="armL">', `<g class="armL" transform="rotate(${b} 26.5 83)">`)
+    .replace('<g class="armR">', `<g class="armR" transform="rotate(${-b} 73.5 83)">`)
+    .replace('<g class="pet">', `<g class="pet" transform="translate(0 ${hop})">`);
+}
+const HERO_STEPS = 8;   // 一步循環切 8 格
+// 角色 → 畫布（給 3D 當看板貼圖）。pose 有值＝走路姿勢；flip＝面向左（只鏡像角色，頭上的字不反過來）
+// tags：頭上的標籤，由上往下 [{text, bg, fg, size}]；scale＝畫布大小（同學分身用 2/3）
+function avatarCanvas(look, pose, flip, tags, scale = 1) {
   return new Promise((res) => {
-    const svg = avatarSVG(lookOf(), '', 'full').replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" width="264" height="304" ');
+    let svg = avatarSVG(look, '', 'full').replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" width="264" height="304" ');
+    if (pose != null) svg = posedSVG(svg, pose);
     const img = new Image();
     img.onload = () => {
-      const c = document.createElement('canvas'); c.width = 264; c.height = 384;
-      const g = c.getContext('2d'); g.drawImage(img, 0, 80, 264, 304);
-      const b = heroBubble();
-      if (b) {
-        const txt = b === 'edit' ? L('捏我！', 'Edit me!') : L('🛍 去購物！', '🛍 Shop!');
-        g.font = '700 30px "Noto Sans TC", system-ui, sans-serif'; const w = g.measureText(txt).width + 36;
-        g.fillStyle = '#1a3a1a'; g.beginPath(); g.roundRect(112 - w / 2, 14, w, 50, 25); g.fill();
-        g.beginPath(); g.moveTo(102, 62); g.lineTo(112, 76); g.lineTo(122, 62); g.fill();
-        g.fillStyle = '#CCFF00'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(txt, 112, 40);
-      }
+      const c = document.createElement('canvas'); c.width = Math.round(264 * scale); c.height = Math.round(384 * scale);
+      const g = c.getContext('2d'); g.scale(scale, scale);
+      g.save(); if (flip) { g.translate(264, 0); g.scale(-1, 1); } g.drawImage(img, 0, 80, 264, 304); g.restore();
+      const hx = flip ? 152 : 112;   // 頭頂位置（翻面後在另一邊）
+      let y = 14;
+      (tags || []).forEach((t, i, all) => {
+        const fs = t.size || 30, h = fs + 20;
+        g.font = `700 ${fs}px "Noto Sans TC", system-ui, sans-serif`;
+        const w = Math.min(256, g.measureText(t.text).width + 36), bx = Math.max(4, Math.min(260 - w, hx - w / 2));
+        g.fillStyle = t.bg; g.beginPath(); g.roundRect(bx, y, w, h, h / 2); g.fill();
+        if (i === all.length - 1) { g.beginPath(); g.moveTo(hx - 10, y + h - 2); g.lineTo(hx, y + h + 12); g.lineTo(hx + 10, y + h - 2); g.fill(); }
+        g.fillStyle = t.fg; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(t.text, bx + w / 2, y + h / 2 + 1, w - 24);
+        y += h + 6;
+      });
       res(c);
     };
     img.onerror = () => res(null);
     img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
   });
+}
+// 頭上的宣言（msg.js 決定：有登入、有宣言、開關打開才有字）
+const heroDecl = () => (window.islandMsg && islandMsg.headDecl ? islandMsg.headDecl() : '');
+const shortDecl = (t) => '📜 ' + (t.length > 12 ? t.slice(0, 12) + '…' : t);
+function heroCanvas(pose, flip) {   // 自己的角色（含寵物）＋頭上的泡泡
+  const b = heroBubble(), d = heroDecl(), tags = [];
+  if (d) tags.push({ text: shortDecl(d), bg: '#ffffff', fg: '#1a3a1a', size: 26 });
+  if (b) tags.push({ text: b === 'edit' ? L('捏我！', 'Edit me!') : L('🛍 去購物！', '🛍 Shop!'), bg: '#1a3a1a', fg: '#CCFF00' });
+  return avatarCanvas(lookOf(), pose, flip, tags);
 }
 const island3dHost = {
   layout() { const n = Math.min(9, allUnits().length + (st.lockedUnits || []).length), lay = n <= 6 ? 6 : 9; return { lay, pos: ISLAND_POS[lay], road: ISLAND_ROAD[lay] }; },
@@ -1814,11 +1914,16 @@ const island3dHost = {
     });
   },
   heroAt() { const open = allUnits(); let at = st.meta.avatarAt; if (!open.includes(at)) at = open.find((u) => !unitStations(u).full) || open[0]; return at; },
-  heroKey: () => JSON.stringify(lookOf()) + '|' + heroBubble() + '|' + EN(),
+  heroKey: () => JSON.stringify(lookOf()) + '|' + heroBubble() + '|' + EN() + '|' + heroDecl(),
   heroCanvas,
+  heroFlipCanvas: () => heroCanvas(null, true),
+  heroWalkFrames: (flip) => Promise.all(Array.from({ length: HERO_STEPS }, (_, i) => heroCanvas(i / HERO_STEPS, flip))),
   tileTap(code) { openUnit(code); },
   arrive(code) { st.meta.avatarAt = code; saveMeta(); openUnit(code); },
   heroTap() { openAvCreator(); },
+  mates: () => (window.islandMsg ? islandMsg.mates() : []),   // 同學分身 [{key, at, look, tags}]
+  mateCanvas: (m, pose, flip) => avatarCanvas(m.look, pose, flip, m.tags, 0.66),
+  mateTap: (key) => window.islandMsg && islandMsg.openMate(key),
   reduce: matchMedia('(prefers-reduced-motion: reduce)').matches,
   lang: () => (EN() ? 'en' : 'zh'),
   active: () => $('v-home').classList.contains('active') && !document.hidden && use3D() && !$('modal').classList.contains('show'),
@@ -1830,7 +1935,7 @@ function ensure3D() {
   if (i3dLoading) return;
   i3dLoading = (async () => {
     try {
-      const mod = await import('./island3d.js?v=2');
+      const mod = await import('./island3d.js?v=5');
       i3d = await mod.createIsland3D($('island3d'), island3dHost);
       $('island3d').classList.add('ready');
     } catch (e) {
@@ -1881,7 +1986,10 @@ function placeHero() {
   box.innerHTML = `<g id="heroPos" data-hero="1" tabindex="0" role="button" aria-label="${L('我的角色，點我換造型', 'My character — tap to customize')}" style="cursor:pointer">
     <g id="heroFlip"><g class="av idle">${avatarParts(lookOf())}</g></g>
     ${fresh || news ? `<g><rect x="-16" y="-62" width="132" height="40" rx="20" fill="#1a3a1a"/><path d="M42 -23 L50 -12 L58 -23 Z" fill="#1a3a1a"/>
-      <text x="50" y="-35" text-anchor="middle" font-size="22" font-weight="700" fill="#CCFF00">${fresh ? L('捏我！', 'Edit me!') : L('🛍 去購物！', '🛍 Shop!')}</text></g>` : ''}</g>`;
+      <text x="50" y="-35" text-anchor="middle" font-size="22" font-weight="700" fill="#CCFF00">${fresh ? L('捏我！', 'Edit me!') : L('🛍 去購物！', '🛍 Shop!')}</text></g>` : ''}
+    ${heroDecl() ? `<g><rect x="-70" y="${fresh || news ? -114 : -66}" width="240" height="46" rx="23" fill="#ffffff" stroke="#1a3a1a" stroke-width="3"/>
+      ${fresh || news ? '' : '<path d="M42 -21 L50 -10 L58 -21 Z" fill="#ffffff" stroke="#1a3a1a" stroke-width="3" stroke-linejoin="round"/><rect x="40" y="-24" width="20" height="5" fill="#ffffff"/>'}
+      <text x="50" y="${fresh || news ? -83 : -35}" text-anchor="middle" font-size="27" font-weight="700" fill="#1a3a1a">${esc(shortDecl(heroDecl()))}</text></g>` : ''}</g>`;
   st.heroLen = st.roadLens[at]; st.heroLeft = !!st.heroLeft;
   setHero(st.heroLen, st.heroLeft);
 }
@@ -1953,7 +2061,8 @@ const AV_PRICE = { 'color:hair': PRICE_COLOR, 'color:top': PRICE_COLOR, 'color:b
   if (v !== 'tee' && v !== 'none') AV_PRICE[k + ':' + v] = AV_COOL.includes(k + ':' + v) ? PRICE_COOL : PRICE_BASIC;
 }));
 const spentPts = () => (st.ledger.shop || []).reduce((a, b) => a + b.p, 0);
-const walletPts = () => Math.max(0, points().total - spentPts());
+const redeemSpent = () => (st.ledger.redeem || []).reduce((a, b) => a + (b.cost || 0), 0);
+const walletPts = () => Math.max(0, points().total - spentPts() - redeemSpent());
 const owns = (key) => (st.ledger.shop || []).some((b) => b.k === key);
 const avLock = (k, v) => { const key = k + ':' + v, pr = AV_PRICE[key]; return pr && !owns(key) ? pr : null; };   // 還沒買：回傳價格
 const COLOR_KEY = { hairC: 'hair', topC: 'top', botC: 'bot' };   // 膚色免費，不在這裡
@@ -1967,6 +2076,165 @@ async function buyItem(key) {
   confetti(60); toast(L(`🛍 買到了：${avKeyName(key)}！剩 ${walletPts()} 積分`, `🛍 Got it: ${avKeyName(key)}! ${walletPts()} left`));
   return true;
 }
+
+// ═══════════════════════════════════════════════════════
+//  🎟️ 積分兌換（飲料／5 張點數卡／刮刮樂）
+//  紀錄在 st.ledger.redeem，跟積分一起簽章、跟著轉移碼走
+//  {n 序號, kind, cost, cards, d 日期, t}
+// ═══════════════════════════════════════════════════════
+const RD_TOTAL = 1000;        // 總積分門檻（同老師的飲料獎勵）
+const RD_SHOP = 500;          // 商店累計花費門檻（約一學期積分的 25%）
+const RD_KINDS = {
+  drink:   { cost: 0,    cards: 0, once: true, zh: '🥤 一杯飲料',      en: '🥤 A drink' },
+  cards5:  { cost: 600,  cards: 5,             zh: '🃏 5 張點數卡',     en: '🃏 5 class cards' },
+  scratch: { cost: 1000, cards: 0,             zh: '🎰 刮刮樂',         en: '🎰 Scratch card' },
+};
+// 刮刮樂機率（方案 D）：3～49 張每多 1 張機率 ×0.85，50 張大獎固定 6%；平均約 11 張
+const SC_RATIO = 0.85, SC_JACKPOT = 0.06;
+const SC_TABLE = (() => {
+  const w = []; for (let n = 3; n <= 49; n++) w.push([n, Math.pow(SC_RATIO, n - 3)]);
+  const s = w.reduce((a, x) => a + x[1], 0);
+  return [...w.map(([n, p]) => [n, p / s * (1 - SC_JACKPOT)]), [50, SC_JACKPOT]];
+})();
+function scratchDraw() {   // 用 crypto 亂數，每一刮獨立
+  const u = new Uint32Array(1); crypto.getRandomValues(u);
+  let r = u[0] / 4294967296;
+  for (const [n, p] of SC_TABLE) { if ((r -= p) < 0) return n; }
+  return 3;
+}
+const rdList = () => st.ledger.redeem || [];
+const rdSerial = (r) => `${studentId()}-${String(r.n).padStart(2, '0')}`;
+const rdCode = (r) => hash(SALT + '|RD|' + studentId() + '|' + r.n + '|' + r.kind + '|' + r.cards + '|' + r.d).replace(/[^A-Z0-9]/g, '').slice(-6).padStart(6, '0');
+function rdBlock(kind) {   // 不能兌換的原因（中文／英文）；可以兌換回傳 null
+  const k = RD_KINDS[kind], P = points().total;
+  if (st.tampered) return [L('積分資料異常，請找老師確認', 'Points data looks changed — see your teacher')];
+  if (st.ledger.clockBad) return [L('手機時間曾被調整過，請找老師確認', 'Phone time was changed — see your teacher')];
+  if (P < RD_TOTAL) return [L(`總積分再 ${RD_TOTAL - P} 分`, `${RD_TOTAL - P} more total points`)];
+  if (k.once && rdList().some((r) => r.kind === kind)) return [L('已經兌換過了', 'Already redeemed')];
+  if (kind === 'drink') return null;
+  if (spentPts() < RD_SHOP) return [L(`商店再花 ${RD_SHOP - spentPts()} 分就能開啟`, `Spend ${RD_SHOP - spentPts()} more in the shop to unlock`)];
+  if (walletPts() < k.cost) return [L(`可用積分還差 ${k.cost - walletPts()}`, `${k.cost - walletPts()} more points to spend`)];
+  return null;
+}
+function openRedeem() {
+  const row = (kind) => {
+    const k = RD_KINDS[kind], b = rdBlock(kind);
+    const price = k.cost ? L(`${k.cost} 可用積分`, `${k.cost} points`) : L('總積分滿 1000（每人一次，不扣分）', '1000 total points · once · free');
+    const what = kind === 'scratch' ? L('刮出 3～50 張點數卡', 'Win 3–50 class cards') : kind === 'cards5' ? L('換 5 張課堂點數卡', 'Get 5 class point cards') : L('老師請你喝一杯', 'A treat from your teacher');
+    return `<div class="srow"><div>${EN() ? k.en : k.zh}<small>${what}・${price}${b ? `<br>🔒 ${b[0]}` : ''}</small></div>
+      <button class="btn${b ? ' ghost' : ''}" style="white-space:nowrap" data-rdgo="${kind}" ${b ? 'disabled' : ''}>${L('兌換', 'Redeem')}</button></div>`;
+  };
+  const hist = rdList().slice().reverse().map((r) => `<div class="srow"><div>#${rdSerial(r)}　${EN() ? RD_KINDS[r.kind].en : RD_KINDS[r.kind].zh}${r.cards && !(r.slots && !r.open) ? ` × ${r.cards}` : ''}<small>${r.d}</small></div>
+      ${r.slots && !r.open ? `<button class="btn" data-rdscr="${r.n}">${L('繼續刮', 'Scratch')}</button>` : `<button class="btn ghost" data-rdshow="${r.n}">${L('兌換券', 'Voucher')}</button>`}</div>`).join('');
+  $('sheet').innerHTML = `<h3 style="margin-top:0">🎟️ ${L('積分兌換', 'Redeem points')} <small>REDEEM</small></h3>
+    <div class="note">${L(`總積分 ${points().total}・商店花費 ${spentPts()}・可用積分 ${walletPts()}。兌換只扣可用積分，總積分和等級不會變少。`, `Total ${points().total} · shop ${spentPts()} · to spend ${walletPts()}. Your total and rank never go down.`)}</div>
+    <div class="set" style="margin-top:10px">${row('drink')}${row('cards5')}${row('scratch')}</div>
+    ${hist ? `<h3>${L('兌換紀錄', 'History')} <small>HISTORY</small></h3><div class="set">${hist}</div>` : ''}
+    <div class="btnrow" style="margin-top:14px"><button class="btn ghost" data-close="1">${L('關閉', 'Close')}</button></div>`;
+  $('modal').classList.add('show');
+}
+function confirmRedeem(kind) {
+  const k = RD_KINDS[kind];
+  $('sheet').innerHTML = `<h3 style="margin-top:0">${EN() ? k.en : k.zh}</h3>
+    <div class="note">${k.cost ? L(`會扣 ${k.cost} 可用積分（剩 ${walletPts() - k.cost}）。`, `Uses ${k.cost} points (${walletPts() - k.cost} left).`) : ''}${kind === 'scratch' ? L('按下確定的那一刻張數就決定了，重開 App 結果也一樣。', 'The result is decided when you tap — reopening the app won\'t change it.') : ''}${L('兌換後請截圖兌換券給老師。', 'Screenshot the voucher for your teacher.')}</div>
+    <div class="btnrow" style="margin-top:14px"><button class="btn ghost" data-rdback="1">${L('不要', 'Cancel')}</button><button class="btn" data-rdok="${kind}">${L('確定兌換', 'Redeem')}</button></div>`;
+}
+async function doRedeem(kind) {
+  if (rdBlock(kind)) return openRedeem();   // 再檢查一次（防止連點）
+  const k = RD_KINDS[kind], list = rdList();
+  const r = { n: list.reduce((a, x) => Math.max(a, x.n), 0) + 1, kind, cost: k.cost, cards: kind === 'scratch' ? scratchDraw() : k.cards, d: todayKey(), t: Date.now() };
+  if (kind === 'scratch') { r.slots = scratchSlots(r.cards); r.open = false; }
+  st.ledger.redeem = [...list, r];   // 先寫進帳本、簽章存檔，才顯示結果
+  await saveLedger();
+  if (kind === 'scratch') return openScratch(r.n);
+  confetti(50);
+  showVoucher(r.n);
+}
+// 三格：兩格是獎品張數，另一格是干擾數字（照同一個機率表抽、和獎品不同，不刻意放大獎）
+function scratchSlots(prize) {
+  let d = scratchDraw(); while (d === prize) d = scratchDraw();
+  const s = [prize, prize, d], u = new Uint32Array(3); crypto.getRandomValues(u);
+  for (let i = 2; i > 0; i--) { const j = u[i] % (i + 1); [s[i], s[j]] = [s[j], s[i]]; }
+  return s;
+}
+function openScratch(n) {
+  const r = rdList().find((x) => x.n === n); if (!r || !r.slots) return;
+  const cell = (v, i) => `<div class="sc-cell" data-sc="${i}"><div class="sc-num">${v}<small>${L('張', 'cards')}</small></div><canvas></canvas></div>`;
+  $('sheet').innerHTML = `<div class="sc-wrap">
+      <h3 style="margin:0">🎰 ${L('刮刮樂', 'Scratch card')} <small>#${rdSerial(r)}</small></h3>
+      <div class="note" style="margin-top:6px">${L('用手指刮開三格，<b>兩格數字一樣</b>就是你拿到的點數卡張數！', 'Scratch all three — <b>two matching numbers</b> are your prize!')}</div>
+      <div class="sc-row">${r.slots.map(cell).join('')}</div>
+      <div class="sc-msg" id="scMsg">${L('開始刮吧 ✨', 'Start scratching ✨')}</div>
+      <div class="btnrow" style="margin-top:10px"><button class="btn ghost" data-scall="1">${L('一次全部刮開', 'Reveal all')}</button></div>
+    </div>`;
+  $('modal').classList.add('show');
+  const shown = [false, false, false];
+  const reveal = (i) => {
+    if (shown[i]) return; shown[i] = true;
+    const c = $('sheet').querySelector(`[data-sc="${i}"] canvas`); if (c) c.style.transition = 'opacity .35s', c.style.opacity = '0', setTimeout(() => c.remove(), 400);
+    check();
+  };
+  const check = () => {
+    const open = shown.map((s, i) => (s ? r.slots[i] : null)).filter((v) => v !== null);
+    const pair = open.find((v, i) => open.indexOf(v) !== i);
+    if (pair === undefined && open.length < 3) {
+      if (open.length) $('scMsg').innerHTML = open.length === 1 ? L('再刮一格…', 'Keep going…') : L('還沒一樣！刮最後一格 👀', 'No match yet — one more 👀');
+      return;
+    }
+    if (check.done) return; check.done = true;
+    setTimeout(() => { [0, 1, 2].forEach(reveal); finish(); }, pair !== undefined && open.length < 3 ? 600 : 0);
+  };
+  const finish = async () => {
+    $('sheet').querySelectorAll('.sc-cell').forEach((el) => el.classList.add(r.slots[+el.dataset.sc] === r.cards ? 'win' : 'lose'));
+    $('scMsg').innerHTML = `<b>${r.cards} ${L('張！', 'cards!')}</b>${r.cards >= 50 ? L('🎉 超級大獎！', '🎉 JACKPOT!') : r.cards >= 20 ? L('太幸運了！', 'So lucky!') : L('恭喜！', 'Nice!')}`;
+    if (r.cards >= 50) { const g = document.createElement('div'); g.className = 'sc-gold'; document.body.appendChild(g); setTimeout(() => g.remove(), 1900); confetti(180); }
+    else confetti(r.cards >= 20 ? 100 : 50);
+    $('sheet').querySelector('.btnrow').innerHTML = `<button class="btn" data-rdshow="${r.n}">${L('看兌換券（截圖給老師）', 'Show voucher')}</button>`;
+    if (!r.open) { r.open = true; await saveLedger(); }
+  };
+  // 銀漆：canvas 用 destination-out 擦掉；刮掉約一半自動全開
+  $('sheet').querySelectorAll('.sc-cell').forEach((el) => {
+    const i = +el.dataset.sc, cv = el.querySelector('canvas'), dpr = Math.min(2, devicePixelRatio || 1);
+    const W = el.clientWidth, H = el.clientHeight; cv.width = W * dpr; cv.height = H * dpr;
+    const g = cv.getContext('2d', { willReadFrequently: true }); g.scale(dpr, dpr);
+    const gr = g.createLinearGradient(0, 0, W, H); gr.addColorStop(0, '#c9ced6'); gr.addColorStop(.5, '#eef1f5'); gr.addColorStop(1, '#a9b0ba');
+    g.fillStyle = gr; g.fillRect(0, 0, W, H);
+    g.fillStyle = 'rgba(80,90,105,.55)'; g.font = `700 ${Math.round(W * .3)}px Syne,sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('?', W / 2, H / 2);
+    g.globalCompositeOperation = 'destination-out'; g.lineCap = g.lineJoin = 'round'; g.lineWidth = Math.max(26, W * .28);
+    let last = null, moves = 0;
+    const pt = (e) => { const b = cv.getBoundingClientRect(); return [e.clientX - b.left, e.clientY - b.top]; };
+    const cleared = () => { const d = g.getImageData(0, 0, cv.width, cv.height).data; let n = 0, k = 0; for (let p = 3; p < d.length; p += 64) { k++; if (d[p] === 0) n++; } return n / k; };
+    cv.addEventListener('pointerdown', (e) => { cv.setPointerCapture(e.pointerId); last = pt(e); g.beginPath(); g.arc(last[0], last[1], g.lineWidth / 2, 0, 7); g.fill(); });
+    cv.addEventListener('pointermove', (e) => {
+      if (!last) return; const p = pt(e); g.beginPath(); g.moveTo(last[0], last[1]); g.lineTo(p[0], p[1]); g.stroke(); last = p;
+      if (++moves % 6 === 0 && cleared() > 0.5) { last = null; reveal(i); }
+    });
+    const up = () => { if (last && cleared() > 0.5) reveal(i); last = null; };
+    cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+  });
+  openScratch.revealAll = () => { if (!check.done) [0, 1, 2].forEach((i) => { shown[i] = true; const c = $('sheet').querySelector(`[data-sc="${i}"] canvas`); if (c) c.remove(); }); check(); };
+}
+function showVoucher(n) {
+  const r = rdList().find((x) => x.n === n); if (!r) return;
+  if (r.slots && !r.open) return openScratch(n);
+  const k = RD_KINDS[r.kind];
+  $('sheet').innerHTML = `<div class="proof">
+      <div class="pava">${avaHTML()}</div>
+      <div class="pname">${esc(st.profile.name)}</div>
+      <div class="pid">ID #${studentId()}</div>
+      <div class="plabel" style="margin-top:10px">${L('兌換券 VOUCHER', 'VOUCHER')}</div>
+      <div class="ptotal" style="font-size:30px">${EN() ? k.en : k.zh}</div>
+      ${r.cards ? `<div class="ptotal">${r.cards}</div><div class="plabel">${L('張點數卡 CLASS CARDS', 'CLASS CARDS')}</div>` : ''}
+      ${r.slots ? `<div class="plabel" style="margin-top:4px">${L('刮出', 'Scratched')} ${r.slots.join('・')}</div>` : ''}
+      <div class="pgrid"><div><b>#${rdSerial(r)}</b>${L('序號', 'Serial')}</div><div><b>${r.d}</b>${L('兌換日期', 'Date')}</div></div>
+      <div class="pfoot"><span>${L('請截圖給老師', 'Show your teacher')}<br><span class="clock" id="clock"></span></span>
+        <span style="text-align:right">${L('驗證碼', 'Code')}<br><span class="code">${rdCode(r)}</span></span></div>
+    </div>
+    <div class="btnrow" style="margin-top:14px"><button class="btn ghost" data-rdback="1">${L('回兌換頁', 'Back')}</button><button class="btn ghost" data-close="1">${L('關閉', 'Close')}</button></div>`;
+  $('modal').classList.add('show');
+  const tick = () => { const c = $('clock'); if (!c) return clearInterval(openProof._i); c.textContent = new Date().toLocaleString('zh-TW', { hour12: false }); };
+  clearInterval(openProof._i); tick(); openProof._i = setInterval(tick, 1000);
+}
 const DEFAULT_LOOK = { skin: 1, eyes: 'dot', mouth: 'smile', hair: 'short', hairC: 0, top: 'tee', topC: 0, botC: 0, hat: 'none', deco: 'none', ear: 'none', acc: 'none', hold: 'none', pet: 'none' };
 function sanitizeLook(l) {   // 還沒解鎖的東西換回預設（例如解鎖規則改了）
   const out = { ...DEFAULT_LOOK, ...l };
@@ -1977,6 +2245,13 @@ function sanitizeLook(l) {   // 還沒解鎖的東西換回預設（例如解鎖
   return out;
 }
 const lookOf = () => sanitizeLook((st.profile && st.profile.look) || {});
+// 別人的造型（從後台拿到的）：每一欄都只接受已知的選項和顏色編號，其他一律換回預設，避免奇怪的資料混進畫面
+function safeLook(l) {
+  const out = { ...DEFAULT_LOOK }; if (!l || typeof l !== 'object') return out;
+  Object.keys(AV_OPTS).forEach((k) => { if (AV_OPTS[k].some((o) => o[0] === l[k])) out[k] = l[k]; });
+  [['skin', AV_SKIN], ['hairC', AV_HAIRC], ['topC', AV_TOPC], ['botC', AV_BOTC]].forEach(([k, a]) => { if (Number.isInteger(l[k]) && l[k] >= 0 && l[k] < a.length) out[k] = l[k]; });
+  return out;
+}
 function randomLook() {
   const r = (a) => a[Math.floor(Math.random() * a.length)];
   const free = (k) => AV_OPTS[k].map((o) => o[0]).filter((v) => !avLock(k, v));
@@ -2356,6 +2631,7 @@ function renderMe() {
     <div class="srow"><div>${L('🔍 抽查通過', '🔍 Quick check passed')}<small>${L(`按「記得／太簡單」時隨機抽查，意思和拼字都對；每週最多 ${SPOT_CAP} 分。答錯那張不算分`, `Random checks when you tap Got it / Easy; up to ${SPOT_CAP} a week. A miss doesn't count`)}</small></div><b>+1</b></div>
     <div class="srow"><div>${L('🎮 獎勵遊戲', '🎮 Bonus game')}<small>${L('精熟 1／2／3 個單元依序解鎖 3 款；所有遊戲每週共用，只算最高一局', 'Master 1 / 2 / 3 units to unlock 3 games; all games share one weekly best')}</small></div><b>0～${GAME_CAP}</b></div>
     <div class="srow"><div>${L('🛍 角色商店', '🛍 Character shop')}<small>${L(`用積分買衣服、帽子、配件、寵物（一般 ${PRICE_BASIC}、很酷的 ${PRICE_COOL}、換色 ${PRICE_COLOR}）；只扣可用積分，總積分和等級不會變少。目前可用 ${walletPts()}`, `Spend points on outfits, hats, extras and pets (${PRICE_BASIC} / ${PRICE_COOL} / colors ${PRICE_COLOR}). Your total and rank never go down. Now: ${walletPts()}`)}</small></div><b>💰</b></div>
+    <div class="srow"><div>${L('🎟️ 積分兌換', '🎟️ Redeem points')}<small>${L(`總積分 ${RD_TOTAL} 換一杯飲料（一次）；再加上商店花滿 ${RD_SHOP}，就能用可用積分換 5 張點數卡（600）或刮刮樂（1000，3～50 張）。兌換後截圖兌換券給老師`, `${RD_TOTAL} total points: a drink (once). After spending ${RD_SHOP} in the shop: 5 class cards (600) or a scratch card (1000, 3–50 cards). Screenshot the voucher for your teacher`)}</small></div><b>🎟️</b></div>
     <div class="srow"><div>${L('單元精熟', 'Unit mastery')}<small>${L(`某單元第一次拿到 ${MASTER_PCT}% 以上（每單元一次）`, `First time scoring ${MASTER_PCT}%+ on a unit (once per unit)`)}</small></div><b>+${MASTER_PTS}</b></div>
     <div class="srow"><div>${L('同一單元重複挑戰', 'Retrying a unit')}<small>${L('每週只算最高的一次，打破本週紀錄才會補差額', 'Only your best score each week counts')}</small></div><b>📈</b></div>
     <div class="srow"><div>${L('精熟要維持', 'Keep your badge')}<small>${L(`🏅 單元 ${FADE_DAYS} 天沒練會褪色，不扣分，回來練就恢復`, `🏅 fades after ${FADE_DAYS} days without practice — no points lost`)}</small></div><b>🏅</b></div>`;
@@ -2386,6 +2662,7 @@ function openProof() {
         <div><b>${P.streak}</b>${L('連續獎勵', 'Streak bonus')}</div><div><b>🔥 ${streakNow()} ${L('週', 'wk')}</b>${L('目前連續', 'Current streak')}</div>
         <div><b>${totalCards}</b>${L('總複習張數', 'Cards reviewed')}</div><div><b>${acc}</b>${L('挑戰正確率', 'Quiz accuracy')}</div>
         <div><b>${spentPts()}</b>${L('🛍 商店花費', '🛍 Spent in shop')}</div><div><b>${walletPts()}</b>${L('💰 可用積分', '💰 Points to spend')}</div>
+        ${rdList().length ? `<div><b>${rdList().length}</b>${L('🎟️ 兌換次數', '🎟️ Redemptions')}</div><div><b>${rdList().reduce((a, r) => a + r.cards, 0)}</b>${L('累計點數卡', 'Class cards')}</div>` : ''}
         <div><b>${P.game}</b>${L('🎮 獎勵遊戲', '🎮 Bonus game')}</div><div><b style="font-size:13px;line-height:1.5">${GAMES.map((g) => g.bestText()).filter(Boolean).join('<br>') || '—'}</b>${L('各遊戲最高紀錄', 'Game records')}</div>
       </div>
       <div class="pfoot"><span>${L(`學習 ${active} 天`, `${active} days of practice`)}<br><span class="clock" id="clock"></span></span>
@@ -2572,7 +2849,7 @@ function renderQuiz() {
       <input class="spellin" id="spellIn" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="type here">
       <button class="btn wide" style="margin-top:10px" data-act="qspell">${L('確認 Check', 'Check')}</button>`;
   }
-  box.innerHTML = head + `<div class="qcard"><div class="qtype">${EN() ? QTYPE_EN[q.type] : QTYPE[q.type]}</div>${body}<div id="qfb"></div></div>`;
+  box.innerHTML = head + `<div class="qcard"><div class="qtype">${q.g && q.g.label ? esc(q.g.label[EN() ? 1 : 0]) : EN() ? QTYPE_EN[q.type] : QTYPE[q.type]}</div>${body}<div id="qfb"></div></div>`;
   if (q.type === 'order' || q.type === 'lorder') drawOrder();
   if (q.type === 'lfill' || q.type === 'lpick' || q.type === 'lorder') speak(sayOf(q.g));
   if (q.type === 'listen' || (q.type === 'en2zh' && st.set.autoSpeak)) speak(q.w.word);
@@ -2716,19 +2993,29 @@ function makeIcs() {
 function cardHTMLg(c, label) {
   return `<div class="gcard"><div class="qtype" style="text-align:left;margin-bottom:4px">${label}</div>
       <h4>${esc(c.title)}</h4><div class="gzh">${esc(c.zh)}</div>
-      ${(c.rules || []).map(([r, ex]) => `<div class="grule" style="display:flex;gap:10px;align-items:center"><div style="flex:1;min-width:0"><b>${esc(r)}</b><i>${esc(ex)}</i></div>
+      ${(c.rules || []).map(([r, ex]) => `<div class="grule" style="display:flex;gap:10px;align-items:center"><div style="flex:1;min-width:0">${r ? `<b>${esc(r)}</b>` : ''}<i>${esc(ex)}</i></div>
         <button class="spk small" data-say="${esc(ex)}">🔊</button></div>`).join('')}
       ${(c.phrases || []).map(([k, v]) => `<div class="grule"><b>${esc(k)}</b><span style="font-size:14px">${esc(v)}</span></div>`).join('')}
       ${(c.mistakes || []).length ? `<div class="sec" style="margin-top:14px">常見錯誤 COMMON MISTAKES</div>` : ''}
       ${(c.mistakes || []).map(([x, o, why]) => `<div class="gmis"><span class="x">✕ ${esc(x)}</span><span class="o">✓ ${esc(o)}</span><small>${esc(why)}</small></div>`).join('')}
     </div>`;
 }
+const phWord = (w) => esc(w).replace(/\[([^\]]+)\]/g, '<em>$1</em>');   // c[a]n[e] → c<em>a</em>n<em>e</em>
+function cardHTMLp(p, label) {   // 發音小卡（grammar.json 的 phonics）：每個音一格，例字點了會唸；下面是練習字
+  return `<div class="gcard"><div class="qtype" style="text-align:left;margin-bottom:4px">${label}</div>
+      <h4>${esc(p.title)}</h4>
+      ${(p.sounds || []).map((x) => `<div class="phs"><div class="ph-h"><b>${esc(x.name)}</b><span class="ipa">[${esc(x.ipa)}]</span></div><small>${esc(x.rule || '')}</small>
+        <div class="ph-words">${x.words.map((w) => `<button class="ph-w" data-say="${esc(w.replace(/[[\]]/g, ''))}">${phWord(w)}</button>`).join('')}</div></div>`).join('')}
+      ${(p.practice || []).length ? `<div class="sec" style="margin-top:14px">${L('唸唸看 PHONICS PRACTICE（點字聽發音）', 'PHONICS PRACTICE (tap to listen)')}</div>
+        <div class="ph-words">${p.practice.map((w) => `<button class="ph-w sm" data-say="${esc(w)}">${esc(w)}</button>`).join('')}</div>` : ''}
+    </div>`;
+}
 function openGrammar(unit) {
-  const c = (GRAM.cards || {})[unit], e = (GRAM.everyday || {})[unit];
-  if (!c && !e) return toast('這個單元還沒有文法小卡');
+  const c = (GRAM.cards || {})[unit], e = (GRAM.everyday || {})[unit], ph = (GRAM.phonics || {})[unit];
+  if (!c && !e && !ph) return toast('這個單元還沒有文法小卡');
   st.meta.gseen = st.meta.gseen || {};   // 英文島「句型」站：看過小卡就算完成
   if (!st.meta.gseen[unit]) { st.meta.gseen[unit] = Date.now(); saveMeta(); if ($('v-home').classList.contains('active')) renderIsland(); }
-  $('sheet').innerHTML = (c ? cardHTMLg(c, `📘 ${esc(unit)} 文法 GRAMMAR`) : '') + (e ? cardHTMLg(e, `🗣️ ${esc(unit)} 生活句型 EVERYDAY ENGLISH（聽力題）`) : '') + `
+  $('sheet').innerHTML = (c ? cardHTMLg(c, `📘 ${esc(unit)} 文法 GRAMMAR`) : '') + (e ? cardHTMLg(e, `🗣️ ${esc(unit)} 生活句型 EVERYDAY ENGLISH（聽力題）`) : '') + (ph ? cardHTMLp(ph, `🔤 ${esc(unit)} 發音 PHONICS`) : '') + `
     <div class="btnrow"><button class="btn" data-qunit="${esc(unit)}">${L('去挑戰', 'Quiz')} ${esc(unit)} ▶</button><button class="btn ghost" data-close="1">${L('關閉', 'Close')}</button></div>`;
   $('modal').classList.add('show');
 }
@@ -2905,6 +3192,12 @@ document.addEventListener('click', (e) => {
   if (t.dataset.act === 'fill') return extraPractice(+t.dataset.n);
   if (t.dataset.act === 'hard') return practiceHard();
   if (t.dataset.act === 'proof') return openProof();
+  if (t.dataset.act === 'redeem' || t.dataset.rdback) { clearInterval(openProof._i); return openRedeem(); }
+  if (t.dataset.rdgo) return confirmRedeem(t.dataset.rdgo);
+  if (t.dataset.rdok) { t.disabled = true; return doRedeem(t.dataset.rdok); }
+  if (t.dataset.rdshow) return showVoucher(+t.dataset.rdshow);
+  if (t.dataset.rdscr) return openScratch(+t.dataset.rdscr);
+  if (t.dataset.scall) return openScratch.revealAll && openScratch.revealAll();
   if (t.dataset.act === 'profile') return openOnboarding(true);
   if (t.dataset.close) { clearInterval(openProof._i); $('modal').classList.remove('show'); return checkLock(); }
   if (t.dataset.qunit) { $('modal').classList.remove('show'); return startQuiz(t.dataset.qunit); }
@@ -3064,7 +3357,7 @@ document.addEventListener('keydown', (e) => {
   if (prog) st.prog = prog;
   if (meta) st.meta = { ...st.meta, ...meta };
   if (set) st.set = { ...st.set, ...set };
-  if (qs) st.set.csvUrl = qs;
+  st.set.csvUrl = qs || DEFAULT_CSV;   // 單字來源以程式為準；測試可用 ?csv=
   if (ledger) { st.ledger = ledger; st.tampered = !!sig && sig !== ledgerSig(); }
   if (ledger && repairQuizExploit()) { saveLedger(); db.set('meta', st.meta); st.fixedNotice = true; }   // 先驗證簽章再修正，修正後重新簽章
   if (words && words.length) setWords(words);
@@ -3087,6 +3380,9 @@ document.addEventListener('keydown', (e) => {
     renderFilters(); renderHome();
     if (!before && $('v-review').classList.contains('active')) buildQueue();
   }
+  // 試玩新遊戲：網址加 ?try=shoot（不用解鎖、不計分），給學生先試手感
+  const tryGame = new URLSearchParams(location.search).get('try');
+  if (tryGame) { const gm = GAMES.find((x) => x.id === tryGame); if (gm && st.words.length) setTimeout(() => gm.open({ trial: true }), 300); }
   if ('serviceWorker' in navigator && !qs) {
     navigator.serviceWorker.register('/JeffreysLab/vocab-thp11/sw.js', { scope: '/JeffreysLab/vocab-thp11/' }).catch(() => {});
   }
@@ -3095,5 +3391,8 @@ document.addEventListener('keydown', (e) => {
 <script src="games/jump.js?v=1.5"></script>
 <script src="games/blaster.js?v=1.5"></script>
 <script src="games/run.js?v=1.1"></script>
+<script src="games/shoot.js?v=0.8"></script>
+<script src="games/dino.js?v=0.6"></script>
+<script src="games/horde.js?v=0.4"></script>
 </body>
 </html>
