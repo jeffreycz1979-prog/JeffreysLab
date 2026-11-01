@@ -4854,6 +4854,7 @@
       ]
      }
     ],
+    "sumTitle": "🗺️ 這個故事的小山",
     "sum": [
      "Ben 在外面玩，颱風要來了。",
      "停電了，Lucky 不見了。",
@@ -4927,6 +4928,198 @@
       ],
       "hint": "找 Finally 之後：叔叔做了什麼事，讓 Mia 拿回風箏？",
       "why": "He took the kite from the tree and gave it to Mia. 風箏回到 Mia 手上，麻煩才真的解決。叔叔走過來（Finally, a man … walked by.）的時候還沒有拿到風箏喔。"
+     }
+    ]
+   }
+  },
+  "U2": {
+   "strategy": {
+    "name": "Main Idea and Details",
+    "zh": "主旨和細節",
+    "intro": "主旨像桌面，細節是撐住它的桌腳。",
+    "parts": [
+     {
+      "k": "MI",
+      "zh": "主旨",
+      "en": "Main Idea",
+      "ic": "🏷️",
+      "q": "這篇大部分在講什麼？哪一句可以把其他句子包起來？"
+     },
+     {
+      "k": "D",
+      "zh": "細節",
+      "en": "Details",
+      "ic": "🧩",
+      "q": "哪些句子告訴我們更多、證明主旨是對的？"
+     }
+    ],
+    "tip": "主旨常在第一句或最後一句，但不一定！只講到一個人、一件事的句子，通常是細節。"
+   },
+   "teach": {
+    "title": "The Best Room in Our House",
+    "paras": [
+     [
+      "In my family, the living room is everyone's favorite room.",
+      "After school, my brother and I do our homework on the big couch.",
+      "Before dinner, Dad sits there and watches the news.",
+      "When it's raining cats and dogs, we play board games on the floor.",
+      "Even our cat loves it.",
+      "She sleeps by the window all day.",
+      "At night, Mom reads stories to us there.",
+      "When it's time for bed, nobody wants to go upstairs!"
+     ]
+    ],
+    "zh": [
+     [
+      "在我們家，客廳是每個人最喜歡的房間。",
+      "放學後，我和弟弟在大沙發上寫功課。",
+      "晚餐前，爸爸坐在那裡看新聞。",
+      "下大雨的時候，我們在地板上玩桌遊。",
+      "連我們的貓都很喜歡客廳。",
+      "牠整天睡在窗戶旁邊。",
+      "晚上，媽媽在那裡唸故事給我們聽。",
+      "到了睡覺時間，沒有人想上樓！"
+     ]
+    ],
+    "steps": [
+     {
+      "para": 0,
+      "part": 0,
+      "q": "主旨：這篇大部分在講什麼？",
+      "opts": [
+       "The living room is the family's favorite room.",
+       "Dad watches the news before dinner.",
+       "The cat sleeps all day."
+      ],
+      "ozh": [
+       "客廳是全家人最喜歡的房間。",
+       "爸爸晚餐前看新聞。",
+       "貓整天在睡覺。"
+      ],
+      "a": 0,
+      "hint": "每一句都在講同一個地方，是哪裡？哪個答案可以把所有句子包起來？",
+      "why": "大部分句子都在說全家人在客廳做什麼。第一句 the living room is everyone's favorite room 把它們全部包起來，就是主旨。爸爸看新聞、貓睡覺都只是其中一件事，是細節。",
+      "ev": [
+       0
+      ]
+     },
+     {
+      "para": 0,
+      "part": 1,
+      "q": "細節：選一個「文章裡有寫」、支持主旨的細節。",
+      "opts": [
+       "They play board games there when it rains.",
+       "Mom cooks dinner in the kitchen.",
+       "They eat dinner in the dining room."
+      ],
+      "ozh": [
+       "下雨時他們在那裡玩桌遊。",
+       "媽媽在廚房煮晚餐。",
+       "他們在飯廳吃晚餐。"
+      ],
+      "a": 0,
+      "hint": "細節一定要在文章裡找得到，而且是在說客廳喔。",
+      "why": "When it's raining cats and dogs, we play board games on the floor. 文章裡有寫，而且是在客廳。廚房和飯廳文章都沒提到。",
+      "ev": [
+       3
+      ]
+     },
+     {
+      "para": 0,
+      "part": 1,
+      "q": "「Dad sits there and watches the news.」這一句是主旨還是細節？",
+      "opts": [
+       "A detail",
+       "The main idea"
+      ],
+      "ozh": [
+       "細節",
+       "主旨"
+      ],
+      "a": 0,
+      "hint": "這句只說了一個人做一件事，它能說完整篇在講什麼嗎？",
+      "why": "它只說了爸爸一個人做一件事，是證明「客廳是大家最喜歡的房間」的其中一個例子，所以是細節。",
+      "ev": [
+       2
+      ]
+     },
+     {
+      "para": 0,
+      "part": 0,
+      "q": "最後一句說 nobody wants to go upstairs，作者想告訴我們什麼？",
+      "opts": [
+       "They love the living room very much.",
+       "The stairs are broken.",
+       "They are scared of the dark."
+      ],
+      "ozh": [
+       "他們非常喜歡客廳。",
+       "樓梯壞了。",
+       "他們怕黑。"
+      ],
+      "a": 0,
+      "hint": "想想看：到了睡覺時間，為什麼大家都不想離開客廳上樓去？",
+      "why": "大家捨不得離開客廳，等於又說了一次主旨：客廳是全家最喜歡的地方。文章沒有說樓梯壞了或怕黑。",
+      "ev": [
+       7
+      ]
+     }
+    ],
+    "sumTitle": "🗺️ 偵探整理：桌面和桌腳",
+    "sum": [
+     "客廳是全家人最喜歡的房間。",
+     "寫功課、看新聞、下雨玩桌遊、貓睡午覺、聽故事、捨不得上樓。"
+    ]
+   },
+   "practice": {
+    "title": "Grandpa's Balcony",
+    "sents": [
+     "My grandpa has many plants on the balcony.",
+     "Every morning, he waters them before breakfast.",
+     "He talks to them and sometimes sings them songs.",
+     "If a leaf turns yellow, he cuts it off right away.",
+     "When the wind is strong, he moves the small pots inside so they don't blow away.",
+     "At night, he takes a flashlight outside to check on them.",
+     "Grandpa also likes to watch baseball on TV.",
+     "Grandpa really takes good care of his plants."
+    ],
+    "zh": [
+     "我爺爺在陽台上種了很多植物。",
+     "每天早上，他在早餐前幫它們澆水。",
+     "他會跟它們說話，有時候還唱歌給它們聽。",
+     "如果有葉子變黃，他會馬上把它剪掉。",
+     "風很大的時候，他會把小盆栽搬進屋裡，這樣它們才不會被吹走。",
+     "晚上，他會拿手電筒到外面看看它們。",
+     "爺爺也喜歡看電視上的棒球。",
+     "爺爺真的把他的植物照顧得很好。"
+    ],
+    "tasks": [
+     {
+      "type": "evidence",
+      "q": "🔍 哪一句是主旨（整篇大部分在講什麼）？點出那一句。",
+      "a": [
+       7
+      ],
+      "hint": "這次主旨不在第一句喔！找一句能把「澆水、唱歌、搬盆栽、拿手電筒」全部包起來的句子。",
+      "why": "Grandpa really takes good care of his plants. 把澆水、說話唱歌、剪黃葉、搬盆栽、拿手電筒全部包起來，是主旨。第一句只說爺爺有很多植物，包不住他做的這些事。"
+     },
+     {
+      "type": "evidence",
+      "q": "🔍 有一句跟主旨沒關係，偵探要把它抓出來！點出那一句。",
+      "a": [
+       6
+      ],
+      "hint": "每一句都在說爺爺怎麼照顧植物嗎？找一句在說別的事情的。",
+      "why": "Grandpa also likes to watch baseball on TV. 說的是看棒球，跟照顧植物沒有關係，不能用來支持主旨。"
+     },
+     {
+      "type": "evidence",
+      "q": "🔍 哪一個細節告訴我們：天氣不好的時候，爺爺也會保護他的植物？點出那一句。",
+      "a": [
+       4
+      ],
+      "hint": "找一句跟天氣有關的句子：wind 是什麼意思？爺爺做了什麼？",
+      "why": "When the wind is strong, he moves the small pots inside so they don't blow away. 風大的時候把小盆栽搬進屋，這個細節證明爺爺連天氣不好都會照顧植物。"
      }
     ]
    }

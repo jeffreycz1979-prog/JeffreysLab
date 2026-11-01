@@ -3169,7 +3169,7 @@ function rdTeachHTML(R) {
   if (fin) {
     const P = R.strategy.parts;
     return head + rdStrategy(R, -1) + `<div class="rdtext">${paras}</div>
-      <div class="rdcard"><div class="rdname" style="font-size:16px">${L('🗺️ 這個故事的小山', '🗺️ The story mountain')}</div>
+      <div class="rdcard"><div class="rdname" style="font-size:16px">${esc(T.sumTitle || L('🗺️ 重點整理', '🗺️ Summary'))}</div>
       ${T.sum.map((x, k) => `<div class="rdsum"><b>${P[k] ? P[k].ic + ' ' + esc(P[k].zh) : ''}</b><span>${esc(x)}</span></div>`).join('')}</div>
       <div class="prfb ok">🎉 ${L('教學完成！現在換你自己辦案', 'Lesson done! Now solve one yourself')}</div>
       <div class="btnrow"><button class="btn" data-rdp="${esc(rd.u)}">${L('練習驗收 ▶', 'Practice ▶')}</button><button class="btn ghost" data-rd="${esc(rd.u)}">${L('回到偵探卡', 'Back')}</button></div>`;
