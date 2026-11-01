@@ -518,7 +518,7 @@ nav button.on{color:var(--lime);font-weight:700}
 .rdslot.ok{border:2px solid var(--mint);background:#123a37}.rdslot.bad{border:2px solid var(--coral);background:#3a1c18}
 .rdslots.ans{margin-top:10px}.rdslots.ans::before{content:'正確順序';font-size:12px;color:var(--muted);font-weight:800}
 .rdpool{display:flex;flex-direction:column;gap:8px;margin:12px 0}.rdtok{font-family:'Noto Sans TC',sans-serif;text-align:left;font-weight:500}
-.rdsum{display:flex;gap:10px;padding:6px 0;border-top:1px solid var(--line);font-size:14px}.rdsum b{flex:none;width:64px}
+.rdsum{display:flex;gap:10px;padding:6px 0;border-top:1px solid var(--line);font-size:14px}.rdsum b{flex:none;min-width:24px;white-space:nowrap}
 .rdline{padding:6px 0;border-top:1px solid var(--line);font-size:15px;line-height:1.5}.rdline .rdzh{color:var(--muted);margin:2px 0 0}
 .prbar{background:var(--card);border:1.5px solid var(--lime);border-radius:18px;padding:12px 14px;font-size:14px;margin:4px 0 8px}
 .prhead{display:flex;justify-content:space-between;align-items:center;font-weight:800;margin-bottom:6px}.prhead b{font-family:Syne,sans-serif;color:var(--lime)}
@@ -3170,7 +3170,7 @@ function rdTeachHTML(R) {
     const P = R.strategy.parts;
     return head + rdStrategy(R, -1) + `<div class="rdtext">${paras}</div>
       <div class="rdcard"><div class="rdname" style="font-size:16px">${esc(T.sumTitle || L('🗺️ 重點整理', '🗺️ Summary'))}</div>
-      ${T.sum.map((x, k) => `<div class="rdsum"><b>${P[k] ? P[k].ic + ' ' + esc(P[k].zh) : ''}</b><span>${esc(x)}</span></div>`).join('')}</div>
+      ${T.sum.map((x, k) => `<div class="rdsum"><b>${Array.isArray(x) ? esc(x[0]) : P[k] ? P[k].ic + ' ' + esc(P[k].zh) : ''}</b><span>${esc(Array.isArray(x) ? x[1] : x)}</span></div>`).join('')}</div>
       <div class="prfb ok">🎉 ${L('教學完成！現在換你自己辦案', 'Lesson done! Now solve one yourself')}</div>
       <div class="btnrow"><button class="btn" data-rdp="${esc(rd.u)}">${L('練習驗收 ▶', 'Practice ▶')}</button><button class="btn ghost" data-rd="${esc(rd.u)}">${L('回到偵探卡', 'Back')}</button></div>`;
   }
@@ -3222,14 +3222,14 @@ function rdPracHTML(R) {
   const text = `<div class="rdtext"><div class="rdpara ${ev && !rd.done ? 'pick' : ''}"><button class="spk small" data-say="${esc(P.sents.join(' '))}">🔊</button><div>${sents}</div></div></div>`;
   let body = '';
   if (k.type === 'sort') {
-    const parts = R.strategy.parts;
+    const parts = R.strategy.parts, lab = (s) => (k.slots ? esc(k.slots[s]) : `${parts[s].ic} ${esc(parts[s].zh)}`);   // 格子名稱：預設用策略卡的部分，k.slots 可自訂（例：第 1 件…）
     body = `<div class="rdslots">${rd.slots.map((it, s) => {
       const cls = rd.done ? (k.items[it] && k.items[it][2] === s ? 'ok' : 'bad') : '';
-      return `<button class="rdslot ${cls}" data-rdslot="${s}" ${rd.done ? 'disabled' : ''}><b>${parts[s].ic} ${esc(parts[s].zh)}</b>${it == null ? `<span class="hint">${L('點下面的卡片', 'Tap a card')}</span>` : `<span>${esc(k.items[it][0])}</span>${rd.done ? `<small class="rdozh">${esc(k.items[it][1])}</small>` : ''}`}</button>`;
+      return `<button class="rdslot ${cls}" data-rdslot="${s}" ${rd.done ? 'disabled' : ''}><b>${lab(s)}</b>${it == null ? `<span class="hint">${L('點下面的卡片', 'Tap a card')}</span>` : `<span>${esc(k.items[it][0])}</span>${rd.done ? `<small class="rdozh">${esc(k.items[it][1])}</small>` : ''}`}</button>`;
     }).join('')}</div>
     <div class="rdpool">${rd.pool.map((it) => (rd.slots.includes(it) ? '' : `<button class="tok rdtok" data-rdsort="${it}">${esc(k.items[it][0])}</button>`)).join('')}</div>
     ${!rd.done && rd.slots.every((x) => x != null) ? `<button class="btn wide" data-act="rdcheck">${L('確認', 'Check')}</button>` : ''}`;
-    if (rd.done && !rd.ok2) body += `<div class="rdslots ans">${k.items.slice().sort((a, b) => a[2] - b[2]).map((it) => `<div class="rdslot ok"><b>${parts[it[2]].ic} ${esc(parts[it[2]].zh)}</b><span>${esc(it[0])}</span><small class="rdozh">${esc(it[1])}</small></div>`).join('')}</div>`;
+    if (rd.done && !rd.ok2) body += `<div class="rdslots ans">${k.items.slice().sort((a, b) => a[2] - b[2]).map((it) => `<div class="rdslot ok"><b>${lab(it[2])}</b><span>${esc(it[0])}</span><small class="rdozh">${esc(it[1])}</small></div>`).join('')}</div>`;
   } else {
     body = `${!rd.done && rd.sel.length ? `<button class="btn wide" data-act="rdcheck">${L('就是這一句！', 'This one!')}</button>` : ''}`;
   }

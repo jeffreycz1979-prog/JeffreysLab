@@ -183,6 +183,97 @@ READING = {
    ],
   },
  },
+ 'U3': {
+  'strategy': {
+   'name': 'Sequence', 'zh': '事情的順序',
+   'intro': '偵探要把事情排回正確的時間順序。',
+   'parts': [
+    {'k': 'SW', 'zh': '路標字', 'en': 'Signal Words', 'ic': '🔢', 'q': '找 first、next、then、after that、finally，它們告訴你順序。'},
+    {'k': 'ST', 'zh': '同時發生', 'en': 'At the Same Time', 'ic': '⏱️', 'q': '看到 as、while，兩件事是一起發生的，不分先後。'},
+    {'k': 'NS', 'zh': '沒有路標時', 'en': 'No Signal Words', 'ic': '🧠', 'q': '哪件事一定要先做，下一件才做得到？'},
+   ],
+   'tip': '故事寫的順序不一定是發生的順序，要靠路標字和常識判斷。',
+  },
+  'teach': {
+   'title': 'The Big Tree on Our Street',
+   'paras': [
+    ['Last night, a strong wind made a big tree fall over on our street.',
+     'In the morning, the street was a mess.'],
+    ['First, Dad and Mr. Lee put on gloves.',
+     'Next, Mr. Lee started cutting up the tree.',
+     'As he cut the branches, Dad pulled them to the side of the road.',
+     'Then my sister and I made a pile of wood.'],
+    ['After that, a man drove a truck to our street.',
+     'He lifted the wood into the truck.',
+     'Finally, the street was clean again, and all the neighbors cheered.'],
+   ],
+   'zh': [
+    ['昨天晚上，一陣強風把我們街上的一棵大樹吹倒了。', '早上，整條街亂七八糟。'],
+    ['首先，爸爸和李先生戴上手套。', '接著，李先生開始把樹鋸開。', '他鋸樹枝的同時，爸爸把樹枝拖到路邊。', '然後我和姊姊把木頭疊成一堆。'],
+    ['之後，一位叔叔開卡車來到我們這條街。', '他把木頭舉起來放進卡車。', '最後，街道又變乾淨了，所有鄰居都歡呼起來。'],
+   ],
+   'steps': [
+    {'para': 1, 'part': 0, 'q': '爸爸和李先生第一件做的事是什麼？',
+     'opts': ['They put on gloves.', 'They cut up the tree.', 'They drove a truck.'],
+     'ozh': ['他們戴上手套。', '他們把樹鋸開。', '他們開卡車。'], 'a': 0,
+     'hint': '找路標字 First：它後面寫的就是第一件事。',
+     'why': 'First, Dad and Mr. Lee put on gloves. 路標字 First 告訴我們：戴手套是第一件事。', 'ev': [2]},
+    {'para': 1, 'part': 1, 'q': '李先生鋸樹枝的時候，爸爸在做什麼？',
+     'opts': ['He pulled the branches to the side of the road.', 'He put on his gloves.', 'He made a pile of wood.'],
+     'ozh': ['他把樹枝拖到路邊。', '他戴上手套。', '他把木頭疊成一堆。'], 'a': 0,
+     'hint': '找 as：as 前後的兩件事是同時發生的。',
+     'why': 'As he cut the branches, Dad pulled them to the side of the road. as 表示同時：李先生在鋸，爸爸同時在拖。疊木頭是後面 Then 才做的事。', 'ev': [4]},
+    {'para': 2, 'part': 2, 'q': '「He lifted the wood into the truck.」這件事一定發生在哪件事之後？',
+     'opts': ['After the man drove the truck to the street.', 'Before the tree fell over.', 'Before they put on gloves.'],
+     'ozh': ['在叔叔把卡車開到街上之後。', '在樹倒下之前。', '在他們戴手套之前。'], 'a': 0,
+     'hint': '這句沒有路標字，用常識想：卡車還沒來，木頭能放進卡車嗎？',
+     'why': '要先有卡車開過來（After that, a man drove a truck to our street.），才能把木頭放進去。沒有路標字的時候，就問自己「哪件事要先發生，下一件才做得到」。', 'ev': [6, 7]},
+    {'para': 2, 'part': 0, 'q': '故事裡最後發生的事是什麼？',
+     'opts': ['The neighbors cheered.', 'A man drove a truck to the street.', 'Mr. Lee started cutting up the tree.'],
+     'ozh': ['鄰居們歡呼。', '一位叔叔把卡車開到街上。', '李先生開始鋸樹。'], 'a': 0,
+     'hint': '找路標字 Finally。',
+     'why': 'Finally, the street was clean again, and all the neighbors cheered. 路標字 Finally 告訴我們這是最後一件事。', 'ev': [8]},
+   ],
+   'sumTitle': '🗺️ 偵探整理：事情的順序',
+   'sum': [['1', '強風把大樹吹倒'], ['2', '戴上手套（First）'], ['3', '李先生鋸樹，同時爸爸拖樹枝（Next、As）'], ['4', '把木頭疊成一堆（Then）'],
+           ['5', '卡車來了，木頭放進卡車（After that）'], ['6', '街道乾淨了，鄰居歡呼（Finally）']],
+  },
+  'practice': {
+   'title': 'A Soup for Grandma',
+   'sents': [
+    "Amy missed Grandma, so she wanted to make Grandma's favorite soup.",
+    'First, Amy and Mom went to the market.',
+    'The market was very crowded, so they had to hurry.',
+    'When they got home, Amy washed the carrots.',
+    'As she washed them, Mom cut up the potatoes.',
+    'Then they put everything into a big pot.',
+    'The soup cooked for one hour.',
+    "After that, they took the bus to Grandma's house and brought the soup to her.",
+    'When Grandma tasted it, her mouth fell open.',
+    '"This is the best soup ever!" she said.',
+   ],
+   'zh': [
+    'Amy 很想念奶奶，所以她想煮奶奶最喜歡的湯。', '首先，Amy 和媽媽去了市場。', '市場非常擁擠，所以她們得動作快一點。', '回到家後，Amy 洗紅蘿蔔。',
+    'Amy 洗紅蘿蔔的同時，媽媽把馬鈴薯切塊。', '然後她們把所有東西放進一個大鍋子裡。', '湯煮了一個小時。', '之後，她們搭公車到奶奶家，把湯帶給她。',
+    '奶奶嚐了一口，驚訝得張大嘴巴。', '「這是我喝過最好喝的湯！」她說。',
+   ],
+   'tasks': [
+    {'type': 'sort', 'q': '把四件事依照發生的順序，放進第 1～4 格', 'slots': ['第 1 件', '第 2 件', '第 3 件', '第 4 件'],
+     'items': [['Amy and Mom go to the market.', 'Amy 和媽媽去市場。', 0],
+               ['Amy washes the carrots.', 'Amy 洗紅蘿蔔。', 1],
+               ['They put everything into a pot.', '她們把所有東西放進鍋子。', 2],
+               ['They bring the soup to Grandma.', '她們把湯帶給奶奶。', 3]],
+     'hint': '找路標字：First → When they got home → Then → After that。',
+     'why': 'First 去市場 → When they got home 洗紅蘿蔔 → Then 放進鍋子 → After that 把湯帶給奶奶。'},
+    {'type': 'evidence', 'q': '🔍 哪一句告訴你有兩件事是「同時」發生的？點出那一句。', 'a': [4],
+     'hint': '找 as：as 前後的兩件事是一起發生的。',
+     'why': 'As she washed them, Mom cut up the potatoes. Amy 洗紅蘿蔔的同時，媽媽在切馬鈴薯，兩件事一起發生。'},
+    {'type': 'evidence', 'q': '🔍 湯煮好之後，下一件事是什麼？點出那一句。', 'a': [7],
+     'hint': '先找湯在煮的那一句（cooked for one hour），再看它的下一個路標字。',
+     'why': "The soup cooked for one hour. 之後，路標字 After that 帶出下一件事：搭公車把湯帶給奶奶。"},
+   ],
+  },
+ },
 }
 
 def check(R):
@@ -191,6 +282,7 @@ def check(R):
         assert len(t['paras']) == len(t['zh']), u
         for a, b in zip(t['paras'], t['zh']): assert len(a) == len(b), (u, a)
         n = sum(len(x) for x in t['paras'])
+        assert all(isinstance(x, str) or len(x) == 2 for x in t['sum']), u
         for st in t['steps']:
             assert 0 <= st['para'] < len(t['paras']) and 0 <= st['part'] < len(s['parts']), (u, st)
             assert len(st['opts']) == len(st['ozh']) == len(set(st['opts'])) and 0 <= st['a'] < len(st['opts']), (u, st)
@@ -199,6 +291,8 @@ def check(R):
         for k in p['tasks']:
             if k['type'] == 'sort':
                 assert sorted(i[2] for i in k['items']) == list(range(len(k['items']))), (u, k)
+                assert 'slots' not in k or len(k['slots']) == len(k['items']), (u, k)
+                assert 'slots' in k or len(k['items']) <= len(s['parts']), (u, k)
             else:
                 assert k['type'] == 'evidence' and all(0 <= e < len(p['sents']) for e in k['a']), (u, k)
             assert k['hint'] and k['why'], (u, k)
