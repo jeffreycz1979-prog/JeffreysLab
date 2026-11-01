@@ -120,6 +120,7 @@ main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .ustation.done .go{background:var(--panel);color:var(--ink);border:1px solid var(--line)}
 .ustation .go:disabled{background:var(--panel);color:var(--muted);border:1px solid var(--line)}
 .ustation.soon{opacity:.6}
+.ustation.done{flex:none;flex-direction:row;align-items:center;justify-content:flex-start;text-align:left;gap:12px;padding:10px 12px}   /* 蓋過下面複習完成畫面的 .done */
 .uhead{display:flex;align-items:center;gap:12px}
 .uhead .code{font-family:'Syne',sans-serif;font-weight:800;font-size:26px;color:var(--lime)}
 .uhead .t{flex:1;min-width:0}
@@ -494,6 +495,31 @@ nav button.on{color:var(--lime);font-weight:700}
 .leg{display:flex;align-items:center;gap:10px;background:var(--panel);border-radius:12px;padding:8px 10px;margin-bottom:6px}
 .leg>div{flex:1;min-width:0}.leg .en{font-size:16px;font-weight:600;line-height:1.5}.leg .en span{font-weight:800}.leg small{color:var(--muted);font-size:13px}
 .ltip{margin-top:8px;font-size:13px;color:#FFB547;background:rgba(255,181,71,.1);border-radius:10px;padding:8px 10px}
+.rdcard{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:14px;margin-bottom:12px}
+.rdname{font:800 20px Syne,'Noto Sans TC',sans-serif;color:var(--lime)}.rdname small{font:700 14px 'Noto Sans TC',sans-serif;color:var(--ink);margin-left:8px}
+.rdintro{font-size:15px;line-height:1.6;margin:8px 0}
+.rdparts{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.rdpart{background:var(--panel);border:1.5px solid var(--line);border-radius:14px;padding:8px 11px;transition:opacity .2s}
+.rdpart b{display:block;font-size:15px}.rdpart b small{font-family:Syne,sans-serif;color:var(--muted);font-size:11px}.rdpart span{font-size:13px;color:#c6d1c6;line-height:1.5}
+.rdpart.now{border-color:var(--lime);box-shadow:0 0 0 3px rgba(204,255,0,.12)}.rdpart.dim{opacity:.45}
+.rdstep{display:flex;align-items:center;gap:10px;background:var(--panel);border:1.5px solid var(--line);border-radius:16px;padding:10px 12px;margin-bottom:8px}
+.rdstep>div{flex:1;min-width:0}.rdstep b{display:block;font-size:15px}.rdstep small{color:var(--muted);font-size:12px}.rdstep.ok{border-color:var(--mint)}
+.rdtext{display:flex;flex-direction:column;gap:8px;margin:4px 0 12px}
+.rdpara{display:flex;gap:8px;align-items:flex-start;background:#F4F1EB;color:#1a2a1a;border-radius:16px;padding:12px;font-size:17px;line-height:1.7;transition:opacity .2s}
+.rdpara .spk{flex:none}.rdpara.now{box-shadow:0 0 0 3px var(--lime)}.rdpara.dim{opacity:.55}
+.rdsent{border-radius:6px;padding:0 1px}.rdsent.ev{background:#CCFF00;box-shadow:0 0 0 2px #CCFF00}.rdsent.bad{background:#ffd1ca}
+.rdzh{display:block;font-size:13px;color:#5a6a5a;line-height:1.5;margin:0 0 6px}
+.rdozh{display:block;font-size:13px;font-weight:400;opacity:.85;margin-top:3px}
+.rds{display:inline;border:none;background:none;font:inherit;color:inherit;text-align:left;padding:1px 2px;border-radius:6px;border-bottom:2px dotted #9aa89a;cursor:pointer}
+.rds.sel{background:#4ECDC4;color:#0a1a1a;border-bottom-color:transparent}
+.rdslots{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.rdslot{display:block;width:100%;text-align:left;min-height:56px;border:2px dashed var(--line);border-radius:14px;padding:8px 12px;background:var(--panel);color:var(--ink);font-size:15px}
+.rdslot b{display:block;font-size:13px;margin-bottom:2px}.rdslot .hint{color:var(--muted);font-size:13px}
+.rdslot.ok{border:2px solid var(--mint);background:#123a37}.rdslot.bad{border:2px solid var(--coral);background:#3a1c18}
+.rdslots.ans{margin-top:10px}.rdslots.ans::before{content:'正確順序';font-size:12px;color:var(--muted);font-weight:800}
+.rdpool{display:flex;flex-direction:column;gap:8px;margin:12px 0}.rdtok{font-family:'Noto Sans TC',sans-serif;text-align:left;font-weight:500}
+.rdsum{display:flex;gap:10px;padding:6px 0;border-top:1px solid var(--line);font-size:14px}.rdsum b{flex:none;width:64px}
+.rdline{padding:6px 0;border-top:1px solid var(--line);font-size:15px;line-height:1.5}.rdline .rdzh{color:var(--muted);margin:2px 0 0}
 .prbar{background:var(--card);border:1.5px solid var(--lime);border-radius:18px;padding:12px 14px;font-size:14px;margin:4px 0 8px}
 .prhead{display:flex;justify-content:space-between;align-items:center;font-weight:800;margin-bottom:6px}.prhead b{font-family:Syne,sans-serif;color:var(--lime)}
 .prdots{display:flex;gap:6px;margin-bottom:12px}.prdots i{flex:1;height:6px;border-radius:3px;background:var(--panel)}.prdots i.now{background:var(--mint)}.prdots i.ok{background:var(--lime)}.prdots i.bad{background:var(--coral)}
@@ -774,7 +800,7 @@ nav button.on{color:var(--lime);font-weight:700}
         </div>
       </div>
     </div>
-    <p class="hint">Jeffrey's Lab · 英文順起來．探索英文島 v1.9.1（THP5）</p>
+    <p class="hint">Jeffrey's Lab · 英文順起來．探索英文島 v1.9.2（THP5）</p>
   </section>
 </main>
 
@@ -1740,8 +1766,11 @@ function unitStations(u) {
     { key: 'recall', ic: '🧠', zh: '熟記', en: 'Recall', done: n > 0 && k.known >= need, pct: need ? Math.min(1, k.known / need) : 0,
       txt: L(`已掌握 ${k.known} / ${need} 個字（隔幾天複習還記得才算）`, `Mastered ${k.known} / ${need} (remembered over days)`),
       act: `data-uhard="${esc(u)}"`, btn: L('練不熟的', 'Practice') },
-    { key: 'story', ic: '📖', zh: '讀本', en: 'Story', soon: true, done: false, pct: 0,
-      txt: L('用本課單字寫的小故事・即將推出', 'Unit story · coming soon'), act: '', btn: L('即將推出', 'Soon') },
+    rdOf(u) ? { key: 'read', ic: '🕵️', zh: '閱讀偵探', en: 'Reading', done: rdDone(u), pct: rdDone(u) ? 1 : rdMeta(u).t ? 0.5 : 0,
+      txt: rdDone(u) ? L(`破案！練習 ${rdBest(u)} / ${rdOf(u).practice.tasks.length}`, `Solved! ${rdBest(u)} / ${rdOf(u).practice.tasks.length}`) : L(`學「${rdOf(u).strategy.zh}」閱讀策略，再讀一篇沒看過的短文`, `Learn "${rdOf(u).strategy.name}", then read a new story`),
+      act: `data-rd="${esc(u)}"`, btn: L('辦案 ▶', 'Go ▶') }
+    : { key: 'read', ic: '🕵️', zh: '閱讀偵探', en: 'Reading', soon: true, done: false, pct: 0,
+      txt: L('學閱讀策略、讀沒看過的短文・即將推出', 'Reading strategies · coming soon'), act: '', btn: L('即將推出', 'Soon') },
   ];
   const floors = S.filter((s) => !s.soon && s.done).length;
   const total = S.filter((s) => !s.soon).length;
@@ -3086,6 +3115,168 @@ function prNext() {
       <button class="btn ghost" ${k === 'p' ? `data-gph="${esc(u)}"` : `data-gpat="${esc(u)}"`}>${L('回到教學', 'Lesson')}</button>
       <button class="btn ghost" data-close="1">${L('關閉', 'Close')}</button></div></div>`;
 }
+// ═══════════════════════════════════════════════════════
+//  閱讀偵探：策略卡 → 教學篇（一段一段帶著做）→ 練習篇（自己做＋找證據句）
+//  資料在 grammar.json 的 reading（src/reading.py）。中文翻譯與解說：作答之後才顯示；
+//  答錯第一次給提示再試一次，第二次才給答案。練習 3 題答對 2 題算完成，大寶箱 +30 ⭐（每單元一次）
+// ═══════════════════════════════════════════════════════
+const RD_PASS = 2;
+const rdOf = (u) => (GRAM.reading || {})[u];
+const rdMeta = (u) => ((st.meta.rd || {})[u] || {});
+const rdBest = (u) => rdMeta(u).best || 0;
+const rdDone = (u) => rdBest(u) >= RD_PASS;
+const rd = { u: '', mode: 't', i: 0, tries: 0, done: false, ok: false, right: 0, bad: [], sel: [], pool: [], slots: [], res: [] };
+function rdSave(u, patch) { st.meta.rd = st.meta.rd || {}; st.meta.rd[u] = { ...rdMeta(u), ...patch }; saveMeta(); }
+function rdStrategy(R, cur) {
+  const s = R.strategy;
+  if (cur != null) { const p = s.parts[cur]; return p ? `<div class="rdpart now" style="margin-bottom:10px"><b>${p.ic} ${esc(p.zh)} <small>${esc(p.en)}</small></b><span>${esc(p.q)}</span></div>` : ''; }
+  return `<div class="rdcard"><div class="rdname">🕵️ ${esc(s.name)}<small>${esc(s.zh)}</small></div>
+    ${cur == null ? `<div class="rdintro">${esc(s.intro)}</div>` : ''}
+    <div class="rdparts">${s.parts.map((p, k) => `<div class="rdpart ${cur === k ? 'now' : cur != null ? 'dim' : ''}"><b>${p.ic} ${esc(p.zh)} <small>${esc(p.en)}</small></b><span>${esc(p.q)}</span></div>`).join('')}</div>
+    ${cur == null && s.tip ? `<div class="ltip">💡 ${esc(s.tip)}</div>` : ''}</div>`;
+}
+function openReading(u) {
+  const R = rdOf(u); if (!R) return toast('這個單元的閱讀偵探還沒準備好');
+  const m = rdMeta(u), best = rdBest(u);
+  $('sheet').innerHTML = `<div class="qtype" style="text-align:left">🕵️ ${esc(u)} ${L('閱讀偵探', 'Reading Detective')}</div>
+    ${rdStrategy(R)}
+    <div class="rdstep ${m.t ? 'ok' : ''}"><div><b>1. ${L('教學：跟偵探一起讀', 'Learn: read with the detective')}</b><small>${esc(R.teach.title)}${m.t ? ' ・ ✅' : ''}</small></div>
+      <button class="btn ${m.t ? 'ghost' : ''}" data-rdt="${esc(u)}">${m.t ? L('再看一次', 'Again') : L('開始 ▶', 'Start ▶')}</button></div>
+    <div class="rdstep ${best >= RD_PASS ? 'ok' : ''}"><div><b>2. ${L('練習驗收：自己辦案', 'Practice: solve it yourself')}</b><small>${esc(R.practice.title)}${best ? ` ・ ${L('最佳', 'Best')} ${best} / ${R.practice.tasks.length}` : ''}</small></div>
+      <button class="btn ${m.t && best < RD_PASS ? '' : 'ghost'}" data-rdp="${esc(u)}">${L('開始 ▶', 'Start ▶')}</button></div>
+    <div class="prbar"><div>${best >= RD_PASS ? `✅ ${L('這一站完成了！', 'Station complete!')}` : L(`先看教學，再做練習：${R.practice.tasks.length} 題答對 ${RD_PASS} 題，打開偵探大寶箱 +${CHEST_PTS} ⭐`, `Learn first, then get ${RD_PASS} of ${R.practice.tasks.length} right to open the chest (+${CHEST_PTS} ⭐)`)}</div>
+      <div class="btnrow"><button class="btn ghost" data-close="1">${L('關閉', 'Close')}</button></div></div>`;
+  $('modal').classList.add('show'); $('sheet').scrollTop = 0;
+}
+// ── 教學篇 ──
+function rdStart(u, mode) {
+  Object.assign(rd, { u, mode, i: 0, tries: 0, done: false, ok: false, right: 0, bad: [], sel: [], res: [] });
+  if (mode === 'p') rdPrepTask();
+  rdRender(true);
+}
+function rdTeachHTML(R) {
+  const T = R.teach, step = T.steps[rd.i], fin = rd.i >= T.steps.length;
+  const lastOf = (p) => T.steps.map((s, k) => (s.para === p ? k : -1)).filter((k) => k >= 0).pop();
+  const evNow = rd.done && step ? step.ev : [];
+  let g = 0;
+  const paras = T.paras.map((ps, p) => {
+    const showZh = fin || rd.i > lastOf(p) || (rd.done && rd.i === lastOf(p));
+    const cls = fin ? '' : step.para === p ? 'now' : 'dim';
+    const ss = ps.map((s, k) => { const n = g++; return `<span class="rdsent ${evNow.includes(n) ? 'ev' : ''}">${esc(s)}</span>${showZh ? `<small class="rdzh">${esc(T.zh[p][k])}</small>` : ' '}`; }).join('');
+    return `<div class="rdpara ${cls}"><button class="spk small" data-say="${esc(ps.join(' '))}">🔊</button><div>${ss}</div></div>`;
+  }).join('');
+  const head = `<div class="prhead"><span>📖 ${esc(T.title)}</span><b>${Math.min(rd.i + 1, T.steps.length)} / ${T.steps.length}</b></div>`;
+  if (fin) {
+    const P = R.strategy.parts;
+    return head + rdStrategy(R, -1) + `<div class="rdtext">${paras}</div>
+      <div class="rdcard"><div class="rdname" style="font-size:16px">${L('🗺️ 這個故事的小山', '🗺️ The story mountain')}</div>
+      ${T.sum.map((x, k) => `<div class="rdsum"><b>${P[k] ? P[k].ic + ' ' + esc(P[k].zh) : ''}</b><span>${esc(x)}</span></div>`).join('')}</div>
+      <div class="prfb ok">🎉 ${L('教學完成！現在換你自己辦案', 'Lesson done! Now solve one yourself')}</div>
+      <div class="btnrow"><button class="btn" data-rdp="${esc(rd.u)}">${L('練習驗收 ▶', 'Practice ▶')}</button><button class="btn ghost" data-rd="${esc(rd.u)}">${L('回到偵探卡', 'Back')}</button></div>`;
+  }
+  const opts = step.opts.map((o, k) => {
+    const st2 = rd.done ? (k === step.a ? 'ok' : rd.bad.includes(k) ? 'bad' : '') : rd.bad.includes(k) ? 'bad' : '';
+    return `<button class="opt ${st2}" data-rdo="${k}" ${rd.done || rd.bad.includes(k) ? 'disabled' : ''}>${esc(o)}${rd.done ? `<small class="rdozh">${esc(step.ozh[k])}</small>` : ''}</button>`;
+  }).join('');
+  return head + rdStrategy(R, step.part) + `<div class="rdtext">${paras}</div>
+    <div class="prq">${R.strategy.parts[step.part].ic} ${esc(step.q)}</div><div class="opts">${opts}</div>${rdFeedback(step)}`;
+}
+function rdFeedback(x) {
+  if (!rd.done) return rd.tries ? `<div class="clue"><b>🔎 ${L('偵探提示', 'Detective hint')}</b>${esc(x.hint)}<div style="margin-top:4px;opacity:.8">${L('再試一次！', 'Try again!')}</div></div>` : '';
+  return `<div class="${rd.ok2 ? 'prfb ok' : 'clue'}">${rd.ok2 ? `✅ ${L('答對了！', 'Correct!')}` : `<b>🔒 ${L('看看答案', 'Here is the answer')}</b>`}<small>💡 ${esc(x.why)}</small></div>
+    <button class="btn wide" data-act="rdnext">${L('下一步 ▶', 'Next ▶')}</button>`;
+}
+function rdPick(k) {
+  const step = rdOf(rd.u).teach.steps[rd.i]; if (rd.done || !step) return;
+  if (k === step.a) { rd.done = true; rd.ok = !rd.tries; rd.ok2 = true; }
+  else { rd.bad.push(k); rd.tries++; if (rd.tries >= 2) { rd.done = true; rd.ok = false; rd.ok2 = false; } }
+  rdRender();
+}
+function rdNext() {
+  const R = rdOf(rd.u);
+  if (rd.mode === 't') {
+    rd.i++; Object.assign(rd, { tries: 0, done: false, ok: false, bad: [] });
+    if (rd.i >= R.teach.steps.length && !rdMeta(rd.u).t) { rdSave(rd.u, { t: Date.now() }); if ($('v-home').classList.contains('active')) renderIsland(); }
+    return rdRender(true);
+  }
+  rd.res.push(rd.ok2); rd.i++; Object.assign(rd, { tries: 0, done: false, ok: false, sel: [] });
+  if (rd.i >= R.practice.tasks.length) return rdResult();
+  rdPrepTask(); rdRender(true);
+}
+// ── 練習篇 ──
+function rdPrepTask() {
+  const k = rdOf(rd.u).practice.tasks[rd.i];
+  if (k && k.type === 'sort') {
+    let o; do { o = shuffle(k.items.map((_, i) => i)); } while (o.every((x, i) => x === i));
+    rd.pool = o; rd.slots = k.items.map(() => null);
+  }
+}
+function rdPracHTML(R) {
+  const P = R.practice, k = P.tasks[rd.i], ev = k.type === 'evidence';
+  const right = rd.done && ev ? k.a : [];
+  const sents = P.sents.map((s, n) => {
+    const c = right.includes(n) ? 'ev' : rd.sel.includes(n) ? (rd.done ? 'bad' : 'sel') : '';
+    return ev && !rd.done ? `<button class="rds ${c}" data-rds="${n}">${esc(s)}</button> ` : `<span class="rdsent ${c}">${esc(s)}</span> `;
+  }).join('');
+  const head = `<div class="prhead"><span>🕵️ ${esc(P.title)}</span><b>${rd.i + 1} / ${P.tasks.length}</b></div>`;
+  const text = `<div class="rdtext"><div class="rdpara ${ev && !rd.done ? 'pick' : ''}"><button class="spk small" data-say="${esc(P.sents.join(' '))}">🔊</button><div>${sents}</div></div></div>`;
+  let body = '';
+  if (k.type === 'sort') {
+    const parts = R.strategy.parts;
+    body = `<div class="rdslots">${rd.slots.map((it, s) => {
+      const cls = rd.done ? (k.items[it] && k.items[it][2] === s ? 'ok' : 'bad') : '';
+      return `<button class="rdslot ${cls}" data-rdslot="${s}" ${rd.done ? 'disabled' : ''}><b>${parts[s].ic} ${esc(parts[s].zh)}</b>${it == null ? `<span class="hint">${L('點下面的卡片', 'Tap a card')}</span>` : `<span>${esc(k.items[it][0])}</span>${rd.done ? `<small class="rdozh">${esc(k.items[it][1])}</small>` : ''}`}</button>`;
+    }).join('')}</div>
+    <div class="rdpool">${rd.pool.map((it) => (rd.slots.includes(it) ? '' : `<button class="tok rdtok" data-rdsort="${it}">${esc(k.items[it][0])}</button>`)).join('')}</div>
+    ${!rd.done && rd.slots.every((x) => x != null) ? `<button class="btn wide" data-act="rdcheck">${L('確認', 'Check')}</button>` : ''}`;
+    if (rd.done && !rd.ok2) body += `<div class="rdslots ans">${k.items.slice().sort((a, b) => a[2] - b[2]).map((it) => `<div class="rdslot ok"><b>${parts[it[2]].ic} ${esc(parts[it[2]].zh)}</b><span>${esc(it[0])}</span><small class="rdozh">${esc(it[1])}</small></div>`).join('')}</div>`;
+  } else {
+    body = `${!rd.done && rd.sel.length ? `<button class="btn wide" data-act="rdcheck">${L('就是這一句！', 'This one!')}</button>` : ''}`;
+  }
+  return head + text + `<div class="prq">${esc(k.q)}</div>${body}${rdFeedback(k)}`;
+}
+function rdSortTap(it) { if (rd.done) return; const s = rd.slots.indexOf(null); if (s >= 0) rd.slots[s] = it; rdRender(); }
+function rdSlotTap(s) { if (rd.done) return; rd.slots[s] = null; rdRender(); }
+function rdSentTap(n) { if (rd.done) return; rd.sel = [n]; rdRender(); }
+function rdCheck() {
+  const k = rdOf(rd.u).practice.tasks[rd.i]; if (rd.done) return;
+  const ok = k.type === 'sort' ? rd.slots.every((it, s) => k.items[it][2] === s) : k.a.includes(rd.sel[0]);
+  if (ok) { rd.done = true; rd.ok = !rd.tries; rd.ok2 = true; }
+  else {
+    rd.tries++;
+    if (rd.tries >= 2) { rd.done = true; rd.ok = false; rd.ok2 = false; }
+    else { if (k.type === 'sort') rd.slots = rd.slots.map(() => null); rd.sel = []; }
+  }
+  rdRender();
+}
+function rdResult() {
+  const u = rd.u, R = rdOf(u), P = R.practice, sc = rd.res.filter(Boolean).length, pass = sc >= RD_PASS;
+  const first = pass && !rdDone(u), chest = pass && !chestOpened(u, 'r');
+  if (chest) { st.ledger.bonus.push({ t: Date.now(), k: chestKey(u, 'r'), p: CHEST_PTS }); saveLedger(); renderHeader(); }
+  if (sc > rdBest(u)) rdSave(u, { best: sc });
+  if ($('v-home').classList.contains('active')) renderIsland();
+  if (first || chest) setTimeout(() => confetti(chest ? 70 : 50), 200);
+  $('sheet').innerHTML = `<div class="prres"><div class="bigchest ${pass ? 'pop' : ''}">${pass ? '🕵️' : '🔒'}</div><div class="big" style="font-size:40px">${sc} / ${P.tasks.length}</div>
+    ${chest ? `<div class="chestpts">💰 ${L('偵探大寶箱打開了！', 'Detective chest opened!')} +${CHEST_PTS} ⭐</div>` : pass ? `<div class="chestpts" style="opacity:.7">${L('這個大寶箱已經開過了・練習不加分', 'Already opened · practice only')}</div>` : ''}
+    <p>${pass ? (first ? L('🎉 破案了！閱讀偵探站完成，島上多蓋一層樓', '🎉 Case solved! One more floor on the island') : L('👍 很穩！', '👍 Nice!')) : L(`還差一點！答對 ${RD_PASS} 題才破案，回去看一下教學再試試`, `Almost! Get ${RD_PASS} right — review the lesson and try again`)}</p></div>
+    <div class="rdcard"><div class="rdname" style="font-size:16px">📖 ${esc(P.title)} ${L('・中文翻譯', '· Translation')}</div>
+      ${P.sents.map((s, n) => `<div class="rdline"><span>${esc(s)}</span><small class="rdzh">${esc(P.zh[n])}</small></div>`).join('')}</div>
+    <div class="btnrow"><button class="btn" data-rdp="${esc(u)}">${L('再練一次', 'Again')}</button>
+      <button class="btn ghost" data-rdt="${esc(u)}">${L('回到教學', 'Lesson')}</button>
+      <button class="btn ghost" data-close="1">${L('關閉', 'Close')}</button></div>`;
+  $('sheet').scrollTop = 0;
+}
+function rdRender(top) {
+  const R = rdOf(rd.u); if (!R) return;
+  const keep = $('sheet').scrollTop;
+  $('sheet').innerHTML = rd.mode === 't' ? rdTeachHTML(R) : rdPracHTML(R);
+  $('modal').classList.add('show');
+  $('sheet').scrollTop = top ? 0 : keep;
+  requestAnimationFrame(() => {   // 新的一步：捲到正在讀的那段；作答後：捲到提示／解說
+    const el = top ? (rd.mode === 't' && $('sheet').querySelector('.rdpara.now')) : $('sheet').querySelector('.clue,.prfb');
+    if (el) el.scrollIntoView({ block: top ? 'start' : 'nearest', behavior: top ? 'auto' : 'smooth' });
+  });
+}
 // ── 每週島上寶箱：每週一刷新 3 個，藏在島上不同地方；裡面是已開放單元的混合複習題 ──
 // 答對 4 / 5 打開 +10 ⭐（一週最多 30，和遊戲上限分開算）；沒打開的話寶箱留在原地，隔天才能再挑戰
 const WCH_N = 3, WCH_PTS = 10;
@@ -3342,6 +3533,15 @@ document.addEventListener('click', (e) => {
   if (t.dataset.gpat) return openPattern(t.dataset.gpat);
   if (t.dataset.gph) return openPhonics(t.dataset.gph);
   if (t.dataset.prac) return startPractice(t.dataset.prac, t.dataset.kind);
+  if (t.dataset.rd) return openReading(t.dataset.rd);
+  if (t.dataset.rdt) return rdStart(t.dataset.rdt, 't');
+  if (t.dataset.rdp) return rdStart(t.dataset.rdp, 'p');
+  if (t.dataset.rdo != null) return rdPick(+t.dataset.rdo);
+  if (t.dataset.rdsort != null) return rdSortTap(+t.dataset.rdsort);
+  if (t.dataset.rdslot != null) return rdSlotTap(+t.dataset.rdslot);
+  if (t.dataset.rds != null) return rdSentTap(+t.dataset.rds);
+  if (t.dataset.act === 'rdcheck') return rdCheck();
+  if (t.dataset.act === 'rdnext') return rdNext();
   if (t.dataset.wgo != null) return startWeekChest(+t.dataset.wgo);
   if (t.dataset.pans != null) return prAnswer(+t.dataset.pans);
   if (t.dataset.ptile != null) return prTile(t);

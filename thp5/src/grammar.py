@@ -504,5 +504,8 @@ for u, ls in LESSONS.items():
         for en, zh in x['eg']:
             assert re.sub(r'\{[SBVTCNAPO]:[^{}]+\}', '', en).count('{') == 0, (u, en)
 G['lessons'] = LESSONS
+# 閱讀偵探（策略卡、教學篇、練習篇）：見 reading.py
+from reading import READING
+G['reading'] = READING
 json.dump(G, open(sys.argv[1], 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
 print('ok', {u: (len(G['questions'][u]), len(G['listening'][u])) for u in G['cards']})
