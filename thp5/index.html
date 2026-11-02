@@ -524,7 +524,7 @@ nav button.on{color:var(--lime);font-weight:700}
 .rdgbtns{display:flex;gap:6px;margin-top:8px}.rdgbtns button{flex:1;min-height:40px;border-radius:10px;border:1.5px solid var(--line);background:#0f1422;color:var(--ink);font-size:13px;font-weight:700;padding:4px}
 .rdgbtns button.on{background:var(--mint);border-color:var(--mint);color:#0a1a1a}
 .rdvenn{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:12px 0}
-.rdvcol{background:var(--panel);border:1.5px solid var(--line);border-radius:14px;padding:8px 6px;min-width:0}.rdvcol:nth-child(2){border-color:var(--lime)}
+.rdvcol{background:var(--panel);border:1.5px solid var(--line);border-radius:14px;padding:8px 6px;min-width:0}.rdvenn.v3 .rdvcol:nth-child(2){border-color:var(--lime)}
 .rdvcol>b{display:block;font-size:12px;text-align:center;margin-bottom:6px}
 .rdvitem{font-size:13px;line-height:1.35;border-radius:8px;padding:6px;margin-top:5px;overflow-wrap:anywhere}.rdvitem.ok{background:#123a37}.rdvitem.miss{background:#3a1c18;outline:1.5px solid var(--coral)}
 .rdsum b{flex:none;min-width:24px;white-space:nowrap}
@@ -3240,7 +3240,7 @@ function rdPracHTML(R) {
         <div class="rdgbtns">${G.map((g, gi) => `<button class="${rd.grp[it] === gi ? 'on' : ''}" data-rdg="${it}:${gi}">${esc(g)}</button>`).join('')}</div></div>`).join('')}</div>
       ${rd.grp.every((x) => x != null) ? `<button class="btn wide" data-act="rdcheck">${L('確認', 'Check')}</button>` : `<div class="hint" style="text-align:center;margin:6px 0">${L(`還有 ${rd.grp.filter((x) => x == null).length} 張還沒分`, `${rd.grp.filter((x) => x == null).length} left`)}</div>`}
       ${rd.tries && rd.nbad ? `<div class="hint" style="text-align:center;color:var(--coral)">${L(`有 ${rd.nbad} 張放錯了`, `${rd.nbad} in the wrong box`)}</div>` : ''}`;
-    else body = `<div class="rdvenn">${G.map((g, gi) => `<div class="rdvcol"><b>${esc(g)}</b>${k.items.map((x, it) => x[2] === gi ? `<div class="rdvitem ${rd.grp[it] === gi ? 'ok' : 'miss'}">${esc(x[0])}<small class="rdozh">${esc(x[1])}</small></div>` : '').join('')}</div>`).join('')}</div>`;
+    else body = `<div class="rdvenn ${G.length === 3 ? 'v3' : ''}" style="grid-template-columns:repeat(${G.length},1fr)">${G.map((g, gi) => `<div class="rdvcol"><b>${esc(g)}</b>${k.items.map((x, it) => x[2] === gi ? `<div class="rdvitem ${rd.grp[it] === gi ? 'ok' : 'miss'}">${esc(x[0])}<small class="rdozh">${esc(x[1])}</small></div>` : '').join('')}</div>`).join('')}</div>`;
   } else if (k.type === 'sort') {
     const parts = R.strategy.parts, lab = (s) => (k.slots ? esc(k.slots[s]) : `${parts[s].ic} ${esc(parts[s].zh)}`);   // 格子名稱：預設用策略卡的部分，k.slots 可自訂（例：第 1 件…）
     body = `<div class="rdslots">${rd.slots.map((it, s) => {
