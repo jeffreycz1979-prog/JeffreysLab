@@ -1,0 +1,365 @@
+// 英文順起來．探索英文島 - 雲端帳號（cloud.js v1）
+// 登入（學籍卡號＋4 位數密碼，或登入小卡 QR）、進度自動備份、換手機登入還原
+// 後台是獨立的 GAS（在負責 GAS 的 Project 開發）；API 格式見 Claude Docs「英文島後台規劃」
+//
+// ISLAND_API 空白時整個功能隱藏，學生畫面不會有任何變化
+// 測試：網址加 ?api=mock 用手機裡的模擬後台（測試帳號 1101／1234、1102／5678；QR 測試 ?api=mock&k=DEMO1）
+(() => {
+  const ISLAND_API = 'https://script.google.com/macros/s/AKfycbxmJlWTArNJDbuGzpUm0OC3wxqx6FS1aGNonU4RMFyKbEeY31SOQxPhc323PEiZS8DgQA/exec';   // 英文島後台 GAS（2026/10/28 部署）
+  const ID_LABEL = '學籍卡號';   // THC6：v2 備註欄的學籍卡號（後台也接受自編學號 自編學號）
+  const PUSH_GAP = 2 * 60000;    // 自動備份最多每 2 分鐘一次
+  const HIDE_GAP = 30000;        // App 切到背景時，距離上次備份 30 秒以上就再備份一次
+  const qs = new URLSearchParams(location.search);
+  const MOCK = qs.get('api') === 'mock';
+  const ON = !!ISLAND_API || MOCK;
+  window.cloud = { on: ON, mock: MOCK };
+  if (!ON) return;
+
+  let auth = null;        // {token, sid, nick, cls, syncedAt, syncedPts, print}
+  let pending = null;     // 登入時雲端和手機都有進度，等學生選
+  let pushing = null;
+
+  // ── API：同 Gateway 三鐵律（POST、不加 Content-Type、redirect follow、檢查 ok）──
+  async function api(action, params = {}) {
+    let j;
+    if (MOCK) j = await mockApi(action, params, auth && auth.token);
+    else {
+      const r = await fetch(ISLAND_API, {
+        method: 'POST', redirect: 'follow',
+        body: JSON.stringify({ action, token: auth ? auth.token : '', params }),
+      });
+      j = await r.json();
+    }
+    if (!j || !j.ok) {
+      const e = new Error((j && j.error) || '後台沒有回應');
+      e.code = j && j.code;
+      if (e.code === 'AUTH' && auth) { await dropAuth(); toast('登入已失效，請重新登入'); }
+      throw e;
+    }
+    return j.data || {};
+  }
+
+  // ── 進度快照：格式同轉移碼（profile、prog、meta、ledger、sig、set），加上給老師後台看的摘要 ──
+  function snapshot() {
+    return {
+      app: APP_ID, v: 2, profile: st.profile, prog: st.prog, meta: st.meta, ledger: st.ledger,
+      sig: st.tampered ? 'TAMPERED' : ledgerSig(),
+      set: { books: st.set.books, units: st.set.units, lessons: st.set.lessons, autoSpeak: st.set.autoSpeak },
+    };
+  }
+  function summary() {
+    let islands = 0;
+    try { allUnits().forEach((u) => { if (unitStations(u).full) islands++; }); } catch (e) {}
+    return {
+      total: points().total, wallet: walletPts(), week: weekCards(), mastered: masteredCount(), islands,
+      lastActive: st.meta.lastActive || '', nick: st.profile ? st.profile.name : '',
+      flags: [st.tampered ? 'tampered' : '', st.ledger.clockBad ? 'clock' : ''].filter(Boolean).join(','),
+    };
+  }
+  const round3 = (k, v) => (typeof v === 'number' && !Number.isInteger(v) ? Math.round(v * 1000) / 1000 : v);
+  const pack = () => JSON.stringify(snapshot(), round3);
+  const ptsOf = (d) => { const keep = st.ledger; st.ledger = d.ledger || { days: {}, bonus: [] }; const t = points().total; st.ledger = keep; return t; };
+
+  const saveAuth = () => db.set('auth', auth);
+  async function dropAuth() { auth = null; await db.del('auth'); render(); }
+
+  // ── 備份 ──
+  let lastPack = '';
+  async function push(force) {
+    if (!auth || !st.profile || st.meta.movedOut) return false;
+    if (pushing) return pushing;
+    const data = pack();
+    if (!force && data === lastPack) return false;
+    const sum = summary();
+    pushing = (async () => {
+      try {
+        const res = await api('pushProgress', { data, summary: sum, localAt: Date.now(),
+          drop: auth.syncedPts != null && sum.total < auth.syncedPts });   // 積分變少（例如按了全部重來）→ 請後台保留上一版
+        lastPack = data;
+        auth.syncedAt = res.serverAt || Date.now(); auth.syncedPts = sum.total; await saveAuth();
+        render(); return true;
+      } catch (e) { if (force) toast('備份失敗：' + e.message); return false; }
+      finally { pushing = null; }
+    })();
+    return pushing;
+  }
+  setInterval(() => { if (auth && Date.now() - (auth.syncedAt || 0) >= PUSH_GAP) push(false); }, 60000);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden' && auth && Date.now() - (auth.syncedAt || 0) >= HIDE_GAP) push(false);
+  });
+
+  // ── 套用雲端進度（換手機、選「用雲端的」）──
+  async function applyCloud(d) {
+    if (!d || d.app !== APP_ID || !d.prog) throw new Error('雲端資料格式不對');
+    st.profile = d.profile || st.profile; st.prog = d.prog; st.meta = { ...st.meta, ...d.meta };
+    delete st.meta.movedOut;
+    st.ledger = d.ledger || { days: {}, bonus: [] };
+    if (d.set) st.set = { ...st.set, ...d.set, csvUrl: st.set.csvUrl };
+    st.tampered = d.sig !== ledgerSig();   // 雲端資料被改過，異常標記照樣留著
+    await db.set('profile', st.profile); await saveProg(); await saveMeta(); await saveSet(); await saveLedger();
+    lastPack = pack();
+    $('onb').classList.remove('show'); $('modal').classList.remove('show'); checkLock();
+    st.cur = null; renderHeader(); renderFilters(); renderHome(); renderMe(); showView('v-home');
+  }
+
+  // ── 登入 ──
+  async function login(params) {
+    const res = await api('login', params);
+    auth = { token: res.token, sid: res.sid || params.sid || '', nick: res.nick || '', cls: res.cls || '', syncedAt: 0, syncedPts: null };
+    await saveAuth();
+    const pull = await api('pullProgress');
+    const cloud = pull.data ? (typeof pull.data === 'string' ? JSON.parse(pull.data) : pull.data) : null;
+    if (cloud && !st.profile) {
+      await applyCloud(cloud); auth.syncedAt = pull.at || Date.now(); auth.syncedPts = points().total; await saveAuth();
+      toast(`歡迎回來，${st.profile.name}！雲端進度已還原 ☁️`);
+    } else if (cloud && st.profile) {
+      const here = points().total, there = ptsOf(cloud);
+      if (pack() === JSON.stringify(cloud, round3)) { auth.syncedAt = pull.at; auth.syncedPts = here; await saveAuth(); toast('登入成功 ✅'); }
+      else { pending = cloud; return openChoice(here, there, cloud); }
+    } else if (!cloud && st.profile) {
+      await push(true); toast('登入成功，進度已備份到雲端 ☁️');
+    } else {
+      toast('登入成功！先取一個暱稱吧');
+      $('modal').classList.remove('show');
+      if (!$('onbName').value && auth.nick) $('onbName').value = auth.nick;
+      render(); return;
+    }
+    $('modal').classList.remove('show'); render(); renderMe();
+  }
+
+  function openLogin() {
+    $('sheet').innerHTML = `<h3 style="margin-top:0">登入英文島 <small>LOG IN</small></h3>
+      <p class="note">輸入<b>登入小卡</b>上的${ID_LABEL}和 4 位數密碼。<br>現在的進度不會不見，登入後會自動備份，換手機直接登入就好。</p>
+      <label class="clab">${ID_LABEL}</label>
+      <input class="search" id="cSid" inputmode="numeric" autocomplete="username" autocapitalize="off" spellcheck="false">
+      <label class="clab">密碼（4 位數）</label>
+      <input class="search" id="cPin" type="password" inputmode="numeric" maxlength="4" autocomplete="current-password">
+      <p class="cerr" id="cErr"></p>
+      <div class="btnrow" style="margin-top:12px"><button class="btn" data-act="cloudgo">登入</button><button class="btn ghost" data-close="1">取消</button></div>
+      ${MOCK ? '<p class="note" style="margin-top:10px">🧪 模擬後台：測試帳號 1101／1234、1102／5678</p>' : ''}`;
+    $('modal').classList.add('show');
+    setTimeout(() => $('cSid') && $('cSid').focus(), 200);
+  }
+  async function submitLogin(btn) {
+    const sid = ($('cSid').value || '').trim(), pin = ($('cPin').value || '').trim();
+    if (!sid) return $('cSid').focus();
+    if (!/^\d{4}$/.test(pin)) { $('cErr').textContent = '密碼是 4 位數字'; return $('cPin').focus(); }
+    btn.disabled = true; btn.textContent = '登入中…'; $('cErr').textContent = '';
+    try { await login({ sid, pin }); }
+    catch (e) { if ($('cErr')) $('cErr').textContent = e.message; }
+    finally { if (btn.isConnected) { btn.disabled = false; btn.textContent = '登入'; } }
+  }
+
+  function openChoice(here, there, cloud) {
+    const cloudFirst = there >= here;   // 預設用積分較高的那份
+    const nameOf = (d) => esc((d.profile && (d.profile.avatar + ' ' + d.profile.name)) || '');
+    const bCloud = `<button class="btn ${cloudFirst ? '' : 'ghost'}" data-act="cloudusecloud">☁️ 用雲端的（${there} ⭐）${cloudFirst ? '・建議' : ''}</button>`;
+    const bHere = `<button class="btn ${cloudFirst ? 'ghost' : ''}" data-act="cloudusehere">📱 用這支手機的（${here} ⭐）${cloudFirst ? '' : '・建議'}</button>`;
+    $('sheet').innerHTML = `<h3 style="margin-top:0">要用哪一份進度？ <small>WHICH PROGRESS?</small></h3>
+      <p class="note">雲端和這支手機都有進度，選一份繼續，另一份會被取代。</p>
+      <div class="set"><div class="srow"><div>☁️ 雲端<small>${nameOf(cloud)}</small></div><b>${there} ⭐</b></div>
+        <div class="srow"><div>📱 這支手機<small>${esc(st.profile.avatar + ' ' + st.profile.name)}</small></div><b>${here} ⭐</b></div></div>
+      <div class="btnrow" style="margin-top:12px;flex-direction:column">${cloudFirst ? bCloud + bHere : bHere + bCloud}</div>`;
+    $('modal').classList.add('show');
+  }
+  async function choose(useCloud) {
+    const c = pending; pending = null;
+    if (!c) return $('modal').classList.remove('show');
+    if (useCloud) { await applyCloud(c); auth.syncedAt = Date.now(); auth.syncedPts = points().total; await saveAuth(); toast('已換成雲端的進度 ☁️'); }
+    else { $('modal').classList.remove('show'); await push(true); toast('已用這支手機的進度覆蓋雲端 ☁️'); }
+    render(); renderMe();
+  }
+
+  async function logout() {
+    if (!confirm('登出後，這支手機的進度還在，但不會再自動備份到雲端。\n確定要登出嗎？')) return;
+    await push(false); await dropAuth(); renderMe(); toast('已登出');
+  }
+
+  // ── 畫面：我的 → 雲端帳號；登入後隱藏轉移碼 ──
+  const hhmm = (t) => { const d = new Date(t); return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
+  function render() {
+    dispatchEvent(new Event('cloud-auth'));   // 留言（msg.js）跟著登入狀態顯示信箱
+    const box = $('cloudBox'); if (!box) return;
+    box.style.display = '';
+    box.innerHTML = auth
+      ? `<div class="srow" style="display:block"><div>☁️ 雲端帳號：${esc(auth.nick || st.profile && st.profile.name || '')}${auth.cls ? '（' + esc(auth.cls) + '）' : ''}
+          <small>${auth.syncedAt ? '上次備份 ' + hhmm(auth.syncedAt) : '還沒備份'}・練習後會自動備份${MOCK ? '・🧪 模擬後台' : ''}</small></div>
+          <div class="btnrow" style="justify-content:flex-start;margin-top:8px"><button class="btn ghost" data-act="cloudpush">立即備份</button><button class="btn ghost" data-act="cloudout">登出</button></div></div>`
+      : `<div class="srow"><div>☁️ 雲端帳號<small>用老師發的登入小卡登入，進度自動備份，換手機直接登入${MOCK ? '・🧪 模擬後台' : ''}</small></div><button class="btn" data-act="cloudin">登入</button></div>`;
+    const code = $('codeBox'); if (code) code.style.display = auth ? 'none' : '';
+    const onb = $('onbLogin'); if (onb) onb.style.display = auth ? 'none' : '';
+    nagBar();
+  }
+
+  // ── 還沒登入的提醒（Jeffrey 2026/11/02：學生沒登入就直接玩，不知道去哪登入）──
+  // 首頁地圖上方一條紅色提醒（登入前一直在）＋每天第一次打開跳一次教學
+  const NAG_KEY = 'island-login-nag';
+  function nagBar() {
+    let bar = $('loginNag');
+    const need = !auth && st.profile;
+    if (!need) { if (bar) bar.remove(); return; }
+    if (!bar) {
+      const home = $('v-home'), card = home && home.querySelector('.island-card'); if (!card) return;
+      bar = document.createElement('button'); bar.id = 'loginNag'; bar.className = 'login-nag'; bar.dataset.act = 'cloudguide';
+      card.parentNode.insertBefore(bar, card);
+    }
+    bar.innerHTML = `<span>⚠️</span><div><b>你還沒登入！</b><small>進度沒有備份，換手機或刪掉 App 就會不見</small></div><i>怎麼登入 ›</i>`;
+  }
+  function loginGuide() {
+    const app = typeof isStandalone === 'function' && isStandalone();
+    $('sheet').innerHTML = `<h3 style="margin-top:0">🎫 登入英文島 <small>HOW TO LOG IN</small></h3>
+      <p class="note">登入之後，你的積分、角色、裝備都會<b>自動備份到雲端</b>；換手機只要再登入一次就全部回來。<br><b>放心：你現在玩到的進度不會不見</b>，登入後會一起存上去。</p>
+      <div class="lg-steps">
+        <div class="lg-step"><b>1</b><div>拿出老師發的<b>「登入小卡」</b><small>小卡上有你的${ID_LABEL}、4 位數密碼和一個 QR code</small></div></div>
+        <div class="lg-step"><b>2</b><div>按下面的 <b>「現在登入」</b><small>輸入小卡上的${ID_LABEL}和 4 位數密碼，再按「登入」</small></div></div>
+        <div class="lg-step"><b>3</b><div>看到 <b>「登入成功」</b> 就完成了！<small>以後在「我的 → ☁️ 雲端帳號」可以看到上次備份的時間</small></div></div>
+      </div>
+      <div class="lg-tip">${app
+        ? '📱 你是從主畫面的 App 打開的：請<b>用輸入的方式</b>登入。用相機掃 QR code 會打開瀏覽器，登入的是瀏覽器，不是這個 App。'
+        : '📷 也可以直接用手機相機掃小卡上的 QR code，會自動登入。<br>如果你之後會用主畫面的 App，請在 App 裡面再用輸入的方式登入一次。'}</div>
+      <p class="note" style="margin-top:8px">找不到小卡、或密碼不對？下次上課跟 Jeffrey 老師說，老師會再給你一張。</p>
+      <div class="btnrow" style="margin-top:12px"><button class="btn" data-act="cloudin">現在登入 ▶</button><button class="btn ghost" data-act="cloudlater">等一下再說</button></div>`;
+    $('modal').classList.add('show'); $('sheet').scrollTop = 0;
+  }
+  function nagToday() {   // 每天第一次打開 App、還沒登入 → 跳一次教學
+    if (auth || !st.profile) return;
+    const today = new Date().toDateString();
+    try { if (localStorage.getItem(NAG_KEY) === today) return; localStorage.setItem(NAG_KEY, today); } catch (e) {}
+    setTimeout(() => { if (!auth && !$('modal').classList.contains('show')) loginGuide(); }, 1200);
+  }
+  if (!document.getElementById('lgCss')) {
+    const c = document.createElement('style'); c.id = 'lgCss';
+    c.textContent = `.login-nag{display:flex;align-items:center;gap:10px;width:100%;text-align:left;margin:0 0 12px;padding:10px 12px;border-radius:16px;border:2px solid #FF6B57;background:#3a1c18;color:#fff;animation:lgPulse 2s ease-in-out infinite}
+      .login-nag>span{font-size:22px}.login-nag>div{flex:1;min-width:0}.login-nag b{display:block;font-size:15px}.login-nag small{display:block;font-size:12px;color:#ffc9c0}
+      .login-nag i{font-style:normal;font-weight:800;font-size:13px;background:#FF6B57;color:#1a0a08;border-radius:10px;padding:6px 10px;white-space:nowrap}
+      @keyframes lgPulse{50%{box-shadow:0 0 0 4px rgba(255,107,87,.25)}}
+      .lg-steps{display:flex;flex-direction:column;gap:8px;margin:12px 0}
+      .lg-step{display:flex;gap:10px;align-items:flex-start;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 12px;font-size:15px;line-height:1.5}
+      .lg-step>b{flex:none;width:28px;height:28px;border-radius:50%;background:var(--lime);color:#10140a;display:grid;place-items:center;font-family:Syne,sans-serif}
+      .lg-step small{display:block;font-size:12.5px;color:var(--muted)}
+      .lg-tip{font-size:13px;line-height:1.6;background:rgba(78,205,196,.12);border:1px solid #4ECDC4;border-radius:12px;padding:8px 10px}`;
+    document.head.appendChild(c);
+  }
+
+  document.addEventListener('click', (e) => {
+    const t = e.target.closest('[data-act]'); if (!t || !t.dataset.act.startsWith('cloud')) return;
+    const a = t.dataset.act;
+    if (a === 'cloudin') return openLogin();
+    if (a === 'cloudguide') return loginGuide();
+    if (a === 'cloudlater') { $('modal').classList.remove('show'); return toast('記得找時間登入喔！首頁的紅色提醒按一下就能登入'); }
+    if (a === 'cloudgo') return submitLogin(t);
+    if (a === 'cloudusecloud') return choose(true);
+    if (a === 'cloudusehere') return choose(false);
+    if (a === 'cloudpush') return push(true).then((ok) => ok && toast('已備份 ☁️'));
+    if (a === 'cloudout') return logout();
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.target.id === 'cPin' || e.target.id === 'cSid')) { const b = document.querySelector('[data-act="cloudgo"]'); if (b) submitLogin(b); } });
+
+  window.cloud.api = api;
+  window.cloud.auth = () => auth;
+
+  // ── 啟動：等主程式讀完進度，再讀登入狀態；網址帶 ?k= 就用小卡代碼自動登入 ──
+  const ready = () => (st.ready ? Promise.resolve() : new Promise((r) => addEventListener('island-ready', r, { once: true })));
+  ready().then(async () => {
+    auth = (await db.get('auth')) || null;
+    render();
+    const k = qs.get('k');
+    if (k) {
+      qs.delete('k'); history.replaceState(null, '', location.pathname + (qs.toString() ? '?' + qs : '') + location.hash);
+      if (auth) toast('已經登入了');
+      else login({ code: k }).catch((e) => toast('小卡登入失敗：' + e.message));
+    } else nagToday();
+  });
+
+  // ═══════════════════════════════════════════════════════
+  //  模擬後台（?api=mock）：資料存在這支手機的 localStorage，只用來測試畫面流程
+  // ═══════════════════════════════════════════════════════
+  async function mockApi(action, p, token) {
+    await new Promise((r) => setTimeout(r, 400));
+    const K = 'thc6-mock';
+    let M; try { M = JSON.parse(localStorage.getItem(K)); } catch (e) {}
+    M = M || { students: { 1101: { pin: '1234', nick: 'Bella', cls: 'THP11' }, 1102: { pin: '5678', nick: '', cls: 'THP11' } },
+      codes: { DEMO1: '1101' }, tokens: {}, progress: {}, fails: {} };
+    const save = () => { try { localStorage.setItem(K, JSON.stringify(M)); } catch (e) {} };
+    const ok = (data) => ({ ok: true, data }), fail = (error, code) => ({ ok: false, error, code });
+    if (action === 'ping') return ok({ pong: true });
+    if (action === 'login') {
+      let sid = p.sid;
+      if (p.code) { sid = M.codes[p.code]; if (!sid) return fail('小卡代碼無效或已經用過'); delete M.codes[p.code]; }
+      const s = M.students[sid];
+      const f = M.fails[sid] || { n: 0, until: 0 };
+      if (f.until > Date.now()) return fail('密碼錯太多次，請 10 分鐘後再試');
+      if (!s || (!p.code && s.pin !== p.pin)) {
+        if (s) { f.n++; if (f.n >= 5) { f.until = Date.now() + 600000; f.n = 0; } M.fails[sid] = f; save(); }
+        return fail(`${ID_LABEL}或密碼不對`);
+      }
+      delete M.fails[sid];
+      const tok = 'T' + Math.random().toString(36).slice(2);
+      M.tokens[tok] = sid; save();
+      return ok({ token: tok, sid, nick: s.nick, cls: s.cls, cloudAt: (M.progress[sid] || {}).at || 0 });
+    }
+    const sid = M.tokens[token];
+    if (!sid) return fail('請重新登入', 'AUTH');
+    if (action === 'pullProgress') { const r = M.progress[sid]; return ok({ data: r ? r.data : null, at: r ? r.at : 0 }); }
+    if (action === 'pushProgress') {
+      const prev = M.progress[sid];
+      M.progress[sid] = { data: p.data, summary: p.summary, at: Date.now(), prev: p.drop && prev ? prev.data : (prev && prev.prev) };
+      save(); return ok({ serverAt: M.progress[sid].at });
+    }
+    // ── 留言（同英文島後台「留言.gs」）──
+    M.msgs = M.msgs || []; M.drops = M.drops || []; M.avs = M.avs || {}; M.likes = M.likes || {};
+    if (!M.seeded) {   // 假同學：給畫面測試用
+      M.seeded = true;
+      M.avs['1199'] = { nick: 'Cyril', cls: 'THP11', at: 'U2', look: { skin: 2, hair: 'spiky', hairC: 1, top: 'knight', pet: 'dog', hold: 'balloon' } };
+      M.avs['1198'] = { nick: 'Mia', cls: 'THP11', at: 'U3', look: { skin: 0, hair: 'long', hairC: 3, top: 'princess', deco: 'tiara', pet: 'unicorn' } };
+      M.avs['1197'] = { nick: 'Leo', cls: 'THP11', at: 'U1', look: { skin: 3, hair: 'curly', top: 'dino', hat: 'cap' } };
+      M.msgs.push({ id: 'M1', sid: '1198', type: 'decl', text: '這週我要背完 U3 的單字！', status: 'public', at: Date.now() - 864e5, likes: 2 });
+      M.msgs.push({ id: 'M2', sid: '1199', type: 'decl', text: 'Word Brawl 我要打到 20 分 💪', status: 'public', at: Date.now() - 36e5, likes: 0 });
+      save();
+    }
+    const me = M.students[sid] || {}, nickOf = (k) => (M.avs[k] && M.avs[k].nick) || (M.students[k] && M.students[k].nick) || '同學';
+    if (action === 'postMessage') {
+      const text = String(p.text || '').trim().slice(0, 60);
+      if (!text) return fail('內容是空的');
+      const today = new Date().toDateString(), used = M.msgs.filter((m) => m.sid === sid && new Date(m.at).toDateString() === today).length;
+      if (used >= 3) return fail('今天已經寫 3 則了，明天再寫吧');
+      const m = { id: 'M' + (M.msgs.length + 1) + Math.random().toString(36).slice(2, 5), sid, type: p.type === 'decl' ? 'decl' : 'whisper', text, status: p.type === 'decl' ? 'pending' : 'new', at: Date.now(), likes: 0 };
+      M.msgs.push(m); save();
+      return ok({ id: m.id, status: m.status, at: m.at, used: used + 1 });
+    }
+    if (action === 'setAvatar') { M.avs[sid] = { nick: String(p.nick || '').slice(0, 12), cls: me.cls, at: String(p.at || ''), look: p.look || {} }; save(); return ok({}); }
+    if (action === 'markRead') {
+      (p.ids || []).forEach((id) => { const m = M.msgs.find((x) => x.id === id && x.sid === sid); if (m) m.read = true; });
+      (p.drops || []).forEach((id) => { const d = M.drops.find((x) => x.id === id); if (d) { d.readBy = d.readBy || []; if (!d.readBy.includes(sid)) d.readBy.push(sid); } });
+      save(); return ok({});
+    }
+    if (action === 'likeDeclaration') {
+      const m = M.msgs.find((x) => x.id === p.id && x.status === 'public'); if (!m) return fail('找不到這則宣言');
+      const k = sid + '|' + m.id; if (m.sid === sid) return fail('不能給自己按讚');
+      if (!M.likes[k]) { M.likes[k] = 1; m.likes = (m.likes || 0) + 1; save(); }
+      return ok({ likes: m.likes, liked: true });
+    }
+    if (action === 'inbox') {
+      const today = new Date().toDateString();
+      const mine = M.msgs.filter((m) => m.sid === sid).slice(-30).map((m) => ({ id: m.id, type: m.type, text: m.text, status: m.status, reply: m.reply || '', replyAt: m.replyAt || 0, read: !!m.read, at: m.at, likes: m.likes || 0 }));
+      const drops = M.drops.filter((d) => (d.to === sid || d.to === me.cls) && (!d.until || d.until > Date.now())).map((d) => ({ id: d.id, text: d.text, at: d.at, to: d.to === sid ? 'me' : 'class', read: (d.readBy || []).includes(sid) }));
+      const pub = M.msgs.filter((m) => m.type === 'decl' && m.status === 'public' && m.sid !== sid && (M.avs[m.sid] || {}).cls === me.cls);
+      const board = pub.slice(-30).reverse().map((m) => ({ id: m.id, key: m.sid, nick: nickOf(m.sid), look: (M.avs[m.sid] || {}).look || {}, text: m.text, likes: m.likes || 0, liked: !!M.likes[sid + '|' + m.id], at: m.at }));
+      const mates = Object.keys(M.avs).filter((k) => k !== sid && M.avs[k].cls === me.cls).map((k) => {
+        const d = pub.filter((m) => m.sid === k).pop();
+        return { key: k, nick: M.avs[k].nick, at: M.avs[k].at, look: M.avs[k].look, decl: d ? { id: d.id, text: d.text, likes: d.likes || 0, liked: !!M.likes[sid + '|' + d.id] } : null };
+      });
+      return ok({ mine, drops, board, mates, used: M.msgs.filter((m) => m.sid === sid && new Date(m.at).toDateString() === today).length, max: 3, now: Date.now() });
+    }
+    return fail('模擬後台沒有這個 action：' + action);
+  }
+  // 模擬老師（只在 ?api=mock）：在 console 測試核准、回覆、空降
+  if (MOCK) window.mockTeacher = {
+    K: 'thc6-mock',
+    _rw(fn) { const M = JSON.parse(localStorage.getItem(this.K)); fn(M); localStorage.setItem(this.K, JSON.stringify(M)); },
+    list() { return JSON.parse(localStorage.getItem(this.K)).msgs; },
+    reply(id, text, status) { this._rw((M) => { const m = M.msgs.find((x) => x.id === id); m.reply = text; m.replyAt = Date.now(); m.read = false; if (status) m.status = status; else if (m.type === 'whisper') m.status = 'seen'; }); },
+    review(id, status, reply) { this._rw((M) => { const m = M.msgs.find((x) => x.id === id); m.status = status; if (reply) { m.reply = reply; m.replyAt = Date.now(); m.read = false; } }); },
+    airdrop(to, text) { this._rw((M) => { M.drops = M.drops || []; M.drops.push({ id: 'D' + Date.now(), to, text, at: Date.now() }); }); },
+  };
+})();
