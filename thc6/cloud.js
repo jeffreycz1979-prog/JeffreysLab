@@ -6,7 +6,7 @@
 // 測試：網址加 ?api=mock 用手機裡的模擬後台（測試帳號 1101／1234、1102／5678；QR 測試 ?api=mock&k=DEMO1）
 (() => {
   const ISLAND_API = 'https://script.google.com/macros/s/AKfycbxmJlWTArNJDbuGzpUm0OC3wxqx6FS1aGNonU4RMFyKbEeY31SOQxPhc323PEiZS8DgQA/exec';   // 英文島後台 GAS（2026/10/28 部署）
-  const ID_LABEL = '學籍卡號';   // THC6：v2 備註欄的學籍卡號（後台也接受自編學號 自編學號）
+  const ID_LABEL = '學號';   // THC6：後台配的學號（61xx）
   const PUSH_GAP = 2 * 60000;    // 自動備份最多每 2 分鐘一次
   const HIDE_GAP = 30000;        // App 切到背景時，距離上次備份 30 秒以上就再備份一次
   const qs = new URLSearchParams(location.search);

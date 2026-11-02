@@ -7,8 +7,8 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 const W = (sx, sy) => [(sx - 195) / 10, (sy - 230) / 10];   // 2D 座標（390×460）→ 3D，每 10px＝1 單位
-const ISLAND = [[44, 432], [4, 372, 6, 262, 30, 196], [50, 132, 16, 70, 84, 34], [150, 2, 270, -4, 330, 34], [386, 72, 380, 160, 370, 228], [360, 300, 386, 382, 326, 430], [262, 470, 104, 474, 44, 432]];
-const GRASS = [[58, 418], [28, 366, 28, 270, 48, 206], [66, 144, 40, 86, 96, 52], [154, 22, 262, 18, 316, 50], [362, 82, 358, 160, 350, 226], [342, 296, 364, 372, 314, 414], [258, 450, 112, 452, 58, 418]];
+let ISLAND = [[44, 432], [4, 372, 6, 262, 30, 196], [50, 132, 16, 70, 84, 34], [150, 2, 270, -4, 330, 34], [386, 72, 380, 160, 370, 228], [360, 300, 386, 382, 326, 430], [262, 470, 104, 474, 44, 432]];
+let GRASS = [[58, 418], [28, 366, 28, 270, 48, 206], [66, 144, 40, 86, 96, 52], [154, 22, 262, 18, 316, 50], [362, 82, 358, 160, 350, 226], [342, 296, 364, 372, 314, 414], [258, 450, 112, 452, 58, 418]];
 const C = {
   ink: 0x1a3a1a, lime: 0xCCFF00, limeD: 0x9FCC00, mint: 0x4ECDC4, mintD: 0x2A8E86, sand: 0xF1E3BE, grass: 0x9BD06E,
   white: 0xffffff, cream: 0xEFE8D8, locked: 0xC9C5BC, lockedD: 0xB0ABA0, road: 0xE6D7B5, water: 0x5FC8DA, waterL: 0x8FDDEA,
@@ -46,9 +46,22 @@ export async function createIsland3D(el, host) {
   el.appendChild(renderer.domElement);
   renderer.domElement.style.touchAction = 'none';
 
+  // 每座島的樣子（host.theme）：顏色、海岸線、景物（THC6＝秋楓城堡島）
+  const TH = host.theme ? host.theme() : null;
+  let SKY = 0xC9EEEA;
+  if (TH) {
+    Object.assign(C, TH.c || {});
+    if (TH.sky) SKY = TH.sky;
+    if (TH.pts) {
+      ISLAND = TH.pts;
+      const k = 0.92, f = (v, c) => c + (v - c) * k;
+      GRASS = TH.pts.map((p) => p.map((v, i) => f(v, i % 2 ? 230 : 195)));
+    }
+    if (TH.decor) Object.assign(DECOR, TH.decor);
+  }
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0xC9EEEA);
-  scene.fog = new THREE.Fog(0xC9EEEA, 90, 170);
+  scene.background = new THREE.Color(SKY);
+  scene.fog = new THREE.Fog(SKY, 90, 170);
   const camera = new THREE.PerspectiveCamera(40, 1, 0.5, 400);
   scene.add(new THREE.HemisphereLight(0xffffff, 0x8fbf8f, 1.25));
   const sun = new THREE.DirectionalLight(0xfff2d6, 2.1);
@@ -127,9 +140,17 @@ export async function createIsland3D(el, host) {
     }
     const D = DECOR[L.lay];
     const at = (sx, sy) => W(sx, sy);
-    D.trees.forEach(([kind, sx, sy, s]) => {
+    D.trees.forEach(([kind, sx, sy, s, c5]) => {
       const [x, z] = at(sx, sy), g = new THREE.Group(); g.position.set(x, GROUND, z); g.scale.setScalar(s);
-      if (kind === 't') {
+      if (kind === 'm') {   // 楓樹（顏色在第 5 個值）
+        g.add(mesh(new THREE.CylinderGeometry(0.22, 0.3, 1.4, 6), M(C.trunk), 0, 0.7, 0));
+        g.add(mesh(new THREE.IcosahedronGeometry(1.25, 0), M(c5 || 0xE8833A), 0, 2.2, 0));
+        g.add(mesh(new THREE.IcosahedronGeometry(0.7, 0), M(0xF7C25A), -0.5, 2.7, 0.4));
+      } else if (kind === 'palm') {   // 椰子樹：彎彎的樹幹＋扁平葉子＋椰子
+        const tr = mesh(new THREE.CylinderGeometry(0.14, 0.24, 2.6, 6), M(0xA0703C), 0.25, 1.3, 0); tr.rotation.z = -0.18; g.add(tr);
+        for (let i = 0; i < 6; i++) { const lf = mesh(new THREE.BoxGeometry(1.6, 0.06, 0.42), M(i % 2 ? C.leaf : C.leafL), 0, 0, 0); lf.position.set(0.5 + Math.cos(i) * 0.7, 2.62, Math.sin(i) * 0.7); lf.rotation.set(0, -i, -0.35); g.add(lf); }
+        [[0.4, 0.15], [0.6, -0.1], [0.45, -0.25]].forEach(([a, b]) => g.add(mesh(new THREE.SphereGeometry(0.13, 6, 5), M(0x7A4A26), a, 2.45, b)));
+      } else if (kind === 't') {
         g.add(mesh(new THREE.CylinderGeometry(0.22, 0.3, 1.4, 6), M(C.trunk), 0, 0.7, 0));
         g.add(mesh(new THREE.IcosahedronGeometry(1.25, 0), M(C.leaf), 0, 2.2, 0));
         g.add(mesh(new THREE.IcosahedronGeometry(0.7, 0), M(C.leafL), -0.5, 2.7, 0.4));
@@ -148,7 +169,58 @@ export async function createIsland3D(el, host) {
     if (D.river) layoutG.add(mesh(ribbon(D.river.map(([a, b]) => new THREE.Vector2(...at(a, b))), 0.6, GROUND + 0.06), M(C.waterL, { side: THREE.DoubleSide }), 0, 0, 0, false));
     D.rocks.forEach(([sx, sy, s]) => { const [x, z] = at(sx, sy), r = mesh(new THREE.DodecahedronGeometry(0.55 * s, 0), M(C.rock), x, GROUND + 0.25 * s, z); r.rotation.set(sx, sy, 0); layoutG.add(r); });
     D.flowers.forEach(([sx, sy, c]) => { const [x, z] = at(sx, sy); layoutG.add(mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.4, 4), M(0x3F8F43), x, GROUND + 0.2, z, false)); layoutG.add(mesh(new THREE.IcosahedronGeometry(0.16, 0), M(c), x, GROUND + 0.45, z, false)); });
-    { // 湖
+    (D.castles || []).forEach(([sx, sy, sc]) => {   // 城堡：城牆＋左右塔＋中間主塔
+      const [x, z] = at(sx, sy), g = new THREE.Group(); g.position.set(x, GROUND, z); g.scale.setScalar(sc);
+      g.add(mesh(new THREE.BoxGeometry(5.2, 2.2, 2.2), M(0xE9E1F2), 0, 1.1, 0));
+      for (let i = -2; i <= 2; i++) g.add(mesh(new THREE.BoxGeometry(0.5, 0.45, 2.2), M(0xE9E1F2), i * 1.05, 2.42, 0));
+      [-2.9, 2.9].forEach((tx) => { g.add(mesh(new THREE.CylinderGeometry(0.75, 0.8, 3.6, 8), M(0xD9CDEB), tx, 1.8, 0)); g.add(mesh(new THREE.ConeGeometry(1.0, 1.6, 8), M(0x8E6FC4), tx, 4.4, 0)); });
+      g.add(mesh(new THREE.CylinderGeometry(0.85, 0.9, 4.6, 8), M(0xD9CDEB), 0, 2.3, -0.3));
+      g.add(mesh(new THREE.ConeGeometry(1.15, 2.0, 8), M(0xE8833A), 0, 5.6, -0.3));
+      g.add(mesh(new THREE.BoxGeometry(0.9, 1.2, 0.1), M(0x7A4A26), 0, 0.6, 1.12, false));
+      const flag = mesh(new THREE.BoxGeometry(0.7, 0.4, 0.05), M(C.lime), 0.38, 7.0, -0.3, false); g.add(flag);
+      g.add(mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.0, 4), M(C.ink), 0, 6.9, -0.3, false));
+      g.rotation.y = 0.35; layoutG.add(g); sway.push({ g: flag, p: 2 });
+    });
+    (D.volcanoes || []).forEach(([sx, sy, sc]) => {   // 火山：岩石＋岩漿口＋冒煙
+      const [x, z] = at(sx, sy), g = new THREE.Group(); g.position.set(x, GROUND, z); g.scale.setScalar(sc);
+      g.add(mesh(new THREE.CylinderGeometry(1.2, 4.2, 5.2, 8), M(0x8A6A58), 0, 2.6, 0));
+      g.add(mesh(new THREE.CylinderGeometry(1.15, 1.3, 0.5, 8), M(0xFF6B2C, { emissive: 0xFF4A00, emissiveIntensity: 0.6 }), 0, 5.1, 0, false));
+      [[0.9, 1.6], [0.2, 0.9], [-0.7, 1.3]].forEach(([a, r], i) => { const lv = mesh(new THREE.BoxGeometry(0.35, 2.2, 0.2), M(0xFF8A3D, { emissive: 0xFF5A00, emissiveIntensity: 0.4 }), a * 1.6, 3.9 - i * 0.2, 1.0 + r * 0.5, false); lv.rotation.x = -0.45; g.add(lv); });
+      [0, 1, 2].forEach((i) => { const sm = mesh(new THREE.IcosahedronGeometry(0.7 + i * 0.25, 0), M(0xE8E4DE, { transparent: true, opacity: 0.85 }), i * 0.4, 6.2 + i * 1.0, -i * 0.2, false); g.add(sm); bobbers.push({ g: sm, y: sm.position.y, p: i * 1.7 }); });
+      layoutG.add(g);
+    });
+    (D.lighthouses || []).forEach(([sx, sy, sc]) => {   // 燈塔：紅白條紋
+      const [x, z] = at(sx, sy), g = new THREE.Group(); g.position.set(x, GROUND, z); g.scale.setScalar(sc);
+      for (let i = 0; i < 4; i++) g.add(mesh(new THREE.CylinderGeometry(0.62 - i * 0.07, 0.68 - i * 0.07, 0.9, 10), M(i % 2 ? C.white : C.coral), 0, 0.45 + i * 0.9, 0));
+      g.add(mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.6, 10), M(0xFFE27A, { emissive: 0xFFC800, emissiveIntensity: 0.7 }), 0, 3.9, 0, false));
+      g.add(mesh(new THREE.ConeGeometry(0.6, 0.7, 10), M(C.coral), 0, 4.55, 0));
+      layoutG.add(g);
+    });
+    (D.huts || []).forEach(([sx, sy, sc]) => {   // 草屋
+      const [x, z] = at(sx, sy), g = new THREE.Group(); g.position.set(x, GROUND, z); g.scale.setScalar(sc);
+      g.add(mesh(new THREE.CylinderGeometry(0.9, 0.9, 1.1, 8), M(0xD9B07A), 0, 0.55, 0));
+      g.add(mesh(new THREE.ConeGeometry(1.4, 1.2, 8), M(0xC8963E), 0, 1.7, 0));
+      layoutG.add(g);
+    });
+    (D.towers || []).forEach(([sx, sy, sc]) => {   // 巫師塔
+      const [x, z] = at(sx, sy), g = new THREE.Group(); g.position.set(x, GROUND, z); g.scale.setScalar(sc);
+      g.add(mesh(new THREE.CylinderGeometry(0.55, 0.75, 3.4, 8), M(0xCFC4E3), 0, 1.7, 0));
+      g.add(mesh(new THREE.ConeGeometry(0.95, 2.2, 8), M(0x5B4A9E), 0, 4.5, 0));
+      g.add(mesh(new THREE.IcosahedronGeometry(0.22, 0), M(0xFFD84D, { emissive: 0xFFB800, emissiveIntensity: 0.6 }), 0, 5.75, 0, false));
+      layoutG.add(g);
+    });
+    (D.crystals || []).forEach(([sx, sy, sc]) => {   // 魔法水晶
+      const [x, z] = at(sx, sy);
+      [[0, 0, 1.3, 0x7FD3FF], [-0.5, 0.2, 0.9, 0xB48CFF], [0.5, 0.1, 0.7, 0xFF9AC1]].forEach(([a, b, h, c]) => {
+        const m = mesh(new THREE.OctahedronGeometry(0.35 * h, 0), M(c, { emissive: c, emissiveIntensity: 0.25 }), x + a * sc, GROUND + 0.4 * h * sc, z + b * sc);
+        m.scale.set(sc, sc * 1.8, sc); layoutG.add(m); bobbers.push({ g: m, y: m.position.y, p: a * 3 + 1 });
+      });
+    });
+    (D.pumpkins || []).forEach(([sx, sy, sc]) => {
+      const [x, z] = at(sx, sy), m = mesh(new THREE.SphereGeometry(0.42 * sc, 8, 6), M(0xFF8A3D), x, GROUND + 0.3 * sc, z);
+      m.scale.y = 0.75; layoutG.add(m); layoutG.add(mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.25, 4), M(0x3F8F43), x, GROUND + 0.62 * sc, z, false));
+    });
+    if (D.lake) { // 湖
       const [sx, sy, rx, rz] = D.lake, [x, z] = at(sx, sy);
       const shore = mesh(flat(new THREE.CircleGeometry(1, 20)), M(0xC9E9A8), x, GROUND + 0.02, z, false); shore.scale.set(rx + 0.6, 1, rz + 0.5); layoutG.add(shore);
       const w = mesh(flat(new THREE.CircleGeometry(1, 20)), M(C.waterL), x, GROUND + 0.05, z, false); w.scale.set(rx, 1, rz); layoutG.add(w);
@@ -166,7 +238,7 @@ export async function createIsland3D(el, host) {
     scene.add(g); drifters.push({ g, x0: x, p: x, sp: 0.15 + Math.abs(z) * 0.003 });
   });
   const boat = new THREE.Group(); { const [x, z] = W(380, 452); boat.position.set(x, -0.3, z); }
-  boat.add(mesh(new THREE.BoxGeometry(2.2, 0.5, 0.9), M(C.coral), 0, 0, 0));
+  boat.add(mesh(new THREE.BoxGeometry(2.2, 0.5, 0.9), M(C.boat || C.coral), 0, 0, 0));
   boat.add(mesh(new THREE.CylinderGeometry(0.05, 0.05, 2, 5), M(C.ink), 0, 1.2, 0));
   boat.add(mesh(new THREE.ConeGeometry(0.75, 1.6, 3), M(C.white), 0.35, 1.2, 0));
   scene.add(boat); const boatX = boat.position.x;
@@ -366,6 +438,30 @@ export async function createIsland3D(el, host) {
 
   // ── 走路路線：黃色圓點沿小路排到目的地，走過的點消失；終點一支倒立的旗標上下浮動 ──
   const routeG = new THREE.Group(); scene.add(routeG);
+
+  // ── 每週神秘寶箱：位置用 2D 座標，點了交給 host.chestTap ──
+  const chestG = new THREE.Group(); scene.add(chestG);
+  let chestPick = [], chestSig = '';
+  function buildChests(list) {
+    const sig = JSON.stringify(list.map((c) => [c.i, c.x, c.y, c.tried])); if (sig === chestSig) return; chestSig = sig;
+    chestG.clear(); chestPick = [];
+    list.forEach((c) => {
+      const [x, z] = W(c.x, c.y), g = new THREE.Group(); g.position.set(x, GROUND, z);
+      const box = new THREE.Group(); box.scale.setScalar(1.4); g.add(box);
+      box.add(mesh(new THREE.BoxGeometry(1.5, 0.9, 1.0), M(0xB9773A), 0, 0.45, 0));
+      box.add(mesh(new THREE.CylinderGeometry(0.5, 0.5, 1.5, 8, 1, false, 0, Math.PI), M(0xE09A4A), 0, 0.9, 0).rotateZ(Math.PI / 2));
+      box.add(mesh(new THREE.BoxGeometry(0.34, 0.42, 0.08), M(0xFFD84D), 0, 0.7, 0.52, false));
+      [-0.55, 0.55].forEach((bx) => box.add(mesh(new THREE.BoxGeometry(0.12, 0.92, 1.04), M(0x6B4423), bx, 0.46, 0, false)));
+      if (!c.tried) {
+        const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.9, 7, 12, 1, true), new THREE.MeshBasicMaterial({ color: 0xFFD84D, transparent: true, opacity: 0.28, depthWrite: false, side: THREE.DoubleSide }));
+        beam.position.y = 3.5; beam.userData.beam = 1; g.add(beam); beam.userData.chest = c.i; chestPick.push(beam);
+      }
+      box.children.forEach((m) => { m.userData.chest = c.i; chestPick.push(m); });
+      g.userData = { box, tried: c.tried, p: c.i * 1.7 };
+      if (c.tried) box.scale.setScalar(1.2);
+      chestG.add(g);
+    });
+  }
   const dotGeo = new THREE.SphereGeometry(0.2, 8, 6), dotMat = new THREE.MeshBasicMaterial({ color: 0xFFC93D });
   const pinMat = new THREE.MeshLambertMaterial({ color: 0xFFC93D, emissive: 0xFFA800, emissiveIntensity: 0.5 });
   let routeEnd = null;
@@ -403,6 +499,8 @@ export async function createIsland3D(el, host) {
     ray.setFromCamera(ptr, camera);
     if (ray.intersectObject(hero, false).length) return host.heroTap();
     const mh = ray.intersectObjects(matesG.children, false)[0]; if (mh && host.mateTap) return host.mateTap(mh.object.userData.mate);
+    const ch = chestPick.length && ray.intersectObjects(chestPick, false)[0];
+    if (ch && host.chestTap) return host.chestTap(ch.object.userData.chest);
     const hit = ray.intersectObjects(pickables, false)[0]; if (!hit) return;
     const t = tileByCode(hit.object.userData.unit); if (!t) return;
     if (t.u.locked) { t.bounce = performance.now(); return host.tileTap(t.u.code); }
@@ -423,6 +521,7 @@ export async function createIsland3D(el, host) {
     const L = host.layout();
     if (L.lay !== curLay) buildLayout(L);
     buildTiles(host.units());
+    if (host.chests) buildChests(host.chests());
     const at = tileByCode(host.heroAt()) || tiles.find((t) => !t.u.locked);
     if (at && !walking) { heroLen = standLen(at); placeHero(heroLen); hero.position.y = groundAt(hero.position.x, hero.position.z); }
     if (view === 'eye' && !walking && !follow) controls.target.copy(heroTarget());
@@ -476,6 +575,7 @@ export async function createIsland3D(el, host) {
       drifters.forEach((d) => (d.g.position.x = d.x0 + Math.sin(t * d.sp + d.p) * 4));
       bobbers.forEach((b) => { b.g.position.y = b.y + Math.sin(t * 1.8 + b.p) * 0.08; if (b.swim) { b.g.position.x = b.swim.cx + Math.cos(t * 0.4) * b.swim.rx; b.g.position.z = b.swim.cz + Math.sin(t * 0.4) * b.swim.rz; b.g.rotation.y = -t * 0.4; } });
       boat.position.y = -0.3 + Math.sin(t * 1.8) * 0.12; boat.rotation.z = Math.sin(t * 1.3) * 0.08; boat.position.x = boatX + Math.sin(t * 0.15) * 3;
+      chestG.children.forEach((g) => { if (g.userData.tried) return; g.userData.box.position.y = Math.abs(Math.sin(t * 2.4 + g.userData.p)) * 0.35; g.userData.box.rotation.y = Math.sin(t * 0.9 + g.userData.p) * 0.5; });
       tiles.forEach((x) => x.plat.children.forEach((c) => { if (c.userData.flag) c.rotation.y = Math.sin(t * 3) * 0.25; if (c.userData.spin) c.rotation.y = t * 0.8; }));
     }
     tiles.forEach((x) => {

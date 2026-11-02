@@ -2133,7 +2133,7 @@ function ensure3D() {
   if (i3dLoading) return;
   i3dLoading = (async () => {
     try {
-      const mod = await import('./island3d.js?v=5');
+      const mod = await import('./island3d.js?v=6');
       i3d = await mod.createIsland3D($('island3d'), island3dHost);
       $('island3d').classList.add('ready');
     } catch (e) {
@@ -3875,6 +3875,6 @@ document.addEventListener('keydown', (e) => {
 <script src="games/horde.js?v=0.4"></script>
 <script src="cloud.js?v=3"></script>
 <script src="msg.js?v=4"></script>
-<script src="/JeffreysLab/archipelago.js?v=1"></script>
+<script src="/JeffreysLab/archipelago.js?v=2"></script>
 </body>
 </html>

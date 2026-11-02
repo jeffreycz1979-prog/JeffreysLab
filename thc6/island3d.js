@@ -146,6 +146,10 @@ export async function createIsland3D(el, host) {
         g.add(mesh(new THREE.CylinderGeometry(0.22, 0.3, 1.4, 6), M(C.trunk), 0, 0.7, 0));
         g.add(mesh(new THREE.IcosahedronGeometry(1.25, 0), M(c5 || 0xE8833A), 0, 2.2, 0));
         g.add(mesh(new THREE.IcosahedronGeometry(0.7, 0), M(0xF7C25A), -0.5, 2.7, 0.4));
+      } else if (kind === 'palm') {   // 椰子樹：彎彎的樹幹＋扁平葉子＋椰子
+        const tr = mesh(new THREE.CylinderGeometry(0.14, 0.24, 2.6, 6), M(0xA0703C), 0.25, 1.3, 0); tr.rotation.z = -0.18; g.add(tr);
+        for (let i = 0; i < 6; i++) { const lf = mesh(new THREE.BoxGeometry(1.6, 0.06, 0.42), M(i % 2 ? C.leaf : C.leafL), 0, 0, 0); lf.position.set(0.5 + Math.cos(i) * 0.7, 2.62, Math.sin(i) * 0.7); lf.rotation.set(0, -i, -0.35); g.add(lf); }
+        [[0.4, 0.15], [0.6, -0.1], [0.45, -0.25]].forEach(([a, b]) => g.add(mesh(new THREE.SphereGeometry(0.13, 6, 5), M(0x7A4A26), a, 2.45, b)));
       } else if (kind === 't') {
         g.add(mesh(new THREE.CylinderGeometry(0.22, 0.3, 1.4, 6), M(C.trunk), 0, 0.7, 0));
         g.add(mesh(new THREE.IcosahedronGeometry(1.25, 0), M(C.leaf), 0, 2.2, 0));
@@ -176,6 +180,27 @@ export async function createIsland3D(el, host) {
       const flag = mesh(new THREE.BoxGeometry(0.7, 0.4, 0.05), M(C.lime), 0.38, 7.0, -0.3, false); g.add(flag);
       g.add(mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.0, 4), M(C.ink), 0, 6.9, -0.3, false));
       g.rotation.y = 0.35; layoutG.add(g); sway.push({ g: flag, p: 2 });
+    });
+    (D.volcanoes || []).forEach(([sx, sy, sc]) => {   // 火山：岩石＋岩漿口＋冒煙
+      const [x, z] = at(sx, sy), g = new THREE.Group(); g.position.set(x, GROUND, z); g.scale.setScalar(sc);
+      g.add(mesh(new THREE.CylinderGeometry(1.2, 4.2, 5.2, 8), M(0x8A6A58), 0, 2.6, 0));
+      g.add(mesh(new THREE.CylinderGeometry(1.15, 1.3, 0.5, 8), M(0xFF6B2C, { emissive: 0xFF4A00, emissiveIntensity: 0.6 }), 0, 5.1, 0, false));
+      [[0.9, 1.6], [0.2, 0.9], [-0.7, 1.3]].forEach(([a, r], i) => { const lv = mesh(new THREE.BoxGeometry(0.35, 2.2, 0.2), M(0xFF8A3D, { emissive: 0xFF5A00, emissiveIntensity: 0.4 }), a * 1.6, 3.9 - i * 0.2, 1.0 + r * 0.5, false); lv.rotation.x = -0.45; g.add(lv); });
+      [0, 1, 2].forEach((i) => { const sm = mesh(new THREE.IcosahedronGeometry(0.7 + i * 0.25, 0), M(0xE8E4DE, { transparent: true, opacity: 0.85 }), i * 0.4, 6.2 + i * 1.0, -i * 0.2, false); g.add(sm); bobbers.push({ g: sm, y: sm.position.y, p: i * 1.7 }); });
+      layoutG.add(g);
+    });
+    (D.lighthouses || []).forEach(([sx, sy, sc]) => {   // 燈塔：紅白條紋
+      const [x, z] = at(sx, sy), g = new THREE.Group(); g.position.set(x, GROUND, z); g.scale.setScalar(sc);
+      for (let i = 0; i < 4; i++) g.add(mesh(new THREE.CylinderGeometry(0.62 - i * 0.07, 0.68 - i * 0.07, 0.9, 10), M(i % 2 ? C.white : C.coral), 0, 0.45 + i * 0.9, 0));
+      g.add(mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.6, 10), M(0xFFE27A, { emissive: 0xFFC800, emissiveIntensity: 0.7 }), 0, 3.9, 0, false));
+      g.add(mesh(new THREE.ConeGeometry(0.6, 0.7, 10), M(C.coral), 0, 4.55, 0));
+      layoutG.add(g);
+    });
+    (D.huts || []).forEach(([sx, sy, sc]) => {   // 草屋
+      const [x, z] = at(sx, sy), g = new THREE.Group(); g.position.set(x, GROUND, z); g.scale.setScalar(sc);
+      g.add(mesh(new THREE.CylinderGeometry(0.9, 0.9, 1.1, 8), M(0xD9B07A), 0, 0.55, 0));
+      g.add(mesh(new THREE.ConeGeometry(1.4, 1.2, 8), M(0xC8963E), 0, 1.7, 0));
+      layoutG.add(g);
     });
     (D.towers || []).forEach(([sx, sy, sc]) => {   // 巫師塔
       const [x, z] = at(sx, sy), g = new THREE.Group(); g.position.set(x, GROUND, z); g.scale.setScalar(sc);

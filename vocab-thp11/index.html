@@ -669,6 +669,7 @@ nav button.on{color:var(--lime);font-weight:700}
         <div class="i3d-views"><button data-i3v="bird" data-en="Bird">鳥瞰</button><button data-i3v="eye" data-en="Walk">平視</button><button data-i3v="top" data-en="Top">俯視</button><button data-i3v="reset" aria-label="重設視角">↺</button></div>
       </div>
       <button class="island-port" data-v="v-quiz" id="islandPort"></button>
+      <button class="island-port" id="islandDock"></button>
     </div>
     <div class="hero">
       <div class="ring" id="ring"></div>
@@ -1782,7 +1783,19 @@ const TILE_COLORS = {
   started: ['#4ECDC4', '#38AFA6', '#2A8E86'], fresh: ['#ffffff', '#E2DCCD', '#CBC4B3'],
 };
 // ── 島上的大自然：樹、山、湖、河、花、雲、船（只是裝飾，點不到）──
-const ISLAND_SHAPE = 'M44 432 C4 372 6 262 30 196 C50 132 16 70 84 34 C150 2 270 -4 330 34 C386 72 380 160 370 228 C360 300 386 382 326 430 C262 470 104 474 44 432 Z';
+// ── 每座島的樣子（THP11：火山椰林島；THP5 春天島、THC6 秋楓城堡島）──
+// pts：海岸線（起點＋一段段三次貝茲），2D 與 3D 共用；草地＝海岸線往中心縮 0.92
+const ISLAND_THEME = {
+  id: 'vocab-thp11', name: ['火山椰林島', 'Volcano Palm Island'],
+  sea: '#7FD6DC', shallow: '#C6F1EE', sand: '#FFF0CF', grass: '#B6DE95', road: '#E8D3A6', ink: '#1a3a1a',
+  pts: [[50, 440], [10, 400, 0, 300, 14, 230], [26, 160, 0, 90, 60, 40], [120, -10, 270, -6, 330, 40], [390, 86, 392, 180, 376, 250], [364, 300, 330, 330, 350, 380], [372, 430, 300, 470, 200, 462], [120, 458, 80, 460, 50, 440]],
+};
+const shapePath = (pts, k = 1, cx = 195, cy = 230) => {
+  const f = (x, y) => `${(cx + (x - cx) * k).toFixed(1)} ${(cy + (y - cy) * k).toFixed(1)}`;
+  return 'M' + f(pts[0][0], pts[0][1]) + pts.slice(1).map((p) => ' C' + f(p[0], p[1]) + ' ' + f(p[2], p[3]) + ' ' + f(p[4], p[5])).join('') + ' Z';
+};
+const ISLAND_SHAPE = shapePath(ISLAND_THEME.pts);
+const GRASS_SHAPE = shapePath(ISLAND_THEME.pts, 0.92);
 const DECO = {
   tree: (x, y, s = 1, d = 0) => `<g transform="translate(${x} ${y}) scale(${s})"><g class="sway" style="animation-delay:-${d}s">
     <rect x="-3" y="-15" width="6" height="15" rx="1.5" fill="#8B5A2B" stroke="${INK}" stroke-width="1.8"/>
@@ -1819,35 +1832,50 @@ const DECO = {
     <path d="M-1.5 -16 L-9 -3 L-1.5 -3 Z" fill="#CCFF00" stroke="${INK}" stroke-width="1.6" stroke-linejoin="round"/></g></g>`,
   sun: (x, y) => `<g transform="translate(${x} ${y})"><g class="spin">${[0, 45, 90, 135, 180, 225, 270, 315].map((a) => `<path d="M0 -15 V-19" transform="rotate(${a})" stroke="#FFB547" stroke-width="2.4" stroke-linecap="round"/>`).join('')}</g>
     <circle r="11" fill="#FFD84D" stroke="${INK}" stroke-width="1.8"/></g>`,
-  wave: (x, y) => `<path class="wave" d="M${x} ${y} q10 -8 20 0 t20 0" fill="none" stroke="#4ECDC4" stroke-width="2.5" stroke-linecap="round"/>`,
+  palm: (x, y, s = 1, d = 0) => `<g transform="translate(${x} ${y}) scale(${s})"><g class="sway" style="animation-delay:-${d}s">
+    <path d="M-2 0 Q-4 -14 2 -30" fill="none" stroke="${INK}" stroke-width="6" stroke-linecap="round"/><path d="M-2 0 Q-4 -14 2 -30" fill="none" stroke="#B9824A" stroke-width="3.6" stroke-linecap="round"/>
+    <path d="M2 -30 Q-12 -36 -20 -26 Q-10 -30 2 -30 Q-6 -42 -2 -48 Q2 -38 2 -30 Q12 -44 20 -40 Q10 -36 2 -30 Q16 -32 22 -22 Q12 -28 2 -30 Z" fill="#4FAE5C" stroke="${INK}" stroke-width="1.6" stroke-linejoin="round"/>
+    <circle cx="0" cy="-28" r="2.4" fill="#7A4A26"/><circle cx="4" cy="-27" r="2.4" fill="#7A4A26"/></g></g>`,
+  volcano: (x, base, w, h) => `<g transform="translate(${x} ${base})">
+    <path d="M${-w / 2} 0 L${-w * .12} ${-h} L${w * .12} ${-h} L${w / 2} 0 Z" fill="#9A7A66" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M${-w * .12} ${-h} L${-w * .05} ${-h * .55} L${-w * .16} ${-h * .3} L${-w * .02} ${-h * .4} L${w * .06} ${-h * .72} L${w * .12} ${-h} Z" fill="#FF7A2E" stroke="${INK}" stroke-width="1.5" stroke-linejoin="round"/>
+    <ellipse cx="0" cy="${-h}" rx="${w * .12}" ry="3" fill="#FF4A1C" stroke="${INK}" stroke-width="1.5"/>
+    <g class="drift" style="animation-duration:9s"><circle cx="2" cy="${-h - 12}" r="7" fill="#EDE9E3" stroke="#B8B2A8" stroke-width="1.4"/><circle cx="10" cy="${-h - 24}" r="9" fill="#EDE9E3" stroke="#B8B2A8" stroke-width="1.4"/><circle cx="4" cy="${-h - 38}" r="6" fill="#EDE9E3" stroke="#B8B2A8" stroke-width="1.4"/></g></g>`,
+  lighthouse: (x, base, s = 1) => `<g transform="translate(${x} ${base}) scale(${s})">
+    <path d="M-8 0 L-6 -34 L6 -34 L8 0 Z" fill="#ffffff" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M-7.5 -8 L7.5 -8 L7 -16 L-7 -16 Z M-6.7 -24 L6.7 -24 L6.3 -31 L-6.3 -31 Z" fill="#FF6B57"/>
+    <rect x="-7" y="-42" width="14" height="8" fill="#FFE27A" stroke="${INK}" stroke-width="1.8"/><path d="M-9 -42 L0 -51 L9 -42 Z" fill="#FF6B57" stroke="${INK}" stroke-width="1.8" stroke-linejoin="round"/>
+    <path class="wave" d="M8 -38 L30 -44 L30 -32 Z" fill="#FFE27A" opacity=".55"/></g>`,
+  hut: (x, base, s = 1) => `<g transform="translate(${x} ${base}) scale(${s})"><rect x="-10" y="-14" width="20" height="14" fill="#D9B07A" stroke="${INK}" stroke-width="1.8"/>
+    <path d="M-15 -13 L0 -28 L15 -13 Z" fill="#C8963E" stroke="${INK}" stroke-width="1.8" stroke-linejoin="round"/><path d="M-3 0 v-8 h6 v8" fill="#7A4A26" stroke="${INK}" stroke-width="1.4"/></g>`,
+  turtle: (x, y) => `<g class="drift" style="animation-duration:34s"><g transform="translate(${x} ${y})"><g class="bobb">
+    <ellipse cx="0" cy="0" rx="10" ry="7" fill="#5FB35A" stroke="${INK}" stroke-width="1.6"/><path d="M-5 -3 L0 -5 L5 -3 M-5 3 L0 5 L5 3 M0 -5 V5" stroke="#3F8F43" stroke-width="1.2" fill="none"/>
+    <circle cx="12" cy="0" r="3.4" fill="#8BD47A" stroke="${INK}" stroke-width="1.4"/><path d="M-7 -6 l-3 -3 M7 -6 l3 -3 M-7 6 l-3 3 M7 6 l3 3" stroke="#8BD47A" stroke-width="2.6" stroke-linecap="round"/></g></g></g>`,
+  coral: (x, y) => `<g transform="translate(${x} ${y})"><path d="M0 0 V-10 M0 -6 L-5 -12 M0 -8 L5 -14 M-5 -12 V-15 M5 -14 V-17" stroke="#FF8FA3" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+    <path d="M10 0 V-8 M10 -5 L14 -9" stroke="#FFB547" stroke-width="2.4" stroke-linecap="round" fill="none"/></g>`,
+  shell: (x, y) => `<g transform="translate(${x} ${y})"><path d="M-4 0 Q0 -7 4 0 Z" fill="#FFC9D6" stroke="${INK}" stroke-width="1"/><path d="M0 0 V-5 M-2 0 L-1 -4 M2 0 L1 -4" stroke="#E58FA6" stroke-width=".7"/></g>`,
+  wave: (x, y) => `<path class="wave\" d="M${x} ${y} q10 -8 20 0 t20 0" fill="none" stroke="#4ECDC4" stroke-width="2.5" stroke-linecap="round"/>`,
 };
-function islandDecor(lay) {
-  const F = (pts) => DECO.flowers(pts);
-  const sea = DECO.sun(24, 24) + DECO.wave(10, 300) + DECO.wave(334, 396) + DECO.wave(6, 176) + DECO.boat(366, 438);
-  const sky = (lay === 6
-    ? DECO.cloud(48, 58, .85, 3) + DECO.cloud(262, 26, 1, 11) + DECO.cloud(352, 158, .7, 7) + DECO.birds(292, 22)
-    : DECO.cloud(48, 52, .85, 3) + DECO.cloud(196, 22, .9, 11) + DECO.cloud(352, 200, .65, 7) + DECO.birds(230, 16));
+function islandDecor(lay) {   // THP11 火山椰林島：椰子樹、火山、燈塔、草屋、潟湖、珊瑚、海龜、貝殼
+  const sea = DECO.sun(24, 24) + DECO.wave(10, 300) + DECO.wave(334, 404) + DECO.wave(6, 176) + DECO.boat(366, 446)
+    + DECO.turtle(16, 238) + DECO.coral(352, 452) + DECO.coral(372, 22);
+  const sky = DECO.cloud(110, 24, .8, 3) + DECO.cloud(262, 22, .9, 11) + DECO.birds(150, 16);
+  const SH = (pts) => pts.map(([x, y]) => DECO.shell(x, y)).join('');
   if (lay === 6) return {
     sea, sky,
-    ground: DECO.lake(84, 284, 40, 21) + DECO.river('M354 224 Q366 238 382 246')
-      + F([[124, 428, '#FF9AC1'], [134, 436, '#FFD84D'], [116, 440, '#ffffff'], [252, 354, '#FF6B57'], [262, 362, '#FFD84D'], [58, 340, '#FF9AC1'], [226, 440, '#ffffff'], [124, 238, '#FFD84D'], [134, 246, '#FF9AC1'], [182, 188, '#ffffff']])
-      + DECO.tufts([[120, 332], [236, 448], [342, 262], [176, 190], [150, 64], [300, 440], [44, 236]])
-      + DECO.rock(364, 346, .9) + DECO.rock(352, 356, .6) + DECO.rock(136, 214, .7),
-    objects: DECO.mountain(300, 230, 46, 46, false) + DECO.mountain(334, 230, 74, 84) + DECO.mountain(362, 230, 34, 38, false)
-      + DECO.tree(108, 82, 1, 0) + DECO.pine(130, 70, .9, 1.3) + DECO.tree(156, 56, .8, 2.1) + DECO.pine(180, 50, .75, .7)
-      + DECO.pine(318, 86, .85, 1.1) + DECO.tree(342, 108, .8, 2.6)
-      + DECO.tree(270, 406, 1, .4) + DECO.pine(296, 398, 1.1, 1.7) + DECO.tree(322, 414, .95, 2.9) + DECO.pine(312, 382, .8, .9) + DECO.tree(344, 394, .8, 1.5) + DECO.bush(286, 426)
-      + DECO.tree(136, 314, .75, 2.2) + DECO.bush(40, 316, .8),
+    ground: DECO.lake(84, 284, 40, 21) + SH([[120, 440], [240, 452], [60, 120], [300, 446]])
+      + DECO.flowers([[124, 428, '#FF6B57'], [134, 436, '#FFD84D'], [252, 354, '#FF9AC1'], [58, 340, '#FF6B57'], [124, 238, '#FFD84D'], [182, 188, '#FF9AC1']])
+      + DECO.tufts([[120, 332], [236, 448], [176, 190], [150, 64]]),
+    objects: DECO.volcano(332, 236, 90, 76) + DECO.lighthouse(352, 166, .8)
+      + DECO.palm(108, 86, 1, 0) + DECO.palm(134, 72, .9, 1.3) + DECO.palm(160, 58, .8, 2.1) + DECO.hut(182, 60, .8)
+      + DECO.palm(270, 410, 1, .4) + DECO.palm(298, 400, 1.1, 1.7) + DECO.hut(326, 412, .9) + DECO.palm(344, 396, .8, 1.5)
+      + DECO.palm(136, 318, .75, 2.2) + DECO.bush(40, 316, .8),
   };
   return {
     sea, sky,
-    ground: DECO.lake(190, 218, 44, 19)
-      + F([[248, 214, '#FF9AC1'], [258, 222, '#FFD84D'], [118, 226, '#ffffff'], [262, 448, '#FF6B57'], [270, 440, '#FFD84D'], [108, 432, '#FF9AC1']])
-      + DECO.tufts([[140, 200], [250, 190], [116, 336], [270, 432], [60, 120]]),
-    objects: DECO.mountain(312, 234, 40, 40, false) + DECO.mountain(342, 234, 58, 58) + DECO.mountain(366, 234, 28, 30, false)
-      + DECO.tree(92, 98, .9, 0) + DECO.pine(118, 84, .85, 1.3) + DECO.tree(150, 74, .8, 2.1) + DECO.pine(184, 66, .75, .7)
-      + DECO.pine(246, 64, .8, 1.1) + DECO.tree(272, 56, .75, 2.6)
-      + DECO.tree(128, 330, .8, 1.5) + DECO.bush(120, 300, .8) + DECO.bush(270, 456, .7),
+    ground: DECO.lake(190, 218, 44, 19) + SH([[120, 440], [240, 452]]) + DECO.tufts([[140, 200], [250, 190], [116, 336]]),
+    objects: DECO.volcano(338, 236, 70, 60) + DECO.palm(92, 98, .9, 0) + DECO.palm(118, 84, .85, 1.3) + DECO.palm(150, 74, .8, 2.1)
+      + DECO.hut(184, 70, .75) + DECO.palm(246, 64, .8, 1.1) + DECO.palm(272, 56, .75, 2.6) + DECO.palm(128, 330, .8, 1.5),
   };
 }
 function renderIsland() {
@@ -1888,15 +1916,17 @@ function renderIsland() {
       <text x="${x + 48}" y="${y + 120.5}" text-anchor="middle" font-family="Syne,sans-serif" font-weight="800" font-size="12" fill="${sel ? '#CCFF00' : '#1a3a1a'}">${esc(u)}</text>
     </g></g>`;
   }).join('');
-  const D = islandDecor(lay);
+  const D = islandDecor(lay), TH = ISLAND_THEME;
+  const card = $('island').closest('.island-card'); if (card) card.style.background = TH.sea;
+  $('island3d').style.background = TH.sea;
   $('island').innerHTML = `<svg viewBox="0 0 390 460" role="group" aria-label="${L('英文島地圖', 'English Island map')}">
     <g class="deco">${D.sea}</g>
-    <path d="${ISLAND_SHAPE}" fill="none" stroke="#A8E6E0" stroke-width="20" stroke-linejoin="round"/>
+    <path d="${ISLAND_SHAPE}" fill="none" stroke="${TH.shallow}" stroke-width="20" stroke-linejoin="round"/>
     <path d="${ISLAND_SHAPE}" fill="none" stroke="#ffffff" stroke-opacity=".7" stroke-width="2" stroke-dasharray="6 9" transform="translate(195 230) scale(1.035) translate(-195 -230)"/>
-    <path d="${ISLAND_SHAPE}" fill="#F4F1EB" stroke="#1a3a1a" stroke-width="2.5"/>
-    <path d="M58 418 C28 366 28 270 48 206 C66 144 40 86 96 52 C154 22 262 18 316 50 C362 82 358 160 350 226 C342 296 364 372 314 414 C258 450 112 452 58 418 Z" fill="#D5EBB4"/>
+    <path d="${ISLAND_SHAPE}" fill="${TH.sand}" stroke="#1a3a1a" stroke-width="2.5"/>
+    <path d="${GRASS_SHAPE}" fill="${TH.grass}"/>
     <g class="deco">${D.ground}</g>
-    <path id="islandRoad" d="${ISLAND_ROAD[lay]}" fill="none" stroke="#D8CFB8" stroke-width="16" stroke-linecap="round"/>
+    <path id="islandRoad" d="${ISLAND_ROAD[lay]}" fill="none" stroke="${TH.road}" stroke-width="16" stroke-linecap="round"/>
     <path d="${ISLAND_ROAD[lay]}" fill="none" stroke="#ffffff" stroke-width="3" stroke-dasharray="2 10" stroke-linecap="round"/>
     <g class="deco">${D.objects}</g>
     ${tiles}<g class="deco">${D.sky}</g><g id="mates"></g><g id="hero"></g></svg>`;
@@ -1909,6 +1939,7 @@ function renderIsland() {
   if (on3) ensure3D();
   $('islandSum').textContent = L(`蓋好 ${fullCount} / ${units.length} 座`, `${fullCount} / ${units.length} built`);
   const unlocked = GAMES.filter(gameOpen).length;
+  if (window.archipelago) archipelago.render();
   $('islandPort').innerHTML = `<i>🎮</i><span>${L('遊戲港口', 'Game Harbor')}<small>${L('挑戰過關的單元越多，開放越多獎勵遊戲', 'Pass more unit challenges to unlock more games')}</small></span><b>${unlocked} / ${GAMES.filter(gameShown).length}</b>`;
 }
 // ── 3D 地圖：選 3D 時才下載 Three.js 與 island3d.js；失敗自動改回 2D ──
@@ -1967,6 +1998,18 @@ function heroCanvas(pose, flip) {   // 自己的角色（含寵物）＋頭上�
   return avatarCanvas(lookOf(), pose, flip, tags);
 }
 const island3dHost = {
+  theme: () => ({   // 3D 版的火山椰林島（景物位置對齊 2D 的 islandDecor）
+    sky: 0xBFEDEF, pts: ISLAND_THEME.pts,
+    c: { sand: 0xFFEFC8, grass: 0x9FD27C, water: 0x3FBFCB, waterL: 0x8EE3E6, road: 0xEAD6A8, leaf: 0x4FAE5C, leafL: 0x7ACB6A, boat: 0xFF6B57 },
+    decor: {
+      6: { lake: [84, 284, 4, 2.1], river: null, mountains: [], volcanoes: [[332, 218, 0.85]], lighthouses: [[352, 156, 0.9]], huts: [[182, 58, 0.8], [326, 408, 0.9]],
+        trees: [['palm', 108, 86, 1], ['palm', 134, 72, .9], ['palm', 160, 58, .8], ['palm', 270, 410, 1], ['palm', 298, 400, 1.1], ['palm', 344, 396, .8], ['palm', 136, 318, .75]],
+        rocks: [[40, 330, .8]], flowers: [[124, 428, 0xFF6B57], [134, 436, 0xFFD84D], [252, 354, 0xFF9AC1], [58, 340, 0xFF6B57], [124, 238, 0xFFD84D]] },
+      9: { lake: [190, 218, 4.4, 1.9], river: null, mountains: [], volcanoes: [[338, 222, 0.7]], lighthouses: [], huts: [[184, 70, 0.75]],
+        trees: [['palm', 92, 98, .9], ['palm', 118, 84, .85], ['palm', 150, 74, .8], ['palm', 246, 64, .8], ['palm', 272, 56, .75], ['palm', 128, 330, .8]],
+        rocks: [], flowers: [] },
+    },
+  }),
   layout() { const n = Math.min(9, allUnits().length + (st.lockedUnits || []).length), lay = n <= 6 ? 6 : 9; return { lay, pos: ISLAND_POS[lay], road: ISLAND_ROAD[lay] }; },
   units() {
     const open = allUnits(), locked = st.lockedUnits || [];
@@ -1998,7 +2041,7 @@ function ensure3D() {
   if (i3dLoading) return;
   i3dLoading = (async () => {
     try {
-      const mod = await import('./island3d.js?v=5');
+      const mod = await import('./island3d.js?v=6');
       i3d = await mod.createIsland3D($('island3d'), island3dHost);
       $('island3d').classList.add('ready');
     } catch (e) {
@@ -3464,5 +3507,8 @@ document.addEventListener('keydown', (e) => {
 <script src="games/orbs.js?v=0.6"></script>
 <script src="games/slice.js?v=0.3"></script>
 <script src="games/beat.js?v=0.2"></script>
+<script src="cloud.js?v=3"></script>
+<script src="msg.js?v=4"></script>
+<script src="/JeffreysLab/archipelago.js?v=2"></script>
 </body>
 </html>
