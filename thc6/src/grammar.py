@@ -3,7 +3,7 @@
 # phonics＝發音小卡（每個音：規則、例字、紅字部分用 [ ] 標出）＋ 練習字 24 個
 # 會話站（課本 Conversation）：見 talk.py
 # 所有選擇題的正確答案寫在第一個（a=0），App 會打亂順序
-# 目前寫好：U1–U6（其他單元一單元一單元補，補好再把 words.py 的 OPEN 打開）
+# 目前寫好：U1–U9（U7–U9 等 words.py 的 OPEN 打開才出現；其他單元一單元一單元補，補好再把 words.py 的 OPEN 打開）
 import json, sys
 
 def C(q, opts, tip):  return {'type': 'choice', 'q': q, 'opts': opts, 'a': 0, 'tip': tip}
@@ -348,6 +348,167 @@ unit('U6', {
   PW('horn', ['hen', 'hand'], 'or 唸 /ɔr/'),
   PW('world', ['wild', 'word'], 'w 後面的 or 唸 /ɝ/'),
   PW('work', ['walk', 'week'], 'w[or]k 的 or 唸 /ɝ/'),
+])
+
+# ───────────────────────── U7 Manners ─────────────────────────
+unit('U7', {
+  'title': 'Possessive Pronouns · let / make (someone) (v.) · Past Tense: time phrases',
+  'zh': '所有格代名詞：mine、yours、his、hers、ours、theirs；let＝讓（允許），make＝叫、逼（一定要做）；過去式＋時間片語',
+  'rules': [
+    ['所有格代名詞＝所有格＋東西', "It's Pam and Becky's tape. It's theirs."],
+    ['問句：Is / Was ＋ 東西 ＋ 某人\'s?', "Was the extra umbrella Kate's? No, it wasn't hers."],
+    ['let ＋ 人 ＋ 原形動詞：讓某人做（允許）', 'Tim will let Wally ride his bike.'],
+    ['make ＋ 人 ＋ 原形動詞：叫某人一定要做', "Becky's mom made Kate get dressed."],
+    ['過去式 ＋ on ＋ 日期', 'Becky interrupted her mom on March 22.'],
+    ['When did ＋ 主詞 ＋ 原形動詞?', 'When did Alice lock the window?'],
+  ],
+  'phrases': [['所有格代名詞', 'my → mine　your → yours　his → his　her → hers　our → ours　their → theirs']],
+  'mistakes': [
+    ["It's Pam and Becky's tape. It's their.", "It's Pam and Becky's tape. It's theirs.", '後面沒有名詞要用 theirs'],
+    ['Tim will let Wally to ride his bike.', 'Tim will let Wally ride his bike.', 'let ＋ 人 ＋ 原形動詞（不加 to）'],
+    ['Mom made Kate got dressed.', 'Mom made Kate get dressed.', 'make ＋ 人 ＋ 原形動詞'],
+    ['When did Alice locked the window?', 'When did Alice lock the window?', 'did 後面用原形動詞'],
+  ]}, [
+  C("It's Pam and Becky's tape. It's ___.", ['theirs', 'their', 'them'], '兩個人的、後面沒有名詞 → theirs'),
+  C("Was the extra umbrella Kate's? No, it wasn't ___.", ['hers', 'her', 'she'], 'Kate 的 → hers'),
+  C('This pencil is ___. I bought it yesterday.', ['mine', 'my', 'me'], '我的（後面沒有名詞）→ mine'),
+  C("Is this your backpack? Yes, it's ___.", ['mine', 'yours', 'my'], '回答「是我的」→ mine'),
+  C("Those are Tim's slippers. They're ___.", ['his', 'him', 'he'], 'Tim 的 → his'),
+  C('Tim will let Wally ___ his bike.', ['ride', 'to ride', 'rides'], 'let ＋ 人 ＋ 原形動詞'),
+  C("Becky's mom made Kate ___ dressed.", ['get', 'got', 'to get'], 'make ＋ 人 ＋ 原形動詞'),
+  C('My dad ___ me watch TV after dinner. He says yes.', ['lets', 'makes', 'let to'], '允許 → let（he → lets）'),
+  C('The teacher ___ us clean the classroom. We had to do it.', ['made', 'let', 'make to'], '一定要做 → make（過去 made）'),
+  C('Becky interrupted her mom ___ March 22.', ['on', 'in', 'at'], '日期用 on'),
+  C('When did Alice ___ the window?', ['lock', 'locked', 'locks'], 'did 後面用原形動詞'),
+  C('Alice locked the window ___ lunchtime.', ['at', 'on', 'in'], '某個時刻（lunchtime）用 at'),
+  O("Was the extra umbrella Kate's?", "問句：Was ＋ 東西 ＋ 某人's"),
+  O('Tim will let Wally ride his bike.', 'let ＋ 人 ＋ 原形動詞'),
+  O('When did Alice lock the window?', 'When did ＋ 主詞 ＋ 原形動詞'),
+], [
+  LF("Becky's mom made Kate get dressed.", "Becky's mom ___ Kate get dressed.", ['made', 'let', 'makes'], '聽清楚 made'),
+  LF('Becky interrupted her mom on March 22.', 'Becky interrupted her mom on March ___.', ['22', '12', '20'], '聽清楚 twenty-second'),
+  LP("No, it wasn't hers.", ["No, it wasn't his.", "Yes, it was hers."], '聽清楚 wasn\'t 和 hers'),
+  LO('Tim will let Wally ride his bike.', 'let ＋ 人 ＋ 原形動詞'),
+], {
+  'title': 'y- · -y · --y',
+  'sounds': [
+    {'name': 'y-', 'ipa': 'j', 'rule': 'y 在字首是子音 /j/，像「一」快速滑過去', 'words': ['[y]es', '[y]ellow', '[y]ard', '[y]oung', '[y]o-[y]o']},
+    {'name': '-y', 'ipa': 'aɪ', 'rule': '短字的字尾 y（通常只有一個音節）唸 /aɪ/，像字母 I', 'words': ['m[y]', 'cr[y]', 'sk[y]', 'fl[y]', 'sh[y]']},
+    {'name': '--y', 'ipa': 'i', 'rule': '兩個音節以上的字尾 y 唸 /i/，像「一」', 'words': ['sunn[y]', 'happ[y]', 'bab[y]', 'cand[y]', 'hungr[y]']},
+  ],
+  'practice': ['yes', 'yellow', 'yard', 'young', 'yell', 'yummy', 'year', 'yogurt',
+               'my', 'cry', 'sky', 'fly', 'shy', 'dry', 'try', 'why',
+               'sunny', 'happy', 'baby', 'candy', 'hungry', 'windy', 'funny', 'party'],
+}, [
+  PW('yes', ['less', 'ice'], 'y 在字首唸 /j/'),
+  PW('cry', ['key', 'crow'], '短字字尾 y 唸 /aɪ/'),
+  PW('sunny', ['sun', 'snowy'], '字尾 y 唸 /i/'),
+])
+
+# ───────────────────────── U8 Let's Figure It Out! ─────────────────────────
+unit('U8', {
+  'title': 'Present Perfect Tense: seen · Conjunctions: because / so · How often?: time phrases',
+  'zh': '現在完成式 have／has seen：看過（經驗）；because＝因為（原因），so＝所以（結果）；How often? 用頻率片語回答',
+  'rules': [
+    ['have / has ＋ seen：看過（從以前到現在的經驗）', 'The police officer has seen a parrot.'],
+    ['Have / Has ＋ 主詞 ＋ ever seen…?：你看過……嗎？', 'Have you ever seen a dog covered with leaves?'],
+    ['結果 ＋ because ＋ 原因', 'She is scared because she is having a nightmare.'],
+    ['原因 ＋ , so ＋ 結果', 'Alice was hot, so she took off her sweatshirt.'],
+    ['How often ＋ do / does ＋ 主詞 ＋ 原形動詞?', 'How often do Paul and his dad eat junk food?'],
+    ['頻率片語：once / twice / three times ＋ a day / week / month', 'They eat junk food once a week.'],
+  ],
+  'phrases': [['頻率', 'once a week（一週一次）　twice a month（一個月兩次）　three times a day（一天三次）']],
+  'mistakes': [
+    ['The police officer has saw a parrot.', 'The police officer has seen a parrot.', 'have / has 後面用 seen'],
+    ['Have you ever see a dog covered with leaves?', 'Have you ever seen a dog covered with leaves?', 'Have … ever seen'],
+    ['Alice was hot, because she took off her sweatshirt.', 'Alice was hot, so she took off her sweatshirt.', '後面是結果 → so'],
+    ['They eat junk food one a week.', 'They eat junk food once a week.', '一次＝once'],
+  ]}, [
+  C('The police officer has ___ a parrot.', ['seen', 'saw', 'see'], 'has ＋ seen'),
+  C('Have you ever ___ a dog covered with leaves?', ['seen', 'saw', 'seeing'], 'Have … ever seen'),
+  C('I ___ seen a centipede before.', ['have', 'has', 'am'], 'I → have'),
+  C('___ Wally ever seen a riddle book?', ['Has', 'Have', 'Did'], 'Wally＝he → Has'),
+  C('Why is Becky scared? She is scared ___ she is having a nightmare.', ['because', 'so', 'but'], '後面是原因 → because'),
+  C('Alice was hot, ___ she took off her sweatshirt.', ['so', 'because', 'or'], '後面是結果 → so'),
+  C("Wally was frustrated ___ he couldn't solve the riddle.", ['because', 'so', 'and'], '後面是原因 → because'),
+  C("It was raining, ___ we stayed inside.", ['so', 'because', 'but'], '下雨（原因）所以待在家（結果）→ so'),
+  C('How often ___ Paul and his dad eat junk food?', ['do', 'does', 'are'], 'Paul and his dad＝they → do'),
+  C('They eat junk food ___ a week.', ['once', 'one', 'one time a'], '一次＝once'),
+  C('I visit my grandma ___ a month.', ['twice', 'two', 'second'], '兩次＝twice'),
+  C('Brush your teeth three ___ a day.', ['times', 'time', 'once'], '三次以上用 ___ times'),
+  O('The police officer has seen a parrot.', 'has ＋ seen'),
+  O('Alice was hot, so she took off her sweatshirt.', '原因, so 結果'),
+  O('They eat junk food once a week.', '頻率片語放句尾'),
+], [
+  LF('Have you ever seen a dog covered with leaves?', 'Have you ever ___ a dog covered with leaves?', ['seen', 'had', 'sent'], '聽清楚 seen'),
+  LF('They eat junk food once a week.', 'They eat junk food ___ a week.', ['once', 'twice', 'three times'], '聽清楚 once'),
+  LP('She is scared because she is having a nightmare.', ['She is scared so she is having a nightmare.', 'She was scared because she had a nightmare.'], '聽清楚 because 和 is having'),
+  LO('Alice was hot, so she took off her sweatshirt.', '原因, so 結果'),
+], {
+  'title': 'hard c [k] · soft c [s]',
+  'sounds': [
+    {'name': 'hard c', 'ipa': 'k', 'rule': 'c 後面接 a、o、u 或子音，唸 /k/', 'words': ['[c]at', '[c]ake', '[c]old', '[c]ute', '[c]lose']},
+    {'name': 'soft c', 'ipa': 's', 'rule': 'c 後面接 e、i、y，唸 /s/', 'words': ['[c]ity', '[c]ent', 'ri[c]e', 'pen[c]il', '[c]ycle']},
+  ],
+  'practice': ['cat', 'cake', 'cold', 'cute', 'close', 'carry', 'cockroach', 'blanket', 'picnic', 'cup', 'crab', 'clean',
+               'city', 'cent', 'rice', 'pencil', 'cycle', 'face', 'nice', 'circle', 'dance', 'center', 'once', 'juice'],
+}, [
+  PW('city', ['kitty', 'sit'], 'c 後面接 i 唸 /s/'),
+  PW('cold', ['sold', 'gold'], 'c 後面接 o 唸 /k/'),
+  PW('rice', ['rise', 'ride'], 'ce 的 c 唸 /s/'),
+])
+
+# ───────────────────────── U9 Hobbies ─────────────────────────
+unit('U9', {
+  'title': 'If…, will… · If…, would… · (someone) heard that / said that',
+  'zh': 'If…, will…：真的可能發生的條件；If…were…, would…：不可能或想像的事；heard that／said that：轉述聽到的、別人說的話',
+  'rules': [
+    ['If ＋ 現在式, 主詞 ＋ will ＋ 原形動詞（真的可能發生）', 'If Paul is mad, he will stomp on the soldiers.'],
+    ['will 那一句也可以放前面：… will … if …', 'What will Pam do if she wins the game?'],
+    ['If ＋ 主詞 ＋ were, 主詞 ＋ would ＋ 原形動詞（想像的）', 'If Paul were a soldier, he would drive a truck.'],
+    ['想像的事：I／he／she 都用 were', 'He would carry the dragon boat if he were really strong.'],
+    ['主詞 ＋ heard that ＋ 句子：聽說……', 'Alice heard that Pam bought a new model.'],
+    ['主詞 ＋ said that ＋ 句子：某人說……', 'Paul said that his dad met the king.'],
+  ],
+  'phrases': [['常用', "If he doesn't have any…　I would love it if I were him.　I heard that he's interested in reptiles."]],
+  'mistakes': [
+    ['If Paul will be mad, he will stomp on the soldiers.', 'If Paul is mad, he will stomp on the soldiers.', 'if 那一句用現在式'],
+    ['If Paul was a soldier, he will drive a truck.', 'If Paul were a soldier, he would drive a truck.', '想像的事：were ＋ would'],
+    ['I would love it if I am him.', 'I would love it if I were him.', '想像的事用 were'],
+    ['Alice heard that Pam buys a new model yesterday.', 'Alice heard that Pam bought a new model.', '過去的事用過去式'],
+  ]}, [
+  C('If Paul is mad, he ___ stomp on the soldiers.', ['will', 'would', 'is'], 'If ＋ 現在式 → will'),
+  C('If it ___ tomorrow, we will play inside.', ['rains', 'will rain', 'rained'], 'if 那一句用現在式'),
+  C('What will Pam do if she ___ the game?', ['wins', 'will win', 'won'], 'if 那一句用現在式'),
+  C("If he doesn't have any paint, he ___ go buy some himself.", ['can', 'would', 'were'], '真的可能 → can／will'),
+  C('If Paul ___ a soldier, he would drive a truck.', ['were', 'is', 'will be'], '想像的事：If … were'),
+  C('He would carry the dragon boat if he ___ really strong.', ['were', 'is', 'be'], '想像的事：if he were'),
+  C('I would love it if I ___ him.', ['were', 'am', 'was being'], '想像的事：if I were'),
+  C('If I were a bird, I ___ fly to school.', ['would', 'will', 'am'], 'If … were → would'),
+  C('Alice heard ___ Pam bought a new model.', ['that', 'what', 'if'], 'heard that ＋ 句子'),
+  C('Paul said that his dad ___ the king.', ['met', 'meets', 'meet'], '過去的事用過去式'),
+  C("I ___ that he's interested in reptiles.", ['heard', 'listened', 'said to'], '聽說＝heard that'),
+  C('Wally ___ that it was an awesome gift.', ['said', 'told', 'talked'], '某人說＝said that'),
+  O('If Paul is mad, he will stomp on the soldiers.', 'If ＋ 現在式, … will'),
+  O('If Paul were a soldier, he would drive a truck.', 'If … were, … would'),
+  O('Alice heard that Pam bought a new model.', 'heard that ＋ 句子'),
+], [
+  LF('If Paul were a soldier, he would drive a truck.', 'If Paul were a soldier, he ___ drive a truck.', ['would', 'will', "won't"], '聽清楚 would'),
+  LF('Paul said that his dad met the king.', 'Paul ___ that his dad met the king.', ['said', 'heard', 'sang'], '聽清楚 said'),
+  LP('Alice heard that Pam bought a new model.', ['Alice heard that Pam built a new model.', 'Alice said that Pam bought a new model.'], '聽清楚 heard 和 bought'),
+  LO('What will Pam do if she wins the game?', '… will … if ＋ 現在式'),
+], {
+  'title': 'hard g [g] · soft g [dʒ]',
+  'sounds': [
+    {'name': 'hard g', 'ipa': 'g', 'rule': 'g 後面接 a、o、u 或子音，唸 /g/', 'words': ['[g]ame', '[g]ood', '[g]um', '[g]lue', '[g]lass']},
+    {'name': 'soft g', 'ipa': 'dʒ', 'rule': 'g 後面接 e、i、y，常常唸 /dʒ/，像「ㄐ」（但 get、give、girl 例外）', 'words': ['[g]iant', '[g]em', 'ma[g]ic', 'pa[g]e', '[g]ym']},
+  ],
+  'practice': ['game', 'good', 'gum', 'glue', 'glass', 'gift', 'go', 'grab', 'dragon', 'gold', 'garden', 'frog',
+               'giant', 'gem', 'magic', 'page', 'gym', 'giraffe', 'orange', 'large', 'huge', 'cage', 'gentle', 'energy'],
+}, [
+  PW('giant', ['guy', 'gate'], 'g 後面接 i 常唸 /dʒ/'),
+  PW('glue', ['blue', 'clue'], 'gl 的 g 唸 /g/'),
+  PW('page', ['pig', 'pack'], 'ge 的 g 唸 /dʒ/'),
 ])
 
 # 檢查

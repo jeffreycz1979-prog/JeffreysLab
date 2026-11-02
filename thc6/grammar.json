@@ -348,6 +348,180 @@
      "長的動作用 was ＋ V-ing，突然發生的用過去式"
     ]
    ]
+  },
+  "U7": {
+   "title": "Possessive Pronouns · let / make (someone) (v.) · Past Tense: time phrases",
+   "zh": "所有格代名詞：mine、yours、his、hers、ours、theirs；let＝讓（允許），make＝叫、逼（一定要做）；過去式＋時間片語",
+   "rules": [
+    [
+     "所有格代名詞＝所有格＋東西",
+     "It's Pam and Becky's tape. It's theirs."
+    ],
+    [
+     "問句：Is / Was ＋ 東西 ＋ 某人's?",
+     "Was the extra umbrella Kate's? No, it wasn't hers."
+    ],
+    [
+     "let ＋ 人 ＋ 原形動詞：讓某人做（允許）",
+     "Tim will let Wally ride his bike."
+    ],
+    [
+     "make ＋ 人 ＋ 原形動詞：叫某人一定要做",
+     "Becky's mom made Kate get dressed."
+    ],
+    [
+     "過去式 ＋ on ＋ 日期",
+     "Becky interrupted her mom on March 22."
+    ],
+    [
+     "When did ＋ 主詞 ＋ 原形動詞?",
+     "When did Alice lock the window?"
+    ]
+   ],
+   "phrases": [
+    [
+     "所有格代名詞",
+     "my → mine　your → yours　his → his　her → hers　our → ours　their → theirs"
+    ]
+   ],
+   "mistakes": [
+    [
+     "It's Pam and Becky's tape. It's their.",
+     "It's Pam and Becky's tape. It's theirs.",
+     "後面沒有名詞要用 theirs"
+    ],
+    [
+     "Tim will let Wally to ride his bike.",
+     "Tim will let Wally ride his bike.",
+     "let ＋ 人 ＋ 原形動詞（不加 to）"
+    ],
+    [
+     "Mom made Kate got dressed.",
+     "Mom made Kate get dressed.",
+     "make ＋ 人 ＋ 原形動詞"
+    ],
+    [
+     "When did Alice locked the window?",
+     "When did Alice lock the window?",
+     "did 後面用原形動詞"
+    ]
+   ]
+  },
+  "U8": {
+   "title": "Present Perfect Tense: seen · Conjunctions: because / so · How often?: time phrases",
+   "zh": "現在完成式 have／has seen：看過（經驗）；because＝因為（原因），so＝所以（結果）；How often? 用頻率片語回答",
+   "rules": [
+    [
+     "have / has ＋ seen：看過（從以前到現在的經驗）",
+     "The police officer has seen a parrot."
+    ],
+    [
+     "Have / Has ＋ 主詞 ＋ ever seen…?：你看過……嗎？",
+     "Have you ever seen a dog covered with leaves?"
+    ],
+    [
+     "結果 ＋ because ＋ 原因",
+     "She is scared because she is having a nightmare."
+    ],
+    [
+     "原因 ＋ , so ＋ 結果",
+     "Alice was hot, so she took off her sweatshirt."
+    ],
+    [
+     "How often ＋ do / does ＋ 主詞 ＋ 原形動詞?",
+     "How often do Paul and his dad eat junk food?"
+    ],
+    [
+     "頻率片語：once / twice / three times ＋ a day / week / month",
+     "They eat junk food once a week."
+    ]
+   ],
+   "phrases": [
+    [
+     "頻率",
+     "once a week（一週一次）　twice a month（一個月兩次）　three times a day（一天三次）"
+    ]
+   ],
+   "mistakes": [
+    [
+     "The police officer has saw a parrot.",
+     "The police officer has seen a parrot.",
+     "have / has 後面用 seen"
+    ],
+    [
+     "Have you ever see a dog covered with leaves?",
+     "Have you ever seen a dog covered with leaves?",
+     "Have … ever seen"
+    ],
+    [
+     "Alice was hot, because she took off her sweatshirt.",
+     "Alice was hot, so she took off her sweatshirt.",
+     "後面是結果 → so"
+    ],
+    [
+     "They eat junk food one a week.",
+     "They eat junk food once a week.",
+     "一次＝once"
+    ]
+   ]
+  },
+  "U9": {
+   "title": "If…, will… · If…, would… · (someone) heard that / said that",
+   "zh": "If…, will…：真的可能發生的條件；If…were…, would…：不可能或想像的事；heard that／said that：轉述聽到的、別人說的話",
+   "rules": [
+    [
+     "If ＋ 現在式, 主詞 ＋ will ＋ 原形動詞（真的可能發生）",
+     "If Paul is mad, he will stomp on the soldiers."
+    ],
+    [
+     "will 那一句也可以放前面：… will … if …",
+     "What will Pam do if she wins the game?"
+    ],
+    [
+     "If ＋ 主詞 ＋ were, 主詞 ＋ would ＋ 原形動詞（想像的）",
+     "If Paul were a soldier, he would drive a truck."
+    ],
+    [
+     "想像的事：I／he／she 都用 were",
+     "He would carry the dragon boat if he were really strong."
+    ],
+    [
+     "主詞 ＋ heard that ＋ 句子：聽說……",
+     "Alice heard that Pam bought a new model."
+    ],
+    [
+     "主詞 ＋ said that ＋ 句子：某人說……",
+     "Paul said that his dad met the king."
+    ]
+   ],
+   "phrases": [
+    [
+     "常用",
+     "If he doesn't have any…　I would love it if I were him.　I heard that he's interested in reptiles."
+    ]
+   ],
+   "mistakes": [
+    [
+     "If Paul will be mad, he will stomp on the soldiers.",
+     "If Paul is mad, he will stomp on the soldiers.",
+     "if 那一句用現在式"
+    ],
+    [
+     "If Paul was a soldier, he will drive a truck.",
+     "If Paul were a soldier, he would drive a truck.",
+     "想像的事：were ＋ would"
+    ],
+    [
+     "I would love it if I am him.",
+     "I would love it if I were him.",
+     "想像的事用 were"
+    ],
+    [
+     "Alice heard that Pam buys a new model yesterday.",
+     "Alice heard that Pam bought a new model.",
+     "過去的事用過去式"
+    ]
+   ]
   }
  },
  "everyday": {},
@@ -1389,6 +1563,531 @@
     ],
     "tip": "was ＋ V-ing ＋ when ＋ 過去式"
    }
+  ],
+  "U7": [
+   {
+    "type": "choice",
+    "q": "It's Pam and Becky's tape. It's ___.",
+    "opts": [
+     "theirs",
+     "their",
+     "them"
+    ],
+    "a": 0,
+    "tip": "兩個人的、後面沒有名詞 → theirs"
+   },
+   {
+    "type": "choice",
+    "q": "Was the extra umbrella Kate's? No, it wasn't ___.",
+    "opts": [
+     "hers",
+     "her",
+     "she"
+    ],
+    "a": 0,
+    "tip": "Kate 的 → hers"
+   },
+   {
+    "type": "choice",
+    "q": "This pencil is ___. I bought it yesterday.",
+    "opts": [
+     "mine",
+     "my",
+     "me"
+    ],
+    "a": 0,
+    "tip": "我的（後面沒有名詞）→ mine"
+   },
+   {
+    "type": "choice",
+    "q": "Is this your backpack? Yes, it's ___.",
+    "opts": [
+     "mine",
+     "yours",
+     "my"
+    ],
+    "a": 0,
+    "tip": "回答「是我的」→ mine"
+   },
+   {
+    "type": "choice",
+    "q": "Those are Tim's slippers. They're ___.",
+    "opts": [
+     "his",
+     "him",
+     "he"
+    ],
+    "a": 0,
+    "tip": "Tim 的 → his"
+   },
+   {
+    "type": "choice",
+    "q": "Tim will let Wally ___ his bike.",
+    "opts": [
+     "ride",
+     "to ride",
+     "rides"
+    ],
+    "a": 0,
+    "tip": "let ＋ 人 ＋ 原形動詞"
+   },
+   {
+    "type": "choice",
+    "q": "Becky's mom made Kate ___ dressed.",
+    "opts": [
+     "get",
+     "got",
+     "to get"
+    ],
+    "a": 0,
+    "tip": "make ＋ 人 ＋ 原形動詞"
+   },
+   {
+    "type": "choice",
+    "q": "My dad ___ me watch TV after dinner. He says yes.",
+    "opts": [
+     "lets",
+     "makes",
+     "let to"
+    ],
+    "a": 0,
+    "tip": "允許 → let（he → lets）"
+   },
+   {
+    "type": "choice",
+    "q": "The teacher ___ us clean the classroom. We had to do it.",
+    "opts": [
+     "made",
+     "let",
+     "make to"
+    ],
+    "a": 0,
+    "tip": "一定要做 → make（過去 made）"
+   },
+   {
+    "type": "choice",
+    "q": "Becky interrupted her mom ___ March 22.",
+    "opts": [
+     "on",
+     "in",
+     "at"
+    ],
+    "a": 0,
+    "tip": "日期用 on"
+   },
+   {
+    "type": "choice",
+    "q": "When did Alice ___ the window?",
+    "opts": [
+     "lock",
+     "locked",
+     "locks"
+    ],
+    "a": 0,
+    "tip": "did 後面用原形動詞"
+   },
+   {
+    "type": "choice",
+    "q": "Alice locked the window ___ lunchtime.",
+    "opts": [
+     "at",
+     "on",
+     "in"
+    ],
+    "a": 0,
+    "tip": "某個時刻（lunchtime）用 at"
+   },
+   {
+    "type": "order",
+    "words": [
+     "Was",
+     "the",
+     "extra",
+     "umbrella",
+     "Kate's?"
+    ],
+    "tip": "問句：Was ＋ 東西 ＋ 某人's"
+   },
+   {
+    "type": "order",
+    "words": [
+     "Tim",
+     "will",
+     "let",
+     "Wally",
+     "ride",
+     "his",
+     "bike."
+    ],
+    "tip": "let ＋ 人 ＋ 原形動詞"
+   },
+   {
+    "type": "order",
+    "words": [
+     "When",
+     "did",
+     "Alice",
+     "lock",
+     "the",
+     "window?"
+    ],
+    "tip": "When did ＋ 主詞 ＋ 原形動詞"
+   }
+  ],
+  "U8": [
+   {
+    "type": "choice",
+    "q": "The police officer has ___ a parrot.",
+    "opts": [
+     "seen",
+     "saw",
+     "see"
+    ],
+    "a": 0,
+    "tip": "has ＋ seen"
+   },
+   {
+    "type": "choice",
+    "q": "Have you ever ___ a dog covered with leaves?",
+    "opts": [
+     "seen",
+     "saw",
+     "seeing"
+    ],
+    "a": 0,
+    "tip": "Have … ever seen"
+   },
+   {
+    "type": "choice",
+    "q": "I ___ seen a centipede before.",
+    "opts": [
+     "have",
+     "has",
+     "am"
+    ],
+    "a": 0,
+    "tip": "I → have"
+   },
+   {
+    "type": "choice",
+    "q": "___ Wally ever seen a riddle book?",
+    "opts": [
+     "Has",
+     "Have",
+     "Did"
+    ],
+    "a": 0,
+    "tip": "Wally＝he → Has"
+   },
+   {
+    "type": "choice",
+    "q": "Why is Becky scared? She is scared ___ she is having a nightmare.",
+    "opts": [
+     "because",
+     "so",
+     "but"
+    ],
+    "a": 0,
+    "tip": "後面是原因 → because"
+   },
+   {
+    "type": "choice",
+    "q": "Alice was hot, ___ she took off her sweatshirt.",
+    "opts": [
+     "so",
+     "because",
+     "or"
+    ],
+    "a": 0,
+    "tip": "後面是結果 → so"
+   },
+   {
+    "type": "choice",
+    "q": "Wally was frustrated ___ he couldn't solve the riddle.",
+    "opts": [
+     "because",
+     "so",
+     "and"
+    ],
+    "a": 0,
+    "tip": "後面是原因 → because"
+   },
+   {
+    "type": "choice",
+    "q": "It was raining, ___ we stayed inside.",
+    "opts": [
+     "so",
+     "because",
+     "but"
+    ],
+    "a": 0,
+    "tip": "下雨（原因）所以待在家（結果）→ so"
+   },
+   {
+    "type": "choice",
+    "q": "How often ___ Paul and his dad eat junk food?",
+    "opts": [
+     "do",
+     "does",
+     "are"
+    ],
+    "a": 0,
+    "tip": "Paul and his dad＝they → do"
+   },
+   {
+    "type": "choice",
+    "q": "They eat junk food ___ a week.",
+    "opts": [
+     "once",
+     "one",
+     "one time a"
+    ],
+    "a": 0,
+    "tip": "一次＝once"
+   },
+   {
+    "type": "choice",
+    "q": "I visit my grandma ___ a month.",
+    "opts": [
+     "twice",
+     "two",
+     "second"
+    ],
+    "a": 0,
+    "tip": "兩次＝twice"
+   },
+   {
+    "type": "choice",
+    "q": "Brush your teeth three ___ a day.",
+    "opts": [
+     "times",
+     "time",
+     "once"
+    ],
+    "a": 0,
+    "tip": "三次以上用 ___ times"
+   },
+   {
+    "type": "order",
+    "words": [
+     "The",
+     "police",
+     "officer",
+     "has",
+     "seen",
+     "a",
+     "parrot."
+    ],
+    "tip": "has ＋ seen"
+   },
+   {
+    "type": "order",
+    "words": [
+     "Alice",
+     "was",
+     "hot,",
+     "so",
+     "she",
+     "took",
+     "off",
+     "her",
+     "sweatshirt."
+    ],
+    "tip": "原因, so 結果"
+   },
+   {
+    "type": "order",
+    "words": [
+     "They",
+     "eat",
+     "junk",
+     "food",
+     "once",
+     "a",
+     "week."
+    ],
+    "tip": "頻率片語放句尾"
+   }
+  ],
+  "U9": [
+   {
+    "type": "choice",
+    "q": "If Paul is mad, he ___ stomp on the soldiers.",
+    "opts": [
+     "will",
+     "would",
+     "is"
+    ],
+    "a": 0,
+    "tip": "If ＋ 現在式 → will"
+   },
+   {
+    "type": "choice",
+    "q": "If it ___ tomorrow, we will play inside.",
+    "opts": [
+     "rains",
+     "will rain",
+     "rained"
+    ],
+    "a": 0,
+    "tip": "if 那一句用現在式"
+   },
+   {
+    "type": "choice",
+    "q": "What will Pam do if she ___ the game?",
+    "opts": [
+     "wins",
+     "will win",
+     "won"
+    ],
+    "a": 0,
+    "tip": "if 那一句用現在式"
+   },
+   {
+    "type": "choice",
+    "q": "If he doesn't have any paint, he ___ go buy some himself.",
+    "opts": [
+     "can",
+     "would",
+     "were"
+    ],
+    "a": 0,
+    "tip": "真的可能 → can／will"
+   },
+   {
+    "type": "choice",
+    "q": "If Paul ___ a soldier, he would drive a truck.",
+    "opts": [
+     "were",
+     "is",
+     "will be"
+    ],
+    "a": 0,
+    "tip": "想像的事：If … were"
+   },
+   {
+    "type": "choice",
+    "q": "He would carry the dragon boat if he ___ really strong.",
+    "opts": [
+     "were",
+     "is",
+     "be"
+    ],
+    "a": 0,
+    "tip": "想像的事：if he were"
+   },
+   {
+    "type": "choice",
+    "q": "I would love it if I ___ him.",
+    "opts": [
+     "were",
+     "am",
+     "was being"
+    ],
+    "a": 0,
+    "tip": "想像的事：if I were"
+   },
+   {
+    "type": "choice",
+    "q": "If I were a bird, I ___ fly to school.",
+    "opts": [
+     "would",
+     "will",
+     "am"
+    ],
+    "a": 0,
+    "tip": "If … were → would"
+   },
+   {
+    "type": "choice",
+    "q": "Alice heard ___ Pam bought a new model.",
+    "opts": [
+     "that",
+     "what",
+     "if"
+    ],
+    "a": 0,
+    "tip": "heard that ＋ 句子"
+   },
+   {
+    "type": "choice",
+    "q": "Paul said that his dad ___ the king.",
+    "opts": [
+     "met",
+     "meets",
+     "meet"
+    ],
+    "a": 0,
+    "tip": "過去的事用過去式"
+   },
+   {
+    "type": "choice",
+    "q": "I ___ that he's interested in reptiles.",
+    "opts": [
+     "heard",
+     "listened",
+     "said to"
+    ],
+    "a": 0,
+    "tip": "聽說＝heard that"
+   },
+   {
+    "type": "choice",
+    "q": "Wally ___ that it was an awesome gift.",
+    "opts": [
+     "said",
+     "told",
+     "talked"
+    ],
+    "a": 0,
+    "tip": "某人說＝said that"
+   },
+   {
+    "type": "order",
+    "words": [
+     "If",
+     "Paul",
+     "is",
+     "mad,",
+     "he",
+     "will",
+     "stomp",
+     "on",
+     "the",
+     "soldiers."
+    ],
+    "tip": "If ＋ 現在式, … will"
+   },
+   {
+    "type": "order",
+    "words": [
+     "If",
+     "Paul",
+     "were",
+     "a",
+     "soldier,",
+     "he",
+     "would",
+     "drive",
+     "a",
+     "truck."
+    ],
+    "tip": "If … were, … would"
+   },
+   {
+    "type": "order",
+    "words": [
+     "Alice",
+     "heard",
+     "that",
+     "Pam",
+     "bought",
+     "a",
+     "new",
+     "model."
+    ],
+    "tip": "heard that ＋ 句子"
+   }
   ]
  },
  "listening": {
@@ -1961,6 +2660,295 @@
      "Phonics: which word did you hear?"
     ]
    }
+  ],
+  "U7": [
+   {
+    "type": "lfill",
+    "say": "Becky's mom made Kate get dressed.",
+    "q": "Becky's mom ___ Kate get dressed.",
+    "opts": [
+     "made",
+     "let",
+     "makes"
+    ],
+    "a": 0,
+    "tip": "聽清楚 made"
+   },
+   {
+    "type": "lfill",
+    "say": "Becky interrupted her mom on March 22.",
+    "q": "Becky interrupted her mom on March ___.",
+    "opts": [
+     "22",
+     "12",
+     "20"
+    ],
+    "a": 0,
+    "tip": "聽清楚 twenty-second"
+   },
+   {
+    "type": "lpick",
+    "say": "No, it wasn't hers.",
+    "opts": [
+     "No, it wasn't hers.",
+     "No, it wasn't his.",
+     "Yes, it was hers."
+    ],
+    "a": 0,
+    "tip": "聽清楚 wasn't 和 hers"
+   },
+   {
+    "type": "lorder",
+    "words": [
+     "Tim",
+     "will",
+     "let",
+     "Wally",
+     "ride",
+     "his",
+     "bike."
+    ],
+    "tip": "let ＋ 人 ＋ 原形動詞"
+   },
+   {
+    "type": "lpick",
+    "say": "yes",
+    "opts": [
+     "yes",
+     "less",
+     "ice"
+    ],
+    "a": 0,
+    "tip": "y 在字首唸 /j/",
+    "label": [
+     "🔤 發音：選出你聽到的字 Which word did you hear?",
+     "Phonics: which word did you hear?"
+    ]
+   },
+   {
+    "type": "lpick",
+    "say": "cry",
+    "opts": [
+     "cry",
+     "key",
+     "crow"
+    ],
+    "a": 0,
+    "tip": "短字字尾 y 唸 /aɪ/",
+    "label": [
+     "🔤 發音：選出你聽到的字 Which word did you hear?",
+     "Phonics: which word did you hear?"
+    ]
+   },
+   {
+    "type": "lpick",
+    "say": "sunny",
+    "opts": [
+     "sunny",
+     "sun",
+     "snowy"
+    ],
+    "a": 0,
+    "tip": "字尾 y 唸 /i/",
+    "label": [
+     "🔤 發音：選出你聽到的字 Which word did you hear?",
+     "Phonics: which word did you hear?"
+    ]
+   }
+  ],
+  "U8": [
+   {
+    "type": "lfill",
+    "say": "Have you ever seen a dog covered with leaves?",
+    "q": "Have you ever ___ a dog covered with leaves?",
+    "opts": [
+     "seen",
+     "had",
+     "sent"
+    ],
+    "a": 0,
+    "tip": "聽清楚 seen"
+   },
+   {
+    "type": "lfill",
+    "say": "They eat junk food once a week.",
+    "q": "They eat junk food ___ a week.",
+    "opts": [
+     "once",
+     "twice",
+     "three times"
+    ],
+    "a": 0,
+    "tip": "聽清楚 once"
+   },
+   {
+    "type": "lpick",
+    "say": "She is scared because she is having a nightmare.",
+    "opts": [
+     "She is scared because she is having a nightmare.",
+     "She is scared so she is having a nightmare.",
+     "She was scared because she had a nightmare."
+    ],
+    "a": 0,
+    "tip": "聽清楚 because 和 is having"
+   },
+   {
+    "type": "lorder",
+    "words": [
+     "Alice",
+     "was",
+     "hot,",
+     "so",
+     "she",
+     "took",
+     "off",
+     "her",
+     "sweatshirt."
+    ],
+    "tip": "原因, so 結果"
+   },
+   {
+    "type": "lpick",
+    "say": "city",
+    "opts": [
+     "city",
+     "kitty",
+     "sit"
+    ],
+    "a": 0,
+    "tip": "c 後面接 i 唸 /s/",
+    "label": [
+     "🔤 發音：選出你聽到的字 Which word did you hear?",
+     "Phonics: which word did you hear?"
+    ]
+   },
+   {
+    "type": "lpick",
+    "say": "cold",
+    "opts": [
+     "cold",
+     "sold",
+     "gold"
+    ],
+    "a": 0,
+    "tip": "c 後面接 o 唸 /k/",
+    "label": [
+     "🔤 發音：選出你聽到的字 Which word did you hear?",
+     "Phonics: which word did you hear?"
+    ]
+   },
+   {
+    "type": "lpick",
+    "say": "rice",
+    "opts": [
+     "rice",
+     "rise",
+     "ride"
+    ],
+    "a": 0,
+    "tip": "ce 的 c 唸 /s/",
+    "label": [
+     "🔤 發音：選出你聽到的字 Which word did you hear?",
+     "Phonics: which word did you hear?"
+    ]
+   }
+  ],
+  "U9": [
+   {
+    "type": "lfill",
+    "say": "If Paul were a soldier, he would drive a truck.",
+    "q": "If Paul were a soldier, he ___ drive a truck.",
+    "opts": [
+     "would",
+     "will",
+     "won't"
+    ],
+    "a": 0,
+    "tip": "聽清楚 would"
+   },
+   {
+    "type": "lfill",
+    "say": "Paul said that his dad met the king.",
+    "q": "Paul ___ that his dad met the king.",
+    "opts": [
+     "said",
+     "heard",
+     "sang"
+    ],
+    "a": 0,
+    "tip": "聽清楚 said"
+   },
+   {
+    "type": "lpick",
+    "say": "Alice heard that Pam bought a new model.",
+    "opts": [
+     "Alice heard that Pam bought a new model.",
+     "Alice heard that Pam built a new model.",
+     "Alice said that Pam bought a new model."
+    ],
+    "a": 0,
+    "tip": "聽清楚 heard 和 bought"
+   },
+   {
+    "type": "lorder",
+    "words": [
+     "What",
+     "will",
+     "Pam",
+     "do",
+     "if",
+     "she",
+     "wins",
+     "the",
+     "game?"
+    ],
+    "tip": "… will … if ＋ 現在式"
+   },
+   {
+    "type": "lpick",
+    "say": "giant",
+    "opts": [
+     "giant",
+     "guy",
+     "gate"
+    ],
+    "a": 0,
+    "tip": "g 後面接 i 常唸 /dʒ/",
+    "label": [
+     "🔤 發音：選出你聽到的字 Which word did you hear?",
+     "Phonics: which word did you hear?"
+    ]
+   },
+   {
+    "type": "lpick",
+    "say": "glue",
+    "opts": [
+     "glue",
+     "blue",
+     "clue"
+    ],
+    "a": 0,
+    "tip": "gl 的 g 唸 /g/",
+    "label": [
+     "🔤 發音：選出你聽到的字 Which word did you hear?",
+     "Phonics: which word did you hear?"
+    ]
+   },
+   {
+    "type": "lpick",
+    "say": "page",
+    "opts": [
+     "page",
+     "pig",
+     "pack"
+    ],
+    "a": 0,
+    "tip": "ge 的 g 唸 /dʒ/",
+    "label": [
+     "🔤 發音：選出你聽到的字 Which word did you hear?",
+     "Phonics: which word did you hear?"
+    ]
+   }
   ]
  },
  "phonics": {
@@ -2363,6 +3351,183 @@
     "mirror",
     "tailor",
     "motor"
+   ]
+  },
+  "U7": {
+   "title": "y- · -y · --y",
+   "sounds": [
+    {
+     "name": "y-",
+     "ipa": "j",
+     "rule": "y 在字首是子音 /j/，像「一」快速滑過去",
+     "words": [
+      "[y]es",
+      "[y]ellow",
+      "[y]ard",
+      "[y]oung",
+      "[y]o-[y]o"
+     ]
+    },
+    {
+     "name": "-y",
+     "ipa": "aɪ",
+     "rule": "短字的字尾 y（通常只有一個音節）唸 /aɪ/，像字母 I",
+     "words": [
+      "m[y]",
+      "cr[y]",
+      "sk[y]",
+      "fl[y]",
+      "sh[y]"
+     ]
+    },
+    {
+     "name": "--y",
+     "ipa": "i",
+     "rule": "兩個音節以上的字尾 y 唸 /i/，像「一」",
+     "words": [
+      "sunn[y]",
+      "happ[y]",
+      "bab[y]",
+      "cand[y]",
+      "hungr[y]"
+     ]
+    }
+   ],
+   "practice": [
+    "yes",
+    "yellow",
+    "yard",
+    "young",
+    "yell",
+    "yummy",
+    "year",
+    "yogurt",
+    "my",
+    "cry",
+    "sky",
+    "fly",
+    "shy",
+    "dry",
+    "try",
+    "why",
+    "sunny",
+    "happy",
+    "baby",
+    "candy",
+    "hungry",
+    "windy",
+    "funny",
+    "party"
+   ]
+  },
+  "U8": {
+   "title": "hard c [k] · soft c [s]",
+   "sounds": [
+    {
+     "name": "hard c",
+     "ipa": "k",
+     "rule": "c 後面接 a、o、u 或子音，唸 /k/",
+     "words": [
+      "[c]at",
+      "[c]ake",
+      "[c]old",
+      "[c]ute",
+      "[c]lose"
+     ]
+    },
+    {
+     "name": "soft c",
+     "ipa": "s",
+     "rule": "c 後面接 e、i、y，唸 /s/",
+     "words": [
+      "[c]ity",
+      "[c]ent",
+      "ri[c]e",
+      "pen[c]il",
+      "[c]ycle"
+     ]
+    }
+   ],
+   "practice": [
+    "cat",
+    "cake",
+    "cold",
+    "cute",
+    "close",
+    "carry",
+    "cockroach",
+    "blanket",
+    "picnic",
+    "cup",
+    "crab",
+    "clean",
+    "city",
+    "cent",
+    "rice",
+    "pencil",
+    "cycle",
+    "face",
+    "nice",
+    "circle",
+    "dance",
+    "center",
+    "once",
+    "juice"
+   ]
+  },
+  "U9": {
+   "title": "hard g [g] · soft g [dʒ]",
+   "sounds": [
+    {
+     "name": "hard g",
+     "ipa": "g",
+     "rule": "g 後面接 a、o、u 或子音，唸 /g/",
+     "words": [
+      "[g]ame",
+      "[g]ood",
+      "[g]um",
+      "[g]lue",
+      "[g]lass"
+     ]
+    },
+    {
+     "name": "soft g",
+     "ipa": "dʒ",
+     "rule": "g 後面接 e、i、y，常常唸 /dʒ/，像「ㄐ」（但 get、give、girl 例外）",
+     "words": [
+      "[g]iant",
+      "[g]em",
+      "ma[g]ic",
+      "pa[g]e",
+      "[g]ym"
+     ]
+    }
+   ],
+   "practice": [
+    "game",
+    "good",
+    "gum",
+    "glue",
+    "glass",
+    "gift",
+    "go",
+    "grab",
+    "dragon",
+    "gold",
+    "garden",
+    "frog",
+    "giant",
+    "gem",
+    "magic",
+    "page",
+    "gym",
+    "giraffe",
+    "orange",
+    "large",
+    "huge",
+    "cage",
+    "gentle",
+    "energy"
    ]
   }
  },
@@ -3481,6 +4646,549 @@
      ]
     ],
     "tip": "過去的事用 couldn't；現在的事用 can't"
+   }
+  ],
+  "U7": [
+   {
+    "t": "所有格代名詞：mine、yours、hers……",
+    "en": "Possessive Pronouns",
+    "ex": "「誰的東西」後面不想再重複名詞時，用所有格代名詞：her umbrella → hers。",
+    "f": [
+     [
+      [
+       "所有格 ＋ 名詞",
+       "O"
+      ],
+      [
+       "→",
+       "O"
+      ],
+      [
+       "所有格代名詞",
+       "S"
+      ]
+     ]
+    ],
+    "tb": [
+     [
+      "my",
+      "mine"
+     ],
+     [
+      "your",
+      "yours"
+     ],
+     [
+      "his",
+      "his"
+     ],
+     [
+      "her",
+      "hers"
+     ],
+     [
+      "our",
+      "ours"
+     ],
+     [
+      "their",
+      "theirs"
+     ]
+    ],
+    "eg": [
+     [
+      "It's {S:Pam and Becky's} tape. It's {S:theirs}.",
+      "那是 Pam 和 Becky 的錄音帶，是她們的。"
+     ],
+     [
+      "{B:Was} the extra umbrella {S:Kate's}? No, it {N:wasn't} {S:hers}.",
+      "那把多的傘是 Kate 的嗎？不，不是她的。"
+     ],
+     [
+      "Is this your umbrella? Yes, it's {S:mine}.",
+      "這是你的傘嗎？對，是我的。"
+     ]
+    ],
+    "tip": "後面沒有名詞才用 mine／hers；後面有名詞用 my／her"
+   },
+   {
+    "t": "let／make ＋ 人 ＋ 原形動詞",
+    "en": "let / make (someone) (v.)",
+    "ex": "let＝讓（允許，對方想做）；make＝叫、逼（一定要做）。人後面接原形動詞，不加 to。",
+    "tl": {
+     "type": "change",
+     "a": "🙋 let",
+     "b": "👉 make",
+     "c": "允許 vs. 一定要"
+    },
+    "f": [
+     [
+      [
+       "主詞",
+       "S"
+      ],
+      [
+       "let / make",
+       "V"
+      ],
+      [
+       "人",
+       "O"
+      ],
+      [
+       "原形動詞",
+       "V"
+      ]
+     ]
+    ],
+    "eg": [
+     [
+      "{S:Tim} {B:will} {V:let} Wally {V:ride} his bike.",
+      "Tim 會讓 Wally 騎他的腳踏車。"
+     ],
+     [
+      "{S:Becky's mom} {V:made} Kate {V:get} dressed.",
+      "Becky 的媽媽叫 Kate 把衣服穿好。"
+     ],
+     [
+      "{S:Who}{B:'s going to} {V:make} me?",
+      "誰要叫我（排隊）？"
+     ]
+    ],
+    "tip": "錯：let Wally to ride → 對：let Wally ride"
+   },
+   {
+    "t": "過去式＋時間片語",
+    "en": "Past Tense: time phrases",
+    "ex": "說過去「什麼時候」做了某事：動詞用過去式，時間放句尾。日期用 on，時刻用 at；問句用 When did ＋ 原形動詞。",
+    "tl": {
+     "type": "ago",
+     "a": "on March 22"
+    },
+    "f": [
+     [
+      [
+       "主詞",
+       "S"
+      ],
+      [
+       "過去式",
+       "V"
+      ],
+      [
+       "…",
+       "O"
+      ],
+      [
+       "on ＋ 日期／at ＋ 時刻",
+       "T"
+      ]
+     ],
+     [
+      [
+       "When",
+       "O"
+      ],
+      [
+       "did",
+       "B"
+      ],
+      [
+       "主詞",
+       "S"
+      ],
+      [
+       "原形動詞",
+       "V"
+      ],
+      [
+       "?",
+       "O"
+      ]
+     ]
+    ],
+    "eg": [
+     [
+      "{S:Becky} {V:interrupted} her mom {T:on March 22}.",
+      "Becky 在三月二十二日打斷了她媽媽說話。"
+     ],
+     [
+      "When {B:did} {S:Alice} {V:lock} the window?",
+      "Alice 什麼時候鎖了窗戶？"
+     ],
+     [
+      "{S:Alice} {V:locked} the window {T:at lunchtime}.",
+      "Alice 在午餐時間鎖了窗戶。"
+     ]
+    ],
+    "tip": "did 後面用原形：When did Alice lock（不是 locked）"
+   }
+  ],
+  "U8": [
+   {
+    "t": "現在完成式：have／has seen 看過",
+    "en": "Present Perfect Tense: seen",
+    "ex": "說「從以前到現在，有沒有看過」的經驗：have／has ＋ seen。問「你曾經看過……嗎？」用 Have you ever seen…?",
+    "tl": {
+     "type": "pastlist",
+     "list": [
+      "👀",
+      "",
+      "👀",
+      ""
+     ]
+    },
+    "f": [
+     [
+      [
+       "主詞",
+       "S"
+      ],
+      [
+       "have / has",
+       "B"
+      ],
+      [
+       "seen",
+       "V"
+      ],
+      [
+       "…",
+       "O"
+      ]
+     ],
+     [
+      [
+       "Have / Has",
+       "B"
+      ],
+      [
+       "主詞",
+       "S"
+      ],
+      [
+       "ever seen",
+       "V"
+      ],
+      [
+       "…?",
+       "O"
+      ]
+     ]
+    ],
+    "tb": [
+     [
+      "I / you / we / they",
+      "have"
+     ],
+     [
+      "he / she / it",
+      "has"
+     ]
+    ],
+    "eg": [
+     [
+      "{S:The police officer} {B:has} {V:seen} a parrot.",
+      "那位警察看過一隻鸚鵡。"
+     ],
+     [
+      "{B:Have} {S:you} ever {V:seen} a dog covered with leaves?",
+      "你看過全身蓋滿樹葉的狗嗎？"
+     ],
+     [
+      "{S:I} {B:have} never {V:seen} a weird riddle like that.",
+      "我從來沒看過那麼怪的謎語。"
+     ]
+    ],
+    "tip": "see → saw → seen；have／has 後面用 seen"
+   },
+   {
+    "t": "because／so：因為、所以",
+    "en": "Conjunctions: because / so",
+    "ex": "because 後面接「原因」；so 後面接「結果」。同一件事兩種說法都可以。",
+    "tl": {
+     "type": "change",
+     "a": "🥵 hot",
+     "b": "took off sweatshirt",
+     "c": "so"
+    },
+    "f": [
+     [
+      [
+       "結果",
+       "O"
+      ],
+      [
+       "because",
+       "C"
+      ],
+      [
+       "原因",
+       "O"
+      ]
+     ],
+     [
+      [
+       "原因",
+       "O"
+      ],
+      [
+       ", so",
+       "C"
+      ],
+      [
+       "結果",
+       "O"
+      ]
+     ]
+    ],
+    "eg": [
+     [
+      "Why {B:is} {S:Becky} scared? {S:She} {B:is} scared {C:because} {S:she} {B:is} {V:having} a nightmare.",
+      "Becky 為什麼害怕？因為她在做惡夢。"
+     ],
+     [
+      "{S:Alice} {B:was} hot, {C:so} {S:she} {V:took off} her sweatshirt.",
+      "Alice 很熱，所以脫掉了運動衫。"
+     ],
+     [
+      "{S:Wally} {B:was} frustrated {C:because} {S:he} {V:got} it wrong again.",
+      "Wally 很沮喪，因為他又答錯了。"
+     ]
+    ],
+    "tip": "中文說「因為……所以……」，英文 because 和 so 只能選一個"
+   },
+   {
+    "t": "How often?：多久一次",
+    "en": "How often?: time phrases",
+    "ex": "問頻率用 How often；回答用 once（一次）、twice（兩次）、three times（三次）＋ a day／a week／a month。",
+    "f": [
+     [
+      [
+       "How often",
+       "O"
+      ],
+      [
+       "do / does",
+       "B"
+      ],
+      [
+       "主詞",
+       "S"
+      ],
+      [
+       "原形動詞",
+       "V"
+      ],
+      [
+       "?",
+       "O"
+      ]
+     ],
+     [
+      [
+       "主詞＋動詞",
+       "S"
+      ],
+      [
+       "once / twice / … times",
+       "T"
+      ],
+      [
+       "a day / week / month",
+       "T"
+      ]
+     ]
+    ],
+    "tb": [
+     [
+      "1 次",
+      "once"
+     ],
+     [
+      "2 次",
+      "twice"
+     ],
+     [
+      "3 次",
+      "three times"
+     ],
+     [
+      "每天",
+      "a day"
+     ],
+     [
+      "每週",
+      "a week"
+     ],
+     [
+      "每月",
+      "a month"
+     ]
+    ],
+    "eg": [
+     [
+      "How often {B:do} {S:Paul and his dad} {V:eat} junk food?",
+      "Paul 和他爸爸多久吃一次垃圾食物？"
+     ],
+     [
+      "{S:They} {V:eat} junk food {T:once a week}.",
+      "他們一週吃一次。"
+     ],
+     [
+      "{S:I} {V:brush} my teeth {T:three times a day}.",
+      "我一天刷三次牙。"
+     ]
+    ],
+    "tip": "一次 once、兩次 twice，三次以上才用 times"
+   }
+  ],
+  "U9": [
+   {
+    "t": "If…, will…：真的可能發生的條件",
+    "en": "If …, will …",
+    "ex": "說「如果這樣，就會那樣」，而且真的有可能發生：if 那一句用現在式，另一句用 will ＋ 原形動詞。",
+    "tl": {
+     "type": "cond",
+     "a": "If Paul is mad",
+     "b": "he will stomp",
+     "la": "條件（現在式）",
+     "lb": "結果（will）"
+    },
+    "f": [
+     [
+      [
+       "If ＋ 主詞 ＋ 現在式",
+       "C"
+      ],
+      [
+       ",",
+       "O"
+      ],
+      [
+       "主詞 ＋ will ＋ 原形動詞",
+       "B"
+      ]
+     ],
+     [
+      [
+       "主詞 ＋ will ＋ 原形動詞",
+       "B"
+      ],
+      [
+       "if ＋ 主詞 ＋ 現在式",
+       "C"
+      ]
+     ]
+    ],
+    "eg": [
+     [
+      "{C:If} {S:Paul} {B:is} mad, {S:he} {B:will} {V:stomp} on the soldiers.",
+      "如果 Paul 生氣，他會去踩那些士兵。"
+     ],
+     [
+      "What {B:will} {S:Pam} {V:do} {C:if} {S:she} {V:wins} the game?",
+      "如果 Pam 贏了比賽，她會做什麼？"
+     ],
+     [
+      "{C:If} {S:he} {N:doesn't} {V:have} any, {S:he} {B:can} {V:go} buy some himself.",
+      "如果他沒有，可以自己去買。"
+     ]
+    ],
+    "tip": "if 那一句不用 will：If Paul is mad（不是 will be）"
+   },
+   {
+    "t": "If…were…, would…：想像的事",
+    "en": "If …, would …",
+    "ex": "說不可能、只是想像的事：if 那一句用 were（I／he／she 都用 were），另一句用 would ＋ 原形動詞。",
+    "tl": {
+     "type": "cond",
+     "a": "If I were him",
+     "b": "I would love it",
+     "la": "想像（were）",
+     "lb": "結果（would）"
+    },
+    "f": [
+     [
+      [
+       "If ＋ 主詞 ＋ were …",
+       "C"
+      ],
+      [
+       ",",
+       "O"
+      ],
+      [
+       "主詞 ＋ would ＋ 原形動詞",
+       "B"
+      ]
+     ]
+    ],
+    "eg": [
+     [
+      "{C:If} {S:Paul} {B:were} a soldier, {S:he} {B:would} {V:drive} a truck.",
+      "如果 Paul 是士兵，他會開卡車。"
+     ],
+     [
+      "{S:He} {B:would} {V:carry} the dragon boat {C:if} {S:he} {B:were} really strong.",
+      "如果他非常強壯，他會扛起龍舟。"
+     ],
+     [
+      "{S:I} {B:would} {V:love} it {C:if} {S:I} {B:were} him.",
+      "如果我是他，我會很喜歡。"
+     ]
+    ],
+    "tip": "真的可能 → will；想像、不可能 → would"
+   },
+   {
+    "t": "heard that／said that：聽說、某人說",
+    "en": "(someone) heard that / said that",
+    "ex": "轉述聽到的消息、別人說過的話：主詞 ＋ heard that／said that ＋ 一整句話。過去的事那句話也用過去式。",
+    "f": [
+     [
+      [
+       "主詞",
+       "S"
+      ],
+      [
+       "heard that",
+       "V"
+      ],
+      [
+       "句子",
+       "O"
+      ]
+     ],
+     [
+      [
+       "主詞",
+       "S"
+      ],
+      [
+       "said that",
+       "V"
+      ],
+      [
+       "句子",
+       "O"
+      ]
+     ]
+    ],
+    "eg": [
+     [
+      "{S:Alice} {V:heard that} {S:Pam} {V:bought} a new model.",
+      "Alice 聽說 Pam 買了一個新模型。"
+     ],
+     [
+      "{S:Paul} {V:said that} {S:his dad} {V:met} the king.",
+      "Paul 說他爸爸見到了國王。"
+     ],
+     [
+      "{S:I} {V:heard that} {S:he}{B:'s} interested in reptiles.",
+      "我聽說他對爬蟲類有興趣。"
+     ]
+    ],
+    "tip": "that 可以省略：I heard he's interested in reptiles."
    }
   ]
  },
