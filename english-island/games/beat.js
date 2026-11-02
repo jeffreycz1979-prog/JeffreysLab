@@ -11,11 +11,12 @@
 //        todayKey, clockCheck, saveLedger, saveMeta, afterPoints, points, gameWeekBestAll, gameCard, masteredCount, GAMES, toast, confetti
 // ═══════════════════════════════════════════════════════
 const WBT = (() => {
-  const ID = 'beat', NEED = 9, VER = '0.1';
+  const ID = 'beat', NEED = 9, VER = '0.2';
   const UNIT = 'U9';
   const CAP = 20, S_PER_PT = 150;          // 暫定 3000 分滿 20 ⭐，等實玩校準
   const GREAT = 0.075, GOOD = 0.15;        // 判定窗（秒）
   const PTS = { great: 10, good: 5, word: 30, quiz: 20 };
+  const BOTH = 0.1;                       // 金色單字音符：左右兩下要在 0.1 秒內一起按（Jeffrey 2026/11/02）
   const MISS_RUN = 5;                      // 連續幾次失誤跳聽力題
   const SPEED = 230;                       // 音符移動速度（邏輯 px/秒）
   const JX = 70;                           // 判定圈 x
@@ -206,11 +207,11 @@ const WBT = (() => {
       <div class="wj-ic">🥁</div>
       <h2>Word Beat</h2>
       <p>${L('跟著音樂打鼓，還會聽到這個單元的單字！', 'Drum to the music and hear your unit words!')}</p>
-      <div class="wbt-demo"><span style="background:#FF5A5A">${L('左', 'L')}</span><span style="background:#3FA8FF">${L('右', 'R')}</span><span style="background:#FFD23F;color:#1a1a1a;width:auto;padding:0 12px;border-radius:23px">⭐ word</span></div>
+      <div class="wbt-demo"><span style="background:#FF5A5A">${L('左', 'L')}</span><span style="background:#3FA8FF">${L('右', 'R')}</span><span style="background:#FFD23F;color:#1a1a1a;width:auto;padding:0 12px;border-radius:23px">⭐ ${L('左＋右', 'L+R')}</span></div>
       <div class="wj-rules">
         <div>🔴 ${L('紅色音符到圈圈時，點<b>畫面左半邊</b>', 'Red note: tap the <b>left half</b>')}</div>
         <div>🔵 ${L('藍色音符點<b>右半邊</b>（鍵盤：F＝左、J＝右）', 'Blue note: tap the <b>right half</b> (keys F / J)')}</div>
-        <div>⭐ ${L('金色單字音符：聽到單字就點，哪一邊都可以，分數比較多', 'Gold word note: tap either side when you hear the word — bonus points')}</div>
+        <div>⭐ ${L('金色單字音符：聽到單字時，<b>左右兩邊一起按</b>（兩隻手同時點），分數比較多', 'Gold word note: when you hear the word, hit <b>BOTH sides together</b> — bonus points')}</div>
         <div>🎯 ${L('越準越高分：好（GREAT）＞ 可（GOOD）；連續打中有 combo', 'GREAT > GOOD; keep a combo going')}</div>
         <div>👂 ${L(`連續 ${MISS_RUN} 次沒打中，音樂會暫停，回答一題聽力題再繼續`, `Miss ${MISS_RUN} in a row and the music stops for a listening question`)}</div>
         <div>🎵 ${L('一首歌 3 分鐘，分三段，越來越快', 'One 3-minute song in three parts, getting faster')}</div>
@@ -317,6 +318,17 @@ const WBT = (() => {
       if (!x.done && Math.abs(x.t - t) <= GOOD) { n = x; break; }
     }
     if (!n) return;   // 沒有音符：空打不扣分
+    if (n.c === 'w') {   // 金色單字音符：左右一起按才算
+      n.hits = n.hits || {};
+      if (n.hits[side] == null) n.hits[side] = t;
+      const o = side === 'r' ? 'b' : 'r';
+      if (n.hits[o] != null && Math.abs(n.hits[o] - n.hits[side]) <= BOTH) {
+        n.done = true;
+        const tt = Math.min(n.hits.r, n.hits.b);
+        judge(n, Math.abs(n.t - tt) <= GREAT ? 'great' : 'good');
+      }
+      return;
+    }
     n.done = true;
     const dt = Math.abs(n.t - t);
     if (n.c !== 'w' && n.c !== side) return judge(n, 'miss', true);   // 打錯邊
@@ -326,7 +338,8 @@ const WBT = (() => {
     const g = game;
     if (res === 'miss') {
       g.miss++; g.combo = 0; g.missRun++;
-      g.fx.push({ txt: wrong ? L('打錯邊', 'Wrong side') : L('不可', 'MISS'), col: '#FF6B57', t: performance.now() });
+      const half = n.c === 'w' && n.hits && Object.keys(n.hits).length;   // 金色只按了一邊
+      g.fx.push({ txt: wrong ? L('打錯邊', 'Wrong side') : half ? L('要兩邊一起按！', 'Hit BOTH sides!') : L('不可', 'MISS'), col: '#FF6B57', t: performance.now() });
       if (g.missRun >= MISS_RUN) startQuiz();
       return;
     }
@@ -432,6 +445,8 @@ const WBT = (() => {
         cx.beginPath(); cx.arc(x, Y, 26, 0, Math.PI * 2); cx.fill(); cx.stroke();
         cx.fillStyle = '#1a1a1a'; cx.font = '800 22px system-ui'; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText('★', x, Y + 1);
         cx.fillStyle = '#FFD23F'; cx.font = '800 15px Syne, system-ui, sans-serif'; cx.fillText(ansOf(n.w), x, Y - 44);
+        cx.font = '800 12px "Noto Sans TC", system-ui'; cx.fillText(L('◀ 一起 ▶', '◀ BOTH ▶'), x, Y + 42);
+        if (n.hits) { cx.fillStyle = '#fff'; Object.keys(n.hits).forEach((k) => { cx.beginPath(); cx.arc(x + (k === 'r' ? -12 : 12), Y + 18, 4, 0, Math.PI * 2); cx.fill(); }); }
       } else {
         cx.fillStyle = n.c === 'r' ? '#FF5A5A' : '#3FA8FF'; cx.strokeStyle = '#fff'; cx.lineWidth = 3;
         cx.beginPath(); cx.arc(x, Y, 19, 0, Math.PI * 2); cx.fill(); cx.stroke();
