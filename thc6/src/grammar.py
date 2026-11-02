@@ -3,7 +3,7 @@
 # phonics＝發音小卡（每個音：規則、例字、紅字部分用 [ ] 標出）＋ 練習字 24 個
 # 會話站（課本 Conversation）：見 talk.py
 # 所有選擇題的正確答案寫在第一個（a=0），App 會打亂順序
-# 目前寫好：U1（其他單元一單元一單元補，補好再把 words.py 的 OPEN 打開）
+# 目前寫好：U1、U2（其他單元一單元一單元補，補好再把 words.py 的 OPEN 打開）
 import json, sys
 
 def C(q, opts, tip):  return {'type': 'choice', 'q': q, 'opts': opts, 'a': 0, 'tip': tip}
@@ -73,6 +73,61 @@ unit('U1', {
   PW('warm', ['farm', 'worm'], 'w 後面的 ar 唸 /ɔr/'),
   PW('park', ['pork', 'pack'], 'p[ar]k 的 ar 唸 /ɑr/'),
   PW('dollar', ['doll', 'dollars'], '字尾 ar 唸輕輕的 /ɚ/'),
+])
+
+# ───────────────────────── U2 Clothes ─────────────────────────
+unit('U2', {
+  'title': 'good at / terrible at Ving · Sensory Verbs · as / when',
+  'zh': 'good at／terrible at 後面接 V-ing；感官動詞＋形容詞／like＋名詞；as／when：當……的時候',
+  'rules': [
+    ['good at ＋ V-ing：擅長做某件事', 'Alice is good at drawing clothes.'],
+    ['terrible at ＋ V-ing：很不會做某件事', 'The worker is terrible at mopping the floor.'],
+    ['感官動詞 ＋ 形容詞：look / smell / sound / taste / feel', "The man's cake tasted bad."],
+    ['感官動詞 ＋ like ＋ 名詞：摸起來像……', 'The socks felt like rocks.'],
+    ['as：一邊……一邊……（兩件事同時進行）', "Chuck's dad will talk to the vendor as he tries on the hat."],
+    ['when：正在做 A 的時候，B 發生了', 'Grandma was talking on her cell phone when the boy jumped over her.'],
+  ],
+  'phrases': [['常用', 'look cute　smell good　sound great　taste bad　feel soft　feel like rocks']],
+  'mistakes': [
+    ['Alice is good at draw clothes.', 'Alice is good at drawing clothes.', 'at 後面的動作要加 -ing'],
+    ['The cake tasted badly.', 'The cake tasted bad.', '感官動詞後面用形容詞，不用副詞'],
+    ['The socks felt rocks.', 'The socks felt like rocks.', '後面接名詞要加 like'],
+    ['He will talk as he will try on the hat.', 'He will talk as he tries on the hat.', '講未來時，as／when 後面用現在式'],
+  ]}, [
+  C('Alice is good at ___ clothes.', ['drawing', 'draw', 'draws'], 'good at ＋ V-ing'),
+  C('The worker is terrible at ___ the floor.', ['mopping', 'mop', 'mops'], 'terrible at ＋ V-ing（mop 要重複 p）'),
+  C("My mom's good at ___ things.", ['sewing', 'sew', 'sews'], 'good at ＋ V-ing'),
+  C("Susie isn't very good at ___.", ['skating', 'skate', 'skated'], 'good at ＋ V-ing'),
+  C("The man's cake tasted ___.", ['bad', 'badly', 'like bad'], '感官動詞＋形容詞：tasted bad'),
+  C('The socks felt ___ rocks.', ['like', 'as', 'to'], '後面接名詞（rocks）要用 felt like'),
+  C('Wow, this dress looks really ___.', ['cute', 'cutely', 'like cute'], 'look ＋ 形容詞'),
+  C('This soup smells ___.', ['good', 'well', 'like good'], 'smell ＋ 形容詞：smells good'),
+  C('Your idea ___ great!', ['sounds', 'hears', 'listens'], '聽起來＝sound'),
+  C("Chuck's dad will talk to the vendor as he ___ on the hat.", ['tries', 'will try', 'tried'], '講未來時，as 後面用現在式'),
+  C('Grandma was talking on her cell phone ___ the boy jumped over her.', ['when', 'as', 'so'], '正在做 A（was talking）的時候，B 突然發生 → when'),
+  C('I ___ watching TV when Mom came home.', ['was', 'were', 'am'], '過去正在做：I was ＋ V-ing'),
+  O('Alice is good at drawing clothes.', 'good at ＋ V-ing'),
+  O('The socks felt like rocks.', '感官動詞＋like＋名詞'),
+  O('Grandma was talking when the boy jumped over her.', 'was ＋ V-ing ＋ when ＋ 過去式'),
+], [
+  LF('The worker is terrible at mopping the floor.', 'The worker is ___ at mopping the floor.', ['terrible', 'good', 'great'], '聽清楚 terrible（很不會）'),
+  LF("The man's cake tasted bad.", "The man's cake ___ bad.", ['tasted', 'looked', 'smelled'], 'tasted＝嚐起來'),
+  LP('The socks felt like rocks.', ['The socks look like rocks.', 'The socks felt like socks.'], '聽清楚 felt（摸起來）'),
+  LO('Alice is good at drawing clothes.', 'good at ＋ V-ing'),
+], {
+  'title': '-air · -are · -ear',
+  'sounds': [
+    {'name': '-air', 'ipa': 'ɛr', 'rule': 'air 唸 /ɛr/，像「ㄝ」再捲舌', 'words': ['ch[air]', 'h[air]', 'p[air]', 'st[air]s', 'f[air]']},
+    {'name': '-are', 'ipa': 'ɛr', 'rule': 'are 在字尾也唸 /ɛr/，跟 air 一樣（e 不發音）', 'words': ['c[are]', 'sh[are]', 'sc[are]', 'squ[are]', 'b[are]']},
+    {'name': '-ear', 'ipa': 'ɛr', 'rule': '有些 ear 唸 /ɛr/：bear、pear、wear（但 hear、near 唸 /ɪr/，U4 會學）', 'words': ['b[ear]', 'p[ear]', 'w[ear]', 'underw[ear]']},
+  ],
+  'practice': ['hair', 'pair', 'fair', 'stairs', 'repair', 'airplane', 'dairy', 'flair',
+               'care', 'dare', 'rare', 'share', 'spare', 'stare', 'glare', 'careful',
+               'bear', 'pear', 'wear', 'underwear', 'wears', 'bears', 'wearing', 'pears'],
+}, [
+  PW('chair', ['cheer', 'char'], 'air 唸 /ɛr/'),
+  PW('share', ['sheer', 'shore'], 'are 唸 /ɛr/'),
+  PW('bear', ['beer', 'bar'], 'b[ear] 的 ear 唸 /ɛr/'),
 ])
 
 # 檢查

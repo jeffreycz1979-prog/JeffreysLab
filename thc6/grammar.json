@@ -58,6 +58,64 @@
      "形容動作要用副詞 carelessly"
     ]
    ]
+  },
+  "U2": {
+   "title": "good at / terrible at Ving · Sensory Verbs · as / when",
+   "zh": "good at／terrible at 後面接 V-ing；感官動詞＋形容詞／like＋名詞；as／when：當……的時候",
+   "rules": [
+    [
+     "good at ＋ V-ing：擅長做某件事",
+     "Alice is good at drawing clothes."
+    ],
+    [
+     "terrible at ＋ V-ing：很不會做某件事",
+     "The worker is terrible at mopping the floor."
+    ],
+    [
+     "感官動詞 ＋ 形容詞：look / smell / sound / taste / feel",
+     "The man's cake tasted bad."
+    ],
+    [
+     "感官動詞 ＋ like ＋ 名詞：摸起來像……",
+     "The socks felt like rocks."
+    ],
+    [
+     "as：一邊……一邊……（兩件事同時進行）",
+     "Chuck's dad will talk to the vendor as he tries on the hat."
+    ],
+    [
+     "when：正在做 A 的時候，B 發生了",
+     "Grandma was talking on her cell phone when the boy jumped over her."
+    ]
+   ],
+   "phrases": [
+    [
+     "常用",
+     "look cute　smell good　sound great　taste bad　feel soft　feel like rocks"
+    ]
+   ],
+   "mistakes": [
+    [
+     "Alice is good at draw clothes.",
+     "Alice is good at drawing clothes.",
+     "at 後面的動作要加 -ing"
+    ],
+    [
+     "The cake tasted badly.",
+     "The cake tasted bad.",
+     "感官動詞後面用形容詞，不用副詞"
+    ],
+    [
+     "The socks felt rocks.",
+     "The socks felt like rocks.",
+     "後面接名詞要加 like"
+    ],
+    [
+     "He will talk as he will try on the hat.",
+     "He will talk as he tries on the hat.",
+     "講未來時，as／when 後面用現在式"
+    ]
+   ]
   }
  },
  "everyday": {},
@@ -229,6 +287,178 @@
     ],
     "tip": "動詞後面：very ＋ 副詞"
    }
+  ],
+  "U2": [
+   {
+    "type": "choice",
+    "q": "Alice is good at ___ clothes.",
+    "opts": [
+     "drawing",
+     "draw",
+     "draws"
+    ],
+    "a": 0,
+    "tip": "good at ＋ V-ing"
+   },
+   {
+    "type": "choice",
+    "q": "The worker is terrible at ___ the floor.",
+    "opts": [
+     "mopping",
+     "mop",
+     "mops"
+    ],
+    "a": 0,
+    "tip": "terrible at ＋ V-ing（mop 要重複 p）"
+   },
+   {
+    "type": "choice",
+    "q": "My mom's good at ___ things.",
+    "opts": [
+     "sewing",
+     "sew",
+     "sews"
+    ],
+    "a": 0,
+    "tip": "good at ＋ V-ing"
+   },
+   {
+    "type": "choice",
+    "q": "Susie isn't very good at ___.",
+    "opts": [
+     "skating",
+     "skate",
+     "skated"
+    ],
+    "a": 0,
+    "tip": "good at ＋ V-ing"
+   },
+   {
+    "type": "choice",
+    "q": "The man's cake tasted ___.",
+    "opts": [
+     "bad",
+     "badly",
+     "like bad"
+    ],
+    "a": 0,
+    "tip": "感官動詞＋形容詞：tasted bad"
+   },
+   {
+    "type": "choice",
+    "q": "The socks felt ___ rocks.",
+    "opts": [
+     "like",
+     "as",
+     "to"
+    ],
+    "a": 0,
+    "tip": "後面接名詞（rocks）要用 felt like"
+   },
+   {
+    "type": "choice",
+    "q": "Wow, this dress looks really ___.",
+    "opts": [
+     "cute",
+     "cutely",
+     "like cute"
+    ],
+    "a": 0,
+    "tip": "look ＋ 形容詞"
+   },
+   {
+    "type": "choice",
+    "q": "This soup smells ___.",
+    "opts": [
+     "good",
+     "well",
+     "like good"
+    ],
+    "a": 0,
+    "tip": "smell ＋ 形容詞：smells good"
+   },
+   {
+    "type": "choice",
+    "q": "Your idea ___ great!",
+    "opts": [
+     "sounds",
+     "hears",
+     "listens"
+    ],
+    "a": 0,
+    "tip": "聽起來＝sound"
+   },
+   {
+    "type": "choice",
+    "q": "Chuck's dad will talk to the vendor as he ___ on the hat.",
+    "opts": [
+     "tries",
+     "will try",
+     "tried"
+    ],
+    "a": 0,
+    "tip": "講未來時，as 後面用現在式"
+   },
+   {
+    "type": "choice",
+    "q": "Grandma was talking on her cell phone ___ the boy jumped over her.",
+    "opts": [
+     "when",
+     "as",
+     "so"
+    ],
+    "a": 0,
+    "tip": "正在做 A（was talking）的時候，B 突然發生 → when"
+   },
+   {
+    "type": "choice",
+    "q": "I ___ watching TV when Mom came home.",
+    "opts": [
+     "was",
+     "were",
+     "am"
+    ],
+    "a": 0,
+    "tip": "過去正在做：I was ＋ V-ing"
+   },
+   {
+    "type": "order",
+    "words": [
+     "Alice",
+     "is",
+     "good",
+     "at",
+     "drawing",
+     "clothes."
+    ],
+    "tip": "good at ＋ V-ing"
+   },
+   {
+    "type": "order",
+    "words": [
+     "The",
+     "socks",
+     "felt",
+     "like",
+     "rocks."
+    ],
+    "tip": "感官動詞＋like＋名詞"
+   },
+   {
+    "type": "order",
+    "words": [
+     "Grandma",
+     "was",
+     "talking",
+     "when",
+     "the",
+     "boy",
+     "jumped",
+     "over",
+     "her."
+    ],
+    "tip": "was ＋ V-ing ＋ when ＋ 過去式"
+   }
   ]
  },
  "listening": {
@@ -324,6 +554,100 @@
      "Phonics: which word did you hear?"
     ]
    }
+  ],
+  "U2": [
+   {
+    "type": "lfill",
+    "say": "The worker is terrible at mopping the floor.",
+    "q": "The worker is ___ at mopping the floor.",
+    "opts": [
+     "terrible",
+     "good",
+     "great"
+    ],
+    "a": 0,
+    "tip": "聽清楚 terrible（很不會）"
+   },
+   {
+    "type": "lfill",
+    "say": "The man's cake tasted bad.",
+    "q": "The man's cake ___ bad.",
+    "opts": [
+     "tasted",
+     "looked",
+     "smelled"
+    ],
+    "a": 0,
+    "tip": "tasted＝嚐起來"
+   },
+   {
+    "type": "lpick",
+    "say": "The socks felt like rocks.",
+    "opts": [
+     "The socks felt like rocks.",
+     "The socks look like rocks.",
+     "The socks felt like socks."
+    ],
+    "a": 0,
+    "tip": "聽清楚 felt（摸起來）"
+   },
+   {
+    "type": "lorder",
+    "words": [
+     "Alice",
+     "is",
+     "good",
+     "at",
+     "drawing",
+     "clothes."
+    ],
+    "tip": "good at ＋ V-ing"
+   },
+   {
+    "type": "lpick",
+    "say": "chair",
+    "opts": [
+     "chair",
+     "cheer",
+     "char"
+    ],
+    "a": 0,
+    "tip": "air 唸 /ɛr/",
+    "label": [
+     "🔤 發音：選出你聽到的字 Which word did you hear?",
+     "Phonics: which word did you hear?"
+    ]
+   },
+   {
+    "type": "lpick",
+    "say": "share",
+    "opts": [
+     "share",
+     "sheer",
+     "shore"
+    ],
+    "a": 0,
+    "tip": "are 唸 /ɛr/",
+    "label": [
+     "🔤 發音：選出你聽到的字 Which word did you hear?",
+     "Phonics: which word did you hear?"
+    ]
+   },
+   {
+    "type": "lpick",
+    "say": "bear",
+    "opts": [
+     "bear",
+     "beer",
+     "bar"
+    ],
+    "a": 0,
+    "tip": "b[ear] 的 ear 唸 /ɛr/",
+    "label": [
+     "🔤 發音：選出你聽到的字 Which word did you hear?",
+     "Phonics: which word did you hear?"
+    ]
+   }
   ]
  },
  "phonics": {
@@ -392,6 +716,72 @@
     "cellar",
     "grammar",
     "pillar"
+   ]
+  },
+  "U2": {
+   "title": "-air · -are · -ear",
+   "sounds": [
+    {
+     "name": "-air",
+     "ipa": "ɛr",
+     "rule": "air 唸 /ɛr/，像「ㄝ」再捲舌",
+     "words": [
+      "ch[air]",
+      "h[air]",
+      "p[air]",
+      "st[air]s",
+      "f[air]"
+     ]
+    },
+    {
+     "name": "-are",
+     "ipa": "ɛr",
+     "rule": "are 在字尾也唸 /ɛr/，跟 air 一樣（e 不發音）",
+     "words": [
+      "c[are]",
+      "sh[are]",
+      "sc[are]",
+      "squ[are]",
+      "b[are]"
+     ]
+    },
+    {
+     "name": "-ear",
+     "ipa": "ɛr",
+     "rule": "有些 ear 唸 /ɛr/：bear、pear、wear（但 hear、near 唸 /ɪr/，U4 會學）",
+     "words": [
+      "b[ear]",
+      "p[ear]",
+      "w[ear]",
+      "underw[ear]"
+     ]
+    }
+   ],
+   "practice": [
+    "hair",
+    "pair",
+    "fair",
+    "stairs",
+    "repair",
+    "airplane",
+    "dairy",
+    "flair",
+    "care",
+    "dare",
+    "rare",
+    "share",
+    "spare",
+    "stare",
+    "glare",
+    "careful",
+    "bear",
+    "pear",
+    "wear",
+    "underwear",
+    "wears",
+    "bears",
+    "wearing",
+    "pears"
    ]
   }
  },
@@ -596,6 +986,200 @@
      ]
     ],
     "tip": "大部分形容詞加 -ly 變副詞（careful → carefully）；fast、hard 不變"
+   }
+  ],
+  "U2": [
+   {
+    "t": "good at／terrible at ＋ V-ing：擅長／很不會",
+    "en": "good at Ving / terrible at Ving",
+    "ex": "at 後面接「動作」時，動作要加 -ing。good at＝很會；terrible at＝很不會。",
+    "f": [
+     [
+      [
+       "主詞",
+       "S"
+      ],
+      [
+       "be",
+       "B"
+      ],
+      [
+       "good at",
+       "A"
+      ],
+      [
+       "動詞-ing",
+       "V"
+      ]
+     ],
+     [
+      [
+       "主詞",
+       "S"
+      ],
+      [
+       "be",
+       "B"
+      ],
+      [
+       "terrible at",
+       "N"
+      ],
+      [
+       "動詞-ing",
+       "V"
+      ]
+     ]
+    ],
+    "eg": [
+     [
+      "{S:Alice} {B:is} {A:good at} {V:drawing} clothes.",
+      "Alice 擅長畫衣服。"
+     ],
+     [
+      "{S:The worker} {B:is} {N:terrible at} {V:mopping} the floor.",
+      "那工人很不會拖地。"
+     ],
+     [
+      "{S:My mom}{B:'s} {A:good at} {V:sewing} things.",
+      "我媽媽很會縫東西。"
+     ]
+    ],
+    "tip": "錯：good at draw → 對：good at drawing"
+   },
+   {
+    "t": "感官動詞：看起來、聞起來、嚐起來……",
+    "en": "Sensory Verbs",
+    "ex": "look／smell／sound／taste／feel 說「感覺起來怎樣」。後面接形容詞；要接名詞時加 like。",
+    "tl": {
+     "type": "senses"
+    },
+    "f": [
+     [
+      [
+       "主詞",
+       "S"
+      ],
+      [
+       "look / smell / sound / taste / feel",
+       "V"
+      ],
+      [
+       "形容詞",
+       "A"
+      ]
+     ],
+     [
+      [
+       "主詞",
+       "S"
+      ],
+      [
+       "感官動詞",
+       "V"
+      ],
+      [
+       "like",
+       "P"
+      ],
+      [
+       "名詞",
+       "O"
+      ]
+     ]
+    ],
+    "tb": [
+     [
+      "👀 look",
+      "看起來"
+     ],
+     [
+      "👃 smell",
+      "聞起來"
+     ],
+     [
+      "👂 sound",
+      "聽起來"
+     ],
+     [
+      "👅 taste",
+      "嚐起來"
+     ],
+     [
+      "✋ feel",
+      "摸起來"
+     ]
+    ],
+    "eg": [
+     [
+      "{S:The man's cake} {V:tasted} {A:bad}.",
+      "那男人的蛋糕嚐起來不好吃。"
+     ],
+     [
+      "{S:The socks} {V:felt} {P:like} rocks.",
+      "這雙襪子摸起來像石頭。"
+     ],
+     [
+      "{S:This dress} {V:looks} really {A:cute}.",
+      "這件洋裝看起來真可愛。"
+     ]
+    ],
+    "tip": "後面用形容詞不用副詞：tasted bad（不是 badly）"
+   },
+   {
+    "t": "as／when：當……的時候",
+    "en": "as / when",
+    "ex": "as＝兩件事「同時」進行（一邊……一邊……）；when＝正在做一件事的時候，另一件事突然發生。",
+    "tl": {
+     "type": "interrupt",
+     "a": "was talking",
+     "b": "the boy jumped over her"
+    },
+    "f": [
+     [
+      [
+       "主詞＋動詞",
+       "S"
+      ],
+      [
+       "as",
+       "C"
+      ],
+      [
+       "主詞＋動詞",
+       "S"
+      ]
+     ],
+     [
+      [
+       "主詞 was / were ＋ V-ing",
+       "S"
+      ],
+      [
+       "when",
+       "C"
+      ],
+      [
+       "主詞＋過去式",
+       "S"
+      ]
+     ]
+    ],
+    "eg": [
+     [
+      "{S:Chuck's dad} {B:will} {V:talk} to the vendor {C:as} {S:he} {V:tries on} the hat.",
+      "Chuck 的爸爸會一邊試戴帽子一邊和小販講話。"
+     ],
+     [
+      "{S:Grandma} {B:was} {V:talking} on her cell phone {C:when} {S:the boy} {V:jumped} over her.",
+      "奶奶正在講手機的時候，男孩跳過了她。"
+     ],
+     [
+      "{C:When} {S:you}{B:'re} {V:finished}, you can take the rest home.",
+      "妳試穿完之後，可以把其他的帶回家。"
+     ]
+    ],
+    "tip": "講未來時，as／when 後面用現在式：as he tries（不是 will try）"
    }
   ]
  },
