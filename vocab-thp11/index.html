@@ -332,6 +332,7 @@ h3 small{font-family:'Syne',sans-serif;font-size:11px;color:var(--muted);font-we
 .proof > *{position:relative}
 .proof .pava{font-size:54px;line-height:1}
 .proof .pname{font-size:22px;font-weight:700;margin-top:6px}
+.gc-new{position:absolute;top:-9px;right:14px;font-size:11px;font-weight:800;color:#1a1a1a;background:#FFD23F;border-radius:8px;padding:1px 6px}
 .plegend{display:inline-block;margin-top:6px;padding:4px 12px;border-radius:14px;background:linear-gradient(90deg,#FFD23F,#FF9F3F);color:#1a1a1a;font-weight:800;font-size:13px}
 .plegend b{font-family:'Syne',sans-serif;margin-left:4px}
 .legend-ov{position:fixed;inset:0;z-index:400;background:rgba(5,5,12,.9);display:flex;align-items:center;justify-content:center;padding:24px}
@@ -498,7 +499,7 @@ nav button.on{color:var(--lime);font-weight:700}
 .spot-kick small{display:block;font-family:'Noto Sans TC',sans-serif;font-weight:400;font-size:12px;color:var(--muted);margin-top:4px}
 .spot-step{font-size:12px;color:var(--mint);font-weight:700;margin:12px 0 6px}
 /* ── 獎勵遊戲 ── */
-.gamecard{display:flex;align-items:center;gap:12px;margin-top:12px;border-radius:18px;padding:12px 14px;
+.gamecard{position:relative;display:flex;align-items:center;gap:12px;margin-top:12px;border-radius:18px;padding:12px 14px;
   background:linear-gradient(120deg,#26331a,#123a37);border:1.5px solid var(--lime)}
 .gamecard.off{background:var(--panel);border:1px dashed var(--line);opacity:.6}
 .gamecard .gc-ic{font-size:30px}.gamecard .gc-m{flex:1;min-width:0}
@@ -994,13 +995,38 @@ const GAMES = [];
 // 測試版：全部單元開放、遊戲不看精熟門檻（正式版 THP11／THP5 沒有這個開關）
 const TEST_ALL_OPEN = false;   // 正式版一律 false
 const masteredCount = () => TEST_ALL_OPEN ? 99 : new Set(st.ledger.bonus.filter((b) => b.k.startsWith('master:')).map((b) => b.k.slice(7))).size;
+// THP11 只有 6 個單元：第 7 款以後的遊戲平常看不到；前 6 款每一款都拿過一局 20 ⭐，就驚喜全部開放（Jeffrey 2026/11/02）
+const GAME_BASE = 6;
+const baseGames = () => GAMES.filter((g) => g.need <= GAME_BASE);
+const surpriseOpen = () => baseGames().length >= GAME_BASE && baseGames().every((g) => gameMaxStars(g.id) >= GAME_CAP);
+const gameOpen = (g) => masteredCount() >= g.need || (g.need > GAME_BASE && surpriseOpen());
+const gameShown = (g) => g.need <= GAME_BASE || surpriseOpen();
+function checkSurprise() {
+  if (st.meta.surprise || st.tampered || !surpriseOpen()) return false;
+  st.meta.surprise = Date.now(); saveMeta();
+  const extra = GAMES.filter((g) => g.need > GAME_BASE);
+  if (!extra.length) return false;
+  setTimeout(() => {
+    const d = document.createElement('div'); d.className = 'legend-ov';
+    d.innerHTML = `<div class="legend-card"><div class="legend-crown">🎁</div>
+      <div class="legend-k">${L('驚喜！隱藏關卡開放', 'SURPRISE! SECRET GAMES UNLOCKED')}</div>
+      <div class="legend-n" style="font-size:26px">${L(`${GAME_BASE} 款遊戲全部滿星`, `All ${GAME_BASE} games at ${GAME_CAP} ⭐`)}</div>
+      <p>${L('你太厲害了！送你幾款新遊戲：', 'Amazing! Here are some new games:')}<br><b>${extra.map((g) => esc(({ orbs: '🔮 Word Orbs', slice: '🍉 Word Slice' })[g.id] || g.id)).join('、')}</b><br>${L('到「挑戰」頁就能玩 🎮', 'Find them on the Challenge page 🎮')}</p>
+      <button class="btn" data-legendok="1">${L('去看看！', "Let's go!")}</button></div>`;
+    document.body.appendChild(d);
+    d.addEventListener('click', (e) => { if (e.target.closest('[data-legendok]')) d.remove(); });
+    [0, 600].forEach((t) => setTimeout(() => confetti(110), t));
+  }, 900);
+  return true;
+}
 function gameCard(g) {
-  const ok = masteredCount() >= g.need, best = gameWeekBestAll();
+  const ok = gameOpen(g), best = gameWeekBestAll();
   return `<div class="gamecard ${ok ? '' : 'off'}">
     <div class="gc-ic">${g.icon}</div>
     <div class="gc-m"><b>${g.name}</b><small>${ok
       ? L(`獎勵遊戲・本週遊戲最佳 ${best} / ${GAME_CAP} ⭐`, `Bonus game · best this week ${best} / ${GAME_CAP} ⭐`)
       : L(`精熟 ${g.need} 個單元後解鎖（目前 ${masteredCount()} 個）`, `Master ${g.need} unit${g.need > 1 ? 's' : ''} to unlock (now ${masteredCount()})`)}</small></div>
+    ${g.need > GAME_BASE ? `<span class="gc-new">🎁 ${L('隱藏', 'Secret')}</span>` : ''}
     <button class="go" data-act="game" data-gid="${g.id}" ${ok ? '' : 'disabled'}>${ok ? L('玩 ▶', 'Play ▶') : '🔒'}</button></div>`;
 }
 function points() {
@@ -1512,6 +1538,7 @@ function showLegend() {
   [0, 600, 1200].forEach((t) => setTimeout(() => confetti(120), t));
 }
 function afterPoints(before) {
+  checkSurprise();
   checkLegend();
   const after = points().total;
   const a = titleOf(before).t, b = titleOf(after).t;
@@ -1881,8 +1908,8 @@ function renderIsland() {
   $('mapTog').textContent = on3 ? '2D' : '3D';
   if (on3) ensure3D();
   $('islandSum').textContent = L(`蓋好 ${fullCount} / ${units.length} 座`, `${fullCount} / ${units.length} built`);
-  const unlocked = GAMES.filter((g) => masteredCount() >= g.need).length;
-  $('islandPort').innerHTML = `<i>🎮</i><span>${L('遊戲港口', 'Game Harbor')}<small>${L('挑戰過關的單元越多，開放越多獎勵遊戲', 'Pass more unit challenges to unlock more games')}</small></span><b>${unlocked} / ${GAMES.length}</b>`;
+  const unlocked = GAMES.filter(gameOpen).length;
+  $('islandPort').innerHTML = `<i>🎮</i><span>${L('遊戲港口', 'Game Harbor')}<small>${L('挑戰過關的單元越多，開放越多獎勵遊戲', 'Pass more unit challenges to unlock more games')}</small></span><b>${unlocked} / ${GAMES.filter(gameShown).length}</b>`;
 }
 // ── 3D 地圖：選 3D 時才下載 Three.js 與 island3d.js；失敗自動改回 2D ──
 const webglOK = (() => { try { const c = document.createElement('canvas'); return !!(c.getContext('webgl2') || c.getContext('webgl')); } catch (e) { return false; } })();
@@ -3125,7 +3152,7 @@ function renderQuizHome() {
       <h2>Unit Challenge 🎯<small>${L('每次 10 題：單字、聽力、文法、拼字', '10 questions: words, listening, grammar, spelling')}</small></h2>
       <div class="sub" style="margin-top:8px">${L(`答對 +${Q_PTS}、拼字 +${SPELL_PTS}、連對加成、全對 +${PERFECT_PTS}<br>第一次拿到 ${MASTER_PCT}% 以上：單元精熟 +${MASTER_PTS}`, `Correct +${Q_PTS} · spelling +${SPELL_PTS} · combo bonus · perfect +${PERFECT_PTS}<br>First ${MASTER_PCT}%+: unit mastery +${MASTER_PTS}`)}</div>
     </div>
-    ${GAMES.slice().sort((a, b) => a.need - b.need).map((g) => g.card()).join('')}
+    ${GAMES.filter(gameShown).sort((a, b) => a.need - b.need).map((g) => g.card()).join('')}
     <div class="qlist">${allUnits().map((u) => {
       const n = st.words.filter((w) => w.unit === u).length;
       const mastered = st.ledger.bonus.some((b) => b.k === 'master:' + u);
@@ -3434,5 +3461,7 @@ document.addEventListener('keydown', (e) => {
 <script src="games/shoot.js?v=0.8"></script>
 <script src="games/dino.js?v=0.6"></script>
 <script src="games/horde.js?v=0.4"></script>
+<script src="games/orbs.js?v=0.6"></script>
+<script src="games/slice.js?v=0.3"></script>
 </body>
 </html>

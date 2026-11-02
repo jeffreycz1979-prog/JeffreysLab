@@ -38,7 +38,7 @@ const WSL = (() => {
   let cv, cx, root, S = 1, VH = 640;
   let game = null, raf = 0, trial = false, stroke = null;
 
-  const unlocked = () => masteredCount() >= NEED;
+  const unlocked = () => (typeof gameOpen === 'function' ? gameOpen({ need: NEED }) : masteredCount() >= NEED);   // THP11：前 6 款都滿星會驚喜開放
   const ansOf = (w) => String(answersOf(w)[0] || w.word).toLowerCase();
   const okWord = (w) => w.type !== '片語' && /^[a-z]+$/.test(ansOf(w)) && ansOf(w).length >= 3 && ansOf(w).length <= 9;
   const unitWords = () => { const u = st.words.filter((w) => w.unit === UNIT && okWord(w)); return u.length >= 6 ? u : st.words.filter(okWord); };

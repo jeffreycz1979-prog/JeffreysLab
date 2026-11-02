@@ -84,7 +84,7 @@ const WO = (() => {
   let cv, cx, root, S = 1, VH = 640, BT = 300;   // BT＝珠盤上緣（邏輯座標）
   let game = null, raf = 0, trial = false, drag = null;
 
-  const unlocked = () => masteredCount() >= NEED;
+  const unlocked = () => (typeof gameOpen === 'function' ? gameOpen({ need: NEED }) : masteredCount() >= NEED);   // THP11：前 6 款都滿星會驚喜開放
   const okWord = (w) => w.type !== '片語' && /^[a-z]+$/i.test(answersOf(w)[0] || w.word) && (answersOf(w)[0] || w.word).length >= 3;
   const unitWords = () => { const u = st.words.filter((w) => w.unit === UNIT); return u.length >= 6 ? u : st.words; };
   const wordPool = () => unitWords().filter(okWord);
