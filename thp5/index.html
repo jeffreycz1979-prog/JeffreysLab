@@ -734,6 +734,7 @@ nav button.on{color:var(--lime);font-weight:700}
         <div class="i3d-views"><button data-i3v="bird" data-en="Bird">鳥瞰</button><button data-i3v="eye" data-en="Walk">平視</button><button data-i3v="top" data-en="Top">俯視</button><button data-i3v="reset" aria-label="重設視角">↺</button></div>
       </div>
       <button class="island-port" data-v="v-quiz" id="islandPort"></button>
+      <button class="island-port" id="islandDock"></button>
     </div>
     <div class="hero">
       <div class="ring" id="ring"></div>
@@ -1964,6 +1965,7 @@ function renderIsland() {
   const wl = wchLeft();
   $('islandSum').textContent = L(`蓋好 ${fullCount} / ${units.length} 座`, `${fullCount} / ${units.length} built`) + (wl ? L(`・寶箱 ${wl}`, ` · ${wl} chest${wl > 1 ? 's' : ''}`) : '');
   const unlocked = GAMES.filter((g) => masteredCount() >= g.need).length;
+  if (window.archipelago) archipelago.render();
   $('islandPort').innerHTML = `<i>🎮</i><span>${L('遊戲港口', 'Game Harbor')}<small>${L('挑戰過關的單元越多，開放越多獎勵遊戲', 'Pass more unit challenges to unlock more games')}</small></span><b>${unlocked} / ${GAMES.length}</b>`;
 }
 // ── 3D 地圖：選 3D 時才下載 Three.js 與 island3d.js；失敗自動改回 2D ──
@@ -3808,5 +3810,6 @@ document.addEventListener('keydown', (e) => {
 <script src="games/horde.js?v=0.4"></script>
 <script src="cloud.js?v=3"></script>
 <script src="msg.js?v=4"></script>
+<script src="/JeffreysLab/archipelago.js?v=1"></script>
 </body>
 </html>

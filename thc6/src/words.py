@@ -204,7 +204,7 @@ U['U9'] = [
   ("What's wrong?", '慣用語', '', '怎麼了？', 'what you say when someone looks sad or upset', "What's wrong? You look sad.", '怎麼了？你看起來很難過。'),
 ]
 
-OPEN = {'U1', 'U2'}   # 開放的單元（其他填 N＝未開放）
+OPEN = {'U1', 'U2', 'U3', 'U4', 'U5', 'U6'}   # 開放的單元（其他填 N＝未開放）
 HEAD = ['ID', '單字', '類型', '詞性', '音標', '中文', '英文定義', '例句', '例句中文', '教材', '單元', '課次', 'CEFR', '狀態', '備註', '開放']
 
 def kind(word, pos):
