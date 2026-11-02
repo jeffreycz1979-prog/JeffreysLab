@@ -332,6 +332,17 @@ h3 small{font-family:'Syne',sans-serif;font-size:11px;color:var(--muted);font-we
 .proof > *{position:relative}
 .proof .pava{font-size:54px;line-height:1}
 .proof .pname{font-size:22px;font-weight:700;margin-top:6px}
+.plegend{display:inline-block;margin-top:6px;padding:4px 12px;border-radius:14px;background:linear-gradient(90deg,#FFD23F,#FF9F3F);color:#1a1a1a;font-weight:800;font-size:13px}
+.plegend b{font-family:'Syne',sans-serif;margin-left:4px}
+.legend-ov{position:fixed;inset:0;z-index:400;background:rgba(5,5,12,.9);display:flex;align-items:center;justify-content:center;padding:24px}
+.legend-card{max-width:360px;width:100%;text-align:center;background:radial-gradient(120% 100% at 50% 0%,#3a2a08,#131826 70%);border:2px solid #FFD23F;border-radius:26px;padding:26px 20px 22px;box-shadow:0 0 60px rgba(255,210,63,.45);animation:legendIn .6s cubic-bezier(.2,1.6,.4,1)}
+.legend-crown{font-size:76px;line-height:1;animation:legendFloat 2s ease-in-out infinite}
+.legend-k{margin-top:8px;font-weight:800;color:#FFB547;letter-spacing:.08em}
+.legend-n{font:800 34px 'Syne','Noto Sans TC',sans-serif;color:#FFD23F;text-shadow:0 0 18px rgba(255,210,63,.6);margin:6px 0}.legend-n small{display:block;font-size:14px;color:#c6d1c6;letter-spacing:.1em}
+.legend-card p{font-size:14px;line-height:1.7;color:#eef2e6}
+.legend-p{font:800 48px 'Syne',sans-serif;color:#CCFF00;margin:6px 0 14px}
+@keyframes legendIn{from{transform:scale(.4);opacity:0}}
+@keyframes legendFloat{50%{transform:translateY(-8px) rotate(-4deg)}}
 .proof .ptitle{font-family:'Syne',sans-serif;color:var(--lime);font-size:13px;letter-spacing:1px}
 .proof .ptotal{font-family:'Syne',sans-serif;font-weight:800;font-size:56px;color:var(--lime);line-height:1.05;margin-top:10px;text-shadow:0 0 24px rgba(204,255,0,.45)}
 .proof .plabel{font-size:12px;color:#c6d1c6}
@@ -993,7 +1004,7 @@ function gameCard(g) {
     <button class="go" data-act="game" data-gid="${g.id}" ${ok ? '' : 'disabled'}>${ok ? L('玩 ▶', 'Play ▶') : '🔒'}</button></div>`;
 }
 function points() {
-  let card = 0, goal = 0, quiz = 0, streak = 0, master = 0, game = 0, spot = 0;
+  let card = 0, goal = 0, quiz = 0, streak = 0, master = 0, game = 0, spot = 0, legend = 0;
   const W = weeks();
   for (const k in W) {
     card += Math.min(W[k].cards, CARD_CAP);
@@ -1002,8 +1013,8 @@ function points() {
     game += bestOf(W[k].gb);   // 遊戲：所有遊戲共用，每週取最高一局，最多 20
     spot += Math.min(SPOT_CAP, W[k].spot || 0);   // 抽查：每週最多 15
   }
-  st.ledger.bonus.forEach((b) => { if (b.k.startsWith('wk') || b.k.startsWith('streak')) streak += b.p; else master += b.p; });
-  return { card, goal, streak, quiz: quiz + master, quizOnly: quiz, master, game, spot, total: card + goal + streak + quiz + master + game + spot };
+  st.ledger.bonus.forEach((b) => { if (b.k.startsWith('wk') || b.k.startsWith('streak')) streak += b.p; else if (b.k.startsWith('legend:')) legend += b.p; else master += b.p; });
+  return { card, goal, streak, quiz: quiz + master, quizOnly: quiz, master, game, spot, legend, total: legend + card + goal + streak + quiz + master + game + spot };
 }
 // 10/15 刷分漏洞修正：挑戰一次最多 35 分；最佳超過 100% 的單元收回精熟（可重新挑戰拿回）
 const QUIZ_MAX_PTS = 35;
@@ -1476,7 +1487,32 @@ function checkStreakBonus() {
     }
   });
 }
+// ── 隱藏頭銜「九冠王」：九款獎勵遊戲都拿過一局 20 ⭐ 的那一刻 +1000，一個帳號只能領一次（Jeffrey 2026/11/02）──
+// 不在任何說明裡出現；遊戲還不滿 9 款時永遠不會觸發
+const LEGEND = { key: 'legend:9crowns', pts: 1000, n: 9, ic: '👑', zh: '九冠王', en: 'Nine Crowns' };
+const gameMaxStars = (id) => Math.max(0, ...Object.values(st.ledger.days).map((d) => (d.gbest && d.gbest[id]) || 0));
+const hasLegend = () => st.ledger.bonus.some((b) => b.k === LEGEND.key);
+function checkLegend() {
+  if (hasLegend() || st.tampered || GAMES.length < LEGEND.n) return false;
+  if (!GAMES.every((g) => gameMaxStars(g.id) >= GAME_CAP)) return false;
+  st.ledger.bonus.push({ t: Date.now(), k: LEGEND.key, p: LEGEND.pts }); saveLedger();
+  setTimeout(showLegend, 900);
+  return true;
+}
+function showLegend() {
+  const d = document.createElement('div'); d.className = 'legend-ov';
+  d.innerHTML = `<div class="legend-card"><div class="legend-crown">${LEGEND.ic}</div>
+    <div class="legend-k">${L('隱藏頭銜解鎖！', 'SECRET TITLE UNLOCKED!')}</div>
+    <div class="legend-n">${L(LEGEND.zh, LEGEND.en)}<small>${L(LEGEND.en, LEGEND.zh)}</small></div>
+    <p>${L(`九款獎勵遊戲，每一款都拿到 ${GAME_CAP} 顆星！<br>只有最認真的你才找得到這個頭銜。`, `You got ${GAME_CAP} stars in all nine bonus games!<br>Only the most dedicated players find this title.`)}</p>
+    <div class="legend-p">+${LEGEND.pts}</div>
+    <button class="btn" data-legendok="1">${L('太棒了！', 'Awesome!')}</button></div>`;
+  document.body.appendChild(d);
+  d.addEventListener('click', (e) => { if (e.target.closest('[data-legendok]')) d.remove(); });
+  [0, 600, 1200].forEach((t) => setTimeout(() => confetti(120), t));
+}
 function afterPoints(before) {
+  checkLegend();
   const after = points().total;
   const a = titleOf(before).t, b = titleOf(after).t;
   if (b[0] > a[0]) setTimeout(() => { confetti(100); coach('title', { t: b[1], tz: b[2] }); }, 3000);
@@ -2653,6 +2689,7 @@ function openProof() {
       <div class="pava">${avaHTML()}</div>
       <div class="pname">${esc(st.profile.name)}</div>
       <div class="ptitle">${esc(t[1].toUpperCase())}${EN() ? '' : ' · ' + esc(t[2])}</div>
+      ${hasLegend() ? `<div class="plegend">${LEGEND.ic} ${L(LEGEND.zh, LEGEND.en)} · ${L(LEGEND.en, LEGEND.zh)} <b>+${LEGEND.pts}</b></div>` : ''}
       <div class="pid">ID #${studentId()}</div><br>
       <div class="mode">${isStandalone() ? L('📱 主畫面 App', '📱 Home-screen app') : L('🌐 瀏覽器開啟', '🌐 Browser')}</div>
       <div class="ptotal">${P.total}</div><div class="plabel">${L('總積分 TOTAL POINTS', 'TOTAL POINTS')}</div>
