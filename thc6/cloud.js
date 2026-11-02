@@ -64,7 +64,8 @@
   // 之後搭船到別的島就自動用那座島的老師帳號，不用再登入。學生帳號不記
   const KEYRING = 'island-teacher-keyring';
   const ring = () => { try { return JSON.parse(localStorage.getItem(KEYRING)) || {}; } catch (e) { return {}; } };
-  const ringSet = (a) => { try { const r = ring(); if (a && a.cls === '老師') r[APP_ID] = { token: a.token, sid: a.sid, nick: a.nick, cls: a.cls }; else delete r[APP_ID]; localStorage.setItem(KEYRING, JSON.stringify(r)); } catch (e) {} };
+  // 後台進度已改成「學號@島」各一列（2026/11/03）→ 一個老師帳號三座島共用，鑰匙圈只記一把 teacher
+  const ringSet = (a) => { try { const r = ring(); if (a && a.cls === '老師') r.teacher = { token: a.token, sid: a.sid, nick: a.nick, cls: a.cls }; else if (!a) delete r.teacher; localStorage.setItem(KEYRING, JSON.stringify(r)); } catch (e) {} };
   const saveAuth = () => { ringSet(auth); return db.set('auth', auth); };
   async function dropAuth() { auth = null; ringSet(null); await db.del('auth'); render(); }
 
@@ -112,6 +113,10 @@
     const res = await api('login', params);
     auth = { token: res.token, sid: res.sid || params.sid || '', nick: res.nick || '', cls: res.cls || '', syncedAt: 0, syncedPts: null };
     await saveAuth();
+    return afterAuth();
+  }
+  // 登入之後：下載這座島的雲端進度，和手機上的比對（登入、老師搭船帶過來的帳號都走這裡）
+  async function afterAuth() {
     const pull = await api('pullProgress', { app: APP_ID });
     const cloud = pull.data ? (typeof pull.data === 'string' ? JSON.parse(pull.data) : pull.data) : null;
     if (cloud && !st.profile) {
@@ -267,8 +272,22 @@
   const ready = () => (st.ready ? Promise.resolve() : new Promise((r) => addEventListener('island-ready', r, { once: true })));
   ready().then(async () => {
     auth = (await db.get('auth')) || null;
-    if (!auth) { const k = ring()[APP_ID]; if (k && k.token) { auth = { ...k, syncedAt: 0, syncedPts: null }; await db.set('auth', auth); toast('👩‍🏫 已用老師帳號 ' + k.sid + ' 自動登入'); } }
-    else if (auth.cls === '老師') ringSet(auth);
+    // 老師從別的島搭船過來：網址 #isl= 帶著老師的登入（只有老師帳號會帶；讀完馬上從網址拿掉）
+    let hand = null;
+    const hm = location.hash.match(/(?:^#|&)isl=([^&]+)/);
+    if (hm) {
+      try { hand = JSON.parse(decodeURIComponent(hm[1])); } catch (e) {}
+      history.replaceState(null, '', location.pathname + location.search);
+    }
+    if (!(hand && hand.t && hand.c === '老師')) { const k = ring().teacher; hand = !auth && k && k.token ? { t: k.token, s: k.sid, n: k.nick, c: k.cls } : null; }
+    if (hand && (!auth || auth.sid !== hand.s)) {
+      auth = { token: hand.t, sid: hand.s, nick: hand.n || '', cls: '老師', syncedAt: 0, syncedPts: null };
+      await saveAuth(); render();
+      toast('👩‍🏫 已用老師帳號 ' + hand.s + ' 登入');
+      try { await afterAuth(); } catch (e) { toast('老師帳號登入失敗：' + e.message); }
+      return;
+    }
+    if (auth && auth.cls === '老師') ringSet(auth);
     render();
     const k = qs.get('k');
     if (k) {

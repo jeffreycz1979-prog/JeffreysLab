@@ -142,7 +142,10 @@
     if (id === HERE) { $('modal').classList.remove('show'); return; }
     if (!canGo(is)) return toast(L(`🔒 ${is.name[0]}還沒開放`, `🔒 ${is.name[1]} is locked`));
     toast(L(`⛵ 出發去${is.name[0]}！每座島的進度分開算`, `⛵ Sailing to ${is.name[1]}!`));
-    setTimeout(() => { location.href = '/JeffreysLab/' + is.id + '/'; }, 700);
+    // 老師帳號：把登入一起帶過去（放在 # 後面，不會送到伺服器，對方島讀完馬上從網址拿掉）。
+    // 從主畫面 App 搭船到別的島時，iPhone 會用另一個瀏覽空間打開，鑰匙圈讀不到，所以要靠這個
+    const a = me(), hand = a && a.cls === '老師' ? '#isl=' + encodeURIComponent(JSON.stringify({ t: a.token, s: a.sid, n: a.nick, c: a.cls })) : '';
+    setTimeout(() => { location.href = '/JeffreysLab/' + is.id + '/' + hand; }, 700);
   }
   function renderBtn() {
     const b = document.getElementById('islandDock'); if (!b) return;
