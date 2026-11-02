@@ -60,8 +60,13 @@
   const pack = () => JSON.stringify(snapshot(), round3);
   const ptsOf = (d) => { const keep = st.ledger; st.ledger = d.ledger || { days: {}, bonus: [] }; const t = points().total; st.ledger = keep; return t; };
 
-  const saveAuth = () => db.set('auth', auth);
-  async function dropAuth() { auth = null; await db.del('auth'); render(); }
+  // 老師鑰匙圈：老師帳號（班級「老師」）在每座島登入一次後記在這支手機（localStorage 同網域共用），
+  // 之後搭船到別的島就自動用那座島的老師帳號，不用再登入。學生帳號不記
+  const KEYRING = 'island-teacher-keyring';
+  const ring = () => { try { return JSON.parse(localStorage.getItem(KEYRING)) || {}; } catch (e) { return {}; } };
+  const ringSet = (a) => { try { const r = ring(); if (a && a.cls === '老師') r[APP_ID] = { token: a.token, sid: a.sid, nick: a.nick, cls: a.cls }; else delete r[APP_ID]; localStorage.setItem(KEYRING, JSON.stringify(r)); } catch (e) {} };
+  const saveAuth = () => { ringSet(auth); return db.set('auth', auth); };
+  async function dropAuth() { auth = null; ringSet(null); await db.del('auth'); render(); }
 
   // ── 備份 ──
   let lastPack = '';
@@ -262,6 +267,8 @@
   const ready = () => (st.ready ? Promise.resolve() : new Promise((r) => addEventListener('island-ready', r, { once: true })));
   ready().then(async () => {
     auth = (await db.get('auth')) || null;
+    if (!auth) { const k = ring()[APP_ID]; if (k && k.token) { auth = { ...k, syncedAt: 0, syncedPts: null }; await db.set('auth', auth); toast('👩‍🏫 已用老師帳號 ' + k.sid + ' 自動登入'); } }
+    else if (auth.cls === '老師') ringSet(auth);
     render();
     const k = qs.get('k');
     if (k) {
