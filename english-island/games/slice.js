@@ -10,7 +10,7 @@
 //        saveLedger, saveMeta, afterPoints, points, gameWeekBestAll, gameCard, masteredCount, GAMES, toast, confetti
 // ═══════════════════════════════════════════════════════
 const WSL = (() => {
-  const ID = 'slice', NEED = 8, VER = '0.2';
+  const ID = 'slice', NEED = 8, VER = '0.3';
   const UNIT = 'U8';                         // 題目單元（沒有這個單元就用全部單字）
   const TIME = 180, CAP = 20, S_PER_PT = 100;   // 先抓 2000 分滿 20 ⭐，等 Jeffrey 實玩再校準
   const PEN = 3;                             // 切錯字母扣幾秒
@@ -21,7 +21,7 @@ const WSL = (() => {
     big: { ic: '🍈', zh: '水果變大', en: 'Big fruit', sec: 10, tip: ['水果和字母變大，比較好切', 'Bigger fruit, easier to hit'] },
     clean: { ic: '🎯', zh: '沒有干擾字', en: 'No decoys', sec: 10, tip: ['飛上來的都是你需要的字母', 'Only the letters you need'] },
     free: { ic: '🔀', zh: '不管方向', en: 'Any direction', sec: 10, tip: ['往哪個方向切都可以（字母還是要對）', 'Swipe any way (still the right letter)'] },
-    frenzy: { ic: '🍉', zh: '狂切時間', en: 'Fruit frenzy', sec: 8, tip: ['不用拼字，切到什麼都 +5 分', 'No spelling — every fruit is +5'] },
+    frenzy: { ic: '🍉', zh: '狂切時間', en: 'Fruit frenzy', sec: 10, perfectOnly: true, tip: ['不用拼字，切到什麼都 +5 分', 'No spelling — every fruit is +5'] },
   };
   const FRENZY_PTS = 5, BIG = 1.45;
   const DIRS = [{ k: 'u', a: -90 }, { k: 'd', a: 90 }, { k: 'l', a: 180 }, { k: 'r', a: 0 }];
@@ -148,6 +148,7 @@ const WSL = (() => {
         .ws-perks button{border:2px solid #4ECDC4;background:#131826;color:#fff;border-radius:16px;padding:12px 8px;text-align:center;min-height:120px}
         .ws-perks button:active{background:#1d2a3a}
         .ws-perks span{display:block;font-size:34px;line-height:1.2}.ws-perks b{display:block;font-size:15px;margin-top:4px}.ws-perks b i{font-style:normal;color:#CCFF00;font-family:Syne,sans-serif;font-size:12px}
+.ws-perks button.ws-lock{opacity:.45;border-color:#4a5068}.ws-perks button.gold{border-color:#FFD23F;box-shadow:0 0 14px rgba(255,210,63,.35)}
         .ws-perks small{display:block;font-size:11.5px;opacity:.75;margin-top:4px;line-height:1.4}
         .ws-demo{display:flex;justify-content:center;gap:14px;margin:6px 0 2px}
         .ws-demo div{width:58px;height:58px;border-radius:50%;background:#FF5A5A;position:relative;display:grid;place-items:center;font:700 30px Andika,system-ui,sans-serif;color:#fff;text-shadow:0 2px 0 #0006}
@@ -235,7 +236,7 @@ const WSL = (() => {
   function wordDone() {
     const g = game, perfect = !g.wordWrong;
     const gain = PTS_WORD + PTS_PER_LEN * g.ans.length + (perfect ? PTS_PERFECT : 0);
-    g.score += gain; g.words++; if (perfect) g.perfect++;
+    g.score += gain; g.words++; if (perfect) g.perfect++; g.lastPerfect = perfect;   // 狂切時間只有「這個字一次都沒切錯」才能選
     g.fx.push({ x: 180, y: VH * 0.42, txt: perfect ? `Perfect! +${gain}` : `+${gain}`, col: perfect ? '#FFD23F' : '#CCFF00', t: now(), big: true });
     g.fruits.forEach((f) => { f.old = true; });   // 畫面上剩下的水果變淡、切不到，掉下去就好
     g.pause = 1.2; g.spawnT = 0.2;
@@ -246,13 +247,17 @@ const WSL = (() => {
     const g = game; g.picking = true;
     $('wsTop').style.visibility = 'hidden';   // 選好康時先藏起上面的空格，免得疊在卡片上
     pane(`<div class="wj-card ws-perk">
-      <div class="wj-kicker">🎉 ${L('拼對了！選一個好康', 'Nice! Pick a power-up')}</div>
+      <div class="wj-kicker">🎉 ${g.lastPerfect ? L('全對！狂切時間解鎖了，選一個好康', 'Perfect! Frenzy unlocked — pick a power-up') : L('拼對了！選一個好康', 'Nice! Pick a power-up')}</div>
       <p class="wj-small">${L('選的時候時間會暫停', 'The clock stops while you choose')}</p>
-      <div class="ws-perks">${Object.entries(PERKS).map(([k, p]) => `<button data-ws="perk" data-k="${k}"><span>${p.ic}</span><b>${L(p.zh, p.en)} <i>${p.sec}s</i></b><small>${L(p.tip[0], p.tip[1])}</small></button>`).join('')}</div>
+      <div class="ws-perks">${Object.entries(PERKS).map(([k, p]) => {
+        const lock = p.perfectOnly && !g.lastPerfect;
+        return `<button data-ws="perk" data-k="${k}" ${lock ? 'disabled class="ws-lock"' : 'class="' + (p.perfectOnly ? 'gold' : '') + '"'}><span>${lock ? '🔒' : p.ic}</span><b>${L(p.zh, p.en)} <i>${p.sec}s</i></b><small>${lock ? L('這個字一次都沒切錯才能選', 'Only for a word with no mistakes') : L(p.tip[0], p.tip[1])}</small></button>`;
+      }).join('')}</div>
     </div>`);
   }
   function pickPerk(k) {
     const g = game; if (!g || !g.picking) return;
+    if (PERKS[k].perfectOnly && !g.lastPerfect) return;
     g.picking = false; pane(''); g.perks[k] = (g.perks[k] || 0) + 1;
     $('wsTop').style.visibility = '';
     g.pw = { k, left: PERKS[k].sec }; g.last = now();
@@ -310,7 +315,7 @@ const WSL = (() => {
         <div>🔤 ${L('要照順序切：apple 就是 a → p → p → l → e', 'Slice in order: a → p → p → l → e')}</div>
         <div>❌ ${L(`切到錯的字母扣 ${PEN} 秒；方向不對水果會彈開，不扣分；漏掉沒關係，很快會再飛上來`, `Wrong letter = −${PEN}s; wrong direction just bounces; missed letters come back soon`)}</div>
         <div>💡 ${L('同一個字母錯 2 次，空格會偷偷告訴你答案', 'Miss the same letter twice and you get a hint')}</div>
-        <div>🎁 ${L('每拼完一個字選一個好康：水果變大、沒有干擾字、不管方向、狂切時間', 'Each word earns a power-up: big fruit, no decoys, any direction, or fruit frenzy')}</div>
+        <div>🎁 ${L('每拼完一個字選一個好康：水果變大、沒有干擾字、不管方向；整個字一次都沒切錯，還能選狂切時間', 'Each word earns a power-up: big fruit, no decoys or any direction — a perfect word also unlocks fruit frenzy')}</div>
         <div>⭐ ${trial ? L('試玩模式：不計分', 'Trial: not scored') : L(`每 ${S_PER_PT} 分 1 顆星，最多 ${CAP}；所有遊戲每週只算最高一局`, `1 ⭐ per ${S_PER_PT} points, up to ${CAP}; best game of the week counts`)}</div>
       </div>
       <p class="wj-small">${trial ? L('🧪 試玩版', '🧪 Trial') : L(`本週遊戲最佳 ${best} / ${CAP} ⭐・個人最高 ${pb} 分`, `Best this week ${best} / ${CAP} ⭐ · Personal best ${pb}`)}<br><span style="opacity:.5">v${VER}</span></p>
