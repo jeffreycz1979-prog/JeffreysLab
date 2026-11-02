@@ -5918,6 +5918,281 @@
      }
     ]
    }
+  },
+  "U6": {
+   "strategy": {
+    "name": "Classify and Categorize",
+    "zh": "分類",
+    "intro": "偵探把東西分組：先決定「依什麼分」，再一樣一樣放進去。",
+    "parts": [
+     {
+      "k": "S",
+      "zh": "共同點",
+      "en": "What's the Same?",
+      "ic": "🔎",
+      "q": "這幾樣東西有什麼一樣的地方？"
+     },
+     {
+      "k": "N",
+      "zh": "組名",
+      "en": "Name the Group",
+      "ic": "🏷️",
+      "q": "能不能用一句話說出這一組？例如「用來寫字的東西」。"
+     },
+     {
+      "k": "O",
+      "zh": "誰不一樣",
+      "en": "Odd One Out",
+      "ic": "🚫",
+      "q": "哪一個不屬於這一組？為什麼？"
+     }
+    ],
+    "tip": "同一堆東西可以用不同方法分，像顏色、大小、用途。先看文章說要依什麼分。"
+   },
+   "teach": {
+    "title": "Cleaning Up the Classroom",
+    "paras": [
+     [
+      "On Friday, our classroom was a mess.",
+      "Ms. Wu said, \"Let's put everything in the right box before we take a break.\""
+     ],
+     [
+      "The first box was for things we use to write: pencils, pens, and markers.",
+      "The second box was for things we use to cut and stick: scissors, glue, and tape.",
+      "The third box was for sports things."
+     ],
+     [
+      "Then Ben found a ball, a jump rope, and an apple under the desks.",
+      "\"The ball and the jump rope go in the sports box,\" Ms. Wu said.",
+      "\"But the apple is different. It goes in your lunch bag!\"",
+      "Everyone laughed.",
+      "Soon our classroom was as clean as a new one, and we were ready for the weekend."
+     ]
+    ],
+    "zh": [
+     [
+      "星期五，我們的教室亂七八糟。",
+      "吳老師說：「休息之前，我們把每樣東西放進對的盒子吧。」"
+     ],
+     [
+      "第一個盒子放用來寫字的東西：鉛筆、原子筆和麥克筆。",
+      "第二個盒子放用來剪和黏的東西：剪刀、膠水和膠帶。",
+      "第三個盒子放運動用品。"
+     ],
+     [
+      "接著 Ben 在桌子底下找到一顆球、一條跳繩和一顆蘋果。",
+      "「球和跳繩放進運動盒。」吳老師說。",
+      "「但是蘋果不一樣，它要放進你的午餐袋！」",
+      "大家都笑了。",
+      "很快地，教室變得跟新的一樣乾淨，我們也準備好過週末了。"
+     ]
+    ],
+    "steps": [
+     {
+      "para": 1,
+      "part": 0,
+      "q": "pencils、pens、markers 有什麼共同點？",
+      "opts": [
+       "We use them to write.",
+       "They are all red.",
+       "They are all heavy."
+      ],
+      "ozh": [
+       "我們用它們來寫字。",
+       "它們都是紅色的。",
+       "它們都很重。"
+      ],
+      "a": 0,
+      "hint": "看第一個盒子是放什麼的：things we use to ___。",
+      "why": "The first box was for things we use to write. 這三樣都是用來寫字的，這就是它們的共同點。文章沒有說顏色或重量。",
+      "ev": [
+       2
+      ]
+     },
+     {
+      "para": 1,
+      "part": 1,
+      "q": "scissors（剪刀）要放進哪一個盒子？",
+      "opts": [
+       "The cut-and-stick box",
+       "The writing box",
+       "The sports box"
+      ],
+      "ozh": [
+       "剪貼盒",
+       "寫字盒",
+       "運動盒"
+      ],
+      "a": 0,
+      "hint": "剪刀是用來做什麼的？哪一個盒子的組名跟它一樣？",
+      "why": "The second box was for things we use to cut and stick. 剪刀是用來剪的，所以放剪貼盒。",
+      "ev": [
+       3
+      ]
+     },
+     {
+      "para": 2,
+      "part": 2,
+      "q": "球、跳繩、蘋果，哪一個不屬於運動盒？",
+      "opts": [
+       "the apple",
+       "the ball",
+       "the jump rope"
+      ],
+      "ozh": [
+       "蘋果",
+       "球",
+       "跳繩"
+      ],
+      "a": 0,
+      "hint": "哪一個不是拿來運動的？老師說哪一個 is different？",
+      "why": "球和跳繩都是運動用品。蘋果是拿來吃的，老師說 the apple is different，要放進午餐袋。",
+      "ev": [
+       6,
+       7
+      ]
+     },
+     {
+      "para": 2,
+      "part": 1,
+      "q": "如果你在教室找到一顆 basketball（籃球），要放進哪一個盒子？",
+      "opts": [
+       "The sports box",
+       "The writing box",
+       "The cut-and-stick box"
+      ],
+      "ozh": [
+       "運動盒",
+       "寫字盒",
+       "剪貼盒"
+      ],
+      "a": 0,
+      "hint": "文章沒有提到籃球。想想看：它是用來寫字、剪貼，還是運動的？",
+      "why": "籃球是運動用品，跟球、跳繩是同一組，所以放運動盒。會分類，就能把文章裡沒有的新東西也放對地方。",
+      "ev": [
+       5
+      ]
+     }
+    ],
+    "sumTitle": "🗺️ 偵探整理：三個盒子",
+    "sum": [
+     [
+      "✏️ 寫字盒",
+      "pencils、pens、markers"
+     ],
+     [
+      "✂️ 剪貼盒",
+      "scissors、glue、tape"
+     ],
+     [
+      "⚽ 運動盒",
+      "ball、jump rope（還有 basketball！）"
+     ],
+     [
+      "🚫 不一樣",
+      "apple → 放進午餐袋"
+     ]
+    ]
+   },
+   "practice": {
+    "title": "The Animal Picture Wall",
+    "sents": [
+     "Our class took pictures of animals for the picture wall.",
+     "Ms. Wu asked us to put the pictures into three groups.",
+     "\"Some animals can fly, some live in water, and some live on land,\" she said.",
+     "Amy had pictures of a bird, a fish, and a tiger.",
+     "Ken had pictures of a whale, a butterfly, and a horse.",
+     "Ken was confused.",
+     "\"A whale is as big as a bus, and it isn't a fish. Where does it go?\" he asked.",
+     "\"It lives in the sea, so it goes in the water group,\" Ms. Wu said.",
+     "Mia had a picture of a penguin.",
+     "\"A penguin is a bird, but it can't fly,\" she said.",
+     "\"It swims in the sea and finds its food there, so I'll put it in the water group.\"",
+     "After that, all the pictures were ready, and the wall looked bright and beautiful."
+    ],
+    "zh": [
+     "我們班幫照片牆拍了動物的照片。",
+     "吳老師要我們把照片分成三組。",
+     "「有些動物會飛，有些住在水裡，有些住在陸地上。」她說。",
+     "Amy 有鳥、魚和老虎的照片。",
+     "Ken 有鯨魚、蝴蝶和馬的照片。",
+     "Ken 很困惑。",
+     "「鯨魚跟公車一樣大，而且牠不是魚。牠要放哪裡？」他問。",
+     "「牠住在海裡，所以放進水裡那一組。」吳老師說。",
+     "Mia 有一張企鵝的照片。",
+     "「企鵝是鳥，但是牠不會飛。」她說。",
+     "「牠在海裡游泳、在那裡找食物，所以我要把牠放進水裡那一組。」",
+     "之後，所有照片都準備好了，照片牆看起來又亮又漂亮。"
+    ],
+    "tasks": [
+     {
+      "type": "group",
+      "q": "依照老師說的方法，把每隻動物分進對的一組（7 張都要分對）",
+      "groups": [
+       "會飛",
+       "住在水裡",
+       "住在陸地上"
+      ],
+      "items": [
+       [
+        "bird",
+        "鳥",
+        0
+       ],
+       [
+        "fish",
+        "魚",
+        1
+       ],
+       [
+        "tiger",
+        "老虎",
+        2
+       ],
+       [
+        "whale",
+        "鯨魚",
+        1
+       ],
+       [
+        "butterfly",
+        "蝴蝶",
+        0
+       ],
+       [
+        "horse",
+        "馬",
+        2
+       ],
+       [
+        "penguin",
+        "企鵝",
+        1
+       ]
+      ],
+      "hint": "老師是依「會飛、住在水裡、住在陸地上」分的。鯨魚和企鵝要回文章找證據喔！",
+      "why": "會飛：鳥、蝴蝶。住在水裡：魚、鯨魚（It lives in the sea）、企鵝（雖然是鳥，但 it can't fly，在海裡游泳找食物）。住在陸地上：老虎、馬。"
+     },
+     {
+      "type": "evidence",
+      "q": "🔍 哪一句告訴你老師要依照什麼來分組？點出那一句。",
+      "a": [
+       2
+      ],
+      "hint": "找老師說的話：她說了哪三種動物？",
+      "why": "\"Some animals can fly, some live in water, and some live on land,\" she said. 老師說的這三種，就是分組的方法。"
+     },
+     {
+      "type": "evidence",
+      "q": "🔍 哪一句告訴你為什麼鯨魚要放進「住在水裡」這一組？點出那一句。",
+      "a": [
+       7
+      ],
+      "hint": "Ken 問了問題，誰回答他？回答裡有 so（所以）。",
+      "why": "\"It lives in the sea, so it goes in the water group,\" Ms. Wu said. 鯨魚住在海裡，所以放水裡那一組。Ken 問問題的那一句還沒有答案。"
+     }
+    ]
+   }
   }
  }
 }
