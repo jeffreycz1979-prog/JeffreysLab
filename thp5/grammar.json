@@ -5386,6 +5386,268 @@
      }
     ]
    }
+  },
+  "U4": {
+   "strategy": {
+    "name": "Compare and Contrast",
+    "zh": "比較異同",
+    "intro": "偵探把兩樣東西放在一起，找出哪裡一樣、哪裡不一樣。",
+    "parts": [
+     {
+      "k": "A",
+      "zh": "相同",
+      "en": "Alike",
+      "ic": "🟰",
+      "q": "找 both、also、too、the same：兩個都有的是什麼？"
+     },
+     {
+      "k": "D",
+      "zh": "不同",
+      "en": "Different",
+      "ic": "↔️",
+      "q": "找 but、different、-er than：只有其中一個有的是什麼？"
+     },
+     {
+      "k": "S",
+      "zh": "分類",
+      "en": "Sort",
+      "ic": "🗂️",
+      "q": "每件事放哪一格：只有 A／兩個都有／只有 B？"
+     }
+    ],
+    "tip": "看到 but，它前後通常就是兩個不一樣的地方。"
+   },
+   "teach": {
+    "title": "Earth and Mars",
+    "paras": [
+     [
+      "At the science museum, we learned about two planets: Earth and Mars.",
+      "Both planets go around the sun.",
+      "Both of them have mountains, and both have winter and summer."
+     ],
+     [
+      "But they are very different, too.",
+      "Earth is blue and green, but Mars is red.",
+      "Earth has a lot of water, so plants and animals can live here.",
+      "Mars is very dry and cold, and nobody lives there.",
+      "A year on Mars is almost two Earth years long!"
+     ],
+     [
+      "A scientist at the museum said, \"People are going to visit Mars one day.\"",
+      "Maybe I will be one of them!"
+     ]
+    ],
+    "zh": [
+     [
+      "在科學博物館，我們認識了兩顆行星：地球和火星。",
+      "兩顆行星都繞著太陽轉。",
+      "它們都有高山，也都有冬天和夏天。"
+     ],
+     [
+      "但是它們也很不一樣。",
+      "地球是藍色和綠色的，但火星是紅色的。",
+      "地球有很多水，所以植物和動物可以住在這裡。",
+      "火星非常乾燥又寒冷，沒有人住在那裡。",
+      "火星上的一年差不多是地球的兩年那麼長！"
+     ],
+     [
+      "博物館裡一位科學家說：「總有一天，人們會去火星。」",
+      "說不定我會是其中一個！"
+     ]
+    ],
+    "steps": [
+     {
+      "para": 0,
+      "part": 0,
+      "q": "地球和火星有什麼相同的地方？",
+      "opts": [
+       "Both go around the sun.",
+       "Both have a lot of water.",
+       "Both are red."
+      ],
+      "ozh": [
+       "兩個都繞著太陽轉。",
+       "兩個都有很多水。",
+       "兩個都是紅色的。"
+      ],
+      "a": 0,
+      "hint": "找 both：第一段哪一句說兩顆行星都一樣？",
+      "why": "Both planets go around the sun. 有 both，表示兩個都一樣。很多水只有地球有，紅色只有火星是。",
+      "ev": [
+       1
+      ]
+     },
+     {
+      "para": 1,
+      "part": 1,
+      "q": "「Earth is blue and green, but Mars is red.」哪一個字告訴你兩者不同？",
+      "opts": [
+       "but",
+       "and",
+       "is"
+      ],
+      "ozh": [
+       "但是",
+       "和",
+       "是"
+      ],
+      "a": 0,
+      "hint": "哪一個字前後在說兩件不一樣的事？",
+      "why": "but 前面說地球的顏色，後面說火星的顏色，兩個不一樣。and 是把一樣方向的東西連在一起（blue and green）。",
+      "ev": [
+       4
+      ]
+     },
+     {
+      "para": 1,
+      "part": 2,
+      "q": "「Plants and animals can live there.」要放進哪一格？",
+      "opts": [
+       "Only Earth",
+       "Both",
+       "Only Mars"
+      ],
+      "ozh": [
+       "只有地球",
+       "兩個都有",
+       "只有火星"
+      ],
+      "a": 0,
+      "hint": "文章說哪一顆行星有植物和動物？另一顆呢？",
+      "why": "Earth has a lot of water, so plants and animals can live here. 只有地球這樣。火星 nobody lives there，所以放「只有地球」。",
+      "ev": [
+       5,
+       6
+      ]
+     },
+     {
+      "para": 1,
+      "part": 1,
+      "q": "為什麼火星上沒有人住？",
+      "opts": [
+       "It is very dry and cold.",
+       "It is red.",
+       "It is far from the museum."
+      ],
+      "ozh": [
+       "它非常乾燥又寒冷。",
+       "它是紅色的。",
+       "它離博物館很遠。"
+      ],
+      "a": 0,
+      "hint": "找到 nobody lives there 這一句，同一句前面說了火星是什麼樣子？",
+      "why": "Mars is very dry and cold, and nobody lives there. 又乾又冷，所以沒有人住。顏色和博物館都不是原因。",
+      "ev": [
+       6
+      ]
+     }
+    ],
+    "sumTitle": "🗺️ 偵探整理：地球和火星",
+    "sum": [
+     [
+      "只有地球",
+      "藍色和綠色、很多水、有植物和動物"
+     ],
+     [
+      "兩個都有",
+      "繞著太陽轉、高山、冬天和夏天"
+     ],
+     [
+      "只有火星",
+      "紅色、又乾又冷、沒有人住、一年比較長"
+     ]
+    ]
+   },
+   "practice": {
+    "title": "Lily's Two Pets",
+    "sents": [
+     "Lily has two pets, a dog named Max and a turtle named Tom.",
+     "Both pets love to eat, and both of them like to play in the garden.",
+     "Max is big and fast, but Tom is small and slow.",
+     "Max often digs holes to find his toys.",
+     "Tom never digs holes.",
+     "He likes to sit in the sun all day, but Max can never sit still.",
+     "Max hates water, but Tom swims in his little pool every day.",
+     "When Lily comes home, Max jumps up and down.",
+     "Tom just looks at her.",
+     "Lily loves them both."
+    ],
+    "zh": [
+     "Lily 有兩隻寵物：一隻叫 Max 的狗，和一隻叫 Tom 的烏龜。",
+     "兩隻寵物都很愛吃，也都喜歡在花園裡玩。",
+     "Max 又大又快，但 Tom 又小又慢。",
+     "Max 常常挖洞找他的玩具。",
+     "Tom 從來不挖洞。",
+     "他喜歡整天坐著曬太陽，但 Max 從來都坐不住。",
+     "Max 討厭水，但 Tom 每天都在他的小水池裡游泳。",
+     "Lily 回家的時候，Max 會蹦蹦跳跳。",
+     "Tom 只是看著她。",
+     "Lily 兩隻都很愛。"
+    ],
+    "tasks": [
+     {
+      "type": "group",
+      "q": "每張卡片要放哪一格？點下面的按鈕分好（6 張都要分對）",
+      "groups": [
+       "只有 Max",
+       "兩隻都是",
+       "只有 Tom"
+      ],
+      "items": [
+       [
+        "loves to eat",
+        "很愛吃",
+        1
+       ],
+       [
+        "is fast",
+        "跑得很快",
+        0
+       ],
+       [
+        "sits in the sun all day",
+        "整天坐著曬太陽",
+        2
+       ],
+       [
+        "likes the garden",
+        "喜歡花園",
+        1
+       ],
+       [
+        "digs holes",
+        "挖洞",
+        0
+       ],
+       [
+        "swims in a pool",
+        "在水池裡游泳",
+        2
+       ]
+      ],
+      "hint": "回到文章找證據：both 後面的放「兩隻都是」；but 前後的是不一樣的地方。Max hates water 喔！",
+      "why": "兩隻都是：愛吃、喜歡花園（Both…）。只有 Max：跑得快、挖洞。只有 Tom：曬太陽、游泳（Max hates water，Max can never sit still）。"
+     },
+     {
+      "type": "evidence",
+      "q": "🔍 哪一句告訴你兩隻寵物有相同的地方？點出那一句。",
+      "a": [
+       1
+      ],
+      "hint": "找 both，但要確認這一句是在說「兩隻寵物」一樣的地方。",
+      "why": "Both pets love to eat, and both of them like to play in the garden. 說兩隻都愛吃、都喜歡花園。最後一句 Lily loves them both 也有 both，但說的是 Lily，不是兩隻寵物一樣的地方。"
+     },
+     {
+      "type": "evidence",
+      "q": "🔍 哪一句告訴你 Max 和 Tom 的速度不一樣？點出那一句。",
+      "a": [
+       2
+      ],
+      "hint": "找 fast（快）和 slow（慢），中間用哪個字連起來？",
+      "why": "Max is big and fast, but Tom is small and slow. but 前後就是兩隻不一樣的地方：Max 快，Tom 慢。"
+     }
+    ]
+   }
   }
  }
 }
