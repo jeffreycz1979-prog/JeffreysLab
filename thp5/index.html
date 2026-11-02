@@ -518,7 +518,8 @@ nav button.on{color:var(--lime);font-weight:700}
 .rdslot.ok{border:2px solid var(--mint);background:#123a37}.rdslot.bad{border:2px solid var(--coral);background:#3a1c18}
 .rdslots.ans{margin-top:10px}.rdslots.ans::before{content:'正確順序';font-size:12px;color:var(--muted);font-weight:800}
 .rdpool{display:flex;flex-direction:column;gap:8px;margin:12px 0}.rdtok{font-family:'Noto Sans TC',sans-serif;text-align:left;font-weight:500}
-.rdsum{display:flex;gap:10px;padding:6px 0;border-top:1px solid var(--line);font-size:14px}.rdgrp{display:flex;flex-direction:column;gap:8px;margin:12px 0}
+.rdsum{display:flex;gap:10px;padding:6px 0;border-top:1px solid var(--line);font-size:14px}.rdwords{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.rdwords span{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:5px 9px;font-size:13px;color:#c6d1c6}.rdwords b{font-family:Syne,sans-serif;color:var(--lime);margin-right:5px}
+.rdgrp{display:flex;flex-direction:column;gap:8px;margin:12px 0}
 .rdgcard{background:var(--panel);border:1.5px solid var(--line);border-radius:14px;padding:10px 12px;font-size:15px}.rdgcard.set{border-color:var(--mint)}
 .rdgbtns{display:flex;gap:6px;margin-top:8px}.rdgbtns button{flex:1;min-height:40px;border-radius:10px;border:1.5px solid var(--line);background:#0f1422;color:var(--ink);font-size:13px;font-weight:700;padding:4px}
 .rdgbtns button.on{background:var(--mint);border-color:var(--mint);color:#0a1a1a}
@@ -3141,6 +3142,7 @@ function rdStrategy(R, cur) {
   return `<div class="rdcard"><div class="rdname">🕵️ ${esc(s.name)}<small>${esc(s.zh)}</small></div>
     ${cur == null ? `<div class="rdintro">${esc(s.intro)}</div>` : ''}
     <div class="rdparts">${s.parts.map((p, k) => `<div class="rdpart ${cur === k ? 'now' : cur != null ? 'dim' : ''}"><b>${p.ic} ${esc(p.zh)} <small>${esc(p.en)}</small></b><span>${esc(p.q)}</span></div>`).join('')}</div>
+    ${cur == null && s.words ? `<div class="rdwords">${s.words.map(([en, zh]) => `<span><b>${esc(en)}</b>${esc(zh)}</span>`).join('')}</div>` : ''}
     ${cur == null && s.tip ? `<div class="ltip">💡 ${esc(s.tip)}</div>` : ''}</div>`;
 }
 function openReading(u) {
@@ -3207,7 +3209,7 @@ function rdNext() {
     if (rd.i >= R.teach.steps.length && !rdMeta(rd.u).t) { rdSave(rd.u, { t: Date.now() }); if ($('v-home').classList.contains('active')) renderIsland(); }
     return rdRender(true);
   }
-  rd.res.push(rd.ok2); rd.i++; Object.assign(rd, { tries: 0, done: false, ok: false, sel: [] });
+  rd.res.push(rd.ok2); rd.i++; Object.assign(rd, { tries: 0, done: false, ok: false, sel: [], bad: [] });
   if (rd.i >= R.practice.tasks.length) return rdResult();
   rdPrepTask(); rdRender(true);
 }
@@ -3230,7 +3232,9 @@ function rdPracHTML(R) {
   const head = `<div class="prhead"><span>🕵️ ${esc(P.title)}</span><b>${rd.i + 1} / ${P.tasks.length}</b></div>`;
   const text = `<div class="rdtext"><div class="rdpara ${ev && !rd.done ? 'pick' : ''}"><button class="spk small" data-say="${esc(P.sents.join(' '))}">🔊</button><div>${sents}</div></div></div>`;
   let body = '';
-  if (k.type === 'group') {
+  if (k.type === 'choice') {   // 練習篇的選擇題：選項中文答完才出現
+    body = `<div class="opts">${k.opts.map((o, i) => `<button class="opt ${rd.done && i === k.a ? 'ok' : rd.bad.includes(i) ? 'bad' : ''}" data-rdc="${i}" ${rd.done || rd.bad.includes(i) ? 'disabled' : ''}>${esc(o)}${rd.done ? `<small class="rdozh">${esc(k.ozh[i])}</small>` : ''}</button>`).join('')}</div>`;
+  } else if (k.type === 'group') {
     const G = k.groups;
     if (!rd.done) body = `<div class="rdgrp">${rd.pool.map((it) => `<div class="rdgcard ${rd.grp[it] != null ? 'set' : ''}"><div>${esc(k.items[it][0])}</div>
         <div class="rdgbtns">${G.map((g, gi) => `<button class="${rd.grp[it] === gi ? 'on' : ''}" data-rdg="${it}:${gi}">${esc(g)}</button>`).join('')}</div></div>`).join('')}</div>
@@ -3252,6 +3256,12 @@ function rdPracHTML(R) {
   return head + text + `<div class="prq">${esc(k.q)}</div>${body}${rdFeedback(k)}`;
 }
 function rdSortTap(it) { if (rd.done) return; const s = rd.slots.indexOf(null); if (s >= 0) rd.slots[s] = it; rdRender(); }
+function rdPChoice(i) {
+  const k = rdOf(rd.u).practice.tasks[rd.i]; if (rd.done || rd.bad.includes(i)) return;
+  if (i === k.a) { rd.done = true; rd.ok = !rd.tries; rd.ok2 = true; }
+  else { rd.bad.push(i); rd.tries++; if (rd.tries >= 2) { rd.done = true; rd.ok = false; rd.ok2 = false; } }
+  rdRender();
+}
 function rdGrpTap(v) { if (rd.done) return; const [it, g] = v.split(':').map(Number); rd.grp[it] = rd.grp[it] === g ? null : g; rdRender(); }
 function rdSlotTap(s) { if (rd.done) return; rd.slots[s] = null; rdRender(); }
 function rdSentTap(n) { if (rd.done) return; rd.sel = [n]; rdRender(); }
@@ -3558,6 +3568,7 @@ document.addEventListener('click', (e) => {
   if (t.dataset.rdsort != null) return rdSortTap(+t.dataset.rdsort);
   if (t.dataset.rdslot != null) return rdSlotTap(+t.dataset.rdslot);
   if (t.dataset.rdg) return rdGrpTap(t.dataset.rdg);
+  if (t.dataset.rdc != null) return rdPChoice(+t.dataset.rdc);
   if (t.dataset.rds != null) return rdSentTap(+t.dataset.rds);
   if (t.dataset.act === 'rdcheck') return rdCheck();
   if (t.dataset.act === 'rdnext') return rdNext();

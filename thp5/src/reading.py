@@ -362,6 +362,96 @@ READING = {
    ],
   },
  },
+ 'U5': {
+  'strategy': {
+   'name': 'Character', 'zh': '人物性格',
+   'intro': '文章很少直接說「他很勇敢」，偵探要從人物的表現推出他是什麼樣的人。',
+   'parts': [
+    {'k': 'A', 'zh': '行動', 'en': 'Actions', 'ic': '👀', 'q': '他做了什麼？'},
+    {'k': 'W', 'zh': '說話', 'en': 'Words', 'ic': '💬', 'q': '他說了什麼？怎麼說的？'},
+    {'k': 'F', 'zh': '心情還是性格？', 'en': 'Feeling or Trait?', 'ic': '💭', 'q': 'scared、happy 是一時的心情；brave、kind 是一直都這樣的性格。'},
+   ],
+   'words': [['brave', '勇敢的'], ['kind', '善良的'], ['careful', '小心的'], ['impatient', '沒耐心的'], ['lazy', '懶惰的'], ['honest', '誠實的']],
+   'tip': '一個人害怕但還是去做，就是勇敢。',
+  },
+  'teach': {
+   'title': 'The Noise in the Tunnel',
+   'paras': [
+    ['Ken and his little sister Mia were hiking in the forest.',
+     'They followed the trail and climbed up the hill.'],
+    ['Suddenly, they heard a strange noise from a dark tunnel in the rocks.',
+     'Mia was scared.',
+     '"Let\'s go home!" she said.',
+     'Ken was scared too.',
+     '"Don\'t be a chicken, Ken," he said to himself.',
+     "He held Mia's hand and crawled into the tunnel first."],
+    ['Inside, they found a little dog with big eyes and short legs.',
+     'Its leg was stuck between two rocks.',
+     'Ken gently moved the rocks.',
+     'Then he gave the dog some of his water.',
+     '"You\'re safe now," he said softly.'],
+   ],
+   'zh': [
+    ['Ken 和他的妹妹 Mia 在森林裡健行。', '他們沿著小路走，爬上小山丘。'],
+    ['突然，他們聽到岩石間一個黑黑的地道裡傳來奇怪的聲音。', 'Mia 很害怕。', '「我們回家吧！」她說。', 'Ken 也很害怕。',
+     '「別當膽小鬼，Ken。」他對自己說。', '他牽著 Mia 的手，第一個爬進地道。'],
+    ['在裡面，他們發現一隻有著大眼睛和短腿的小狗。', '牠的腳被卡在兩塊石頭中間。', 'Ken 輕輕地把石頭搬開。', '接著他把自己的水分一些給小狗喝。', '「你現在安全了。」他輕聲地說。'],
+   ],
+   'steps': [
+    {'para': 1, 'part': 0, 'q': 'Ken 很害怕，但還是第一個爬進地道。他是怎樣的人？',
+     'opts': ['brave', 'lazy', 'rude'], 'ozh': ['勇敢的', '懶惰的', '沒禮貌的'], 'a': 0,
+     'hint': '看小卡上的性格詞：害怕還是去做，是哪一種人？',
+     'why': 'Ken was scared too，但他 crawled into the tunnel first。害怕還是去做，這就是 brave（勇敢）。', 'ev': [5, 7]},
+    {'para': 1, 'part': 2, 'q': '「Mia was scared.」這裡的 scared 是性格，還是一時的心情？',
+     'opts': ['A feeling right now', 'A character trait'], 'ozh': ['一時的心情', '性格'], 'a': 0,
+     'hint': '聽到奇怪的聲音才害怕，是一直都這樣，還是那一下的感覺？',
+     'why': 'Mia 是聽到奇怪的聲音那一下才害怕，是一時的心情。性格是一直都這樣，例如 brave、kind。', 'ev': [3]},
+    {'para': 1, 'part': 1, 'q': 'Ken 為什麼對自己說「Don\'t be a chicken」？',
+     'opts': ['He was scared, but he wanted to be brave.', 'He wanted to eat chicken.', 'He was angry at Mia.'],
+     'ozh': ['他很害怕，但想讓自己勇敢一點。', '他想吃雞肉。', '他在生 Mia 的氣。'], 'a': 0,
+     'hint': '前一句說 Ken 心裡覺得怎樣？chicken 在這裡是「膽小鬼」的意思。',
+     'why': 'Ken was scared too，所以他對自己說「別當膽小鬼」，給自己打氣。從他說的話，看得出他想勇敢面對。', 'ev': [5, 6]},
+    {'para': 2, 'part': 0, 'q': '哪個詞最能形容 Ken 對小狗的樣子？',
+     'opts': ['kind', 'careless', 'angry'], 'ozh': ['善良的', '粗心的', '生氣的'], 'a': 0,
+     'hint': '看 Ken 做了什麼：怎麼搬石頭？給了小狗什麼？怎麼說話？',
+     'why': 'gently moved the rocks（輕輕搬石頭）、gave the dog some of his water（分水給小狗）、said softly（輕聲說），這些行動都證明他很 kind（善良）。', 'ev': [10, 11, 12]},
+   ],
+   'sumTitle': '🗺️ 偵探整理：Ken 是怎樣的人？',
+   'sum': [['勇敢 brave', '很怕，但還是第一個爬進地道'], ['善良 kind', '輕輕搬石頭、分水給小狗、輕聲說話'], ['💭 小提醒', 'scared 是一時的心情，brave 是性格']],
+  },
+  'practice': {
+   'title': "Leo's Fossil Hunt",
+   'sents': [
+    'Leo and his grandpa went to the forest to look for fossils.',
+    'Grandpa walked slowly and looked carefully at every rock.',
+    'But Leo ran ahead and kicked the rocks with his feet.',
+    '"Hold your horses, Leo!" Grandpa said.',
+    "Leo didn't listen, and he fell over a big rock.",
+    'Then Grandpa pointed at a small stone.',
+    'There was a fossil in it: a little animal with a long tail and sharp teeth!',
+    '"How did you find it?" Leo asked.',
+    '"I took my time," Grandpa smiled.',
+    'After that, Leo walked slowly and looked at every rock, too.',
+   ],
+   'zh': [
+    'Leo 和爺爺到森林裡找化石。', '爺爺慢慢地走，仔細看每一塊石頭。', '但是 Leo 跑到前面，用腳踢石頭。', '「慢慢來，Leo！」爺爺說。',
+    'Leo 沒有聽，結果被一塊大石頭絆倒了。', '接著爺爺指著一顆小石頭。', '裡面有一個化石：一隻有著長尾巴和尖牙齒的小動物！',
+    '「你是怎麼找到的？」Leo 問。', '「我慢慢來呀。」爺爺笑著說。', '從那之後，Leo 也慢慢走，仔細看每一塊石頭。',
+   ],
+   'tasks': [
+    {'type': 'choice', 'q': '故事開頭，哪個詞最能形容 Leo？',
+     'opts': ['impatient', 'careful', 'kind'], 'ozh': ['沒耐心的', '小心的', '善良的'], 'a': 0,
+     'hint': '看 Leo 開頭做了什麼：跑到前面、踢石頭、不聽爺爺說「慢慢來」。',
+     'why': 'Leo ran ahead、kicked the rocks、didn\'t listen，爺爺還要叫他 Hold your horses（慢慢來），這些都證明他一開始很 impatient（沒耐心）。'},
+    {'type': 'evidence', 'q': '🔍 哪一句證明爺爺是個小心的人？點出那一句。', 'a': [1, 8],
+     'hint': '找爺爺做了什麼：他怎麼走路？怎麼看石頭？',
+     'why': 'Grandpa walked slowly and looked carefully at every rock. 慢慢走、仔細看，證明爺爺很 careful。"I took my time" 也說了爺爺慢慢來，所以也算對。'},
+    {'type': 'evidence', 'q': '🔍 故事最後 Leo 改變了，哪一句告訴你？點出那一句。', 'a': [9],
+     'hint': '找 After that：後來 Leo 走路和看石頭的樣子，跟開頭一樣嗎？',
+     'why': 'After that, Leo walked slowly and looked at every rock, too. Leo 學爺爺慢慢來，從沒耐心變得小心了。'},
+   ],
+  },
+ },
 }
 
 def check(R):
@@ -381,6 +471,8 @@ def check(R):
                 assert sorted(i[2] for i in k['items']) == list(range(len(k['items']))), (u, k)
                 assert 'slots' not in k or len(k['slots']) == len(k['items']), (u, k)
                 assert 'slots' in k or len(k['items']) <= len(s['parts']), (u, k)
+            elif k['type'] == 'choice':
+                assert len(k['opts']) == len(k['ozh']) == len(set(k['opts'])) and 0 <= k['a'] < len(k['opts']), (u, k)
             elif k['type'] == 'group':
                 assert all(0 <= i[2] < len(k['groups']) for i in k['items']), (u, k)
             else:
