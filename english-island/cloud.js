@@ -129,7 +129,7 @@
 
   function openLogin() {
     $('sheet').innerHTML = `<h3 style="margin-top:0">登入英文島 <small>LOG IN</small></h3>
-      <p class="note">用老師發的登入小卡：掃小卡上的 QR code 最快，或輸入${ID_LABEL}和 4 位數密碼。<br>登入後進度會自動備份，換手機直接登入就好。</p>
+      <p class="note">輸入<b>登入小卡</b>上的${ID_LABEL}和 4 位數密碼。<br>現在的進度不會不見，登入後會自動備份，換手機直接登入就好。</p>
       <label class="clab">${ID_LABEL}</label>
       <input class="search" id="cSid" inputmode="numeric" autocomplete="username" autocapitalize="off" spellcheck="false">
       <label class="clab">密碼（4 位數）</label>
@@ -188,12 +188,65 @@
       : `<div class="srow"><div>☁️ 雲端帳號<small>用老師發的登入小卡登入，進度自動備份，換手機直接登入${MOCK ? '・🧪 模擬後台' : ''}</small></div><button class="btn" data-act="cloudin">登入</button></div>`;
     const code = $('codeBox'); if (code) code.style.display = auth ? 'none' : '';
     const onb = $('onbLogin'); if (onb) onb.style.display = auth ? 'none' : '';
+    nagBar();
+  }
+
+  // ── 還沒登入的提醒（Jeffrey 2026/11/02：學生沒登入就直接玩，不知道去哪登入）──
+  // 首頁地圖上方一條紅色提醒（登入前一直在）＋每天第一次打開跳一次教學
+  const NAG_KEY = 'island-login-nag';
+  function nagBar() {
+    let bar = $('loginNag');
+    const need = !auth && st.profile;
+    if (!need) { if (bar) bar.remove(); return; }
+    if (!bar) {
+      const home = $('v-home'), card = home && home.querySelector('.island-card'); if (!card) return;
+      bar = document.createElement('button'); bar.id = 'loginNag'; bar.className = 'login-nag'; bar.dataset.act = 'cloudguide';
+      card.parentNode.insertBefore(bar, card);
+    }
+    bar.innerHTML = `<span>⚠️</span><div><b>你還沒登入！</b><small>進度沒有備份，換手機或刪掉 App 就會不見</small></div><i>怎麼登入 ›</i>`;
+  }
+  function loginGuide() {
+    const app = typeof isStandalone === 'function' && isStandalone();
+    $('sheet').innerHTML = `<h3 style="margin-top:0">🎫 登入英文島 <small>HOW TO LOG IN</small></h3>
+      <p class="note">登入之後，你的積分、角色、裝備都會<b>自動備份到雲端</b>；換手機只要再登入一次就全部回來。<br><b>放心：你現在玩到的進度不會不見</b>，登入後會一起存上去。</p>
+      <div class="lg-steps">
+        <div class="lg-step"><b>1</b><div>拿出老師發的<b>「登入小卡」</b><small>小卡上有你的${ID_LABEL}、4 位數密碼和一個 QR code</small></div></div>
+        <div class="lg-step"><b>2</b><div>按下面的 <b>「現在登入」</b><small>輸入小卡上的${ID_LABEL}和 4 位數密碼，再按「登入」</small></div></div>
+        <div class="lg-step"><b>3</b><div>看到 <b>「登入成功」</b> 就完成了！<small>以後在「我的 → ☁️ 雲端帳號」可以看到上次備份的時間</small></div></div>
+      </div>
+      <div class="lg-tip">${app
+        ? '📱 你是從主畫面的 App 打開的：請<b>用輸入的方式</b>登入。用相機掃 QR code 會打開瀏覽器，登入的是瀏覽器，不是這個 App。'
+        : '📷 也可以直接用手機相機掃小卡上的 QR code，會自動登入。<br>如果你之後會用主畫面的 App，請在 App 裡面再用輸入的方式登入一次。'}</div>
+      <p class="note" style="margin-top:8px">找不到小卡、或密碼不對？下次上課跟 Jeffrey 老師說，老師會再給你一張。</p>
+      <div class="btnrow" style="margin-top:12px"><button class="btn" data-act="cloudin">現在登入 ▶</button><button class="btn ghost" data-act="cloudlater">等一下再說</button></div>`;
+    $('modal').classList.add('show'); $('sheet').scrollTop = 0;
+  }
+  function nagToday() {   // 每天第一次打開 App、還沒登入 → 跳一次教學
+    if (auth || !st.profile) return;
+    const today = new Date().toDateString();
+    try { if (localStorage.getItem(NAG_KEY) === today) return; localStorage.setItem(NAG_KEY, today); } catch (e) {}
+    setTimeout(() => { if (!auth && !$('modal').classList.contains('show')) loginGuide(); }, 1200);
+  }
+  if (!document.getElementById('lgCss')) {
+    const c = document.createElement('style'); c.id = 'lgCss';
+    c.textContent = `.login-nag{display:flex;align-items:center;gap:10px;width:100%;text-align:left;margin:0 0 12px;padding:10px 12px;border-radius:16px;border:2px solid #FF6B57;background:#3a1c18;color:#fff;animation:lgPulse 2s ease-in-out infinite}
+      .login-nag>span{font-size:22px}.login-nag>div{flex:1;min-width:0}.login-nag b{display:block;font-size:15px}.login-nag small{display:block;font-size:12px;color:#ffc9c0}
+      .login-nag i{font-style:normal;font-weight:800;font-size:13px;background:#FF6B57;color:#1a0a08;border-radius:10px;padding:6px 10px;white-space:nowrap}
+      @keyframes lgPulse{50%{box-shadow:0 0 0 4px rgba(255,107,87,.25)}}
+      .lg-steps{display:flex;flex-direction:column;gap:8px;margin:12px 0}
+      .lg-step{display:flex;gap:10px;align-items:flex-start;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 12px;font-size:15px;line-height:1.5}
+      .lg-step>b{flex:none;width:28px;height:28px;border-radius:50%;background:var(--lime);color:#10140a;display:grid;place-items:center;font-family:Syne,sans-serif}
+      .lg-step small{display:block;font-size:12.5px;color:var(--muted)}
+      .lg-tip{font-size:13px;line-height:1.6;background:rgba(78,205,196,.12);border:1px solid #4ECDC4;border-radius:12px;padding:8px 10px}`;
+    document.head.appendChild(c);
   }
 
   document.addEventListener('click', (e) => {
     const t = e.target.closest('[data-act]'); if (!t || !t.dataset.act.startsWith('cloud')) return;
     const a = t.dataset.act;
     if (a === 'cloudin') return openLogin();
+    if (a === 'cloudguide') return loginGuide();
+    if (a === 'cloudlater') { $('modal').classList.remove('show'); return toast('記得找時間登入喔！首頁的紅色提醒按一下就能登入'); }
     if (a === 'cloudgo') return submitLogin(t);
     if (a === 'cloudusecloud') return choose(true);
     if (a === 'cloudusehere') return choose(false);
@@ -215,7 +268,7 @@
       qs.delete('k'); history.replaceState(null, '', location.pathname + (qs.toString() ? '?' + qs : '') + location.hash);
       if (auth) toast('已經登入了');
       else login({ code: k }).catch((e) => toast('小卡登入失敗：' + e.message));
-    }
+    } else nagToday();
   });
 
   // ═══════════════════════════════════════════════════════
