@@ -1011,7 +1011,7 @@ function checkSurprise() {
     d.innerHTML = `<div class="legend-card"><div class="legend-crown">🎁</div>
       <div class="legend-k">${L('驚喜！隱藏關卡開放', 'SURPRISE! SECRET GAMES UNLOCKED')}</div>
       <div class="legend-n" style="font-size:26px">${L(`${GAME_BASE} 款遊戲全部滿星`, `All ${GAME_BASE} games at ${GAME_CAP} ⭐`)}</div>
-      <p>${L('你太厲害了！送你幾款新遊戲：', 'Amazing! Here are some new games:')}<br><b>${extra.map((g) => esc(({ orbs: '🔮 Word Orbs', slice: '🍉 Word Slice' })[g.id] || g.id)).join('、')}</b><br>${L('到「挑戰」頁就能玩 🎮', 'Find them on the Challenge page 🎮')}</p>
+      <p>${L('你太厲害了！送你幾款新遊戲：', 'Amazing! Here are some new games:')}<br><b>${extra.map((g) => esc(({ orbs: '🔮 Word Orbs', slice: '🍉 Word Slice', beat: '🥁 Word Beat' })[g.id] || g.id)).join('、')}</b><br>${L('到「挑戰」頁就能玩 🎮', 'Find them on the Challenge page 🎮')}</p>
       <button class="btn" data-legendok="1">${L('去看看！', "Let's go!")}</button></div>`;
     document.body.appendChild(d);
     d.addEventListener('click', (e) => { if (e.target.closest('[data-legendok]')) d.remove(); });
@@ -3463,5 +3463,6 @@ document.addEventListener('keydown', (e) => {
 <script src="games/horde.js?v=0.4"></script>
 <script src="games/orbs.js?v=0.6"></script>
 <script src="games/slice.js?v=0.3"></script>
+<script src="games/beat.js?v=0.1"></script>
 </body>
 </html>
