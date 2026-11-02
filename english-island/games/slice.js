@@ -10,12 +10,20 @@
 //        saveLedger, saveMeta, afterPoints, points, gameWeekBestAll, gameCard, masteredCount, GAMES, toast, confetti
 // ═══════════════════════════════════════════════════════
 const WSL = (() => {
-  const ID = 'slice', NEED = 8, VER = '0.1';
+  const ID = 'slice', NEED = 8, VER = '0.2';
   const UNIT = 'U8';                         // 題目單元（沒有這個單元就用全部單字）
   const TIME = 180, CAP = 20, S_PER_PT = 100;   // 先抓 2000 分滿 20 ⭐，等 Jeffrey 實玩再校準
   const PEN = 3;                             // 切錯字母扣幾秒
   const GRAV = 760, TOL = 40, R = 32;        // 重力（邏輯 px/s²）、方向容許角度、水果半徑
   const PTS_LETTER = 10, PTS_WORD = 20, PTS_PER_LEN = 10, PTS_PERFECT = 30;
+  // 好康（拼完一個字選一個，選的時候時間暫停）：Jeffrey 2026/11/02
+  const PERKS = {
+    big: { ic: '🍈', zh: '水果變大', en: 'Big fruit', sec: 10, tip: ['水果和字母變大，比較好切', 'Bigger fruit, easier to hit'] },
+    clean: { ic: '🎯', zh: '沒有干擾字', en: 'No decoys', sec: 10, tip: ['飛上來的都是你需要的字母', 'Only the letters you need'] },
+    free: { ic: '🔀', zh: '不管方向', en: 'Any direction', sec: 10, tip: ['往哪個方向切都可以（字母還是要對）', 'Swipe any way (still the right letter)'] },
+    frenzy: { ic: '🍉', zh: '狂切時間', en: 'Fruit frenzy', sec: 8, tip: ['不用拼字，切到什麼都 +5 分', 'No spelling — every fruit is +5'] },
+  };
+  const FRENZY_PTS = 5, BIG = 1.45;
   const DIRS = [{ k: 'u', a: -90 }, { k: 'd', a: 90 }, { k: 'l', a: 180 }, { k: 'r', a: 0 }];
   const FRUIT = [
     { c: '#FF5A5A', d: '#B8322F', f: '#FFE1DA' },   // 蘋果
@@ -92,6 +100,7 @@ const WSL = (() => {
   function pickLetter(g) {
     const need = g.ans[g.pos];
     g.since++;
+    if (g.pw && g.pw.k === 'clean') return need;   // 好康：沒有干擾字
     if (g.since >= g.every) { g.since = 0; g.every = 2 + rnd(2); return need; }
     const r = Math.random(), conf = (CONFUSE[need] || '').split('').filter((x) => x !== need);
     const others = [...new Set(g.ans.split(''))].filter((x) => x !== need);
@@ -132,6 +141,14 @@ const WSL = (() => {
         @keyframes wsPop{40%{transform:scale(1.2)}}
         .ws-mean{display:inline-flex;align-items:center;gap:8px;margin-top:8px;font-size:15px;color:#c6d1c6;background:rgba(0,0,0,.35);border-radius:12px;padding:4px 6px 4px 12px}
         .ws-mean button{pointer-events:auto;border:none;background:#4ECDC4;color:#0a1a1a;border-radius:10px;width:36px;height:32px;font-size:16px}
+        .ws-pw{margin-top:6px;min-height:26px}.ws-pw span{display:inline-block;background:#FFD23F;color:#1a1a1a;font-weight:800;font-size:14px;border-radius:12px;padding:3px 12px;animation:wsBlink2 1s ease-in-out infinite}
+        @keyframes wsBlink2{50%{box-shadow:0 0 14px #FFD23F}}
+        .ws-frenzy{font:800 30px Syne,'Noto Sans TC',sans-serif;color:#FFD23F;text-shadow:0 0 18px #FF9F3F;animation:wsPop .6s ease-in-out infinite}
+        .ws-perks{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0 16px}
+        .ws-perks button{border:2px solid #4ECDC4;background:#131826;color:#fff;border-radius:16px;padding:12px 8px;text-align:center;min-height:120px}
+        .ws-perks button:active{background:#1d2a3a}
+        .ws-perks span{display:block;font-size:34px;line-height:1.2}.ws-perks b{display:block;font-size:15px;margin-top:4px}.ws-perks b i{font-style:normal;color:#CCFF00;font-family:Syne,sans-serif;font-size:12px}
+        .ws-perks small{display:block;font-size:11.5px;opacity:.75;margin-top:4px;line-height:1.4}
         .ws-demo{display:flex;justify-content:center;gap:14px;margin:6px 0 2px}
         .ws-demo div{width:58px;height:58px;border-radius:50%;background:#FF5A5A;position:relative;display:grid;place-items:center;font:700 30px Andika,system-ui,sans-serif;color:#fff;text-shadow:0 2px 0 #0006}
         .ws-demo div i{position:absolute;right:-6px;top:-6px;width:26px;height:26px;border-radius:50%;background:#FFE14D;color:#1a1a1a;font:900 16px/26px system-ui;font-style:normal;text-shadow:none}`;
@@ -184,20 +201,25 @@ const WSL = (() => {
       const t0 = b.t - 140, p0 = stroke.pts.find((p) => p.t >= t0) || a;
       let vx = b.x - p0.x, vy = b.y - p0.y;
       if (Math.hypot(vx, vy) < 14) { vx = b.x - a.x; vy = b.y - a.y; }
-      if (dirOk(vx, vy, f.dir)) cut(f, vx, vy); else bounce(f, vx, vy);
+      if (anyDir() || dirOk(vx, vy, f.dir)) cut(f, vx, vy); else bounce(f, vx, vy);
     });
   }
+  const anyDir = () => game && game.pw && (game.pw.k === 'free' || game.pw.k === 'frenzy');
   function bounce(f, vx, vy) {   // 方向不對：彈開，不算切到、不扣分
     const l = Math.hypot(vx, vy) || 1;
     f.vx += vx / l * 140; f.vy += vy / l * 140 - 80; f.noHit = now() + 350; f.flash = now();
     sfx('bonk');
   }
   function cut(f, vx, vy) {
-    const g = game, need = g.ans[g.pos], ok = f.ch === need;
+    const g = game, frenzy = g.pw && g.pw.k === 'frenzy', need = g.ans[g.pos], ok = frenzy || f.ch === need;
     f.dead = true;
     const l = Math.hypot(vx, vy) || 1, nx = -vy / l, ny = vx / l, ang = Math.atan2(vy, vx);
-    [-1, 1].forEach((s) => g.halves.push({ x: f.x + nx * s * 6, y: f.y + ny * s * 6, vx: f.vx * 0.5 + nx * s * 90, vy: Math.min(f.vy, 0) * 0.3 + ny * s * 90 - 60, ang, spin: s * (2 + Math.random() * 2), side: s, k: f.k, ch: f.ch, t: now(), bad: !ok }));
+    [-1, 1].forEach((s) => g.halves.push({ x: f.x + nx * s * 6, y: f.y + ny * s * 6, vx: f.vx * 0.5 + nx * s * 90, vy: Math.min(f.vy, 0) * 0.3 + ny * s * 90 - 60, ang, spin: s * (2 + Math.random() * 2), side: s, k: f.k, ch: f.ch, r: f.r, t: now(), bad: !ok }));
     for (let i = 0; i < 12; i++) { const a2 = Math.random() * Math.PI * 2, sp = 60 + Math.random() * 180; g.parts.push({ x: f.x, y: f.y, vx: Math.cos(a2) * sp, vy: Math.sin(a2) * sp - 60, t: now(), c: ok ? FRUIT[f.k].c : '#FF5A5A' }); }
+    if (frenzy) {   // 狂切時間：不用拼字，切到就加分
+      g.score += FRENZY_PTS; g.frenzyHits++; g.fx.push({ x: f.x, y: f.y - 20, txt: `+${FRENZY_PTS}`, col: '#FFD23F', t: now() });
+      sfx('slice', g.frenzyHits % 12); return;
+    }
     if (ok) {
       g.pos++; g.letters++; g.score += PTS_LETTER; g.wrongHere = 0;
       g.fx.push({ x: f.x, y: f.y - 20, txt: `+${PTS_LETTER}`, col: '#CCFF00', t: now() });
@@ -220,6 +242,25 @@ const WSL = (() => {
     sfx('word'); speak(g.ans);
     showTop(true);
   }
+  function openPerks() {
+    const g = game; g.picking = true;
+    $('wsTop').style.visibility = 'hidden';   // 選好康時先藏起上面的空格，免得疊在卡片上
+    pane(`<div class="wj-card ws-perk">
+      <div class="wj-kicker">🎉 ${L('拼對了！選一個好康', 'Nice! Pick a power-up')}</div>
+      <p class="wj-small">${L('選的時候時間會暫停', 'The clock stops while you choose')}</p>
+      <div class="ws-perks">${Object.entries(PERKS).map(([k, p]) => `<button data-ws="perk" data-k="${k}"><span>${p.ic}</span><b>${L(p.zh, p.en)} <i>${p.sec}s</i></b><small>${L(p.tip[0], p.tip[1])}</small></button>`).join('')}</div>
+    </div>`);
+  }
+  function pickPerk(k) {
+    const g = game; if (!g || !g.picking) return;
+    g.picking = false; pane(''); g.perks[k] = (g.perks[k] || 0) + 1;
+    $('wsTop').style.visibility = '';
+    g.pw = { k, left: PERKS[k].sec }; g.last = now();
+    sfx('word');
+    if (k === 'big') g.fruits.forEach((f) => { if (!f.old) f.r = R * BIG; });
+    if (k === 'frenzy') { g.spawnT = 0; showTop(); return; }   // 狂切結束後才出下一個字
+    nextWord();
+  }
   function nextWord() {
     const g = game;
     if (g.wi >= g.deck.length) { g.deck = shuffle(wordPool()); g.wi = 0; }
@@ -228,18 +269,24 @@ const WSL = (() => {
   }
   function showTop(done) {
     const g = game; if (!g) return;
+    if (g.pw && g.pw.k === 'frenzy') {
+      $('wsTop').className = 'ws-top';
+      $('wsTop').innerHTML = `<div class="ws-frenzy">🍉 ${L('狂切時間！', 'FRUIT FRENZY!')}</div><div class="ws-mean">${L('切到什麼都加分，任何方向都可以', 'Slice anything, any direction')}</div><div class="ws-pw" id="wsPw"></div>`;
+      return;
+    }
     const slots = g.ans.split('').map((ch, i) => {
       const filled = done || i < g.pos, now2 = !done && i === g.pos, ghost = now2 && g.wrongHere >= 2;   // 同一格錯 2 次：淡淡顯示答案
       return `<span class="ws-slot ${now2 ? 'now' : ''} ${ghost ? 'ghost' : ''}">${filled || ghost ? esc(ch) : ''}</span>`;
     }).join('');
     $('wsTop').className = 'ws-top' + (done ? ' done' : '');
-    $('wsTop').innerHTML = `<div class="ws-slots">${slots}</div><div class="ws-mean">${esc(short(g.w))}<button data-ws="say">🔊</button></div>`;
+    $('wsTop').innerHTML = `<div class="ws-slots">${slots}</div><div class="ws-mean">${esc(short(g.w))}<button data-ws="say">🔊</button></div><div class="ws-pw" id="wsPw"></div>`;
   }
   function spawn() {
-    const g = game, ch = pickLetter(g);
+    const g = game, fz = g.pw && g.pw.k === 'frenzy', ch = fz ? 'abcdefghijklmnopqrstuvwxyz'[rnd(26)] : pickLetter(g);
+    const r = g.pw && g.pw.k === 'big' ? R * BIG : R;
     const x0 = 50 + Math.random() * 260, y0 = VH + R + 4, apex = VH * (0.36 + Math.random() * 0.2);
     const vy = -Math.sqrt(2 * GRAV * (y0 - apex)), T = 2 * -vy / GRAV, tx = 50 + Math.random() * 260;
-    g.fruits.push({ id: ++g.id, x: x0, y: y0, vx: (tx - x0) / T * 0.6, vy, r: R, ch, dir: DIRS[rnd(4)], k: rnd(FRUIT.length), noHit: 0, flash: 0 });
+    g.fruits.push({ id: ++g.id, x: x0, y: y0 + r - R, vx: (tx - x0) / T * 0.6, vy, r, ch, dir: DIRS[rnd(4)], k: rnd(FRUIT.length), noHit: 0, flash: 0 });
   }
 
   // ── 開始畫面 ──
@@ -263,6 +310,7 @@ const WSL = (() => {
         <div>🔤 ${L('要照順序切：apple 就是 a → p → p → l → e', 'Slice in order: a → p → p → l → e')}</div>
         <div>❌ ${L(`切到錯的字母扣 ${PEN} 秒；方向不對水果會彈開，不扣分；漏掉沒關係，很快會再飛上來`, `Wrong letter = −${PEN}s; wrong direction just bounces; missed letters come back soon`)}</div>
         <div>💡 ${L('同一個字母錯 2 次，空格會偷偷告訴你答案', 'Miss the same letter twice and you get a hint')}</div>
+        <div>🎁 ${L('每拼完一個字選一個好康：水果變大、沒有干擾字、不管方向、狂切時間', 'Each word earns a power-up: big fruit, no decoys, any direction, or fruit frenzy')}</div>
         <div>⭐ ${trial ? L('試玩模式：不計分', 'Trial: not scored') : L(`每 ${S_PER_PT} 分 1 顆星，最多 ${CAP}；所有遊戲每週只算最高一局`, `1 ⭐ per ${S_PER_PT} points, up to ${CAP}; best game of the week counts`)}</div>
       </div>
       <p class="wj-small">${trial ? L('🧪 試玩版', '🧪 Trial') : L(`本週遊戲最佳 ${best} / ${CAP} ⭐・個人最高 ${pb} 分`, `Best this week ${best} / ${CAP} ⭐ · Personal best ${pb}`)}<br><span style="opacity:.5">v${VER}</span></p>
@@ -279,7 +327,7 @@ const WSL = (() => {
     pane('');
     cancelAnimationFrame(raf);
     game = { left: TIME, score: 0, words: 0, letters: 0, wrongs: 0, perfect: 0, fruits: [], halves: [], parts: [], fx: [], trail: [],
-      spawnT: 0.8, since: 1, every: 2, pause: 0, id: 0, deck: shuffle(wordPool()), wi: 0, last: now(), over: false };
+      spawnT: 0.8, since: 1, every: 2, pause: 0, id: 0, pw: null, picking: false, perks: {}, frenzyHits: 0, deck: shuffle(wordPool()), wi: 0, last: now(), over: false };
     nextWord(); hud();
     raf = requestAnimationFrame(loop);
   }
@@ -290,12 +338,18 @@ const WSL = (() => {
     const g = game; if (!g || g.over) return;
     const t = now(), dt = Math.min(0.05, (t - g.last) / 1000); g.last = t;
     if (document.hidden) return;
+    if (g.picking) { draw(); return; }   // 選好康的時候時間暫停
     g.left -= dt;
     if (g.left <= 0) { g.left = 0; hud(); return end(); }
-    if (g.pause > 0) { g.pause -= dt; if (g.pause <= 0) nextWord(); }
+    if (g.pause > 0) { g.pause -= dt; if (g.pause <= 0) openPerks(); }
     else {
       g.spawnT -= dt;
-      if (g.spawnT <= 0) { spawn(); g.spawnT = Math.max(0.66, 0.95 - (TIME - g.left) * 0.0016); }
+      const fz = g.pw && g.pw.k === 'frenzy';
+      if (g.spawnT <= 0) { spawn(); g.spawnT = fz ? 0.28 : Math.max(0.66, 0.95 - (TIME - g.left) * 0.0016); }
+    }
+    if (g.pw) {
+      g.pw.left -= dt;
+      if (g.pw.left <= 0) { const k = g.pw.k; g.pw = null; if (k === 'frenzy') { g.fruits.forEach((f) => { f.old = true; }); nextWord(); } else showTop(); }
     }
     g.fruits.forEach((f) => { f.vy += GRAV * dt; f.x += f.vx * dt; f.y += f.vy * dt; if (f.x < f.r) { f.x = f.r; f.vx = Math.abs(f.vx); } if (f.x > 360 - f.r) { f.x = 360 - f.r; f.vx = -Math.abs(f.vx); } });
     g.fruits = g.fruits.filter((f) => !f.dead && !(f.vy > 0 && f.y > VH + f.r + 10));
@@ -311,6 +365,7 @@ const WSL = (() => {
     const s = Math.ceil(g.left), el = $('wsT');
     el.textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; el.classList.toggle('low', g.left <= 20);
     $('wsS').textContent = g.score; $('wsP').textContent = `⭐ ${toPts(g.score)}`;
+    const pw = $('wsPw'); if (pw) { const k = g.pw && PERKS[g.pw.k]; pw.innerHTML = k ? `<span>${k.ic} ${L(k.zh, k.en)} ${Math.ceil(g.pw.left)}s</span>` : ''; }
   }
   function drawBg() {
     if (!cx) return;
@@ -347,7 +402,7 @@ const WSL = (() => {
       cx.font = `700 ${f.r * 1.15}px Andika, 'Comic Sans MS', system-ui, sans-serif`; cx.textAlign = 'center'; cx.textBaseline = 'middle';
       cx.lineWidth = 5; cx.lineJoin = 'round'; cx.strokeStyle = 'rgba(0,0,0,.55)'; cx.strokeText(f.ch, 0, 2); cx.fillStyle = '#fff'; cx.fillText(f.ch, 0, 2);
       cx.restore();
-      if (!f.old) arrow(f.x + f.r * 0.78, f.y - f.r * 0.78, f.dir.a, t - f.flash < 300 ? 16 : 13);
+      if (!f.old && !anyDir()) arrow(f.x + f.r * 0.78, f.y - f.r * 0.78, f.dir.a, t - f.flash < 300 ? 16 : 13);
       cx.globalAlpha = 1;
     });
     // 切開的兩半
@@ -355,9 +410,10 @@ const WSL = (() => {
       const F = FRUIT[h.k];
       cx.save(); cx.translate(h.x, h.y); cx.rotate(h.ang);
       cx.globalAlpha = Math.max(0, 1 - (t - h.t) / 1100);
-      cx.beginPath(); cx.arc(0, 0, R, h.side > 0 ? 0 : Math.PI, h.side > 0 ? Math.PI : Math.PI * 2); cx.closePath();
+      const hr = h.r || R;
+      cx.beginPath(); cx.arc(0, 0, hr, h.side > 0 ? 0 : Math.PI, h.side > 0 ? Math.PI : Math.PI * 2); cx.closePath();
       cx.fillStyle = h.bad ? '#7a2a2a' : F.c; cx.fill(); cx.strokeStyle = F.d; cx.lineWidth = 3; cx.stroke();
-      cx.fillStyle = h.bad ? '#FF8A7A' : F.f; cx.beginPath(); cx.ellipse(0, 0, R - 4, 5, 0, h.side > 0 ? 0 : Math.PI, h.side > 0 ? Math.PI : Math.PI * 2); cx.fill();
+      cx.fillStyle = h.bad ? '#FF8A7A' : F.f; cx.beginPath(); cx.ellipse(0, 0, hr - 4, 5, 0, h.side > 0 ? 0 : Math.PI, h.side > 0 ? Math.PI : Math.PI * 2); cx.fill();
       cx.restore();
     });
     cx.globalAlpha = 1;
@@ -402,12 +458,12 @@ const WSL = (() => {
       afterPoints(before);
       if (gain) setTimeout(() => confetti(gain >= 10 ? 90 : 50), 150);
     }
-    hud(); draw(); $('wsTop').innerHTML = '';
+    hud(); draw(); $('wsTop').innerHTML = ''; $('wsTop').style.visibility = '';
     pane(`<div class="wj-card">
       <div class="wj-kicker">${L('時間到！', "Time's up!")}</div>
       <div class="wj-big">${sc}</div>
       <div class="wj-small">${trial ? L('🧪 試玩模式，不計分', '🧪 Trial — not scored') : record ? L('🆕 個人最高紀錄！', '🆕 New personal best!') : L(`個人最高 ${best} 分`, `Personal best ${best}`)}<br>
-        ${L(`拼完 ${g.words} 個字（全對 ${g.perfect} 個）・切對 ${g.letters} 個字母・切錯 ${g.wrongs} 次`, `${g.words} words (${g.perfect} perfect) · ${g.letters} letters · ${g.wrongs} wrong`)}</div>
+        ${L(`拼完 ${g.words} 個字（全對 ${g.perfect} 個）・切對 ${g.letters} 個字母・切錯 ${g.wrongs} 次${g.frenzyHits ? `・狂切 ${g.frenzyHits} 顆` : ''}`, `${g.words} words (${g.perfect} perfect) · ${g.letters} letters · ${g.wrongs} wrong`)}</div>
       <div class="wj-pts">⭐ ${pts} / ${CAP}</div>
       ${trial ? '' : gain ? `<div class="gain">+${gain} ⭐</div>`
         : `<div class="gain zero">${prev >= CAP ? L('本週遊戲已經拿滿 20 分，現在純粹挑戰紀錄 🎮', 'You already got 20 this week — playing for records now 🎮')
@@ -423,13 +479,14 @@ const WSL = (() => {
     if (a === 'start') { audio(); if (typeof unlockAudio === 'function') unlockAudio(); start(); }
     if (a === 'close') close();
     if (a === 'say' && game) speak(game.ans);
+    if (a === 'perk') pickPerk(t.dataset.k);
     if (a === 'quit') {
       if (game && !game.over && !trial && !confirm(L('離開這一局？這局不會計分。', "Quit this game? It won't be scored."))) return;
       close();
     }
   }
   // 測試用
-  const _t = { get game() { return game; }, spawn, pickLetter, dirOk, segHit, end, toPts, wordDone, get VH() { return VH; }, get S() { return S; } };
+  const _t = { get game() { return game; }, pickPerk, openPerks, spawn, pickLetter, dirOk, segHit, end, toPts, wordDone, get VH() { return VH; }, get S() { return S; } };
   return { id: ID, need: NEED, card, bestText, open, close, _t };
 })();
 GAMES.push(WSL);
