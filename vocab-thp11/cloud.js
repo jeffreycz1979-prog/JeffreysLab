@@ -112,7 +112,7 @@
     const res = await api('login', params);
     auth = { token: res.token, sid: res.sid || params.sid || '', nick: res.nick || '', cls: res.cls || '', syncedAt: 0, syncedPts: null };
     await saveAuth();
-    const pull = await api('pullProgress');
+    const pull = await api('pullProgress', { app: APP_ID });
     const cloud = pull.data ? (typeof pull.data === 'string' ? JSON.parse(pull.data) : pull.data) : null;
     if (cloud && !st.profile) {
       await applyCloud(cloud); auth.syncedAt = pull.at || Date.now(); auth.syncedPts = points().total; await saveAuth();
