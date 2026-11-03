@@ -142,9 +142,13 @@
     return all.length ? `<div class="mlist">${all.join('')}</div>` : `<div class="mempty">${L('還沒有信。寫一則宣言給自己打氣吧！', 'No letters yet. Write a declaration!')}</div>`;
   }
   // 公布欄最上面：最新一封寄給全部或自己班的小鳥信
+  // 老師帳號收得到所有空降，後台把寄給別人的也標成 'class' → 老師改用 tInbox 的真實對象判斷
   function pinHTML() {
-    const p = box.drops.filter((d) => d.to !== 'me').slice().sort((a, b) => b.at - a.at)[0];
-    return p ? `<div class="mitem tpin"><div class="mm"><span class="mpill ok">📌 ${L('老師的話', 'From your teacher')}</span><span>${fmt(p.at)}</span></div>
+    const list = tOn()
+      ? tbox.drops.filter((d) => (d.to === '全部' || tbox.classes.includes(d.to)) && (!d.until || d.until >= new Date().toLocaleDateString('sv')))
+      : box.drops.filter((d) => d.to !== 'me');
+    const p = list.slice().sort((a, b) => b.at - a.at)[0];
+    return p ? `<div class="mitem tpin"><div class="mm"><span class="mpill ok">📌 ${L('老師的話', 'From your teacher')}</span>${tOn() ? `<span>${esc(toName(p.to))}</span>` : ''}<span>${fmt(p.at)}</span></div>
       <div class="mt" style="margin-top:6px">${esc(p.text)}</div></div>` : '';
   }
   function boardHTML() {
