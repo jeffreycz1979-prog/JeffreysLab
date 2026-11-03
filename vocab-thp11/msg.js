@@ -1,4 +1,4 @@
-// 英文順起來．探索英文島 - 留言、宣言、空降與同學分身（msg.js v1）
+// 英文順起來．探索英文島 - 留言、宣言、空降與同學分身（msg.js v2：加老師模式）
 // 只在登入雲端帳號後出現（用 cloud.js 的 api）；後台是英文島後台 GAS 的「留言.gs」
 //
 // 悄悄話：只有老師看得到。宣言：馬上出現在自己的島上；老師核准後同班同學也看得到（公布欄、同學分身頭上）
@@ -17,6 +17,27 @@
   const fmt = (t) => { const d = new Date(t); return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
   const unreadReplies = () => box.mine.filter((m) => m.reply && !m.read);
   const unreadDrops = () => box.drops.filter((d) => !d.read);
+
+  // ── 老師模式（msg.js v2，2026/11/03）：班級「老師」的帳號，信箱換成 小鳥信／待核准／留言／公布欄；後台是「老師.gs」──
+  const T_LEN = 200;
+  let tbox = null, tOk = true, tTo = '全部', tFilter = 'all';
+  const isT = () => authed() && C().auth().cls === '老師';
+  const tOn = () => isT() && !!tbox;
+  const tPend = () => (tbox ? tbox.msgs.filter((m) => m.type === 'decl' && m.status === 'pending') : []);
+  const tNew = () => (tbox ? tbox.msgs.filter((m) => m.type === 'whisper' && m.status === 'new') : []);
+  (() => {
+    const s = document.createElement('style');
+    s.textContent = `.tlab{display:block;font-size:12px;font-weight:700;color:var(--muted);margin:10px 0 4px}
+.tsel{width:100%;box-sizing:border-box;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--ink);padding:9px 10px;font:600 15px 'Noto Sans TC',sans-serif}
+.tsel:focus{outline:none;border-color:var(--mint)}
+.tmeta{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--muted)}.tmeta b{color:var(--ink);font-size:14px}
+.tbtns{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}.tbtns .btn{flex:1;min-width:84px;padding:8px 10px;font-size:14px}
+.tbtns .btn.sel{box-shadow:0 0 0 3px rgba(204,255,0,.35)}
+.tre{min-height:60px;margin-top:8px}
+.tchips{display:flex;gap:6px;margin:4px 0 8px}.tchips button{border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:20px;padding:4px 12px;font:700 12px 'Noto Sans TC',sans-serif;cursor:pointer}.tchips button.on{border-color:var(--lime);color:var(--lime)}
+.tpin{border-color:var(--lime);margin-bottom:8px}`;
+    document.head.appendChild(s);
+  })();
   const myDecl = () => box.mine.filter((m) => m.type === 'decl' && m.status !== 'private').pop() || box.mine.filter((m) => m.type === 'decl').pop();
 
   // ── 拉信：打開 App、回到首頁時（最多每分鐘一次）──
@@ -31,6 +52,10 @@
         box = { mine: d.mine || [], drops: d.drops || [], board: d.board || [], mates: d.mates || [], used: d.used || 0, max: d.max || 3 };
         [...box.board, ...box.mates.map((m) => m.decl).filter(Boolean)].forEach((b) => { if (likedHere[b.id]) { b.liked = true; b.likes = Math.max(b.likes || 0, likedHere[b.id]); } });
         pulledAt = Date.now();
+        if (isT() && tOk) {
+          try { tbox = await C().api('tInbox', {}); }
+          catch (e) { if (/沒有這個 action|只有老師/.test(e.message)) { tOk = false; tbox = null; } }   // 後台還沒裝 老師.gs：照學生版
+        }
         try { await db.set('msgbox', box); } catch (e) {}
         paint(); deliver();
       } catch (e) { if (/沒有這個 action/.test(e.message)) { served = false; pulledAt = Date.now() + 29 * 60000; paint(); } }   // 後台還沒裝 留言.gs：30 分鐘後再試，不要一直打；其他錯誤（沒網路）下次再拉
@@ -58,10 +83,15 @@
   function paint() {
     const btn = $('mailBtn'), strip = $('declStrip'); if (!btn) return;
     btn.hidden = !on(); if (!on()) { strip.hidden = true; redrawMates(); refreshHero(); return; }
-    const n = unreadReplies().length + unreadDrops().length;
+    const n = unreadReplies().length + unreadDrops().length + tPend().length + tNew().length;
     $('mailDot').hidden = !n; $('mailDot').textContent = n;
     const d = myDecl();
     strip.hidden = false;
+    if (tOn()) {   // 老師：地圖上方改成寫小鳥信的入口
+      const k = tPend().length, w = tNew().length;
+      strip.innerHTML = `🐦 <b class="new">${L('寫小鳥信給大家 ›', 'Send a bird letter ›')}</b><small>${k ? L(`待核准 ${k}`, `${k} to review`) : ''}${k && w ? '・' : ''}${w ? L(`新悄悄話 ${w}`, `${w} new notes`) : ''}</small>`;
+      redrawMates(); refreshHero(); return;
+    }
     const sw = `<button class="dh ${headOn() ? 'on' : ''}" data-declhead="1" aria-pressed="${headOn()}">${headOn() ? L('頭上顯示 ✓', 'Above head ✓') : L('頭上不顯示', 'Not above head')}</button>`;
     strip.innerHTML = d
       ? `📜 <b>${esc(d.text)}</b><small>${d.status === 'public' ? L('同學看得到', 'Public') : d.status === 'private' ? L('只在你的島上', 'Only on your island') : L('等老師核准', 'Waiting')}</small>${sw}`
@@ -72,12 +102,18 @@
   // ── 信箱 ──
   function open(t, fresh) {
     if (t) tab = t;
-    if (!fresh) Promise.resolve(pull(true)).then(() => { if ($('modal').classList.contains('show') && $('mBody') && tab !== 'write') open(tab, true); });   // 打開信箱一定重新收信
+    const wasT = tOn();
+    if (!fresh) Promise.resolve(pull(true)).then(() => { if ($('modal').classList.contains('show') && $('mBody') && ((tab !== 'write' && tab !== 'send') || tOn() !== wasT)) open(tab, true); });   // 打開信箱一定重新收信（正在打字的分頁不重畫）
     const nR = unreadReplies().length + unreadDrops().length;
-    const tabs = [['write', L('✏️ 寫信', '✏️ Write')], ['mine', L('📬 我的信', '📬 My letters'), nR], ['board', L('📌 公布欄', '📌 Board')]];
-    $('sheet').innerHTML = `<h3 style="margin-top:0">📮 ${L('島上信箱', 'Island mailbox')} <small>MAILBOX</small></h3>
+    const T = tOn();
+    const tabs = T
+      ? [['send', L('🐦 小鳥信', '🐦 Bird')], ['review', L('✅ 待核准', '✅ Review'), tPend().length], ['notes', L('💬 留言', '💬 Notes'), tNew().length], ['board', L('📌 公布欄', '📌 Board')]]
+      : [['write', L('✏️ 寫信', '✏️ Write')], ['mine', L('📬 我的信', '📬 My letters'), nR], ['board', L('📌 公布欄', '📌 Board')]];
+    if (!tabs.some((x) => x[0] === tab)) tab = tabs[0][0];
+    const body = { write: writeHTML, mine: mineHTML, board: boardHTML, send: tSendHTML, review: tReviewHTML, notes: tNotesHTML }[tab];
+    $('sheet').innerHTML = `<h3 style="margin-top:0">📮 ${T ? L('老師信箱', 'Teacher mailbox') : L('島上信箱', 'Island mailbox')} <small>MAILBOX</small></h3>
       <div class="mtabs">${tabs.map(([k, n, c]) => `<button data-mtab="${k}" class="${tab === k ? 'on' : ''}">${n}${c ? `<i>${c}</i>` : ''}</button>`).join('')}</div>
-      <div id="mBody">${tab === 'write' ? writeHTML() : tab === 'mine' ? mineHTML() : boardHTML()}</div>
+      <div id="mBody">${body()}</div>
       <div class="btnrow" style="margin-top:14px"><button class="btn ghost" data-close="1">${L('關閉', 'Close')}</button></div>`;
     $('modal').classList.add('show');
     if (tab === 'mine') markAll();
@@ -105,12 +141,90 @@
     const all = [...drops, ...mine];
     return all.length ? `<div class="mlist">${all.join('')}</div>` : `<div class="mempty">${L('還沒有信。寫一則宣言給自己打氣吧！', 'No letters yet. Write a declaration!')}</div>`;
   }
+  // 公布欄最上面：最新一封寄給全部或自己班的小鳥信
+  function pinHTML() {
+    const p = box.drops.filter((d) => d.to !== 'me').slice().sort((a, b) => b.at - a.at)[0];
+    return p ? `<div class="mitem tpin"><div class="mm"><span class="mpill ok">📌 ${L('老師的話', 'From your teacher')}</span><span>${fmt(p.at)}</span></div>
+      <div class="mt" style="margin-top:6px">${esc(p.text)}</div></div>` : '';
+  }
   function boardHTML() {
-    if (!box.board.length) return `<div class="mempty">${L('還沒有公開的宣言', 'No declarations yet')}</div>`;
-    return `<div class="mlist">${box.board.map((b) => `<div class="mitem mboard"><div class="ava2">${avatarSVG(safeLook(b.look), 'idle', 'body')}</div>
+    const pin = pinHTML();
+    if (!box.board.length) return pin + `<div class="mempty">${L('還沒有公開的宣言', 'No declarations yet')}</div>`;
+    return pin + `<div class="mlist">${box.board.map((b) => `<div class="mitem mboard"><div class="ava2">${avatarSVG(safeLook(b.look), 'idle', 'body')}</div>
       <div style="flex:1;min-width:0"><b style="font-size:14px">${esc(b.nick)}</b><div class="mt">${esc(b.text)}</div>
       <div class="mm" style="align-items:center"><span>${fmt(b.at)}</span><button class="mlike ${b.liked ? 'on' : ''}" data-mlike="${esc(b.id)}" ${b.liked ? 'disabled' : ''}>${b.liked ? '❤️' : '🤍'} ${b.likes || 0}</button></div></div></div>`).join('')}</div>`;
   }
+  // ── 老師：小鳥信、待核准、留言 ──
+  const toName = (to) => (to === '全部' ? L('全部', 'Everyone') : to);
+  const who = (m) => `<div class="tmeta"><b>${esc(m.nick || m.sid)}</b><span>${esc(m.cls)}・${esc(m.sid)}${m.name ? '・' + esc(m.name) : ''}</span><span>${fmt(m.at)}</span></div>`;
+  function tSendHTML() {
+    const opts = [['全部', L('全部（所有班）', 'Everyone')], ...tbox.classes.map((c) => [c, c]), ['@', L('某個學生（填學號）', 'One student')]];
+    const sent = tbox.drops.map((d) => `<div class="mitem"><div class="mm"><span class="mpill ok">🐦 ${esc(toName(d.to))}</span><span>${fmt(d.at)}</span>${d.until ? `<span>${L('到', 'until')} ${esc(d.until)}</span>` : ''}<span>${L(`${d.reads} 人看過`, `${d.reads} read`)}</span></div>
+      <div class="mt" style="margin-top:6px">${esc(d.text)}</div></div>`).join('');
+    return `<label class="tlab" for="tTo">${L('寄給', 'To')}</label>
+      <select id="tTo" class="tsel">${opts.map(([v, n]) => `<option value="${esc(v)}" ${v === tTo ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select>
+      <input id="tSid" class="tsel" style="margin-top:6px" inputmode="numeric" placeholder="${L('學號，例 1101', 'Student no., e.g. 1101')}" ${tTo === '@' ? '' : 'hidden'}>
+      <label class="tlab" for="tText">${L('內容', 'Message')}</label>
+      <textarea class="mta" id="tText" maxlength="${T_LEN}" placeholder="${L('例如：這週大家都很努力！', 'e.g. Great work this week!')}"></textarea>
+      <div class="mcount"><span id="tCount">0</span> / ${T_LEN}</div>
+      <label class="tlab" for="tUntil">${L('顯示到哪一天（可不填）', 'Show until (optional)')}</label>
+      <input id="tUntil" class="tsel" type="date">
+      <p class="cerr" id="tErr"></p>
+      <div class="btnrow" style="margin-top:6px"><button class="btn" data-tsend="1">🐦 ${L('送出', 'Send')}</button></div>
+      <p class="note" style="margin-top:8px">${L('學生下次打開 App 會看到小鳥叼信飛來；寄給全部或一班的，也會釘在公布欄最上面。', 'Students see a bird bring the letter next time they open the app; letters to everyone or a class are pinned on the board.')}</p>
+      ${sent ? `<h3>${L('最近寄出', 'Recently sent')} <small>SENT</small></h3><div class="mlist">${sent}</div>` : ''}`;
+  }
+  const revBtns = (m) => `<div class="tbtns"><button class="btn${m.status === 'public' ? ' sel' : ''}" data-trev="${esc(m.id)}" data-st="public">${L('公開', 'Public')}</button><button class="btn ghost${m.status === 'private' ? ' sel' : ''}" data-trev="${esc(m.id)}" data-st="private">${L('不公開', 'Private')}</button></div>`;
+  const replyBox = (m) => `<div class="tbtns"><button class="btn ghost" data-treopen="${esc(m.id)}">✈️ ${m.reply ? L('改回覆', 'Edit reply') : L('回覆', 'Reply')}</button></div>
+      <div data-trebox="${esc(m.id)}" hidden><textarea class="mta tre" maxlength="200" placeholder="${L('回覆的話（學生會收到紙飛機）', 'Your reply (sent as a paper plane)')}">${esc(m.reply || '')}</textarea>
+      <div class="tbtns"><button class="btn" data-treply="${esc(m.id)}">${L('送出回覆', 'Send reply')}</button></div></div>`;
+  function tReviewHTML() {
+    const list = tPend();
+    if (!list.length) return `<div class="mempty">${L('沒有待核准的宣言 🎉', 'Nothing to review 🎉')}</div>`;
+    return `<div class="mlist">${list.map((m) => `<div class="mitem">${who(m)}<div class="mt" style="margin-top:6px">📜 ${esc(m.text)}</div>${revBtns(m)}${replyBox(m)}</div>`).join('')}</div>`;
+  }
+  function tNotesHTML() {
+    const list = tbox.msgs.filter((m) => tFilter === 'all' || m.type === tFilter);
+    const chips = [['all', L('全部', 'All')], ['whisper', L('🤫 悄悄話', '🤫 Notes')], ['decl', L('📜 宣言', '📜 Declarations')]];
+    return `<div class="tchips">${chips.map(([k, n]) => `<button data-tfil="${k}" class="${tFilter === k ? 'on' : ''}">${n}</button>`).join('')}</div>
+      ${list.length ? `<div class="mlist">${list.map((m) => `<div class="mitem ${m.type === 'whisper' && m.status === 'new' ? 'new' : ''}">${who(m)}
+        <div class="mt" style="margin-top:6px">${m.type === 'decl' ? '📜 ' : '🤫 '}${esc(m.text)}</div>
+        <div class="mm">${statusPill(m)}</div>
+        ${m.reply ? `<div class="mr"><b>✈️ ${L('你的回覆', 'Your reply')}・${fmt(m.replyAt)}${m.read ? L('・學生看過了', ' · read') : ''}</b>${esc(m.reply)}</div>` : ''}
+        ${m.type === 'decl' ? revBtns(m) : ''}${replyBox(m)}</div>`).join('')}</div>` : `<div class="mempty">${L('還沒有留言', 'No messages yet')}</div>`}`;
+  }
+  async function tSend(btn) {
+    const sel = $('tTo').value, to = sel === '@' ? ($('tSid').value || '').trim() : sel, text = ($('tText').value || '').trim();
+    if (sel === '@' && !to) return $('tSid').focus();
+    if (!text) return $('tText').focus();
+    btn.disabled = true; btn.textContent = L('送出中…', 'Sending…'); $('tErr').textContent = '';
+    try {
+      await C().api('tPostDrop', { to, text, until: $('tUntil').value || '' });
+      toast(L(`🐦 小鳥信寄給${toName(to)}了`, `🐦 Sent to ${toName(to)}`)); confetti(30);
+      await pull(true); open('send', true);
+    } catch (e) { if ($('tErr')) $('tErr').textContent = e.message; btn.disabled = false; btn.textContent = '🐦 ' + L('送出', 'Send'); }
+  }
+  async function tReview(id, status, btn) {
+    btn.disabled = true;
+    try {
+      await C().api('tReview', { id, status });
+      const m = tbox.msgs.find((x) => x.id === id); if (m) m.status = status;
+      toast(status === 'public' ? L('📜 公開了，同班同學看得到', '📜 Now public') : L('只留在學生自己的島上', 'Kept private'));
+      paint(); open(tab, true);
+    } catch (e) { toast(e.message); btn.disabled = false; }
+  }
+  async function tReply(id, btn) {
+    const ta = document.querySelector(`[data-trebox="${CSS.escape(id)}"] textarea`), text = (ta.value || '').trim();
+    btn.disabled = true;
+    try {
+      const r = await C().api('tReply', { id, text });
+      const m = tbox.msgs.find((x) => x.id === id);
+      if (m) { m.reply = text; m.replyAt = r.replyAt || Date.now(); m.read = false; if (text && m.type === 'whisper' && m.status === 'new') m.status = 'seen'; }
+      toast(text ? L('✈️ 回覆送出了', '✈️ Reply sent') : L('回覆收回了', 'Reply removed'));
+      paint(); open(tab, true);
+    } catch (e) { toast(e.message); btn.disabled = false; }
+  }
+
   async function send(btn) {
     const ta = $('mText'), text = (ta.value || '').trim().replace(/\s+/g, ' ');
     if (!text) return ta.focus();
@@ -289,16 +403,25 @@
   document.addEventListener('click', (e) => {
     if (e.target.closest('#mailBtn')) { if (deliver.cancel && flying) deliver.cancel(); return unreadReplies().length || unreadDrops().length ? openLetter() : open(); }
     if (e.target.closest('[data-declhead]')) { e.stopPropagation(); return toggleHead(); }
-    if (e.target.closest('#declStrip')) { if (!myDecl()) { tab = 'write'; kind = 'decl'; } return open(myDecl() ? 'mine' : 'write'); }
+    if (e.target.closest('#declStrip')) { if (tOn()) return open('send'); if (!myDecl()) { tab = 'write'; kind = 'decl'; } return open(myDecl() ? 'mine' : 'write'); }
     const mt = e.target.closest('#mates [data-mate]'); if (mt) { e.stopPropagation(); return openMate(mt.dataset.mate); }
-    const t = e.target.closest('[data-mtab],[data-mkind],[data-msend],[data-mlike],[data-mnext]'); if (!t) return;
+    const t = e.target.closest('[data-mtab],[data-mkind],[data-msend],[data-mlike],[data-mnext],[data-tsend],[data-trev],[data-treopen],[data-treply],[data-tfil]'); if (!t) return;
     if (t.dataset.mtab) return open(t.dataset.mtab);
+    if (t.dataset.tsend) return tSend(t);
+    if (t.dataset.trev) return tReview(t.dataset.trev, t.dataset.st, t);
+    if (t.dataset.treply) return tReply(t.dataset.treply, t);
+    if (t.dataset.treopen) { const b = document.querySelector(`[data-trebox="${CSS.escape(t.dataset.treopen)}"]`); if (b) { b.hidden = !b.hidden; if (!b.hidden) b.querySelector('textarea').focus(); } return; }
+    if (t.dataset.tfil) { tFilter = t.dataset.tfil; return open('notes', true); }
     if (t.dataset.mkind) { const v = $('mText') ? $('mText').value : ''; kind = t.dataset.mkind; open('write'); $('mText').value = v; $('mCount').textContent = v.length; return; }
     if (t.dataset.msend) return send(t);
     if (t.dataset.mlike) return like(t.dataset.mlike, t);
     if (t.dataset.mnext) { if (unreadReplies().length || unreadDrops().length) return openLetter(); $('modal').classList.remove('show'); return; }
   }, true);
-  document.addEventListener('input', (e) => { if (e.target.id === 'mText') $('mCount').textContent = e.target.value.length; });
+  document.addEventListener('input', (e) => {
+    if (e.target.id === 'mText') $('mCount').textContent = e.target.value.length;
+    if (e.target.id === 'tText') $('tCount').textContent = e.target.value.length;
+  });
+  document.addEventListener('change', (e) => { if (e.target.id === 'tTo') { tTo = e.target.value; $('tSid').hidden = tTo !== '@'; } });
   addEventListener('cloud-auth', () => { if (!authed()) served = false; paint(); if (authed()) pull(true).then(syncAvatar); });
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') pull(false); });
   setInterval(() => { if (!authed()) return; if (on()) { syncAvatar(); deliver(); } if ($('v-home').classList.contains('active')) pull(false); }, 15000);

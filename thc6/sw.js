@@ -1,6 +1,6 @@
 // 英文島 THC6 班級版 - Service Worker（scope：/JeffreysLab/thc6/）
 // 頁面與程式改成網路優先；改了檔案仍建議把版本號 +1，舊快取會自動清除
-const CACHE_NAME = 'thc6-v7';
+const CACHE_NAME = 'thc6-v8';
 
 const PRECACHE_URLS = [
   '/JeffreysLab/thc6/',
@@ -16,7 +16,7 @@ const PRECACHE_URLS = [
   '/JeffreysLab/thc6/games/dino.js?v=0.6',
   '/JeffreysLab/thc6/games/horde.js?v=0.4',
   '/JeffreysLab/thc6/cloud.js?v=7',
-  '/JeffreysLab/thc6/msg.js?v=4',
+  '/JeffreysLab/thc6/msg.js?v=5',
   '/JeffreysLab/archipelago.js?v=3',
   '/JeffreysLab/icons/icon-192.png',
   '/JeffreysLab/icons/icon-512.png',

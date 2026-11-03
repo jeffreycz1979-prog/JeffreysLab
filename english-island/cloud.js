@@ -282,7 +282,7 @@
     await new Promise((r) => setTimeout(r, 400));
     const K = 'eisland-mock2';
     let M; try { M = JSON.parse(localStorage.getItem(K)); } catch (e) {}
-    M = M || { students: { 1101: { pin: '1234', nick: 'Bella', cls: 'THP11' }, 1102: { pin: '5678', nick: '', cls: 'THP11' } },
+    M = M || { students: { 1101: { pin: '1234', nick: 'Bella', cls: 'THP11' }, 1102: { pin: '5678', nick: '', cls: 'THP11' }, '0599': { pin: '0000', nick: 'Jeffrey', cls: '老師' } },
       codes: { DEMO1: '1101' }, tokens: {}, progress: {}, fails: {} };
     const save = () => { try { localStorage.setItem(K, JSON.stringify(M)); } catch (e) {} };
     const ok = (data) => ({ ok: true, data }), fail = (error, code) => ({ ok: false, error, code });
@@ -346,7 +346,7 @@
     if (action === 'inbox') {
       const today = new Date().toDateString();
       const mine = M.msgs.filter((m) => m.sid === sid).slice(-30).map((m) => ({ id: m.id, type: m.type, text: m.text, status: m.status, reply: m.reply || '', replyAt: m.replyAt || 0, read: !!m.read, at: m.at, likes: m.likes || 0 }));
-      const drops = M.drops.filter((d) => (d.to === sid || d.to === me.cls) && (!d.until || d.until > Date.now())).map((d) => ({ id: d.id, text: d.text, at: d.at, to: d.to === sid ? 'me' : 'class', read: (d.readBy || []).includes(sid) }));
+      const drops = M.drops.filter((d) => (d.to === sid || d.to === me.cls || d.to === '全部' || me.cls === '老師') && (!d.until || d.until > Date.now())).map((d) => ({ id: d.id, text: d.text, at: d.at, to: d.to === sid ? 'me' : 'class', read: (d.readBy || []).includes(sid) }));
       const pub = M.msgs.filter((m) => m.type === 'decl' && m.status === 'public' && m.sid !== sid && (M.avs[m.sid] || {}).cls === me.cls);
       const board = pub.slice(-30).reverse().map((m) => ({ id: m.id, key: m.sid, nick: nickOf(m.sid), look: (M.avs[m.sid] || {}).look || {}, text: m.text, likes: m.likes || 0, liked: !!M.likes[sid + '|' + m.id], at: m.at }));
       const mates = Object.keys(M.avs).filter((k) => k !== sid && M.avs[k].cls === me.cls).map((k) => {
@@ -354,6 +354,25 @@
         return { key: k, nick: M.avs[k].nick, at: M.avs[k].at, look: M.avs[k].look, decl: d ? { id: d.id, text: d.text, likes: d.likes || 0, liked: !!M.likes[sid + '|' + d.id] } : null };
       });
       return ok({ mine, drops, board, mates, used: M.msgs.filter((m) => m.sid === sid && new Date(m.at).toDateString() === today).length, max: 3, now: Date.now() });
+    }
+    // ── 老師（同英文島後台「老師.gs」）──
+    if (action[0] === 't' && /^t[A-Z]/.test(action)) {
+      if (me.cls !== '老師') return fail('只有老師帳號可以用');
+      const stu = (k) => M.students[k] || {};
+      if (action === 'tInbox') return ok({
+        msgs: M.msgs.slice().reverse().map((m) => ({ ...m, cls: stu(m.sid).cls || (M.avs[m.sid] || {}).cls || 'THP11', nick: nickOf(m.sid), name: '', reply: m.reply || '', replyAt: m.replyAt || 0, read: !!m.read })),
+        drops: M.drops.slice(-15).reverse().map((d) => ({ id: d.id, to: d.to, text: d.text, at: d.at, until: d.untilDay || '', reads: (d.readBy || []).length })),
+        classes: ['THP11'],
+      });
+      if (action === 'tPostDrop') {
+        const text = String(p.text || '').trim().slice(0, 200); if (!text) return fail('內容是空的');
+        const to = p.to || '全部'; if (to !== '全部' && to !== 'THP11' && !M.students[to]) return fail('找不到這個班級或學號：' + to);
+        const d = { id: 'D' + Date.now(), to, text, at: Date.now(), untilDay: p.until || '', until: p.until ? new Date(p.until + 'T23:59:59+08:00').getTime() : 0 };
+        M.drops.push(d); save(); return ok({ id: d.id, to, at: d.at });
+      }
+      const m = M.msgs.find((x) => x.id === p.id); if (!m) return fail('找不到這則留言');
+      if (action === 'tReview') { m.status = p.status; save(); return ok({ status: m.status }); }
+      if (action === 'tReply') { m.reply = String(p.text || ''); m.replyAt = m.reply ? Date.now() : 0; m.read = false; if (m.reply && m.type === 'whisper' && m.status === 'new') m.status = 'seen'; save(); return ok({ replyAt: m.replyAt }); }
     }
     return fail('模擬後台沒有這個 action：' + action);
   }
