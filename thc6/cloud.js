@@ -54,6 +54,10 @@
       total: points().total, wallet: walletPts(), week: weekCards(), mastered: masteredCount(), islands,
       lastActive: st.meta.lastActive || '', nick: st.profile ? st.profile.name : '',
       flags: [st.tampered ? 'tampered' : '', st.ledger.clockBad ? 'clock' : ''].filter(Boolean).join(','),
+      // 給後台「積分花費」「兌換紀錄」分頁（2026/11/03）；沒有兌換功能的島 rd 是空的
+      shop: typeof spentPts === 'function' ? spentPts() : 0,
+      rdPts: typeof redeemSpent === 'function' ? redeemSpent() : 0,
+      rd: typeof rdList === 'function' ? rdList().map((r) => ({ s: rdSerial(r), kind: r.kind, cost: r.cost || 0, cards: r.cards || 0, d: r.d, open: !r.slots || !!r.open, code: rdCode(r) })) : [],
     };
   }
   const round3 = (k, v) => (typeof v === 'number' && !Number.isInteger(v) ? Math.round(v * 1000) / 1000 : v);
