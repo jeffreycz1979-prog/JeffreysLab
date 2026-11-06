@@ -2146,11 +2146,12 @@ const AV_OPTS = {
   mouth: [['smile', '微笑'], ['open', '大笑'], ['cat', '貓嘴'], ['o', '驚訝']],
   hair:  [['short', '短髮'], ['spiky', '刺刺頭'], ['bob', '妹妹頭'], ['long', '長髮'], ['bun', '包包頭'], ['curly', '捲髮']],
   top:   [['tee', 'T 恤'], ['hoodie', '帽 T'], ['skirt', '裙子'], ['stripe', '條紋衫'], ['dress', '洋裝'], ['jacket', '外套'],
-          ['princess', '公主裝'], ['hero', '超人裝'], ['knight', '騎士裝'], ['robot', '機器人裝'], ['warrior', '勇士裝'], ['dino', '恐龍裝']],
+          ['princess', '公主裝'], ['hero', '超人裝'], ['knight', '騎士裝'], ['robot', '機器人裝'], ['warrior', '勇士裝'], ['dino', '恐龍裝'],
+          ['elf', '精靈裝'], ['commando', '特種兵裝'], ['police', '警察裝'], ['santa', '聖誕老人裝']],
   deco:  [['none', '不戴'], ['bow', '蝴蝶結'], ['clip', '髮夾'], ['headband', '髮箍'], ['flowercrown', '花圈'], ['tiara', '小皇冠']],
   ear:   [['none', '不戴'], ['pearl', '珍珠'], ['heart', '愛心'], ['star', '星星'], ['hoop', '圓圈']],
-  hold:  [['none', '空手'], ['bouquet', '花束'], ['wand', '魔法棒'], ['balloon', '氣球'], ['icecream', '冰淇淋']],
-  hat:   [['none', '不戴'], ['cap', '棒球帽'], ['flower', '小花'], ['beanie', '毛帽'], ['headphones', '耳機'], ['wizard', '魔法帽'], ['crown', '皇冠']],
+  hold:  [['none', '空手'], ['bouquet', '花束'], ['wand', '魔法棒'], ['balloon', '氣球'], ['icecream', '冰淇淋'], ['sword', '寶劍'], ['katana', '武士刀'], ['bow', '弓箭']],
+  hat:   [['none', '不戴'], ['cap', '棒球帽'], ['flower', '小花'], ['beanie', '毛帽'], ['headphones', '耳機'], ['wizard', '魔法帽'], ['crown', '皇冠'], ['straw', '草帽']],
   acc:   [['none', '不戴'], ['glasses', '眼鏡'], ['scarf', '圍巾'], ['backpack', '背包'], ['star', '星星貼紙'], ['cape', '披風']],
   pet:   [['none', '不帶'], ['dog', '小狗'], ['cat', '小貓'], ['bird', '小鳥'], ['rabbit', '兔子'], ['turtle', '烏龜'], ['snake', '小蛇'],
           ['capybara', '卡皮巴拉'], ['seal', '海豹'], ['trex', '暴龍'], ['dragon', '西方龍'], ['unicorn', '獨角獸']],
@@ -2161,7 +2162,10 @@ const AV_OPTS = {
 const PRICE_BASIC = 30, PRICE_COOL = 60, PRICE_COLOR = 20;
 const AV_COOL = ['top:princess', 'top:hero', 'top:knight', 'top:robot', 'top:warrior', 'top:dino', 'hat:wizard', 'hat:crown', 'acc:cape',
   'deco:flowercrown', 'deco:tiara', 'pet:dog', 'pet:cat', 'pet:bird', 'pet:rabbit', 'pet:turtle', 'pet:snake',
-  'pet:capybara', 'pet:seal', 'pet:trex', 'pet:dragon', 'pet:unicorn'];
+  'pet:capybara', 'pet:seal', 'pet:trex', 'pet:dragon', 'pet:unicorn',
+  'top:elf', 'top:commando', 'top:police', 'top:santa', 'hat:straw', 'hold:sword', 'hold:katana', 'hold:bow'];
+// 新上架（2026/11/06 學生許願）：商店顯示 NEW，買了就消失
+const AV_NEW = ['top:elf', 'top:commando', 'top:police', 'top:santa', 'hat:straw', 'hold:sword', 'hold:katana', 'hold:bow'];
 const AV_PRICE = { 'color:hair': PRICE_COLOR, 'color:top': PRICE_COLOR, 'color:bot': PRICE_COLOR };
 ['top', 'hat', 'deco', 'ear', 'acc', 'hold', 'pet'].forEach((k) => AV_OPTS[k].forEach(([v]) => {
   if (v !== 'tee' && v !== 'none') AV_PRICE[k + ':' + v] = AV_COOL.includes(k + ':' + v) ? PRICE_COOL : PRICE_BASIC;
@@ -2443,6 +2447,42 @@ function outfitOf(lk, S, T, B, st2) {
         <circle cx="36" cy="26" r="1.4" fill="${INK}"/><circle cx="64" cy="26" r="1.4" fill="${INK}"/>`;
       o.armC = '#5FB35A'; o.legC = '#5FB35A'; o.hand = '#5FB35A';
       break;
+    case 'elf':   // 精靈裝：葉子邊的綠色長衫＋棕色腰帶＋尖耳朵
+      o.body = `<path d="M31 78 Q50 72 69 78 L71 108 L66 114 L61 108 L56 114 L50 108 L44 114 L39 108 L34 114 L29 108 Z" fill="#3F8F43" ${st2}/>
+        <path d="M37 77 L43 87 L50 79 L57 87 L63 77" fill="#7CC46A" stroke="${INK}" stroke-width="1.6" stroke-linejoin="round"/>
+        <rect x="30" y="98" width="40" height="5" rx="2" fill="#7A5230" ${st2}/><path d="M50 97 q4 3 0 7 q-4 -4 0 -7 z" fill="#CCFF00" stroke="${INK}" stroke-width="1.2"/>`;
+      o.over = `<path d="M24 45 L6 33 L19 57 Z" fill="${S}" ${st2}/><path d="M76 45 L94 33 L81 57 Z" fill="${S}" ${st2}/>
+        <path d="M21 47 L12 40 M79 47 L88 40" stroke="#FF8A7A" stroke-width="1.6" stroke-linecap="round" opacity=".7"/>`;
+      o.armC = '#3F8F43'; o.legC = '#7A5230';
+      break;
+    case 'commando':   // 特種兵裝：迷彩衣＋戰術背心口袋＋狗牌
+      o.body = shirt('#6B7F3A') + `<path d="M34 84 q5 -4 9 0 q-2 5 -9 0 z M54 89 q6 -3 10 1 q-4 5 -10 -1 z M40 100 q5 -3 9 1 q-4 4 -9 -1 z M58 101 q4 -2 7 1 q-3 3 -7 -1 z" fill="#3E4A22"/>
+        <path d="M60 80 q4 -2 7 1 q-2 4 -7 -1 z M31 94 q3 -2 6 1 q-2 3 -6 -1 z" fill="#9AA866"/>
+        <path d="M37 77 V108 M63 77 V108" stroke="#2B2B2B" stroke-width="5"/>
+        <rect x="38" y="92" width="9" height="8" rx="1.5" fill="#556B2F" stroke="${INK}" stroke-width="1.4"/><rect x="53" y="92" width="9" height="8" rx="1.5" fill="#556B2F" stroke="${INK}" stroke-width="1.4"/>
+        <path d="M44 76 L50 86 L56 76" fill="none" stroke="#AEB8C2" stroke-width="1.4"/><rect x="47.5" y="85" width="5" height="7" rx="1.5" fill="#DDE3EA" stroke="${INK}" stroke-width="1.2"/>
+        <rect x="30" y="103" width="40" height="5" rx="2" fill="#2B2B2B" ${st2}/>`;
+      o.armC = '#6B7F3A'; o.legC = '#4B5A2F';
+      break;
+    case 'police':   // 警察裝：深藍制服＋領帶＋金色警徽＋警帽
+      o.body = shirt('#24365C') + `<path d="M40 76 L50 84 L60 76" fill="#ffffff" ${st2}/><path d="M48 84 L52 84 L53 98 L50 101 L47 98 Z" fill="#1a1a2e" stroke="${INK}" stroke-width="1.4" stroke-linejoin="round"/>
+        <path d="M60 86 l1.8 3.6 4 .6 -2.9 2.8 .7 4 -3.6 -1.9 -3.6 1.9 .7 -4 -2.9 -2.8 4 -.6 z" fill="#FFD84D" stroke="${INK}" stroke-width="1.2" stroke-linejoin="round"/>
+        <rect x="35" y="87" width="9" height="7" rx="1" fill="none" stroke="#5A73A8" stroke-width="1.5"/><rect x="30" y="102" width="40" height="5" rx="2" fill="#1a1a1a" ${st2}/>`;
+      o.over = `<path d="M24 31 Q26 9 50 9 Q74 9 76 31 Z" fill="#24365C" ${st2}/><rect x="22" y="27" width="56" height="7" rx="2" fill="#1a1a2e" ${st2}/>
+        <path d="M26 33 Q50 42 74 33 L75 37 Q50 47 25 37 Z" fill="#111827" ${st2}/>
+        <path d="M50 13 l2 4 4.4 .6 -3.2 3 .8 4.4 -4 -2.1 -4 2.1 .8 -4.4 -3.2 -3 4.4 -.6 z" fill="#FFD84D" stroke="${INK}" stroke-width="1.2" stroke-linejoin="round"/>`;
+      o.armC = '#24365C'; o.legC = '#1a1a2e';
+      break;
+    case 'santa':   // 聖誕老人裝：紅色大衣＋白毛邊＋黑腰帶＋聖誕帽
+      o.body = `<path d="M30 78 Q50 72 70 78 L72 112 Q50 117 28 112 Z" fill="#E53935" ${st2}/>
+        <rect x="46" y="77" width="8" height="35" rx="3" fill="#ffffff" stroke="${INK}" stroke-width="1.4"/>
+        <path d="M28 107 Q50 112 72 107 L72.5 114 Q50 119 27.5 114 Z" fill="#ffffff" ${st2}/>
+        <rect x="29" y="95" width="42" height="6" rx="2" fill="#1a1a1a" ${st2}/><rect x="45" y="94" width="10" height="8" rx="1.5" fill="#FFD84D" stroke="${INK}" stroke-width="1.4"/>
+        <path d="M34 77 Q50 85 66 77" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>`;
+      o.over = `<path d="M24 31 Q27 5 54 6 Q79 8 86 34 Q79 21 70 29 Z" fill="#E53935" ${st2}/>
+        <rect x="21" y="27" width="58" height="9" rx="4.5" fill="#ffffff" ${st2}/><circle cx="86" cy="36" r="6" fill="#ffffff" ${st2}/>`;
+      o.armC = '#E53935'; o.legC = '#E53935'; o.hand = '#ffffff';
+      break;
     default:
       o.body = shirt(T);
   }
@@ -2525,6 +2565,15 @@ function avatarParts(look) {
       <path d="M12 74 l2.4 5 5.5 .8 -4 3.9 .9 5.5 -4.8 -2.6 -4.8 2.6 .9 -5.5 -4 -3.9 5.5 -.8 z" fill="#CCFF00" stroke="${INK}" stroke-width="1.6" stroke-linejoin="round"/>`,
     balloon: `<path d="M26 104 Q16 84 13 64" fill="none" stroke="${INK}" stroke-width="1.4"/><ellipse cx="12" cy="52" rx="9" ry="11" fill="#FF6B57" ${st2}/>
       <path d="M10 63 l2 3 l2 -3 z" fill="#FF6B57" stroke="${INK}" stroke-width="1.4"/><path d="M8 46 q2 -4 5 -4" stroke="#ffffff" stroke-width="2" fill="none" stroke-linecap="round"/>`,
+    sword: `<g transform="rotate(-18 26.5 106)"><path d="M24 101 V66 L26.5 57 L29 66 V101 Z" fill="#E6EBF0" ${st2}/><path d="M26.5 64 V98" stroke="#AEB8C2" stroke-width="1.4"/>
+      <rect x="16" y="99" width="21" height="5" rx="2" fill="#FFB547" ${st2}/><rect x="24.2" y="104" width="4.6" height="10" rx="2" fill="#7A5230" ${st2}/><circle cx="26.5" cy="116" r="3" fill="#FFB547" ${st2}/>
+      <circle cx="26.5" cy="101.5" r="1.6" fill="#4ECDC4"/></g>`,
+    katana: `<g transform="rotate(-24 26.5 106)"><path d="M25 101 Q22.5 78 27.5 53 Q30.5 77 28.5 101 Z" fill="#F4F6F8" ${st2}/><path d="M27.6 60 Q26 80 27.4 99" fill="none" stroke="#C9D1D9" stroke-width="1"/>
+      <ellipse cx="26.7" cy="102" rx="6.2" ry="2.6" fill="#2B1E16" ${st2}/><rect x="24.5" y="103.5" width="4.6" height="14" rx="1.6" fill="#1a1a2e" ${st2}/>
+      <path d="M24.5 107 l4.6 3 M24.5 111 l4.6 3 M24.5 115 l4.6 2" stroke="#D9534F" stroke-width="1.2"/></g>`,
+    bow: `<path d="M22 80 Q3 106 22 132" fill="none" stroke="${INK}" stroke-width="6.5" stroke-linecap="round"/><path d="M22 80 Q3 106 22 132" fill="none" stroke="#B07A45" stroke-width="3.5" stroke-linecap="round"/>
+      <path d="M22 80 L22 132" stroke="#ffffff" stroke-width="1.2"/><path d="M8 106 H43" stroke="${INK}" stroke-width="3.6" stroke-linecap="round"/><path d="M8 106 H43" stroke="#C98B5A" stroke-width="1.8" stroke-linecap="round"/>
+      <path d="M4 106 l7 -4.5 v9 z" fill="#AEB8C2" stroke="${INK}" stroke-width="1.3" stroke-linejoin="round"/><path d="M38 106 l5 -5 M38 106 l5 5 M41 106 l4 -4 M41 106 l4 4" stroke="#FF6B57" stroke-width="2" stroke-linecap="round"/>`,
     icecream: `<path d="M20 102 L33 102 L26.5 121 Z" fill="#E3A878" ${st2}/><path d="M22 106 L31 112 M24 111 L29 106" stroke="#B97D55" stroke-width="1.4"/>
       <circle cx="23.5" cy="98" r="5.5" fill="#FF9AC1" stroke="${INK}" stroke-width="1.8"/><circle cx="30" cy="97" r="5.5" fill="#CDEFA0" stroke="${INK}" stroke-width="1.8"/><circle cx="27" cy="91" r="5" fill="#FFF3D6" stroke="${INK}" stroke-width="1.8"/>`,
   };
@@ -2586,6 +2635,9 @@ function avatarParts(look) {
     headphones: `<path d="M22 47 Q22 13 50 13 Q78 13 78 47" fill="none" stroke="${INK}" stroke-width="4.5" stroke-linecap="round"/><rect x="14" y="40" width="10" height="18" rx="5" fill="#4ECDC4" ${st2}/><rect x="76" y="40" width="10" height="18" rx="5" fill="#4ECDC4" ${st2}/>`,
     wizard: `<path d="M25 33 L54 -8 L75 33 Z" fill="#6B4CE6" ${st2}/><ellipse cx="50" cy="34" rx="33" ry="6" fill="#6B4CE6" ${st2}/><path d="M50 13 l1.6 3.4 3.7 .5 -2.7 2.6 .7 3.7 -3.3 -1.8 -3.3 1.8 .7 -3.7 -2.7 -2.6 3.7 -.5 z" fill="#CCFF00"/>`,
     crown: `<path d="M29 31 L31 11 L41 21 L50 6 L59 21 L69 11 L71 31 Z" fill="#CCFF00" ${st2}/><circle cx="50" cy="23" r="3" fill="#FF6B57" ${st2}/>`,
+    straw: `<ellipse cx="50" cy="32" rx="40" ry="8.5" fill="#F2C94C" ${st2}/><path d="M18 31 l5 2 M30 37 l4 1 M66 37 l4 -1 M78 33 l5 -2" stroke="#C9A227" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M24 32 Q23 5 50 5 Q77 5 76 32 Z" fill="#F2C94C" ${st2}/><path d="M33 12 Q50 9 67 12 M27 20 Q50 16 73 20" fill="none" stroke="#C9A227" stroke-width="1.4"/>
+      <path d="M24.3 25 Q50 20 75.7 25 L76 32 Q50 27 24 32 Z" fill="#3B6BFF" stroke="${INK}" stroke-width="1.6" stroke-linejoin="round"/>`,
   };
   hat = HAT[lk2.hat] || '';
   const pet = lk2.pet && lk2.pet !== 'none' ? `<g class="pet">${petOf(lk2.pet, st2)}</g>` : '';
@@ -2644,7 +2696,7 @@ function renderAvCreator() {
   const opt = (k, label, vb = 'head') => `<div class="flabel">${label}</div><div class="avopts">${AV_OPTS[k].map(([v, name]) => {
     const pr = avLock(k, v), on = d[k] === v;
     return `<button class="avopt ${on ? 'on' : ''} ${pr ? 'avlocked' : ''}" data-avopt="${k}:${v}" aria-label="${esc(name)}${pr ? L(`（${pr} 積分）`, ` (${pr} points)`) : ''}" aria-pressed="${on}">
-      ${k === 'pet' ? petThumb(v) : avatarSVG({ ...d, pet: 'none', [k]: v }, '', vb)}<span>${esc(name)}</span>${pr ? tag(pr) : ''}</button>`;
+      ${k === 'pet' ? petThumb(v) : avatarSVG({ ...d, pet: 'none', [k]: v }, '', vb)}<span>${esc(name)}</span>${pr ? tag(pr) : ''}${pr && AV_NEW.includes(k + ':' + v) ? '<i class="avnew">NEW</i>' : ''}</button>`;
   }).join('')}</div>`;
   const col = (k, list, label) => {
     const pr = colorLock(k);
