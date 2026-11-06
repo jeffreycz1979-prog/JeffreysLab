@@ -1004,7 +1004,7 @@ function gameCard(g) {
     <button class="go" data-act="game" data-gid="${g.id}" ${ok ? '' : 'disabled'}>${ok ? L('玩 ▶', 'Play ▶') : '🔒'}</button></div>`;
 }
 function points() {
-  let card = 0, goal = 0, quiz = 0, streak = 0, master = 0, game = 0, spot = 0, legend = 0;
+  let card = 0, goal = 0, quiz = 0, streak = 0, master = 0, game = 0, spot = 0, legend = 0, teacher = 0;
   const W = weeks();
   for (const k in W) {
     card += Math.min(W[k].cards, CARD_CAP);
@@ -1013,8 +1013,8 @@ function points() {
     game += bestOf(W[k].gb);   // 遊戲：所有遊戲共用，每週取最高一局，最多 20
     spot += Math.min(SPOT_CAP, W[k].spot || 0);   // 抽查：每週最多 15
   }
-  st.ledger.bonus.forEach((b) => { if (b.k.startsWith('wk') || b.k.startsWith('streak')) streak += b.p; else if (b.k.startsWith('legend:')) legend += b.p; else master += b.p; });
-  return { card, goal, streak, quiz: quiz + master, quizOnly: quiz, master, game, spot, legend, total: legend + card + goal + streak + quiz + master + game + spot };
+  st.ledger.bonus.forEach((b) => { if (b.k.startsWith('wk') || b.k.startsWith('streak')) streak += b.p; else if (b.k.startsWith('legend:')) legend += b.p; else if (b.k.startsWith('grant:')) teacher += b.p; else master += b.p; });
+  return { card, goal, streak, quiz: quiz + master, quizOnly: quiz, master, game, spot, legend, teacher, total: teacher + legend + card + goal + streak + quiz + master + game + spot };
 }
 // 10/15 刷分漏洞修正：挑戰一次最多 35 分；最佳超過 100% 的單元收回精熟（可重新挑戰拿回）
 const QUIZ_MAX_PTS = 35;
@@ -2751,6 +2751,7 @@ function openProof() {
         <div><b>${P.streak}</b>${L('連續獎勵', 'Streak bonus')}</div><div><b>🔥 ${streakNow()} ${L('週', 'wk')}</b>${L('目前連續', 'Current streak')}</div>
         <div><b>${totalCards}</b>${L('總複習張數', 'Cards reviewed')}</div><div><b>${acc}</b>${L('挑戰正確率', 'Quiz accuracy')}</div>
         <div><b>${spentPts()}</b>${L('🛍 商店花費', '🛍 Spent in shop')}</div><div><b>${walletPts()}</b>${L('💰 可用積分', '💰 Points to spend')}</div>
+        ${P.teacher ? `<div><b>${P.teacher}</b>${L('🎁 老師加分', '🎁 From teacher')}</div><div><b>${st.ledger.bonus.filter((b) => b.k.startsWith('grant:')).length}</b>${L('收到禮物次數', 'Gifts received')}</div>` : ''}
         ${rdList().length ? `<div><b>${rdList().length}</b>${L('🎟️ 兌換次數', '🎟️ Redemptions')}</div><div><b>${rdList().reduce((a, r) => a + r.cards, 0)}</b>${L('累計點數卡', 'Class cards')}</div>` : ''}
         <div><b>${P.game}</b>${L('🎮 獎勵遊戲', '🎮 Bonus game')}</div><div><b style="font-size:13px;line-height:1.5">${GAMES.map((g) => g.bestText()).filter(Boolean).join('<br>') || '—'}</b>${L('各遊戲最高紀錄', 'Game records')}</div>
       </div>
@@ -3489,7 +3490,8 @@ document.addEventListener('keydown', (e) => {
 <script src="games/orbs.js?v=0.6"></script>
 <script src="games/slice.js?v=0.3"></script>
 <script src="games/beat.js?v=0.2"></script>
-<script src="cloud.js?v=6"></script>
-<script src="msg.js?v=6"></script>
+<script src="cloud.js?v=7"></script>
+<script src="msg.js?v=7"></script>
+<script src="grant.js?v=1"></script>
 </body>
 </html>

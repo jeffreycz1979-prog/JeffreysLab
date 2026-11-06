@@ -271,6 +271,7 @@
 
   window.cloud.api = api;
   window.cloud.auth = () => auth;
+  window.cloud.push = push;   // grant.js：收下老師加分後馬上備份
 
   // ── 啟動：等主程式讀完進度，再讀登入狀態；網址帶 ?k= 就用小卡代碼自動登入 ──
   const ready = () => (st.ready ? Promise.resolve() : new Promise((r) => addEventListener('island-ready', r, { once: true })));

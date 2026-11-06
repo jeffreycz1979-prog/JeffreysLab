@@ -1,4 +1,4 @@
-// 英文順起來．探索英文島 - 留言、宣言、空降與同學分身（msg.js v2：加老師模式）
+// 英文順起來．探索英文島 - 留言、宣言、空降與同學分身（msg.js v3：老師模式＋🎁 加分分頁）
 // 只在登入雲端帳號後出現（用 cloud.js 的 api）；後台是英文島後台 GAS 的「留言.gs」
 //
 // 悄悄話：只有老師看得到。宣言：馬上出現在自己的島上；老師核准後同班同學也看得到（公布欄、同學分身頭上）
@@ -8,6 +8,7 @@
   const MAX_LEN = 60, PULL_GAP = 30000, MATE_MAX = 12;
   const BAD = /幹|靠北|靠杯|白癡|白痴|智障|去死|垃圾|笨蛋|fuck|shit|bitch|stupid|idiot/i;   // 常見不雅字，後台會再擋一次
   const C = () => window.cloud;
+  const G = () => window.islandGrant;   // grant.js（老師加分）
   const authed = () => !!(C() && C().on && C().auth && C().auth());
   let served = false;   // 後台第一次成功回應 inbox 才顯示信箱（後台還沒裝 留言.gs 時整個功能藏起來）
   const on = () => authed() && served;
@@ -103,14 +104,14 @@
   function open(t, fresh) {
     if (t) tab = t;
     const wasT = tOn();
-    if (!fresh) Promise.resolve(pull(true)).then(() => { if ($('modal').classList.contains('show') && $('mBody') && ((tab !== 'write' && tab !== 'send') || tOn() !== wasT)) open(tab, true); });   // 打開信箱一定重新收信（正在打字的分頁不重畫）
+    if (!fresh) Promise.resolve(pull(true)).then(() => { if ($('modal').classList.contains('show') && $('mBody') && ((tab !== 'write' && tab !== 'send' && tab !== 'grant') || tOn() !== wasT)) open(tab, true); });   // 打開信箱一定重新收信（正在打字的分頁不重畫）
     const nR = unreadReplies().length + unreadDrops().length;
     const T = tOn();
     const tabs = T
-      ? [['send', L('🐦 小鳥信', '🐦 Bird')], ['review', L('✅ 待核准', '✅ Review'), tPend().length], ['notes', L('💬 留言', '💬 Notes'), tNew().length], ['board', L('📌 公布欄', '📌 Board')]]
+      ? [['send', L('🐦 小鳥信', '🐦 Bird')], ['review', L('✅ 待核准', '✅ Review'), tPend().length], ['notes', L('💬 留言', '💬 Notes'), tNew().length], ...(G() && G().on() ? [['grant', L('🎁 加分', '🎁 Points')]] : []), ['board', L('📌 公布欄', '📌 Board')]]
       : [['write', L('✏️ 寫信', '✏️ Write')], ['mine', L('📬 我的信', '📬 My letters'), nR], ['board', L('📌 公布欄', '📌 Board')]];
     if (!tabs.some((x) => x[0] === tab)) tab = tabs[0][0];
-    const body = { write: writeHTML, mine: mineHTML, board: boardHTML, send: tSendHTML, review: tReviewHTML, notes: tNotesHTML }[tab];
+    const body = { write: writeHTML, mine: mineHTML, board: boardHTML, send: tSendHTML, review: tReviewHTML, notes: tNotesHTML, grant: () => G().tabHTML() }[tab];
     $('sheet').innerHTML = `<h3 style="margin-top:0">📮 ${T ? L('老師信箱', 'Teacher mailbox') : L('島上信箱', 'Island mailbox')} <small>MAILBOX</small></h3>
       <div class="mtabs">${tabs.map(([k, n, c]) => `<button data-mtab="${k}" class="${tab === k ? 'on' : ''}">${n}${c ? `<i>${c}</i>` : ''}</button>`).join('')}</div>
       <div id="mBody">${body()}</div>
@@ -410,7 +411,7 @@
     if (e.target.closest('#declStrip')) { if (tOn()) return open('send'); if (!myDecl()) { tab = 'write'; kind = 'decl'; } return open(myDecl() ? 'mine' : 'write'); }
     const mt = e.target.closest('#mates [data-mate]'); if (mt) { e.stopPropagation(); return openMate(mt.dataset.mate); }
     const t = e.target.closest('[data-mtab],[data-mkind],[data-msend],[data-mlike],[data-mnext],[data-tsend],[data-trev],[data-treopen],[data-treply],[data-tfil]'); if (!t) return;
-    if (t.dataset.mtab) return open(t.dataset.mtab);
+    if (t.dataset.mtab) { if (t.dataset.mtab === 'grant' && G()) G().reload(); return open(t.dataset.mtab); }
     if (t.dataset.tsend) return tSend(t);
     if (t.dataset.trev) return tReview(t.dataset.trev, t.dataset.st, t);
     if (t.dataset.treply) return tReply(t.dataset.treply, t);

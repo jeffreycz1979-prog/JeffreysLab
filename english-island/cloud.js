@@ -261,6 +261,7 @@
 
   window.cloud.api = api;
   window.cloud.auth = () => auth;
+  window.cloud.push = push;   // grant.js：收下老師加分後馬上備份
 
   // ── 啟動：等主程式讀完進度，再讀登入狀態；網址帶 ?k= 就用小卡代碼自動登入 ──
   const ready = () => (st.ready ? Promise.resolve() : new Promise((r) => addEventListener('island-ready', r, { once: true })));
@@ -355,6 +356,15 @@
       });
       return ok({ mine, drops, board, mates, used: M.msgs.filter((m) => m.sid === sid && new Date(m.at).toDateString() === today).length, max: 3, now: Date.now() });
     }
+    // ── 老師加分（同英文島後台「加分.gs」）──
+    M.grants = M.grants || [];
+    const ISLE = { 'vocab-thp11': 'THP11', thp5: 'THP5', thc6: 'THC6', 'english-island': '測試島' };
+    if (action === 'grants') { const isl = ISLE[p.app]; if (!isl) return fail('不認得這座島'); return ok({ list: M.grants.filter((g) => g.sid === sid && g.isl === isl && !g.claimedAt).map((g) => ({ id: g.id, pts: g.pts, why: g.why, at: g.at })) }); }
+    if (action === 'claimGrant') {
+      const g = M.grants.find((x) => x.id === p.id); if (!g || g.sid !== sid || g.isl !== ISLE[p.app]) return fail('找不到這張加分單');
+      if (g.claimedAt) return ok({ at: g.claimedAt, already: true });
+      g.claimedAt = Date.now(); save(); return ok({ at: g.claimedAt, already: false });
+    }
     // ── 老師（同英文島後台「老師.gs」）──
     if (action[0] === 't' && /^t[A-Z]/.test(action)) {
       if (me.cls !== '老師') return fail('只有老師帳號可以用');
@@ -369,6 +379,17 @@
         const to = p.to || '全部'; if (to !== '全部' && to !== 'THP11' && !M.students[to]) return fail('找不到這個班級或學號：' + to);
         const d = { id: 'D' + Date.now(), to, text, at: Date.now(), untilDay: p.until || '', until: p.until ? new Date(p.until + 'T23:59:59+08:00').getTime() : 0 };
         M.drops.push(d); save(); return ok({ id: d.id, to, at: d.at });
+      }
+      if (action === 'tGrants') return ok({
+        students: Object.keys(M.students).map((k) => ({ sid: k, cls: M.students[k].cls, nick: nickOf(k), name: '' })).sort((x, y) => (x.cls === '老師') - (y.cls === '老師') || x.sid.localeCompare(y.sid)),
+        list: M.grants.slice(-30).reverse().map((g) => ({ ...g, nick: nickOf(g.sid), name: '', claimedAt: g.claimedAt || 0 })),
+      });
+      if (action === 'tGrant') {
+        if (!M.students[p.to]) return fail('找不到這個學號：' + p.to);
+        const isl = ISLE[p.app]; if (!isl) return fail('不認得這座島');
+        const pts = Math.round(Number(p.pts)); if (!(pts >= 1 && pts <= 2000)) return fail('分數要在 1～2000 之間');
+        const g = { id: 'G' + Date.now(), sid: p.to, isl, pts, why: String(p.why || '').trim().slice(0, 40) || '老師加分', at: Date.now(), claimedAt: 0 };
+        M.grants.push(g); save(); return ok({ id: g.id, at: g.at });
       }
       const m = M.msgs.find((x) => x.id === p.id); if (!m) return fail('找不到這則留言');
       if (action === 'tReview') { m.status = p.status; save(); return ok({ status: m.status }); }

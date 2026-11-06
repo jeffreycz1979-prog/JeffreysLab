@@ -1085,7 +1085,7 @@ function gameCard(g) {
     <button class="go" data-act="game" data-gid="${g.id}" ${ok ? '' : 'disabled'}>${ok ? L('玩 ▶', 'Play ▶') : '🔒'}</button></div>`;
 }
 function points() {
-  let card = 0, goal = 0, quiz = 0, streak = 0, master = 0, game = 0, spot = 0, legend = 0;
+  let card = 0, goal = 0, quiz = 0, streak = 0, master = 0, game = 0, spot = 0, legend = 0, teacher = 0;
   const W = weeks();
   for (const k in W) {
     card += Math.min(W[k].cards, CARD_CAP);
@@ -1095,8 +1095,8 @@ function points() {
     spot += Math.min(SPOT_CAP, W[k].spot || 0);   // 抽查：每週最多 15
   }
   let chest = 0;
-  st.ledger.bonus.forEach((b) => { if (b.k.startsWith('wk') || b.k.startsWith('streak')) streak += b.p; else if (b.k.startsWith('legend:')) legend += b.p; else if (b.k.startsWith('chest:') || b.k.startsWith('wchest:')) chest += b.p; else master += b.p; });
-  return { card, goal, streak, quiz: quiz + master, quizOnly: quiz, master, game, spot, chest, legend, total: legend + card + goal + streak + quiz + master + game + spot + chest };
+  st.ledger.bonus.forEach((b) => { if (b.k.startsWith('wk') || b.k.startsWith('streak')) streak += b.p; else if (b.k.startsWith('legend:')) legend += b.p; else if (b.k.startsWith('grant:')) teacher += b.p; else if (b.k.startsWith('chest:') || b.k.startsWith('wchest:')) chest += b.p; else master += b.p; });
+  return { card, goal, streak, quiz: quiz + master, quizOnly: quiz, master, game, spot, chest, legend, teacher, total: teacher + legend + card + goal + streak + quiz + master + game + spot + chest };
 }
 // 10/15 刷分漏洞修正：挑戰一次最多 35 分；最佳超過 100% 的單元收回精熟（可重新挑戰拿回）
 const QUIZ_MAX_PTS = 35;
@@ -2755,6 +2755,7 @@ function openProof() {
         <div><b>${P.streak}</b>${L('連續獎勵', 'Streak bonus')}</div><div><b>🔥 ${streakNow()} ${L('週', 'wk')}</b>${L('目前連續', 'Current streak')}</div>
         <div><b>${totalCards}</b>${L('總複習張數', 'Cards reviewed')}</div><div><b>${acc}</b>${L('挑戰正確率', 'Quiz accuracy')}</div>
         <div><b>${spentPts()}</b>${L('🛍 商店花費', '🛍 Spent in shop')}</div><div><b>${walletPts()}</b>${L('💰 可用積分', '💰 Points to spend')}</div>
+        ${P.teacher ? `<div><b>${P.teacher}</b>${L('🎁 老師加分', '🎁 From teacher')}</div><div><b>${st.ledger.bonus.filter((b) => b.k.startsWith('grant:')).length}</b>${L('收到禮物次數', 'Gifts received')}</div>` : ''}
         <div><b>${P.game}</b>${L('🎮 獎勵遊戲', '🎮 Bonus game')}</div><div><b style="font-size:13px;line-height:1.5">${GAMES.map((g) => g.bestText()).filter(Boolean).join('<br>') || '—'}</b>${L('各遊戲最高紀錄', 'Game records')}</div>
       </div>
       <div class="pfoot"><span>${L(`學習 ${active} 天`, `${active} days of practice`)}<br><span class="clock" id="clock"></span></span>
@@ -3925,8 +3926,9 @@ document.addEventListener('keydown', (e) => {
 <script src="games/shoot.js?v=0.8"></script>
 <script src="games/dino.js?v=0.6"></script>
 <script src="games/horde.js?v=0.4"></script>
-<script src="cloud.js?v=7"></script>
-<script src="msg.js?v=6"></script>
+<script src="cloud.js?v=8"></script>
+<script src="msg.js?v=7"></script>
+<script src="grant.js?v=1"></script>
 <script src="/JeffreysLab/archipelago.js?v=3"></script>
 </body>
 </html>
