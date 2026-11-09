@@ -7,7 +7,7 @@
 const GameSfx = (() => {
   let ac = null, master = null, noiseBuf = null;
   const last = {};                                   // 節流：同一種聲音太密就略過
-  const GAP = { shot: 120, tick: 60, kill: 45 };     // 毫秒
+  const GAP = { shot: 120, tick: 60, kill: 45, swing: 90, smack: 40, ouch: 300, thud: 60 };     // 毫秒
   const on = () => !(typeof st !== 'undefined' && st.set && st.set.sfxMute);
 
   function audio() {
@@ -52,6 +52,16 @@ const GameSfx = (() => {
     wrong() { tone(196, 0.28, { type: 'sawtooth', vol: 0.13, slide: 0.7 }); },
     buy() { tone(1319, 0.08, { type: 'square', vol: 0.07 }); tone(1760, 0.18, { type: 'square', vol: 0.07, at: 0.07 }); },
     go() { tone(220, 0.45, { type: 'sawtooth', vol: 0.08, slide: 3 }); hiss(400, 3000, 0.12, 0.45, { type: 'bandpass' }); },
+    // ── Word Brawl ──
+    swing() { hiss(900, 3200, 0.1, 0.12, { type: 'bandpass' }); },                                     // 揮刀
+    smack(n = 0) { const k = Math.pow(2, Math.min(n, 12) / 12); tone(330 * k, 0.09, { type: 'square', vol: 0.07, slide: 0.6 }); hiss(1800 * k, 400, 0.14, 0.08); },  // 連續打倒越多音越高
+    ouch() { tone(300, 0.08, { type: 'square', vol: 0.05, slide: 0.7 }); },                            // 小怪碰到，輕輕的
+    thud() { hiss(900, 50, 0.45, 0.35); tone(80, 0.3, { type: 'sine', vol: 0.3, slide: 0.5 }); },     // 踩地、流星落地
+    roar() { tone(90, 0.9, { type: 'sawtooth', vol: 0.18, slide: 0.6 }); tone(135, 0.9, { type: 'sawtooth', vol: 0.12, slide: 0.55 }); hiss(600, 120, 0.25, 0.9); },
+    pop() { tone(660, 0.07, { type: 'sine', vol: 0.12, slide: 1.8 }); },                              // 撿到對的字母
+    level() { arp([0, 4, 7, 12, 16], 659, 0.06, { type: 'square', vol: 0.06, dur: 0.12 }); },
+    full() { tone(523, 0.5, { type: 'triangle', vol: 0.12, slide: 2 }); tone(1047, 0.3, { type: 'sine', vol: 0.1, at: 0.35 }); },
+    musou() { hiss(200, 4000, 0.4, 0.5, { type: 'bandpass' }); arp([0, 7, 12], 262, 0.05, { type: 'sawtooth', vol: 0.1, dur: 0.6 }); },
     end() { arp([0, 4, 7, 12, 16, 19, 24], 523, 0.08, { type: 'triangle', vol: 0.14, dur: 0.22 }); },
   };
 
