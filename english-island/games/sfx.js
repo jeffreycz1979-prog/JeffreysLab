@@ -75,6 +75,14 @@ const GameSfx = (() => {
     qblock() { arp([0, 7, 12], 659, 0.05, { type: 'square', vol: 0.06, dur: 0.1 }); },
     swim() { tone(500 + Math.random() * 200, 0.12, { type: 'sine', vol: 0.07, slide: 2.2 }); },
     clear() { arp([0, 4, 7, 12, 7, 12, 16, 19, 24], 392, 0.075, { type: 'square', vol: 0.06, dur: 0.18 }); },
+    spit() { hiss(600, 2500, 0.3, 0.3, { type: 'bandpass' }); tone(160, 0.3, { type: 'sawtooth', vol: 0.1, slide: 1.8 }); },   // 魔王吐火
+    victory() {   // 全破號角：上行琶音 → 大和弦
+      arp([0, 4, 7, 12], 523, 0.11, { type: 'square', vol: 0.07, dur: 0.14 });
+      arp([5, 9, 12, 17], 523, 0.11, { type: 'square', vol: 0.07, dur: 0.14, at: 0.5 });
+      arp([7, 11, 14, 19], 523, 0.11, { type: 'square', vol: 0.07, dur: 0.14, at: 1.0 });
+      [12, 16, 19, 24].forEach((n) => tone(523 * Math.pow(2, n / 12), 1.4, { type: 'triangle', vol: 0.09, at: 1.5 }));
+      [0, 0.12, 0.24, 1.5].forEach((t) => hiss(3000, 200, 0.25, 0.25, { at: t }));
+    },
     end() { arp([0, 4, 7, 12, 16, 19, 24], 523, 0.08, { type: 'triangle', vol: 0.14, dur: 0.22 }); },
   };
 
