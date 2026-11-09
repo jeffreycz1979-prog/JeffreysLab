@@ -9,14 +9,15 @@
 //        saveLedger, saveMeta, afterPoints, points, gameWeekBestAll, gameCard, masteredCount, GAMES, toast, confetti
 // ═══════════════════════════════════════════════════════
 const WD = (() => {
-  const ID = 'dino', NEED = 5, VER = '0.6';
+  const ID = 'dino', NEED = 5, VER = '0.8';
   const TIME = 180, CAP = 20, S_PER_PT = 300;   // 每 300 分 1 ⭐（6000 分滿 20；v0.4 試玩 4754 分就滿 20，太好拿）
   const T = 24, ROWS = 11, WH = ROWS * T;         // 磚塊大小、地圖列數、世界高度
   const GROUND = 9;                               // 地面從第 9 列開始（第 9、10 列是土）
   const ACC = 900, VMAX = 150, FRIC = 1300, GRAV = 1500, JUMP = 470, HOLD = 0.22;
   const ENERGY = 30, DRAIN = 0.5, E_RIGHT = 15, E_WRONG = 5, E_HIT = 8, E_PIT = 6;   // 體力 60 秒耗完；答對補 30 秒（15）
   const AW = 3;   // 答案磚寬（格）
-  const P = { coin: 10, stomp: 50, right: 100, streak: 50, flag: 300 };
+  const P = { coin: 10, stomp: 50, right: 100, streak: 50, flag: 300, win: 1000 };
+  const BOSS_STAGE = 6, WIN_PER_SEC = 10, BG = 9;   // 第 5 關過完進魔王關；全破＋1000＋剩下每秒 10 分；BG＝魔王橋
   const E = 0, GD = 1, BR = 2, QB = 3, UB = 4, PIPE = 5, ST = 6, SB = 7, AB = 8;   // SB：無敵星星磚
   const CLEAR_SEC = 15, STAR_EVERY = 10, STAR_SEC = 30;   // 過關 +15 秒；每答對 10 題出現星星磚，無敵 30 秒   // 地圖格子種類
   const THEMES = [
@@ -30,7 +31,44 @@ const WD = (() => {
     { kind: 'sea', name: L('海底世界', 'Under the Sea'), tip: L('按跳＝往上游，可以一直按', 'Tap jump to swim up — again and again'),
       sky: ['#0e6ea3', '#062f4d'], hill: '#0a4a6c', hill2: '#0d5c84', top: '#e6c983', dirt: '#c8a560', dot: '#a8873f', brick: '#3b97b0', cloud: false, sea: true },
   ];
-  const themeOf = (n) => THEMES[(n - 1) % THEMES.length];   // 第 6 關起再輪一次（越來越難）
+  const themeOf = (n) => THEMES[(n - 1) % THEMES.length];
+  // ── 每種場景一首背景音樂（GameSfx 即時合成，原創旋律，沒有音檔）──
+  // mel：每格一個八分音符，數字＝離 key 幾個半音，_＝休息；chords：每小節一個 [根音半音, 大調 M／小調 m]
+  const _ = null;
+  const MUSIC = [
+    { // 草原：輕快、C 大調、方波旋律
+      bpm: 150, key: 72, lead: 'square', leadVol: 0.045, bassType: 'triangle', bass: '1.5.1.5.', kick: 'x...x...', snare: '..x...x.', hat: 'xxxxxxxx',
+      chords: [[0, 'M'], [7, 'M'], [9, 'm'], [5, 'M'], [0, 'M'], [7, 'M'], [5, 'M'], [7, 'M']],
+      mel: [0, _, 4, 7, 12, _, 7, 4,   2, _, 7, 11, 14, _, 11, 7,   9, _, 12, 16, 12, _, 9, 4,   5, _, 9, 12, 7, _, 4, 2,
+            12, 11, 12, 16, _, 12, 7, _,   14, 12, 11, 7, _, 11, 14, _,   9, 7, 5, 9, 12, _, 9, _,   7, _, 11, _, 14, 12, 11, 7] },
+    { // 洞穴：慢、A 小調、稀疏的撥弦加回音、水滴聲
+      bpm: 92, key: 69, lead: 'triangle', leadVol: 0.07, leadDur: 1.6, echo: 1, bassType: 'sine', bassVol: 0.25, bass: '1.......', bassLen: 7.5,
+      kick: 'x.......', hat: '.....x..', hatKind: 'drip',
+      chords: [[0, 'm'], [0, 'm'], [-4, 'M'], [-5, 'M']],
+      mel: [0, _, _, 3, _, _, 7, _,   5, _, _, 3, _, 0, _, _,   -4, _, _, 0, _, _, 3, _,   2, _, _, -1, _, _, -5, _] },
+    { // 城堡：進行曲、D 小調、鋸齒波貝斯，有點緊張
+      bpm: 126, key: 62, lead: 'square', leadVol: 0.05, bassType: 'sawtooth', bassVol: 0.1, bass: '1.1.5.5.', kick: 'x.x.x.x.', snare: '..x...xx',
+      chords: [[0, 'm'], [-4, 'M'], [-2, 'M'], [-5, 'M']],
+      mel: [0, 0, 3, 5, 7, _, 5, 3,   8, _, 7, 5, 3, _, 5, _,   7, _, 5, 3, 2, _, 3, 5,   7, _, 11, _, 14, _, 11, 7] },
+    { // 雲端空島：空靈、F 大調、鈴聲琶音加長音墊底
+      bpm: 120, key: 77, lead: 'sine', leadVol: 0.07, leadDur: 1.2, pad: 0.025, bassType: 'triangle', bass: '1...5...', kick: 'x.......', hat: '..x...x.',
+      chords: [[0, 'M'], [7, 'M'], [9, 'm'], [5, 'M']],
+      mel: [0, 4, 7, 12, 16, 12, 7, 4,   7, 11, 14, 19, 14, 11, 7, 11,   9, 12, 16, 21, 16, 12, 9, 12,   5, 9, 12, 17, 12, 9, 5, _] },
+    { // 海底：慢慢搖、降 E 大調、圓圓的正弦波、泡泡聲
+      bpm: 84, key: 75, lead: 'sine', leadVol: 0.08, leadDur: 1.8, pad: 0.02, bassType: 'sine', bassVol: 0.25, bass: '1...5...', kick: 'x.......', hat: '.....x.x', hatKind: 'bubble',
+      chords: [[0, 'M'], [-3, 'm'], [-7, 'M'], [-5, 'M']],
+      mel: [7, _, _, 5, 3, _, _, _,   9, _, 7, _, 3, _, _, _,   12, _, _, 9, 5, _, _, _,   11, _, 7, _, 14, _, _, _] },
+  ];
+  // ── 魔王關：熔岩魔王橋（第 5 關過完才會來；碰到橋後面的金蛋＝全破，這局直接結束）──
+  const BOSS_THEME = { kind: 'boss', name: L('熔岩魔王橋', 'Magma Bridge'), sky: ['#120406', '#4a0d0a'], hill: '#2a0808', hill2: '#3a0c0c',
+    top: '#7a6a6a', dirt: '#3d3434', dot: '#2a2424', brick: '#6b5f5f', cloud: false, lava: true };
+  const BOSS_SONG = {   // 刺激、恐怖：C 小調、168 BPM、鋸齒波八度貝斯一直推、三全音旋律
+    bpm: 168, key: 60, lead: 'sawtooth', leadVol: 0.035, bassType: 'sawtooth', bassVol: 0.09, bass: '18181818', bassLen: 0.6, pad: 0.02,
+    kick: 'x.x.x.x.', snare: '....x...', hat: 'xxxxxxxx',
+    chords: [[0, 'm'], [0, 'm'], [-4, 'M'], [-5, 'M'], [1, 'M'], [1, 'M'], [-5, 'M'], [-5, 'M']],
+    mel: [12, _, 15, _, 18, _, 19, _,   20, 19, 18, 19, _, 15, 12, _,   8, _, 12, _, 15, _, 14, 12,   19, _, 18, _, 17, _, 11, _,
+          13, _, 17, _, 20, _, 17, 13,   25, _, 24, _, 20, _, 17, _,   19, 18, 19, 23, _, 19, _, _,   26, _, 23, _, 19, _, 14, 11] };
+   // 第 6 關起再輪一次（越來越難）
   let cv, cx, root, k = 2, oy = 0, VW = 300, dpr = 1;
   let game = null, raf = 0, trial = false, releaseAll = () => {}, lastW = 0, lastH = 0, portrait = false;
   const keys = { l: false, r: false, j: false };
@@ -51,7 +89,7 @@ const WD = (() => {
     root.innerHTML = `<canvas></canvas>
       <div class="wb-banner" id="wdBanner"></div>
       <div class="wr-gate" id="wdQ" style="display:none"></div>
-      <div class="wj-hud"><button class="wj-x" data-wd="quit">✕</button>
+      <div class="wj-hud"><button class="wj-x" data-wd="quit">✕</button>${GameSfx.btn('data-wd="snd"')}
         <span class="wr-coin" id="wdC">🪙 0</span><span class="wd-en"><i id="wdE"></i></span>
         <span class="wj-t" id="wdT">3:00</span><span class="wj-h" id="wdS">0</span><span class="wj-p" id="wdP">⭐ 0</span></div>
       <div class="wd-touch" id="wdTouch"></div>
@@ -64,6 +102,7 @@ const WD = (() => {
       const s = document.createElement('style'); s.id = 'wdCss';
       s.textContent = `.wj.wd{left:0;right:0;width:auto;transform:none;box-shadow:none}
         .wd-en{width:74px;height:14px;padding:0!important;border-radius:8px!important;overflow:hidden;background:rgba(0,0,0,.5)!important;position:relative}
+.wd-wincard{border-color:#ffd23f!important;box-shadow:0 0 40px rgba(255,210,63,.45)}.wd-wint{color:#ffd23f!important;display:flex;align-items:center;justify-content:center;gap:6px}.wd-trophy{display:inline-block;font-size:26px;line-height:1;animation:wdTro 1s ease-in-out infinite alternate}@keyframes wdTro{from{transform:scale(1) rotate(-6deg)}to{transform:scale(1.12) rotate(6deg)}}
 .wd-en.star{box-shadow:0 0 10px #ffd23f}.wd-en.star i{background:linear-gradient(90deg,#ff6b57,#ffd23f,#CCFF00,#4ECDC4,#b48cff)!important}
         .wd-en i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#ff6b57,#ffd23f 40%,#CCFF00);border-radius:8px;transition:width .2s}
         .wd-touch{position:absolute;left:0;right:0;top:64px;bottom:0;z-index:2;touch-action:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
@@ -158,7 +197,7 @@ const WD = (() => {
     </div>`);
   }
   function close() {
-    cancelAnimationFrame(raf); game = null; releaseAll();
+    cancelAnimationFrame(raf); game = null; releaseAll(); GameSfx.stopMusic();
     if (root) root.classList.remove('show');
     document.body.style.overflow = '';
     if (typeof renderQuiz === 'function' && $('v-quiz') && $('v-quiz').classList.contains('active')) renderQuiz();
@@ -167,6 +206,7 @@ const WD = (() => {
   // ── 關卡產生：每關長度、坑、平台、？磚塊（後面留一段平地放答案磚）、水管、敵人、金幣、旗子 ──
   function rng(seed) { let s = seed >>> 0; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); }
   function buildLevel(n) {
+    if (n === BOSS_STAGE) return buildBoss(n);
     const th = themeOf(n), d = Math.min(n, 7);   // d：難度（第 7 關後不再加）
     const R = rng(Date.now() + n * 977), cols = 130 + d * 22, map = [], ents = [];
     if (th.kind === 'sky') return buildSky(n, d, R, cols, th);
@@ -221,6 +261,24 @@ const WD = (() => {
     const flagX = (cols - 8) * T + 10;
     return { n, cols, map, ents, flagX, theme: th };
   }
+  // 魔王關：火柱區（3 根旋轉火柱＋2 個岩漿小坑）→ 補體力的？磚 → 岩漿上的魔王橋 → 終點台上的金蛋
+  function buildBoss(n) {
+    const th = BOSS_THEME, cols = 66, map = [], ents = [];
+    for (let c = 0; c < cols; c++) { const col = new Array(ROWS).fill(E); col[GROUND] = GD; col[GROUND + 1] = GD; map.push(col); }
+    const pit = (a, w) => { for (let c = a; c < a + w; c++) { map[c][GROUND] = E; map[c][GROUND + 1] = E; } };
+    const bars = [];
+    [13, 21, 29].forEach((c, i) => { map[c][5] = UB; bars.push({ x: c * T + T / 2, y: 5 * T + T / 2, a: i * 2.1, sp: (i % 2 ? -1 : 1) * (1.7 + i * 0.15), n: 7 }); });
+    pit(17, 2); pit(25, 2);
+    [17, 18, 25, 26].forEach((c) => ents.push({ t: 'coin', x: c * T + 6, y: 6 * T + 6, w: 12, h: 12 }));
+    map[33][6] = QB;
+    for (let c = 38; c <= 55; c++) { map[c][GROUND] = BG; map[c][GROUND + 1] = E; }
+    map[60][GROUND - 1] = ST; map[61][GROUND - 1] = ST;
+    const goal = { x: 60 * T - 6, y: (GROUND - 1) * T - 30, w: 2 * T + 6, h: 30 + T };   // 碰到石台側面或金蛋都算
+    const egg = { x: 60 * T + 8, y: (GROUND - 1) * T - 30, w: 32 };
+    const bw = 40, bh = 44, groundY = GROUND * T - bh;
+    const bossE = { x: 52 * T, y: groundY, w: bw, h: bh, vx: -30, vy: 0, on: true, groundY, minX: 43 * T, maxX: 54 * T - bw, t: 2.2, ft: 2.2, warn: 0, face: -1, awake: false };
+    return { n, cols, map, ents, flagX: Infinity, theme: th, boss: true, bars, bossE, fire: [], goal, egg };
+  }
   // 雲端空島：沒有地面，一塊一塊高高低低的平台（最多往上 2 格、空隙 2～3 格），？磚塊在平台上方
   function buildSky(n, d, R, cols, th) {
     const map = [], ents = [];
@@ -259,7 +317,9 @@ const WD = (() => {
     g.lv = buildLevel(g.n); g.q = null; showQ();
     g.hero = { x: 3 * T, y: GROUND * T - 22, w: 16, h: 22, vx: 0, vy: 0, on: false, face: 1, hold: 0, inv: 1.5, safeX: 3 * T, safeY: GROUND * T - 22, anim: 0 };
     g.camX = 0; g.mT = 2.5;
-    banner('🚩', `${g.n}-1 ${g.lv.theme.name}`, g.lv.theme.tip || L('出發！', "Let's go!"), '#CCFF00');
+    GameSfx.music(g.lv.boss ? BOSS_SONG : MUSIC[(g.n - 1) % MUSIC.length]); GameSfx.duck(false);   // 每種場景換一首
+    if (g.lv.boss) { GameSfx.play('roar'); banner('⚠️', L('魔王關！熔岩魔王橋', 'BOSS STAGE! Magma Bridge'), L('閃過熔岩暴龍，碰到橋後面的金蛋就全破！', 'Get past the Magma Rex and touch the golden egg!'), '#ff6b57'); }
+    else banner('🚩', `${g.n}-1 ${g.lv.theme.name}`, g.lv.theme.tip || L('出發！', "Let's go!"), '#CCFF00');
   }
   const tile = (c, r) => { const m = game.lv.map; if (c < 0) return ST; if (c >= m.length || r < 0) return E; if (r >= ROWS) return E; return m[c][r]; };
   const solid = (v) => v !== E;
@@ -270,9 +330,9 @@ const WD = (() => {
     const now = performance.now(), real = (now - g.last) / 1000, dt = Math.min(0.033, real); g.last = now;
     if (portrait) { hud(TIME - g.elapsed); draw(); return; }   // 直式：暫停（時間也停）
     if (g.spell || g.q) { hud(TIME - g.elapsed); draw(); return; }   // 答題、拼字時時間暫停
-    g.clock += dt; g.elapsed += real;
+    g.clock += dt; if (!g.victory) g.elapsed += real;   // 全破慶祝時時間不走
     const left = TIME - g.elapsed;
-    if (left <= 0) return end();
+    if (left <= 0 && !g.victory) return end();
     step(dt);
     hud(left); draw();
   }
@@ -283,6 +343,7 @@ const WD = (() => {
   function step(dt) {
     const g = game, h = g.hero, lv = g.lv;
     g.fx = g.fx.filter((f) => (f.t -= dt) > 0);
+    if (g.victory) victoryTick(dt);
     if (g.pause > 0) { g.pause -= dt; if (g.pause <= 0 && g.after) { const f = g.after; g.after = null; f(); } return; }
     // 體力
     if (h.star > 0) h.star -= dt; else g.energy -= DRAIN * dt;   // 無敵時體力不減
@@ -307,8 +368,8 @@ const WD = (() => {
     h.y += h.vy * dt; h.on = false;
     collideY(h);
     g.coyote = h.on ? 0.09 : Math.max(0, g.coyote - dt);   // 剛走出平台邊緣 0.09 秒內還能跳
-    if (sea && g.buf > 0) { h.vy = -235; h.on = false; g.buf = 0; g.fx.push({ t: 0.7, x: h.x + 12, y: h.y + 4, bub: 1 }); }   // 水裡：每按一下往上游
-    if (g.buf > 0) { g.buf -= dt; if (g.coyote > 0 && h.vy >= 0) { h.vy = -JUMP; h.on = false; h.hold = keys.j ? HOLD : 0.06; g.buf = 0; g.coyote = 0; } }
+    if (sea && g.buf > 0) { h.vy = -235; h.on = false; g.buf = 0; GameSfx.play('swim'); g.fx.push({ t: 0.7, x: h.x + 12, y: h.y + 4, bub: 1 }); }   // 水裡：每按一下往上游
+    if (g.buf > 0) { g.buf -= dt; if (g.coyote > 0 && h.vy >= 0) { h.vy = -JUMP; h.on = false; h.hold = keys.j ? HOLD : 0.06; g.buf = 0; g.coyote = 0; GameSfx.play('jump'); } }
     const footR = Math.floor((h.y + h.h + 1) / T);
     if (h.on && solid(tile(Math.floor((h.x + 1) / T), footR)) && solid(tile(Math.floor((h.x + h.w - 1) / T), footR))) { h.safeX = h.x; h.safeY = h.y; }   // 兩腳都踩在地上才記為安全點
     // 雲端空島：飛彈從畫面右邊飛來
@@ -330,9 +391,9 @@ const WD = (() => {
         if (solid(tile(c, GROUND - 1)) || !solid(tile(c, rFeet))) { e.vx = -e.vx; e.x += e.vx * dt * 2; }   // 撞牆或坑邊就回頭
         if (hit(h, e)) {
           if (h.vy > 60 && h.y + h.h - e.y < 12) {   // 從上面踩
-            e.alive = false; h.vy = -320; g.score += P.stomp; g.stomps++;
+            e.alive = false; h.vy = -320; g.score += P.stomp; g.stomps++; GameSfx.play('stomp');
             pop(e.x + e.w / 2, e.y, `+${P.stomp}`, '#ffd23f');
-          } else if (h.star > 0) { e.alive = false; g.score += P.stomp; g.stomps++; pop(e.x + e.w / 2, e.y, `🌟+${P.stomp}`, '#ffd23f'); }
+          } else if (h.star > 0) { e.alive = false; g.score += P.stomp; g.stomps++; GameSfx.play('stomp'); pop(e.x + e.w / 2, e.y, `🌟+${P.stomp}`, '#ffd23f'); }
           else if (h.inv <= 0) { hurt(e); if (g.energy <= 0) return die('hungry'); }
         }
       } else if ((e.t === 'missile' || e.t === 'fish') && e.alive) {
@@ -342,15 +403,16 @@ const WD = (() => {
         if (e.x < g.camX - 80) { e.alive = false; continue; }
         if (hit(h, e)) {
           if (h.vy > 40 && h.y + h.h - e.y < 12) {   // 從上面踩
-            e.alive = false; h.vy = sea ? -200 : -320; g.score += P.stomp; g.stomps++;
+            e.alive = false; h.vy = sea ? -200 : -320; g.score += P.stomp; g.stomps++; GameSfx.play('stomp');
             pop(e.x + e.w / 2, e.y, `+${P.stomp}`, '#ffd23f');
-          } else if (h.star > 0) { e.alive = false; g.score += P.stomp; g.stomps++; pop(e.x + e.w / 2, e.y, `🌟+${P.stomp}`, '#ffd23f'); }
+          } else if (h.star > 0) { e.alive = false; g.score += P.stomp; g.stomps++; GameSfx.play('stomp'); pop(e.x + e.w / 2, e.y, `🌟+${P.stomp}`, '#ffd23f'); }
           else if (h.inv <= 0) { hurt(e); if (g.energy <= 0) return die('hungry'); }
         }
       } else if (e.t === 'coin' && !e.got && hit(h, e)) {
-        e.got = true; g.coins++; g.score += P.coin; pop(e.x + 6, e.y, `+${P.coin}`, '#ffd23f');
+        e.got = true; g.coins++; GameSfx.play('coin'); g.score += P.coin; pop(e.x + 6, e.y, `+${P.coin}`, '#ffd23f');
       }
     }
+    if (lv.boss && stepBoss(dt)) return;
     // 旗子
     if (h.x + h.w > lv.flagX) return clear();
   }
@@ -379,6 +441,7 @@ const WD = (() => {
   function bump(c, r) {
     const g = game, v = tile(c, r);
     g.fx.push({ t: 0.15, bump: [c, r] });
+    GameSfx.play(v === QB ? 'qblock' : v === SB ? 'power' : 'bonk');
     if (v === QB) { g.lv.map[c][r] = UB; ask(c); }
     else if (v === SB) { g.lv.map[c][r] = UB; g.hero.star = STAR_SEC; g.stars = (g.stars || 0) + 1; banner('🌟', L(`無敵 ${STAR_SEC} 秒！`, `Invincible for ${STAR_SEC}s!`), L('撞到敵人直接打倒，體力不會減少', 'Smash enemies; energy stays full'), '#ffd23f'); }
   }
@@ -390,7 +453,7 @@ const WD = (() => {
     const w = shuffle(fresh.length ? fresh : pool)[0]; g.used.add(w.id);
     const seen = new Set([short(w)]), others = shuffle(pool.filter((x) => x.id !== w.id)).filter((x) => { const s = short(x); if (!s || seen.has(s)) return false; seen.add(s); return true; }).slice(0, 2);
     g.q = { w, opts: shuffle([w, ...others]), c };
-    releaseAll(); speak(w.word);
+    releaseAll(); speak(w.word); GameSfx.duck(true);
     pane(`<div class="wj-card wd-quiz">
       <div class="wj-kicker">❓ ${L('這個字是什麼意思？', 'What does it mean?')}</div>
       <div class="wd-word">${esc(w.word)}<button class="spk small" data-say="${esc(w.word)}">🔊</button></div>
@@ -401,7 +464,8 @@ const WD = (() => {
   function answer(i) {
     const g = game, q = g && g.q; if (!q) return;
     const o = q.opts[i], ok = o === q.w, x0 = (q.c + 0.5) * T, y0 = 6 * T;
-    g.q = null; pane(''); g.last = performance.now();
+    g.q = null; pane(''); g.last = performance.now(); GameSfx.duck(false);
+    GameSfx.play(ok ? 'right' : 'wrong');
     if (ok) {
       g.right++; g.streak++; g.best = Math.max(g.best, g.streak);
       const pts = P.right + (g.streak >= 3 ? P.streak : 0); g.score += pts; g.energy = Math.min(ENERGY, g.energy + E_RIGHT);
@@ -426,11 +490,13 @@ const WD = (() => {
     }
   }
   function hurt(e) {   // 被甲蟲撞到：扣體力、彈開、短暫無敵（不中斷遊戲）
+    GameSfx.play('hurt');
     const g = game, h = g.hero; g.energy -= E_HIT; g.streak = 0; g.hits = (g.hits || 0) + 1;
     h.inv = 1.5; h.vy = -260; h.vx = (h.x < e.x ? -1 : 1) * 140;
     pop(h.x + 8, h.y, `⚡−${E_HIT}`, '#ff6b57');
   }
   function pitFall() {   // 掉坑：扣體力、回到站穩的地方（體力用完才要拼字）
+    GameSfx.play('fall');
     const g = game, h = g.hero; g.energy -= E_PIT; g.falls = (g.falls || 0) + 1;
     if (g.energy <= 0) { g.energy = 0; return die('hungry'); }
     respawn(); pop(h.x + 8, h.y, `⚡−${E_PIT}`, '#ff6b57');
@@ -444,7 +510,7 @@ const WD = (() => {
 
   // ── 過關、失誤 ──
   function clear() {
-    const g = game; g.clears++;
+    const g = game; g.clears++; GameSfx.stopMusic(); GameSfx.play('clear');
     const bonus = P.flag + Math.round(g.energy) * 2; g.score += bonus; g.elapsed -= CLEAR_SEC;
     banner('🚩', L(`過關！+${bonus}　⏱️ +${CLEAR_SEC} 秒`, `Stage clear! +${bonus}  ⏱️ +${CLEAR_SEC}s`), L('下一關更難喔', 'Next stage is harder'), '#CCFF00');
     g.after = nextLevel; g.pause = 1.4; g.hero.vx = 0;
@@ -454,7 +520,7 @@ const WD = (() => {
     releaseAll();
     const pool = spellPool(), fresh = pool.filter((w) => !g.used.has(w.id));
     const w = shuffle(fresh.length ? fresh : pool)[0];
-    g.spell = { w, ans: answersOf(w)[0], shown: 1, tries: 0, why };
+    g.spell = { w, ans: answersOf(w)[0], shown: 1, tries: 0, why }; GameSfx.duck(true);
     showQ(); renderSpell(); speak(w.word);
   }
   function renderSpell(bad) {
@@ -481,11 +547,11 @@ const WD = (() => {
       const g = game, h = g.hero; g.spell = null; pane(''); g.last = performance.now();
       g.energy = ENERGY * 0.7;
       if (h.y > GROUND * T || !h.on) respawn();
-      h.inv = 2; showQ();
+      h.inv = 2; showQ(); GameSfx.duck(false); GameSfx.play('right');
       banner('✓', L('答對！繼續冒險', 'Correct! Keep going'), '', '#CCFF00');
     } else {
       s.tries++; s.shown = Math.min(s.ans.length, s.shown + 1);
-      renderSpell(true); speak(s.w.word);
+      renderSpell(true); speak(s.w.word); GameSfx.play('wrong');
     }
   }
   function pop(x, y, txt, c) { game.fx.push({ t: 0.8, x, y, txt, c }); }
@@ -502,7 +568,7 @@ const WD = (() => {
   function end() {
     cancelAnimationFrame(raf);
     const g = game; if (!g || g.over) return;
-    g.over = true; g.spell = null; showQ();
+    g.over = true; g.spell = null; showQ(); GameSfx.stopMusic(); if (!g.victory) GameSfx.play('end');
     const sc = g.score, pts = toPts(sc);
     let gain = 0, prev = 0, record = false, best = sc;
     if (!trial) {
@@ -520,8 +586,9 @@ const WD = (() => {
       if (gain) setTimeout(() => confetti(gain >= 10 ? 90 : 50), 150);
     }
     hud(0); draw();
-    pane(`<div class="wj-card">
-      <div class="wj-kicker">${L('時間到！', "Time's up!")}</div>
+    pane(`<div class="wj-card${g.victory ? ' wd-wincard' : ''}">
+      ${g.victory ? `<div class="wj-kicker wd-wint"><span class="wd-trophy">🏆</span>${L(`全破！恐龍王國征服者　+${g.victory.bonus}`, `ALL CLEAR! Dino Conqueror  +${g.victory.bonus}`)}</div>`
+        : `<div class="wj-kicker">${L('時間到！', "Time's up!")}</div>`}
       <div class="wj-big">${sc}</div>
       <div class="wj-small">${trial ? L('🧪 試玩模式，不計分', '🧪 Trial — not scored') : record ? L('🆕 個人最高紀錄！', '🆕 New personal best!') : L(`個人最高 ${best} 分`, `Personal best ${best}`)}<br>
         ${L(`過了 ${g.clears} 關・答對 ${g.right}・答錯 ${g.wrong}・踩敵人 ${g.stomps}・🪙 ${g.coins}・掉坑 ${g.falls || 0}・體力用完 ${g.deaths}`, `${g.clears} stages · ${g.right} right · ${g.wrong} wrong · ${g.stomps} stomps · 🪙 ${g.coins} · ${g.deaths} falls`)}</div>
@@ -583,14 +650,17 @@ const WD = (() => {
     }
     for (let c = c0; c <= c1; c++) for (let r = 0; r < ROWS; r++) drawTile(c, r, tile(c, r), th);
     // 答案磚上的字
+    if (lv.boss) drawBossStage();
     // 旗子
     const fx = lv.flagX, fy = GROUND * T;
+    if (!lv.boss) {
     cx.fillStyle = '#e8e8e8'; cx.fillRect(fx, fy - 8 * T, 3, 8 * T); cx.fillStyle = '#ffd23f'; cx.beginPath(); cx.arc(fx + 1.5, fy - 8 * T, 4, 0, 7); cx.fill();
     cx.fillStyle = '#CCFF00'; cx.beginPath(); cx.moveTo(fx + 3, fy - 8 * T + 6); cx.lineTo(fx + 30, fy - 7.4 * T + 6); cx.lineTo(fx + 3, fy - 6.8 * T + 6); cx.fill();
     cx.fillStyle = '#1a3a1a'; cx.font = '800 9px Syne, sans-serif'; cx.textAlign = 'center'; cx.fillText('🏝', fx + 13, fy - 7.25 * T + 6);
     // 終點小屋
     const hx = fx + 40; cx.fillStyle = th.brick; cx.fillRect(hx, fy - 3 * T, 4 * T, 3 * T); cx.fillStyle = '#2b1a10'; cx.fillRect(hx + 1.5 * T, fy - 1.6 * T, T, 1.6 * T);
     cx.fillStyle = th.top; cx.beginPath(); cx.moveTo(hx - 6, fy - 3 * T); cx.lineTo(hx + 2 * T, fy - 4.6 * T); cx.lineTo(hx + 4 * T + 6, fy - 3 * T); cx.fill();
+    }
     // 金幣、敵人
     lv.ents.forEach((e) => {
       if (e.x < camX - 40 || e.x > camX + VW + 40) return;
@@ -604,11 +674,126 @@ const WD = (() => {
     });
     // 特效
     g.fx.forEach((f) => {
-      if (f.coin) { f.x += f.vx * 0.016; f.y += f.vy * 0.016; f.vy += 900 * 0.016; cx.fillStyle = '#ffd23f'; cx.beginPath(); cx.arc(f.x, f.y, 4, 0, 7); cx.fill(); }
+      if (f.fw) { f.x += f.vx * 0.016; f.y += f.vy * 0.016; f.vy += 120 * 0.016; cx.globalAlpha = Math.min(1, f.t * 1.5); cx.fillStyle = f.c; cx.fillRect(f.x - 1.5, f.y - 1.5, 3, 3); cx.globalAlpha = 1; }
+      else if (f.coin) { f.x += f.vx * 0.016; f.y += f.vy * 0.016; f.vy += 900 * 0.016; cx.fillStyle = '#ffd23f'; cx.beginPath(); cx.arc(f.x, f.y, 4, 0, 7); cx.fill(); }
       else if (f.bub) { f.y -= 1.2; cx.globalAlpha = Math.min(1, f.t * 1.5); cx.strokeStyle = '#cfefff'; cx.lineWidth = 1.2; cx.beginPath(); cx.arc(f.x, f.y, 3, 0, 7); cx.arc(f.x + 5, f.y - 6, 2, 0, 7); cx.stroke(); cx.globalAlpha = 1; }
       else if (f.txt) { f.y -= 0.6; cx.globalAlpha = Math.min(1, f.t * 2); cx.fillStyle = f.c; cx.font = '800 11px Syne, sans-serif'; cx.textAlign = 'center'; cx.fillText(f.txt, f.x, f.y); cx.globalAlpha = 1; }
     });
     drawHero(g.hero);
+    if (lv.boss && lv.bossE) drawBoss(lv.bossE);   // 魔王畫在角色前面，跳過頭頂時看得清楚
+    if (g.victory) {   // 全破大字
+      const a = Math.min(1, g.victory.t * 2), s2 = 1 + Math.max(0, 0.4 - g.victory.t) * 1.5;
+      cx.save(); cx.globalAlpha = a; cx.translate(camX + VW / 2, 70); cx.scale(s2, s2);
+      cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.shadowColor = '#ff9a00'; cx.shadowBlur = 18;
+      cx.fillStyle = '#ffd23f'; cx.font = '900 30px Syne, "Noto Sans TC", sans-serif'; cx.fillText('🏆 ALL CLEAR!', 0, 0);
+      cx.font = '900 15px "Noto Sans TC", sans-serif'; cx.fillStyle = '#fff'; cx.fillText(L('恐龍王國征服者', 'Dino Conqueror'), 0, 28);
+      cx.restore(); cx.textBaseline = 'alphabetic';
+    }
+  }
+  // ── 魔王關的畫面：餘燼、旋轉火柱、火球、金蛋 ──
+  function drawBossStage() {
+    const g = game, lv = g.lv;
+    for (let i = 0; i < 26; i++) {   // 往上飄的火星
+      const x = g.camX + ((i * 47 + Math.sin(g.clock + i) * 10) % VW + VW) % VW, y = GROUND * T - ((i * 31 + g.clock * (18 + i % 5 * 6)) % (GROUND * T));
+      cx.fillStyle = i % 3 ? 'rgba(255,140,40,.7)' : 'rgba(255,210,80,.8)'; cx.fillRect(x, y, 2, 2);
+    }
+    const ball = (x, y, r) => {
+      const gr = cx.createRadialGradient(x, y, 0, x, y, r * 1.8); gr.addColorStop(0, '#fff6b0'); gr.addColorStop(0.35, '#ffb020'); gr.addColorStop(0.7, 'rgba(255,80,0,.6)'); gr.addColorStop(1, 'rgba(255,40,0,0)');
+      cx.fillStyle = gr; cx.beginPath(); cx.arc(x, y, r * 1.8, 0, 7); cx.fill();
+    };
+    lv.bars.forEach((fb) => { for (let i = 1; i <= fb.n; i++) ball(fb.x + Math.cos(fb.a) * i * 12, fb.y + Math.sin(fb.a) * i * 12, 4.5 + Math.sin(g.clock * 20 + i) * 0.6); });
+    lv.fire.forEach((f) => ball(f.x, f.y, 7 + Math.sin(g.clock * 30) * 0.8));
+    // 終點：石台上的金蛋
+    const gl = lv.egg, ex = gl.x + gl.w / 2, ey = gl.y + 15 + Math.sin(g.clock * 3) * 2;
+    const gg = cx.createRadialGradient(ex, ey, 2, ex, ey, 34); gg.addColorStop(0, 'rgba(255,220,80,.55)'); gg.addColorStop(1, 'rgba(255,220,80,0)');
+    cx.fillStyle = gg; cx.beginPath(); cx.arc(ex, ey, 34, 0, 7); cx.fill();
+    cx.fillStyle = '#ffd23f'; cx.beginPath(); cx.ellipse(ex, ey, 11, 14, 0, 0, 7); cx.fill();
+    cx.fillStyle = '#c99a1a'; [[-4, -3], [4, 3], [-2, 7]].forEach(([a, b]) => { cx.beginPath(); cx.arc(ex + a, ey + b, 2, 0, 7); cx.fill(); });
+    cx.fillStyle = 'rgba(255,255,255,.7)'; cx.beginPath(); cx.ellipse(ex - 4, ey - 6, 3, 5, -0.4, 0, 7); cx.fill();
+    if (Math.floor(g.clock * 4) % 2) { cx.fillStyle = '#fff'; cx.fillRect(ex + 10, ey - 14, 2, 6); cx.fillRect(ex + 8, ey - 12, 6, 2); }
+  }
+  // 原創魔王「熔岩暴龍」：紅色暴龍、身上有發光的熔岩裂紋；吐火前嘴巴張開發亮
+  function drawBoss(b) {
+    const t = game.clock, warn = b.warn > 0, glow = warn ? `rgb(255,${180 + Math.sin(t * 40) * 70},40)` : '#ffb020';
+    cx.save(); cx.translate(Math.round(b.x + b.w / 2), Math.round(b.y)); cx.scale(-b.face, 1);   // 畫的時候面向左
+    const body = '#b3261e', dark = '#6e1410', belly = '#e8a04a', lift = b.on ? 0 : 3;
+    cx.fillStyle = body; cx.beginPath(); cx.moveTo(10, 24); cx.lineTo(34, 34 - lift); cx.lineTo(12, 34); cx.fill();   // 尾巴
+    const st2 = b.on && b.awake ? Math.sin(t * 9) * 2 : 0;
+    cx.fillStyle = dark; cx.fillRect(-10 + st2, 34, 8, 10 - lift); cx.fillRect(4 - st2, 34, 8, 10 - lift);              // 腳
+    cx.fillStyle = body; cx.beginPath(); cx.ellipse(2, 25, 16, 13, 0, 0, 7); cx.fill();                                   // 身體
+    cx.fillStyle = belly; cx.beginPath(); cx.ellipse(-4, 28, 8, 8, 0, 0, 7); cx.fill();
+    cx.strokeStyle = glow; cx.lineWidth = 1.5; cx.beginPath();                                                           // 熔岩裂紋
+    cx.moveTo(10, 17); cx.lineTo(6, 22); cx.lineTo(10, 28); cx.moveTo(14, 23); cx.lineTo(9, 32); cx.moveTo(2, 14); cx.lineTo(-1, 18); cx.stroke();
+    cx.fillStyle = body; cx.fillRect(-12, 8, 14, 12);                                                                   // 脖子
+    const open = warn ? 7 : 2;
+    cx.fillStyle = warn ? glow : '#3a0806'; cx.fillRect(-26, 12, 20, open);                                             // 嘴巴裡
+    cx.fillStyle = body; cx.fillRect(-28, -2, 26, 14);                                                                  // 頭
+    cx.fillStyle = dark; cx.fillRect(-28, 12 + open, 22, 5);                                                            // 下巴
+    cx.fillStyle = dark; cx.fillRect(-28, -2, 26, 3); cx.fillRect(-14, 1, 8, 3);                                        // 頭頂、眉骨
+    cx.fillStyle = '#fff'; for (let i = 0; i < 4; i++) { cx.beginPath(); cx.moveTo(-27 + i * 5, 12); cx.lineTo(-25 + i * 5, 15); cx.lineTo(-23 + i * 5, 12); cx.fill(); }   // 牙齒
+    cx.fillStyle = '#ffd23f'; cx.fillRect(-14, 3, 6, 5); cx.fillStyle = '#1a0000'; cx.fillRect(-12, 3, 2, 5);           // 眼睛
+    cx.fillStyle = '#1a0000'; cx.fillRect(-27, 2, 2, 2);                                                                // 鼻孔
+    cx.fillStyle = dark; cx.fillRect(-14, 22, 6, 3); cx.fillRect(-16, 24, 3, 3);                                        // 小手
+    if (warn) { cx.fillStyle = 'rgba(255,200,60,.5)'; cx.beginPath(); cx.arc(-28, 15, 6 + Math.sin(t * 40) * 2, 0, 7); cx.fill(); }
+    cx.restore();
+  }
+  // ── 魔王關的邏輯：火柱轉、魔王走走跳跳吐火球、碰到金蛋全破（回傳 true＝這格停在這裡）──
+  function stepBoss(dt) {
+    const g = game, h = g.hero, lv = g.lv, b = lv.bossE, hx = h.x + h.w / 2, hy = h.y + h.h / 2;
+    const touch = (x, y, r) => Math.abs(x - hx) < r + h.w / 2 - 2 && Math.abs(y - hy) < r + h.h / 2 - 3;
+    const ouch = (x) => { if (h.inv > 0 || h.star > 0) return false; hurt({ x }); if (g.energy <= 0) { die('hungry'); return true; } return false; };
+    for (const fb of lv.bars) {
+      fb.a += fb.sp * dt;
+      for (let i = 1; i <= fb.n; i++) { const x = fb.x + Math.cos(fb.a) * i * 12, y = fb.y + Math.sin(fb.a) * i * 12; if (touch(x, y, 4)) { if (ouch(x)) return true; break; } }
+    }
+    if (!b.awake && h.x > b.x - VW * 0.85) { b.awake = true; GameSfx.play('roar'); }
+    if (b.awake) {
+      b.face = hx < b.x + b.w / 2 ? -1 : 1;
+      if (b.on) {
+        b.x += b.vx * dt;
+        if (b.x < b.minX) { b.x = b.minX; b.vx = Math.abs(b.vx); } if (b.x > b.maxX) { b.x = b.maxX; b.vx = -Math.abs(b.vx); }
+        if ((b.t -= dt) <= 0) { b.vy = -560; b.on = false; b.t = 1.8 + Math.random() * 1.6; }   // 跳起來：可以從下面鑽過去
+      } else {
+        b.vy += GRAV * dt; b.y += b.vy * dt;
+        if (b.y >= b.groundY) { b.y = b.groundY; b.vy = 0; b.on = true; GameSfx.play('thud'); }
+      }
+      if (b.warn > 0) {
+        if ((b.warn -= dt) <= 0) {   // 吐火：一半低（要跳過）、一半高（走過去就好，跳起來會撞到）
+          b.warn = 0; const low = Math.random() < 0.5;
+          lv.fire.push({ x: b.face < 0 ? b.x - 6 : b.x + b.w + 6, y: b.y + 14, ty: GROUND * T - (low ? 9 : 36), vx: b.face * 165 });
+          GameSfx.play('spit');
+        }
+      } else if ((b.ft -= dt) <= 0) { b.warn = 0.45; b.ft = 1.5 + Math.random() * 1.1; }   // 先張嘴發亮 0.45 秒再吐
+      if (hit(h, b) && ouch(b.x + b.w / 2)) return true;
+    }
+    lv.fire = lv.fire.filter((f) => {
+      f.x += f.vx * dt; f.y += (f.ty - f.y) * Math.min(1, dt * 4);
+      if (touch(f.x, f.y, 6)) { if (h.star > 0 || h.inv > 0) return true; if (ouch(f.x)) { lv.fire = []; return false; } return false; }   // 打中就消失；無敵時穿過去
+      return f.x > g.camX - 60 && f.x < g.camX + VW + 60;
+    });
+    if (g.spell) return true;
+    if (hit(h, lv.goal)) { win(); return true; }
+    return false;
+  }
+  function win() {
+    const g = game; if (g.victory) return;
+    const left = Math.max(0, TIME - g.elapsed), bonus = P.win + Math.round(left) * WIN_PER_SEC, b = g.lv.bossE;
+    g.score += bonus; g.clears++; g.victory = { bonus, t: 0, fw: 0 };
+    g.lv.fire = []; b.flee = true; b.on = false; b.vy = -620; b.face = -1;
+    g.hero.vx = 0; g.hero.inv = 99;
+    GameSfx.stopMusic(); GameSfx.play('victory');
+    banner('🏆', L('全破！恐龍王國征服者', 'ALL CLEAR! Dino Conqueror'), L(`全破 +${P.win}・剩下時間 +${bonus - P.win}`, `Clear +${P.win} · time bonus +${bonus - P.win}`), '#ffd23f');
+    if (typeof confetti === 'function') setTimeout(() => confetti(120), 300);
+    g.pause = 4; g.after = () => end();
+  }
+  function victoryTick(dt) {   // 全破慶祝：魔王嚇得跳走、放煙火
+    const g = game, v = g.victory, b = g.lv.bossE; v.t += dt;
+    if (b && b.flee) { b.vy += GRAV * 0.35 * dt; b.y += b.vy * dt; b.x -= 150 * dt; }   // 往後上方逃走
+    if ((v.fw -= dt) <= 0) {
+      v.fw = 0.28; GameSfx.play('pop');
+      const x = g.camX + 30 + Math.random() * (VW - 60), y = 25 + Math.random() * 90, c = ['#ffd23f', '#CCFF00', '#4ECDC4', '#ff6b57', '#b48cff', '#fff'][Math.floor(Math.random() * 6)];
+      for (let i = 0; i < 22; i++) { const a = i / 22 * 6.283, sp = 70 + Math.random() * 40; g.fx.push({ t: 1.1, fw: 1, x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, c }); }
+    }
   }
   function drawTile(c, r, v, th) {
     if (v === E) return;
@@ -642,6 +827,10 @@ const WD = (() => {
       cx.fillStyle = 'rgba(255,255,255,.25)'; if (left) cx.fillRect(x + 4, y, 4, T);
       cx.fillStyle = 'rgba(0,0,0,.25)'; if (!left) cx.fillRect(x + T - 5, y, 5, T);
       if (isTop) { cx.fillStyle = '#38c25c'; cx.fillRect(x - (left ? 3 : 0), y, T + 3, 9); cx.fillStyle = 'rgba(0,0,0,.25)'; cx.fillRect(x - (left ? 3 : 0), y + 8, T + 3, 2); }
+    } else if (v === BG) {   // 魔王橋：木板＋兩邊的鐵鍊
+      cx.fillStyle = '#5a3a22'; cx.fillRect(x - 0.5, y, T + 1, 8); cx.fillStyle = '#7a5232'; cx.fillRect(x, y, T, 2);
+      cx.fillStyle = '#2e1c10'; cx.fillRect(x + T - 2, y, 2, 8); cx.fillRect(x, y + 8, T, 2);
+      cx.strokeStyle = '#9a9a9a'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(x, y - 12); cx.quadraticCurveTo(x + T / 2, y - 7, x + T, y - 12); cx.stroke();
     } else if (v === ST) {
       cx.fillStyle = th.brick; cx.fillRect(x, y, T, T); cx.fillStyle = 'rgba(255,255,255,.2)'; cx.fillRect(x, y, T, 3); cx.fillRect(x, y, 3, T);
       cx.fillStyle = 'rgba(0,0,0,.3)'; cx.fillRect(x, y + T - 3, T, 3); cx.fillRect(x + T - 3, y, 3, T);
@@ -702,6 +891,7 @@ const WD = (() => {
     const t = e.target.closest('[data-wd]'); if (!t) return;
     const a = t.dataset.wd;
     if (a === 'start') { if (typeof unlockAudio === 'function') unlockAudio(); start(); }
+    if (a === 'snd') return GameSfx.toggle(t);
     if (a === 'close') close();
     if (a === 'check') check();
     if (a === 'ans') answer(+t.dataset.i);

@@ -15,7 +15,7 @@ const WJ = (() => {
   const G = 0.38, JUMP = -11.5, SPRING = -19, RUN = 5.2;
   const PW = 66, PH = 12;
   const EDGE = 0.2;          // 手指模式：左右各 20% 是「穿牆區」，按著就一直往那邊跑
-  const VER = '1.5';
+  const VER = '1.6';
 
   let cv, cx, root, S = 1, VH = 640;   // S＝縮放；VH＝邏輯高度
   let game = null, raf = 0, keys = { l: false, r: false };
@@ -42,7 +42,7 @@ const WJ = (() => {
     root = document.createElement('div');
     root.className = 'wj';
     root.innerHTML = `<canvas></canvas>
-      <div class="wj-hud"><button class="wj-x" data-wj="quit">✕</button>
+      <div class="wj-hud"><button class="wj-x" data-wj="quit">✕</button>${GameSfx.btn('data-wj="snd"')}
         <span class="wj-t" id="wjT">3:00</span><span class="wj-h" id="wjH">0 m</span><span class="wj-p" id="wjP">⭐ 0</span></div>
       <div class="wj-pane" id="wjPane"></div>`;
     document.body.appendChild(root);
@@ -198,7 +198,8 @@ const WJ = (() => {
         if (pl.gone) continue;
         if (py <= pl.y && p.y >= pl.y && p.x > pl.x - 8 && p.x < pl.x + pl.w + 8) {
           p.y = pl.y; p.vy = pl.t === 's' ? SPRING : JUMP;
-          if (pl.t === 'b') pl.gone = true;
+          GameSfx.play(pl.t === 's' ? 'spring' : 'jump');
+          if (pl.t === 'b') { pl.gone = true; GameSfx.play('crack'); }
           if (pl.t === 's') pl.boing = 12;
           break;
         }
@@ -208,7 +209,7 @@ const WJ = (() => {
     const h = height();
     if (h > game.maxH) {
       const before = toPts(game.maxH); game.maxH = h;
-      if (toPts(h) > before) flash(`+1 ⭐`);
+      if (toPts(h) > before) { flash(`+1 ⭐`); GameSfx.play('star'); }
     }
     fill();
     if (p.y > game.cam + VH + 50) fall();
@@ -216,7 +217,7 @@ const WJ = (() => {
 
   // ── 掉下去 → 拼字 ──
   function fall() {
-    game.falls++;
+    game.falls++; GameSfx.play('fall');
     keys.l = keys.r = false; fingerX = null;
     const pool = wordPool(), fresh = pool.filter((w) => !game.used.has(w.id));
     const w = shuffle(fresh.length ? fresh : pool)[0]; game.used.add(w.id);
@@ -244,10 +245,10 @@ const WJ = (() => {
     if (!v) return $('wjIn').focus();
     if (answersOf(s.w).includes(v)) {
       game.spelled++; game.spell = null; pane('');
-      respawn(); flash(L('✓ 答對！繼續跳', '✓ Correct! Go!'));
+      respawn(); flash(L('✓ 答對！繼續跳', '✓ Correct! Go!')); GameSfx.play('right');
     } else {
       s.tries++; s.shown = Math.min(s.ans.length, s.shown + 1);
-      renderSpell(true); speak(s.w.word);
+      renderSpell(true); speak(s.w.word); GameSfx.play('wrong');
     }
   }
   function respawn() {   // 回到原本的高度：在畫面下方放一塊安全平台
@@ -269,7 +270,7 @@ const WJ = (() => {
     st.meta.games = st.meta.games || {};
     const g = st.meta.games[ID] || (st.meta.games[ID] = { plays: 0, bestM: 0 });
     g.plays++; const record = m > g.bestM; if (record) g.bestM = m;
-    saveLedger(); saveMeta();
+    saveLedger(); saveMeta(); GameSfx.play('end');
     const gain = Math.max(0, pts - prev);
     afterPoints(before);
     if (gain) setTimeout(() => confetti(gain >= 10 ? 90 : 50), 150);
@@ -363,6 +364,7 @@ const WJ = (() => {
     const a = t.dataset.wj;
     if (a === 'start') { unlockAudio && unlockAudio(); begin(); }
     if (a === 'ctl') { st.set.jumpCtl = t.dataset.c; saveSet(); open(); }
+    if (a === 'snd') return GameSfx.toggle(t);
     if (a === 'close') close();
     if (a === 'check') check();
     if (a === 'quit') {

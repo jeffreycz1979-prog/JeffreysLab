@@ -10,7 +10,7 @@
 //        saveLedger, saveMeta, afterPoints, points, gameWeekBestAll, gameCard, masteredCount, GAMES, toast, confetti
 // ═══════════════════════════════════════════════════════
 const WS = (() => {
-  const ID = 'shoot', NEED = 4, VER = '0.8';
+  const ID = 'shoot', NEED = 4, VER = '0.9';
   const TIME = 180, CAP = 20;
   const S_PER_PT = 200;               // 每 200 分 1 ⭐（4000 分滿 20）— 待實玩後調整
   const LW = 360;                     // 邏輯寬度
@@ -51,7 +51,7 @@ const WS = (() => {
     root.innerHTML = `<canvas></canvas>
       <div class="wb-banner" id="wsBanner"></div>
       <div class="wr-gate" id="wsQ" style="display:none"></div>
-      <div class="wj-hud"><button class="wj-x" data-ws="quit">✕</button>
+      <div class="wj-hud"><button class="wj-x" data-ws="quit">✕</button>${GameSfx.btn('data-ws="snd"')}
         <span class="wr-coin" id="wsB">🏀 0</span>
         <span class="wj-t" id="wsT">3:00</span><span class="wj-h" id="wsS">0</span><span class="wj-p" id="wsP">⭐ 0</span></div>
       <div class="wj-pane" id="wsPane"></div>`;
@@ -101,7 +101,7 @@ const WS = (() => {
     if (d > 18 && aim.dy > 6) {   // 要往下拉才算（往上推不會投）
       const k = VMAX / PULL, b = game.ball;
       b.vx = -aim.dx * k; b.vy = -aim.dy * k; b.state = 'fly'; b.t = 0; b.touched = false; b.top = b.y;
-      game.shots++; game.qShots++;
+      game.shots++; game.qShots++; GameSfx.play('throw');
     }
     aim = null;
   }
@@ -197,7 +197,7 @@ const WS = (() => {
     const el = elapsed();
     if (el >= g.feverAt && left > 6) {   // 黃金時間：開局 20～30 秒第一次，之後每 25～35 秒
       g.feverEnd = el + FEVER_LEN; g.feverAt = g.feverEnd + 25 + Math.random() * 10; g.fevers++;
-      if (!g.spell) banner('✨', 'GOLDEN TIME!', L(`${FEVER_LEN} 秒內投進分數 ×2`, `×2 for ${FEVER_LEN} seconds`), GOLD);
+      if (!g.spell) GameSfx.play('full'), banner('✨', 'GOLDEN TIME!', L(`${FEVER_LEN} 秒內投進分數 ×2`, `×2 for ${FEVER_LEN} seconds`), GOLD);
     }
     if (!g.spell) step(dt);
     hud(left); draw();
@@ -223,26 +223,26 @@ const WS = (() => {
           if (d < R + RIMR && d > 0) {
             const nx = dx / d, ny = dy / d, vn = b.vx * nx + b.vy * ny;
             if (vn < 0) { b.vx -= 1.6 * vn * nx; b.vy -= 1.6 * vn * ny; b.vx *= 0.88; b.vy *= 0.88; }
-            b.x = rx + nx * (R + RIMR); b.y = ry + ny * (R + RIMR); b.touched = true;
+            b.x = rx + nx * (R + RIMR); b.y = ry + ny * (R + RIMR); b.touched = true; GameSfx.play('rim');
           }
         }
         const inside = Math.abs(b.x - hp.x) < RIM - RIMR;
         if (inside && py < hp.y && b.y >= hp.y && b.top < hp.y - 4) return land(hp.i);   // 從籃框上方落下穿過＝進球
       }
-      if (b.x < R) { b.x = R; b.vx = Math.abs(b.vx) * 0.6; }          // 左右牆
-      if (b.x > LW - R) { b.x = LW - R; b.vx = -Math.abs(b.vx) * 0.6; }
+      if (b.x < R) { b.x = R; b.vx = Math.abs(b.vx) * 0.6; GameSfx.play('wall'); }          // 左右牆
+      if (b.x > LW - R) { b.x = LW - R; b.vx = -Math.abs(b.vx) * 0.6; GameSfx.play('wall'); }
       if (b.y > VH + 40 || b.t > 4) return miss();
     }
   }
   function land(i) {
     const g = game, b = g.ball, h = g.hoops[i];
-    b.state = 'in'; h.flash = 0.6;
+    b.state = 'in'; h.flash = 0.6; GameSfx.play('net');
     if (i === g.q.ans) {
       let pts = BASKET; g.baskets++; g.streak++; g.bestStreak = Math.max(g.bestStreak, g.streak);
       if (!b.touched) { pts += SWISH; g.swish++; }
       if (g.streak >= 3) pts += STREAK;
       const m = mult(); pts *= m;
-      g.score += pts;
+      g.score += pts; GameSfx.play(!b.touched ? 'star' : 'right'); if (g.streak >= 3) GameSfx.play('cheer');
       burst(h.x, h.y, '#CCFF00');
       const tag = m > 1 ? ` (×${m})` : '';
       banner(m > 1 ? '✨' : !b.touched ? '💫' : '🏀', (!b.touched ? L(`空心球！+${pts}`, `Swish! +${pts}`) : L(`進了！+${pts}`, `Nice! +${pts}`)) + tag,
@@ -250,7 +250,7 @@ const WS = (() => {
       g.firstShot = g.qShots <= 1; g.since = (g.since || 0) + 1;   // since：上次選道具後又連續答對幾題
       g.after = g.firstShot || g.since >= 2 ? offerPower : nextQ; g.pause = 0.75;   // 一球就進，或（不管投幾次）連續答對 2 題，就給道具
     } else {
-      g.wrong++; g.streak = 0; g.since = 0;
+      g.wrong++; g.streak = 0; g.since = 0; GameSfx.play('wrong');
       burst(h.x, h.y, '#ff6b57');
       banner('✕', L('投錯籃框了', 'Wrong hoop'), `${g.q.w.word} = ${short(g.q.w)}`, '#ff6b57');
       g.after = () => openSpell(g.q.w); g.pause = 0.9;
@@ -268,13 +268,14 @@ const WS = (() => {
     const g = game; if (!g || !g.choosing) return;
     const pw = POWERS.find((x) => x.id === id); if (!pw || g.bestStreak < pw.need) return;
     g.t0 += Date.now() - g.choosing; g.choosing = null; g.last = performance.now();   // 選道具的時間不算
-    g.powers++; pane('');
+    g.powers++; pane(''); GameSfx.play('power');
     if (id === 'time') g.t0 += 7000; else g.power = id;   // +7 秒馬上生效；其他用在下一題
     nextQ();
     const p = POWERS.find((x) => x.id === id); banner(p.ic, L(p.name[0], p.name[1]), id === 'time' ? '' : L('這一題可以用', 'For this word'), '#4ECDC4');
   }
   function miss() {
     // 投歪不會中斷「連進」（連進＝連續答對幾題，只有投錯籃框才歸零）
+    GameSfx.play('fall');
     banner('💨', L('沒進，再投一次', 'Missed — try again'), '', '#4ECDC4');
     resetBall();
   }
@@ -321,12 +322,12 @@ const WS = (() => {
     const v = norm($('wsIn').value || '');
     if (!v) return $('wsIn').focus();
     if (answersOf(s.w).includes(v)) {
-      const g = game; g.spell = null; pane(''); g.last = performance.now();
+      const g = game; g.spell = null; pane(''); g.last = performance.now(); GameSfx.play('right');
       banner('✓', L('答對！繼續投', 'Correct! Keep shooting'), '', '#CCFF00');
       nextQ();
     } else {
       s.tries++; s.shown = Math.min(s.ans.length, s.shown + 1);
-      renderSpell(true); speak(s.w.word);
+      renderSpell(true); speak(s.w.word); GameSfx.play('wrong');
     }
   }
 
@@ -334,7 +335,7 @@ const WS = (() => {
   function end() {
     cancelAnimationFrame(raf);
     const g = game; if (!g || g.over) return;
-    g.over = true; g.spell = null; aim = null; showQ();
+    g.over = true; g.spell = null; aim = null; showQ(); GameSfx.play('end');
     const sc = g.score, pts = toPts(sc);
     let gain = 0, prev = 0, record = false, best = sc;
     if (!trial) {
@@ -496,6 +497,7 @@ const WS = (() => {
     const t = e.target.closest('[data-ws]'); if (!t) return;
     const a = t.dataset.ws;
     if (a === 'start') { if (typeof unlockAudio === 'function') unlockAudio(); start(); }
+    if (a === 'snd') return GameSfx.toggle(t);
     if (a === 'close') close();
     if (a === 'check') check();
     if (a === 'pw') pickPower(t.dataset.pw);

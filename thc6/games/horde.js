@@ -12,7 +12,7 @@
 //        avatarSVG, lookOf, petOf, AV_TOPC
 // ═══════════════════════════════════════════════════════
 const WH6 = (() => {
-  const ID = 'horde', NEED = 6, VER = '0.4';
+  const ID = 'horde', NEED = 6, VER = '0.5';
   const TIME = 180, CAP = 20, S_PER_PT = 300;   // 每 300 分 1 ⭐ — 分數主要來自拼字，打小怪只有一點點
   const P = { kill: 1, brute: 10, letter: 15, word: 250, boss: 400 };   // v0.4：分數以拼字為主；無雙、炸彈打倒的怪不給分
   const G_GAIN = { kill: 1, brute: 6, letter: 4, word: 35 }, G_MAX = 100;   // 無雙集氣
@@ -71,7 +71,7 @@ const WH6 = (() => {
     root.innerHTML = `<canvas></canvas>
       <div class="wb-banner" id="whBanner"></div>
       <div class="wh-word" id="whWord" style="display:none"></div>
-      <div class="wj-hud"><button class="wj-x" data-wh="quit">✕</button>
+      <div class="wj-hud"><button class="wj-x" data-wh="quit">✕</button>${GameSfx.btn('data-wh="snd"')}
         <span class="wh-hp"><i id="whHp"></i></span><span class="wj-h" id="whLv">Lv1</span>
         <span class="wj-t" id="whT">3:00</span><span class="wj-h" id="whS">0</span><span class="wj-p" id="whP">⭐ 0</span></div>
       <button class="wh-musou" id="whMusou" data-wh="musou"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="44"/><circle id="whRing" cx="50" cy="50" r="44"/></svg><b>無雙</b><small id="whMu">0%</small></button>
@@ -80,6 +80,7 @@ const WH6 = (() => {
     if (!document.getElementById('whCss')) {
       const s = document.createElement('style'); s.id = 'whCss';
       s.textContent = `.wj.wh6{left:0;right:0;width:auto;transform:none;box-shadow:none}
+        .wh6 .wj-hud{gap:6px}.wh6 .wj-hud span{white-space:nowrap;flex:none}.wh6 .wj-hud .sfx-btn{padding:5px 7px}.wh6 .wh-hp{flex:1 1 40px!important;max-width:84px}
         .wh-hp{width:84px;height:14px;padding:0!important;border-radius:8px!important;overflow:hidden;background:rgba(0,0,0,.5)!important;position:relative}
         .wh-hp i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#ff6b57,#ffb547);border-radius:8px;transition:width .15s}
         .wh-word{position:absolute;left:8px;right:8px;top:calc(env(safe-area-inset-top,0px) + 56px);z-index:3;display:flex;justify-content:center;pointer-events:none}
@@ -219,7 +220,7 @@ const WH6 = (() => {
     root.querySelector('#whMu').textContent = k >= 1 ? 'GO!' : `${Math.floor(k * 100)}%`;
     b.classList.toggle('full', k >= 1);
   }
-  const addGauge = (n) => { const g = game, was = g.gauge >= G_MAX; g.gauge = Math.min(G_MAX, g.gauge + n); if (!was && g.gauge >= G_MAX) banner('💥', L('無雙集滿了！', 'MUSOU ready!'), L('按右下角選招式', 'Tap the button to choose a move'), '#ffb547'); };
+  const addGauge = (n) => { const g = game, was = g.gauge >= G_MAX; g.gauge = Math.min(G_MAX, g.gauge + n); if (!was && g.gauge >= G_MAX) GameSfx.play('full'), banner('💥', L('無雙集滿了！', 'MUSOU ready!'), L('按右下角選招式', 'Tap the button to choose a move'), '#ffb547'); };
 
   function loop() {
     raf = requestAnimationFrame(loop);
@@ -272,7 +273,7 @@ const WH6 = (() => {
       if (t) {
         h.atkT = 0.32 / m.rate;
         const ang = Math.atan2(t.y - h.y, t.x - h.x); h.face = Math.cos(ang) >= 0 ? 1 : -1;
-        g.fx.push({ t: 0.16, slash: 1, x: h.x, y: h.y, a: ang, r: R });
+        g.fx.push({ t: 0.16, slash: 1, x: h.x, y: h.y, a: ang, r: R }); GameSfx.play('swing');
         g.foes.slice().forEach((f) => {
           const d = Math.hypot(f.x - h.x, f.y - h.y) - f.r; if (d > R) return;
           let da = Math.atan2(f.y - h.y, f.x - h.x) - ang; while (da > Math.PI) da -= 2 * Math.PI; while (da < -Math.PI) da += 2 * Math.PI;
@@ -296,7 +297,7 @@ const WH6 = (() => {
     // 大絕：流星雨
     g.meteors = g.meteors.filter((mt) => {
       mt.t -= dt; if (mt.t > 0) return true;
-      g.shake = Math.max(g.shake, 0.15); g.fx.push({ t: 0.35, boom: 1, x: mt.x, y: mt.y, r: 62 });
+      g.shake = Math.max(g.shake, 0.15); g.fx.push({ t: 0.35, boom: 1, x: mt.x, y: mt.y, r: 62 }); GameSfx.play('thud');
       g.foes.slice().forEach((f) => { if (Math.hypot(f.x - mt.x, f.y - mt.y) - f.r < 62) hurtFoe(f, (f.type === 'boss' ? 70 : 120) * m.pow, Math.atan2(f.y - mt.y, f.x - mt.x), true); });
       return false;
     });
@@ -335,7 +336,7 @@ const WH6 = (() => {
       hz.t -= dt;
       if (hz.kind === 'ink') { hz.x += hz.vx * dt; hz.y += hz.vy * dt; if (Math.hypot(hz.x - h.x, hz.y - h.y) < 9 + HERO_R && h.inv <= 0) { if (hurtHero(10, 0.8)) return false; return false; } return hz.t > 0 && hz.x > -30 && hz.x < LW + 30 && hz.y > -30 && hz.y < LH + 30; }
       if (hz.t <= 0) {   // 踩地
-        g.shake = 0.3; g.fx.push({ t: 0.35, boom: 1, x: hz.x, y: hz.y, r: hz.r, c: '#b48cff' });
+        g.shake = 0.3; g.fx.push({ t: 0.35, boom: 1, x: hz.x, y: hz.y, r: hz.r, c: '#b48cff' }); GameSfx.play('thud');
         if (Math.hypot(hz.x - h.x, hz.y - h.y) < hz.r + HERO_R * 0.5 && h.inv <= 0) hurtHero(22, 1);
         return false;
       }
@@ -369,6 +370,7 @@ const WH6 = (() => {
     const g = game, h = g.hero;
     h.hp -= dmg; h.inv = inv; g.fx.push({ t: 0.5, txt: `−${Math.round(dmg)}`, x: h.x, y: h.y - 36, c: '#ff6b57' });
     if (dmg >= 10) g.shake = Math.max(g.shake, 0.18);
+    GameSfx.play(dmg >= 10 ? 'hurt' : 'ouch');
     if (h.hp <= 0) { h.hp = 0; die(); return true; }
     return false;
   }
@@ -405,7 +407,7 @@ const WH6 = (() => {
     const g = game, hp = BOSS_HP * (1 + Math.max(0, g.bossIdx - 1) * 0.6);
     g.boss = { type: 'boss', x: LW / 2, y: topY() + 30, r: 34, hp, max: hp, sp: 26, dmg: 16, kx: 0, ky: 0, ph: 0, st: 2.5 };
     g.foes.push(g.boss);
-    g.shake = 0.5;
+    g.shake = 0.5; GameSfx.play('roar');
     banner('👹', L('墨水大王來了！', 'The Ink King is here!'), L('有護盾：拼好一個字或放無雙打破它；看到紅圈快閃開', 'Shielded — spell a word or use MUSOU. Dodge the red circles!'), '#b48cff');
   }
   function hurtFoe(f, dmg, ang, musou) {
@@ -420,12 +422,14 @@ const WH6 = (() => {
     g.foes.splice(i, 1);
     if (f.type === 'boss') {
       g.boss = null; g.bosses++; g.score += P.boss; g.shake = 0.6;
-      burst(f.x, f.y, '#b48cff', 40);
+      burst(f.x, f.y, '#b48cff', 40); GameSfx.play('bomb'); GameSfx.play('wave');
       g.items.push({ k: 'meat', x: f.x, y: f.y, t: 12 });
       banner('👑', L(`打倒墨水大王！+${P.boss}`, `Ink King defeated! +${P.boss}`), '', '#CCFF00');
       return;
     }
     const big = f.type === 'brute';
+    const now = performance.now(); g.chain = now - (g.chainT || 0) < 700 ? (g.chain || 0) + 1 : 0; g.chainT = now;   // 連續打倒：音越來越高
+    GameSfx.play('smack', g.chain);
     g.kills++; if (!musou) { g.score += big ? P.brute : P.kill; addGauge(big ? G_GAIN.brute : G_GAIN.kill); }
     burst(f.x, f.y, big ? '#ff9a3c' : f.type === 'bat' ? '#b48cff' : '#4ECDC4', big ? 16 : 6);
     if (g.orbs.length < MAX_ORBS && Math.random() < (big ? 1 : 0.2)) drop(f.x, f.y);
@@ -446,12 +450,13 @@ const WH6 = (() => {
   function pick(c, o) {
     const g = game, a = g.w.word.toLowerCase();
     if (c === a[g.idx]) {
+      GameSfx.play('pop');
       g.idx++; g.miss = 0; g.score += P.letter; addGauge(G_GAIN.letter); g.popSlot = g.idx - 1;
       if (g.idx < a.length) speak(c.toUpperCase());   // 唸字母
       g.fx.push({ t: 0.7, txt: c.toUpperCase(), x: o ? o.x : g.hero.x, y: (o ? o.y : g.hero.y) - 20, c: '#CCFF00', big: 1 });
       if (g.idx >= a.length) { showWord(); return wordDone(); }
     } else {
-      g.miss++; g.fx.push({ t: 0.7, txt: `✕ ${c}`, x: o ? o.x : g.hero.x, y: (o ? o.y : g.hero.y) - 20, c: '#ff6b57' });
+      g.miss++; GameSfx.play('wrong'); g.fx.push({ t: 0.7, txt: `✕ ${c}`, x: o ? o.x : g.hero.x, y: (o ? o.y : g.hero.y) - 20, c: '#ff6b57' });
     }
     showWord();
   }
@@ -460,11 +465,12 @@ const WH6 = (() => {
     if (it.k === 'boots' || it.k === 'ice') g.buff[it.k] = BUFF;
     if (it.k === 'meat') h.hp = Math.min(h.max, h.hp + 30);
     if (it.k === 'bomb') { g.shake = 0.3; g.fx.push({ t: 0.4, boom: 1, x: it.x, y: it.y, r: 130, c: '#ffb547' }); g.foes.slice().forEach((f) => { if (Math.hypot(f.x - it.x, f.y - it.y) - f.r < 130) hurtFoe(f, 120, Math.atan2(f.y - it.y, f.x - it.x), true); }); }
+    GameSfx.play(it.k === 'bomb' ? 'bomb' : 'power');
     g.fx.push({ t: 0.9, txt: `${d.ic} ${L(...d.name)}`, x: h.x, y: h.y - 44, c: '#fff' });
   }
   // 拼好一個字：加分＋集氣＋打破大王護盾，然後升級三選一
   function wordDone() {
-    const g = game; g.words++; g.score += P.word; addGauge(G_GAIN.word);
+    const g = game; g.words++; g.score += P.word; addGauge(G_GAIN.word); GameSfx.play('wave');
     speak(g.w.word);
     if (g.boss) g.shieldOff = 7;
     g.orbs = []; g.hero.inv = 1;
@@ -473,7 +479,7 @@ const WH6 = (() => {
     g.lvAt = performance.now() + 600;   // 0.6 秒後升級（如果那時正在選招式或拼字，就等結束後再跳）
   }
   function levelUp() {
-    const g = game; g.lv++; g.menu = true; joy = null; showWord(); musouBtn();
+    const g = game; g.lv++; g.menu = true; GameSfx.play('level'); joy = null; showWord(); musouBtn();
     const pool = SKILLS.filter((s2) => !s2.pet || hasPet()), pick3 = shuffle(pool).slice(0, 3);
     pane(`<div class="wj-card"><div class="wj-kicker">⬆️ ${L(`升到 Lv${g.lv}！選一個技能`, `Level ${g.lv}! Pick a skill`)}</div>
       <div class="wh-sk">${pick3.map((s2) => `<button class="btn ghost" data-wh="sk" data-sk="${s2.id}"><span>${s2.ic}</span>${L(...s2.name)}</button>`).join('')}</div>
@@ -497,7 +503,7 @@ const WH6 = (() => {
   function useMove(id) {
     const g = game; if (!g || !g.moveMenu) return;
     g.moveMenu = false; g.gauge = 0; g.musous++; g.last = performance.now(); pane(''); showWord(); musouBtn();
-    g.slow = 1.3; g.shake = 1.2; g.hero.inv = 2;
+    g.slow = 1.3; g.shake = 1.2; g.hero.inv = 2; GameSfx.play('musou');
     g.fx.push({ t: 0.25, flash: 1 }, { t: 0.4, cut: 1, mv: id });   // 慢動作時特效時間也變慢（實際約 1～2 秒）
     if (id === 'whirl') { g.whirl = 4; g.whirlT = 0; }
     else { for (let i = 0; i < 22; i++) { const f = g.foes[Math.floor(Math.random() * g.foes.length)]; const tgt = f && Math.random() < 0.7 ? f : { x: rnd(20, LW - 20), y: rnd(topY(), LH - 20) }; g.meteors.push({ x: tgt.x + rnd(-15, 15), y: tgt.y + rnd(-15, 15), t: 0.3 + i * 0.09, t0: 0.3 + i * 0.09 }); } }
@@ -534,10 +540,10 @@ const WH6 = (() => {
       const g = game, h = g.hero; g.spell = null; pane(''); g.last = performance.now();
       h.hp = Math.round(h.max * 0.7); h.inv = 2.5; g.hazards = [];
       g.foes.slice().forEach((f) => { if (f.type !== 'boss' && Math.hypot(f.x - h.x, f.y - h.y) < 120) kill(f); });   // 復活時把身邊的怪打飛
-      showWord(); musouBtn(); banner('✓', L('答對！繼續戰鬥', 'Correct! Keep fighting'), '', '#CCFF00');
+      GameSfx.play('right'); showWord(); musouBtn(); banner('✓', L('答對！繼續戰鬥', 'Correct! Keep fighting'), '', '#CCFF00');
     } else {
       s.tries++; s.shown = Math.min(s.ans.length, s.shown + 1);
-      renderSpell(true); speak(s.w.word);
+      renderSpell(true); speak(s.w.word); GameSfx.play('wrong');
     }
   }
   let bannerT = 0;
@@ -554,6 +560,7 @@ const WH6 = (() => {
     cancelAnimationFrame(raf);
     const g = game; if (!g || g.over) return;
     g.over = true; g.spell = null; g.menu = false; g.moveMenu = false; joy = null; showWord(); musouBtn();
+    GameSfx.play('end');
     const sc = g.score, pts = toPts(sc);
     let gain = 0, prev = 0, record = false, best = sc;
     if (!trial) {
@@ -786,6 +793,7 @@ const WH6 = (() => {
     const t = e.target.closest('[data-wh]'); if (!t) return;
     const a = t.dataset.wh;
     if (a === 'start') { if (typeof unlockAudio === 'function') unlockAudio(); start(); }
+    if (a === 'snd') return GameSfx.toggle(t);
     if (a === 'close') close();
     if (a === 'check') check();
     if (a === 'sk') takeSkill(t.dataset.sk);

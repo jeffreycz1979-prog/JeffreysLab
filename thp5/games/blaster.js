@@ -8,7 +8,7 @@
 //        saveLedger, saveMeta, saveSet, afterPoints, points, gameWeekBestAll, gameCard, masteredCount, GAMES, toast, confetti
 // ═══════════════════════════════════════════════════════
 const WB = (() => {
-  const ID = 'blaster', NEED = 2, VER = '1.5';
+  const ID = 'blaster', NEED = 2, VER = '1.6';
   const TIME = 180, CAP = 20;
   const S_PER_PT = 550;      // 每 550 分 = 1 ⭐（11000 分滿 20）；10/21 Jeffrey 實玩 v1.2 一局一萬多分，要求調到 10000～12000 才滿分
   const LW = 360;
@@ -49,6 +49,7 @@ const WB = (() => {
       <div class="wb-banner" id="wbBanner"></div>
       <div class="wb-pw" id="wbPw" style="display:none"></div>
       <div class="wj-hud"><button class="wj-x" data-wb="quit">✕</button>
+        ${GameSfx.btn('data-wb="snd"')}
         <span class="wb-en" id="wbEn" style="display:none"></span>
         <span class="wj-t" id="wbT">3:00</span><span class="wj-h" id="wbS">0</span><span class="wj-p" id="wbP">⭐ 0</span></div>
       <div class="wj-pane" id="wbPane"></div>`;
@@ -195,6 +196,7 @@ const WB = (() => {
       g.fireCd = active('rapid') ? 105 : 270;
       const angs = !active('spread') ? [0] : g.spreadLv >= 2 ? [-0.32, -0.16, 0, 0.16, 0.32] : [-0.2, 0, 0.2];
       angs.forEach((a) => g.shots.push({ x: sh.x, y: sh.y - 18, vx: Math.sin(a) * 11, vy: -Math.cos(a) * 11 }));
+      GameSfx.play('shot');
     }
     g.shots.forEach((b) => { b.x += b.vx * dt; b.y += b.vy * dt; });
     g.shots = g.shots.filter((b) => b.y > -20 && b.x > -20 && b.x < LW + 20 && !b.hit);
@@ -232,7 +234,7 @@ const WB = (() => {
       if (f.dead || b.hit) continue;
       if (Math.abs(b.x - f.x) < 17 && Math.abs(b.y - f.y) < 15) {
         b.hit = true; f.hp--;
-        if (f.hp <= 0) kill(f); else boom(f.x, f.y, '#ffffff', 4);
+        if (f.hp <= 0) kill(f); else { boom(f.x, f.y, '#ffffff', 4); GameSfx.play('tick'); }
       }
     }
     g.foes = g.foes.filter((f) => !f.dead);
@@ -248,10 +250,10 @@ const WB = (() => {
     }
     // 下一波
     if (!g.foes.length && !g.pendingWave) {
-      g.score += 50; flash(L(`第 ${g.wave} 波完成 +50`, `Wave ${g.wave} clear +50`));
+      g.score += 50; flash(L(`第 ${g.wave} 波完成 +50`, `Wave ${g.wave} clear +50`)); GameSfx.play('wave');
       if (g.wave % STATION_EVERY === 0) {   // 補給站飛下來，等它離開或進站後才出下一波
         g.station = { x: 60 + Math.random() * (LW - 120), y: -50, t: 0 }; g.pendingWave = true; g.eshots = [];
-        flash(L('🛰 補給站來了！碰它進站', '🛰 Supply station! Touch it'));
+        flash(L('🛰 補給站來了！碰它進站', '🛰 Supply station! Touch it')); GameSfx.play('alert');
       } else nextWave();
     }
     if (g.station) {
@@ -267,7 +269,8 @@ const WB = (() => {
     const pts = f.kind === 'gold' ? 50 : 10 * f.max;
     const bonus = f.st === 'dive' ? 10 : 0;
     const before = toPts(g.score); g.score += pts + bonus;
-    if (toPts(g.score) > before) flash('+1 ⭐');
+    if (toPts(g.score) > before) { flash('+1 ⭐'); GameSfx.play('star'); }
+    GameSfx.play(f.kind === 'gold' ? 'gold' : 'kill');
     boom(f.x, f.y, f.kind === 'gold' ? '#ffd23f' : f.kind === 'armor' ? '#ffb547' : '#4ECDC4', 10);
     if (f.kind === 'gold') {
       const ks = Object.keys(PW_TIME);
@@ -334,6 +337,7 @@ const WB = (() => {
     const S = g2(); if (!S || S.shop || S.lock) return;
     const ok = btn.dataset.id === S.q.w.id;
     if (ok) S.got++;
+    GameSfx.play(ok ? 'right' : 'wrong');
     S.lock = true;
     document.querySelectorAll('[data-wb="smc"]').forEach((b) => { b.disabled = true; if (b.dataset.id === S.q.w.id) b.classList.add('ok'); });
     if (!ok) btn.classList.add('bad');
@@ -388,7 +392,7 @@ const WB = (() => {
   function buy(k) {
     const g = game, it = SHOP.find((x) => x.k === k);
     if (!it || g.energy < it.cost) return;
-    g.energy -= it.cost;
+    g.energy -= it.cost; GameSfx.play('buy');
     if (k === 'spread') { g.spreadLv = active('spread') ? 2 : 1; g.pw.spread = Math.max(g.pw.spread, g.clock) + 15000; g.pwTot = g.pwTot || {}; g.pwTot.spread = g.pw.spread - g.clock; }
     if (k === 'time') g.extra += 10;
     if (k === 'bomb') g.bombs++;
@@ -401,7 +405,7 @@ const WB = (() => {
     g.t0 += Date.now() - g.pauseAt; g.pauseAt = 0;   // 補回暫停的時間
     g.inStation = null; g.pendingWave = false; g.last = performance.now();
     g.ship.inv = Math.max(g.ship.inv, 1500);
-    pane(''); nextWave();
+    pane(''); nextWave(); GameSfx.play('go');
     const gear = [active('spread') && '🔱', g.extra && `⏱+${g.extra}s`, g.bombs && `💥×${g.bombs}`].filter(Boolean).join('  ');
     banner('🚀', L('出發！', 'Go!'), gear ? L('裝備：', 'Gear: ') + gear : L('沒有買裝備', 'No gear this time'), '#ffb547');
     if (active('spread')) { g.pwFresh = g.pwFresh || {}; g.pwFresh.spread = Date.now(); ring(g.ship.x, g.ship.y, PW_INFO.spread.c); }
@@ -412,7 +416,7 @@ const WB = (() => {
     const n = g.foes.filter((f) => !f.dead).length;
     g.foes.forEach((f) => { if (!f.dead) kill(f); });
     g.foes = g.foes.filter((f) => !f.dead); g.eshots = [];
-    g.bombFlash = 1;
+    g.bombFlash = 1; GameSfx.play('bomb');
     banner('💥', L('大轟炸！', 'MEGA BOMB!'), L(`清光 ${n} 隻敵人`, `${n} aliens wiped out`) + (g.bombs ? L(`・剩 ${g.bombs} 顆`, ` · ${g.bombs} left`) : ''), '#ff6b57');
   }
   function power(k, ms) {
@@ -422,7 +426,7 @@ const WB = (() => {
     g.pw[k] = Math.max(g.pw[k], g.clock) + (ms || PW_TIME[k]);
     g.pwFresh = g.pwFresh || {}; g.pwFresh[k] = Date.now();
     g.pwTot = g.pwTot || {}; g.pwTot[k] = g.pw[k] - g.clock;
-    ring(g.ship.x, g.ship.y, info.c);
+    ring(g.ship.x, g.ship.y, info.c); GameSfx.play('power');
     if (k === 'spread' && g.spreadLv === 2) banner(info.ic, L('散彈升級 ×5！', 'Spread ×5!'), L('一次射 5 發', '5 shots at once'), info.c);
     else banner(info.ic, L(info.zh + '！', info.en + '!'), L(info.dz, info.de) + ` · ${Math.round((ms || PW_TIME[k]) / 1000)}s`, info.c);
   }
@@ -441,7 +445,7 @@ const WB = (() => {
   // ── 被打中 → 拼字 ──
   function hit() {
     const g = game; g.hits++;
-    boom(g.ship.x, g.ship.y, '#ff6b57', 18);
+    boom(g.ship.x, g.ship.y, '#ff6b57', 18); GameSfx.play('hurt');
     keys = { l: 0, r: 0, u: 0, d: 0 }; finger = null;
     const pool = wordPool(), fresh = pool.filter((w) => !g.used.has(w.id));
     const w = shuffle(fresh.length ? fresh : pool)[0]; g.used.add(w.id);
@@ -473,10 +477,10 @@ const WB = (() => {
       g.eshots = []; g.pw = { rapid: 0, spread: 0, slow: 0 }; g.spreadLv = 1;   // 道具消失
       g.foes.forEach((f) => { if (f.st === 'dive') { f.y = -30; f.st = 'enter'; } });
       g.last = performance.now();
-      flash(L('✓ 答對！繼續', '✓ Correct! Go!'));
+      flash(L('✓ 答對！繼續', '✓ Correct! Go!')); GameSfx.play('right');
     } else {
       s.tries++; s.shown = Math.min(s.ans.length, s.shown + 1);
-      renderSpell(true); speak(s.w.word);
+      renderSpell(true); speak(s.w.word); GameSfx.play('wrong');
     }
   }
 
@@ -493,7 +497,7 @@ const WB = (() => {
     st.meta.games = st.meta.games || {};
     const gm = st.meta.games[ID] || (st.meta.games[ID] = { plays: 0, best: 0 });
     gm.plays++; const record = sc > gm.best; if (record) gm.best = sc;
-    saveLedger(); saveMeta();
+    saveLedger(); saveMeta(); GameSfx.play('end');
     const gain = Math.max(0, pts - prev);
     afterPoints(before);
     if (gain) setTimeout(() => confetti(gain >= 10 ? 90 : 50), 150);
@@ -608,6 +612,7 @@ const WB = (() => {
     const a = t.dataset.wb;
     if (a === 'start') { if (typeof unlockAudio === 'function') unlockAudio(); begin(); }
     if (a === 'ctl') { st.set.blasterCtl = t.dataset.c; saveSet(); open(); }
+    if (a === 'snd') return GameSfx.toggle(t);
     if (a === 'close') close();
     if (a === 'check') check();
     if (a === 'smc') stationMC(t);

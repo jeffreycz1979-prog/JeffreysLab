@@ -9,7 +9,7 @@
 //        saveLedger, saveMeta, saveSet, afterPoints, points, gameWeekBestAll, gameCard, masteredCount, GAMES, toast, confetti
 // ═══════════════════════════════════════════════════════
 const WR = (() => {
-  const ID = 'run', NEED = 3, VER = '1.1';
+  const ID = 'run', NEED = 3, VER = '1.2';
   const TIME = 180, CAP = 20;
   const S_PER_PT = 200;      // 每 200 分 = 1 ⭐（4000 分滿 20）；機器人（瞬間拼字）：單字門全對約 4200、答對 75% 約 3300、答對 55% 約 2700 — 待 Jeffrey 實玩後調整
   const LW = 360, LANE = 104;            // 邏輯寬度；跑道寬（玩家位置）
@@ -36,7 +36,7 @@ const WR = (() => {
     root.innerHTML = `<canvas></canvas>
       <div class="wb-banner" id="wrBanner"></div>
       <div class="wr-gate" id="wrGate" style="display:none"></div>
-      <div class="wj-hud"><button class="wj-x" data-wr="quit">✕</button>
+      <div class="wj-hud"><button class="wj-x" data-wr="quit">✕</button>${GameSfx.btn('data-wr="snd"')}
         <span class="wr-coin" id="wrC">🪙 0</span>
         <span class="wj-t" id="wrT">3:00</span><span class="wj-h" id="wrS">0</span><span class="wj-p" id="wrP">⭐ 0</span></div>
       <div class="wj-pane" id="wrPane"></div>`;
@@ -79,10 +79,10 @@ const WR = (() => {
   }
   function act(m) {
     const p = game.p;
-    if (m === 'l') p.lane = Math.max(0, p.lane - 1);
-    if (m === 'r') p.lane = Math.min(2, p.lane + 1);
-    if (m === 'u' && p.jump <= 0) { p.jump = JUMP_T; p.slide = 0; }
-    if (m === 'd') { if (p.jump > 0) p.jump = Math.min(p.jump, 0.12); p.slide = SLIDE_T; }   // 空中往下滑＝快速落地再滑
+    if (m === 'l' && p.lane > 0) { p.lane--; GameSfx.play('dash'); }
+    if (m === 'r' && p.lane < 2) { p.lane++; GameSfx.play('dash'); }
+    if (m === 'u' && p.jump <= 0) { p.jump = JUMP_T; p.slide = 0; GameSfx.play('jump'); }
+    if (m === 'd') { GameSfx.play('slide'); if (p.jump > 0) p.jump = Math.min(p.jump, 0.12); p.slide = SLIDE_T; }   // 空中往下滑＝快速落地再滑
   }
 
   // ── 開始畫面 ──
@@ -212,7 +212,7 @@ const WR = (() => {
     for (const o of g.objs) {
       const d = o.z - g.dist;
       if (o.t === 'coin') {
-        if (!o.got && Math.abs(d) < 0.9 && inLane(o.lane) && (!o.high || air)) { o.got = true; g.coins++; sparkle(o.lane, '#ffd23f', 5); }
+        if (!o.got && Math.abs(d) < 0.9 && inLane(o.lane) && (!o.high || air)) { o.got = true; g.coins++; GameSfx.play('coin'); sparkle(o.lane, '#ffd23f', 5); }
         continue;
       }
       if (o.done || d > 0.4) continue;
@@ -234,11 +234,11 @@ const WR = (() => {
     if (lane === gt.ok) {
       g.gatesOk++; g.streak++;
       const b = GATE_PTS + (g.streak >= 3 ? 50 : 0);
-      g.bonus += b; g.boostT = 3000;
+      g.bonus += b; g.boostT = 3000; GameSfx.play('right'); GameSfx.play('boost');
       banner('✅', L(`答對！+${b}`, `Correct! +${b}`), `${gt.w.word} = ${short(gt.w)}${g.streak >= 3 ? L(`・連對 ${g.streak} 🔥`, ` · ${g.streak} in a row 🔥`) : ''}`, '#4ECDC4');
       sparkle(lane, '#CCFF00', 24);
     } else {
-      g.streak = 0; g.slowT = 2500;
+      g.streak = 0; g.slowT = 2500; GameSfx.play('wrong'); GameSfx.play('slowdn');
       banner('❌', L('跑錯門了，減速！', 'Wrong gate — slow down!'), `${gt.w.word} = ${short(gt.w)}`, '#ff6b57');
     }
     g.gate = null; showGate();
@@ -270,7 +270,7 @@ const WR = (() => {
 
   // ── 撞到 → 拼字 ──
   function crash(o) {
-    const g = game; g.hits++;
+    const g = game; g.hits++; GameSfx.play('hurt');
     sparkle(o.lane, '#ff6b57', 18);
     sw = null;
     const pool = wordPool(), fresh = pool.filter((w) => !g.used.has(w.id));
@@ -302,18 +302,18 @@ const WR = (() => {
       const g = game; g.spell = null; pane('');
       g.objs = g.objs.filter((o) => o.t === 'gate' || o.t === 'coin' || o.z - g.dist > 16);   // 清掉前面的障礙
       g.p.inv = 2000; g.p.jump = 0; g.p.slide = 0; g.last = performance.now();
-      showGate();
+      showGate(); GameSfx.play('right');
       banner('✓', L('答對！繼續跑', 'Correct! Run!'), '', '#CCFF00');
     } else {
       s.tries++; s.shown = Math.min(s.ans.length, s.shown + 1);
-      renderSpell(true); speak(s.w.word);
+      renderSpell(true); speak(s.w.word); GameSfx.play('wrong');
     }
   }
 
   // ── 結束 ──
   function end() {
     cancelAnimationFrame(raf);
-    if (game.over) return; game.over = true; game.spell = null; game.gate = null; showGate();
+    if (game.over) return; game.over = true; game.spell = null; game.gate = null; showGate(); GameSfx.play('end');
     const sc = score(), pts = toPts(sc), k = todayKey();
     const before = points().total, prev = gameWeekBestAll();
     clockCheck();
@@ -504,6 +504,7 @@ const WR = (() => {
     const t = e.target.closest('[data-wr]'); if (!t) return;
     const a = t.dataset.wr;
     if (a === 'start') { if (typeof unlockAudio === 'function') unlockAudio(); start(); }
+    if (a === 'snd') return GameSfx.toggle(t);
     if (a === 'close') close();
     if (a === 'check') check();
     if (a === 'quit') {
