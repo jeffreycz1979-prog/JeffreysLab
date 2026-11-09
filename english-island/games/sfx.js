@@ -8,7 +8,7 @@
 const GameSfx = (() => {
   let ac = null, master = null, noiseBuf = null;
   const last = {};                                   // 節流：同一種聲音太密就略過
-  const GAP = { shot: 120, tick: 60, kill: 45, swing: 90, smack: 40, ouch: 300, thud: 60, jump: 80, coin: 50, bonk: 80 };     // 毫秒
+  const GAP = { shot: 120, tick: 60, kill: 45, swing: 90, smack: 40, ouch: 300, thud: 60, jump: 80, coin: 50, bonk: 80, dash: 70, rim: 90, wall: 90 };     // 毫秒
   const on = () => !(typeof st !== 'undefined' && st.set && st.set.sfxMute);
 
   function audio() {
@@ -83,6 +83,17 @@ const GameSfx = (() => {
       [12, 16, 19, 24].forEach((n) => tone(523 * Math.pow(2, n / 12), 1.4, { type: 'triangle', vol: 0.09, at: 1.5 }));
       [0, 0.12, 0.24, 1.5].forEach((t) => hiss(3000, 200, 0.25, 0.25, { at: t }));
     },
+    // ── Word Run ──
+    dash() { hiss(700, 2600, 0.14, 0.1, { type: 'bandpass' }); },                                         // 換跑道
+    slide() { hiss(2200, 500, 0.16, 0.3, { type: 'bandpass' }); },                                       // 滑過藤蔓
+    boost() { tone(330, 0.5, { type: 'sawtooth', vol: 0.06, slide: 2.5 }); hiss(500, 4000, 0.12, 0.5, { type: 'bandpass' }); },  // 答對加速
+    slowdn() { tone(440, 0.6, { type: 'sawtooth', vol: 0.06, slide: 0.4 }); },                           // 跑錯門減速
+    // ── Word Shot ──
+    throw() { hiss(400, 1800, 0.18, 0.18, { type: 'bandpass' }); },                                       // 出手
+    rim() { tone(1250, 0.22, { type: 'triangle', vol: 0.09, slide: 0.97 }); tone(1870, 0.15, { type: 'sine', vol: 0.05 }); },   // 碰到籃框：鐵框聲
+    wall() { tone(160, 0.08, { type: 'sine', vol: 0.18, slide: 0.7 }); },                                // 球撞牆
+    net() { hiss(5000, 1500, 0.2, 0.28, { type: 'highpass' }); },                                         // 唰～進網
+    cheer() { hiss(900, 1600, 0.12, 0.9, { type: 'bandpass' }); hiss(1200, 2000, 0.1, 0.8, { type: 'bandpass', at: 0.1 }); },  // 連進：觀眾歡呼
     end() { arp([0, 4, 7, 12, 16, 19, 24], 523, 0.08, { type: 'triangle', vol: 0.14, dur: 0.22 }); },
   };
 
