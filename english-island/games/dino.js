@@ -9,7 +9,7 @@
 //        saveLedger, saveMeta, afterPoints, points, gameWeekBestAll, gameCard, masteredCount, GAMES, toast, confetti
 // ═══════════════════════════════════════════════════════
 const WD = (() => {
-  const ID = 'dino', NEED = 5, VER = '0.6';
+  const ID = 'dino', NEED = 5, VER = '0.7';
   const TIME = 180, CAP = 20, S_PER_PT = 300;   // 每 300 分 1 ⭐（6000 分滿 20；v0.4 試玩 4754 分就滿 20，太好拿）
   const T = 24, ROWS = 11, WH = ROWS * T;         // 磚塊大小、地圖列數、世界高度
   const GROUND = 9;                               // 地面從第 9 列開始（第 9、10 列是土）
@@ -30,7 +30,35 @@ const WD = (() => {
     { kind: 'sea', name: L('海底世界', 'Under the Sea'), tip: L('按跳＝往上游，可以一直按', 'Tap jump to swim up — again and again'),
       sky: ['#0e6ea3', '#062f4d'], hill: '#0a4a6c', hill2: '#0d5c84', top: '#e6c983', dirt: '#c8a560', dot: '#a8873f', brick: '#3b97b0', cloud: false, sea: true },
   ];
-  const themeOf = (n) => THEMES[(n - 1) % THEMES.length];   // 第 6 關起再輪一次（越來越難）
+  const themeOf = (n) => THEMES[(n - 1) % THEMES.length];
+  // ── 每種場景一首背景音樂（GameSfx 即時合成，原創旋律，沒有音檔）──
+  // mel：每格一個八分音符，數字＝離 key 幾個半音，_＝休息；chords：每小節一個 [根音半音, 大調 M／小調 m]
+  const _ = null;
+  const MUSIC = [
+    { // 草原：輕快、C 大調、方波旋律
+      bpm: 150, key: 72, lead: 'square', leadVol: 0.045, bassType: 'triangle', bass: '1.5.1.5.', kick: 'x...x...', snare: '..x...x.', hat: 'xxxxxxxx',
+      chords: [[0, 'M'], [7, 'M'], [9, 'm'], [5, 'M'], [0, 'M'], [7, 'M'], [5, 'M'], [7, 'M']],
+      mel: [0, _, 4, 7, 12, _, 7, 4,   2, _, 7, 11, 14, _, 11, 7,   9, _, 12, 16, 12, _, 9, 4,   5, _, 9, 12, 7, _, 4, 2,
+            12, 11, 12, 16, _, 12, 7, _,   14, 12, 11, 7, _, 11, 14, _,   9, 7, 5, 9, 12, _, 9, _,   7, _, 11, _, 14, 12, 11, 7] },
+    { // 洞穴：慢、A 小調、稀疏的撥弦加回音、水滴聲
+      bpm: 92, key: 69, lead: 'triangle', leadVol: 0.07, leadDur: 1.6, echo: 1, bassType: 'sine', bassVol: 0.25, bass: '1.......', bassLen: 7.5,
+      kick: 'x.......', hat: '.....x..', hatKind: 'drip',
+      chords: [[0, 'm'], [0, 'm'], [-4, 'M'], [-5, 'M']],
+      mel: [0, _, _, 3, _, _, 7, _,   5, _, _, 3, _, 0, _, _,   -4, _, _, 0, _, _, 3, _,   2, _, _, -1, _, _, -5, _] },
+    { // 城堡：進行曲、D 小調、鋸齒波貝斯，有點緊張
+      bpm: 126, key: 62, lead: 'square', leadVol: 0.05, bassType: 'sawtooth', bassVol: 0.1, bass: '1.1.5.5.', kick: 'x.x.x.x.', snare: '..x...xx',
+      chords: [[0, 'm'], [-4, 'M'], [-2, 'M'], [-5, 'M']],
+      mel: [0, 0, 3, 5, 7, _, 5, 3,   8, _, 7, 5, 3, _, 5, _,   7, _, 5, 3, 2, _, 3, 5,   7, _, 11, _, 14, _, 11, 7] },
+    { // 雲端空島：空靈、F 大調、鈴聲琶音加長音墊底
+      bpm: 120, key: 77, lead: 'sine', leadVol: 0.07, leadDur: 1.2, pad: 0.025, bassType: 'triangle', bass: '1...5...', kick: 'x.......', hat: '..x...x.',
+      chords: [[0, 'M'], [7, 'M'], [9, 'm'], [5, 'M']],
+      mel: [0, 4, 7, 12, 16, 12, 7, 4,   7, 11, 14, 19, 14, 11, 7, 11,   9, 12, 16, 21, 16, 12, 9, 12,   5, 9, 12, 17, 12, 9, 5, _] },
+    { // 海底：慢慢搖、降 E 大調、圓圓的正弦波、泡泡聲
+      bpm: 84, key: 75, lead: 'sine', leadVol: 0.08, leadDur: 1.8, pad: 0.02, bassType: 'sine', bassVol: 0.25, bass: '1...5...', kick: 'x.......', hat: '.....x.x', hatKind: 'bubble',
+      chords: [[0, 'M'], [-3, 'm'], [-7, 'M'], [-5, 'M']],
+      mel: [7, _, _, 5, 3, _, _, _,   9, _, 7, _, 3, _, _, _,   12, _, _, 9, 5, _, _, _,   11, _, 7, _, 14, _, _, _] },
+  ];
+   // 第 6 關起再輪一次（越來越難）
   let cv, cx, root, k = 2, oy = 0, VW = 300, dpr = 1;
   let game = null, raf = 0, trial = false, releaseAll = () => {}, lastW = 0, lastH = 0, portrait = false;
   const keys = { l: false, r: false, j: false };
@@ -51,7 +79,7 @@ const WD = (() => {
     root.innerHTML = `<canvas></canvas>
       <div class="wb-banner" id="wdBanner"></div>
       <div class="wr-gate" id="wdQ" style="display:none"></div>
-      <div class="wj-hud"><button class="wj-x" data-wd="quit">✕</button>
+      <div class="wj-hud"><button class="wj-x" data-wd="quit">✕</button>${GameSfx.btn('data-wd="snd"')}
         <span class="wr-coin" id="wdC">🪙 0</span><span class="wd-en"><i id="wdE"></i></span>
         <span class="wj-t" id="wdT">3:00</span><span class="wj-h" id="wdS">0</span><span class="wj-p" id="wdP">⭐ 0</span></div>
       <div class="wd-touch" id="wdTouch"></div>
@@ -158,7 +186,7 @@ const WD = (() => {
     </div>`);
   }
   function close() {
-    cancelAnimationFrame(raf); game = null; releaseAll();
+    cancelAnimationFrame(raf); game = null; releaseAll(); GameSfx.stopMusic();
     if (root) root.classList.remove('show');
     document.body.style.overflow = '';
     if (typeof renderQuiz === 'function' && $('v-quiz') && $('v-quiz').classList.contains('active')) renderQuiz();
@@ -259,6 +287,7 @@ const WD = (() => {
     g.lv = buildLevel(g.n); g.q = null; showQ();
     g.hero = { x: 3 * T, y: GROUND * T - 22, w: 16, h: 22, vx: 0, vy: 0, on: false, face: 1, hold: 0, inv: 1.5, safeX: 3 * T, safeY: GROUND * T - 22, anim: 0 };
     g.camX = 0; g.mT = 2.5;
+    GameSfx.music(MUSIC[(g.n - 1) % MUSIC.length]); GameSfx.duck(false);   // 每種場景換一首
     banner('🚩', `${g.n}-1 ${g.lv.theme.name}`, g.lv.theme.tip || L('出發！', "Let's go!"), '#CCFF00');
   }
   const tile = (c, r) => { const m = game.lv.map; if (c < 0) return ST; if (c >= m.length || r < 0) return E; if (r >= ROWS) return E; return m[c][r]; };
@@ -307,8 +336,8 @@ const WD = (() => {
     h.y += h.vy * dt; h.on = false;
     collideY(h);
     g.coyote = h.on ? 0.09 : Math.max(0, g.coyote - dt);   // 剛走出平台邊緣 0.09 秒內還能跳
-    if (sea && g.buf > 0) { h.vy = -235; h.on = false; g.buf = 0; g.fx.push({ t: 0.7, x: h.x + 12, y: h.y + 4, bub: 1 }); }   // 水裡：每按一下往上游
-    if (g.buf > 0) { g.buf -= dt; if (g.coyote > 0 && h.vy >= 0) { h.vy = -JUMP; h.on = false; h.hold = keys.j ? HOLD : 0.06; g.buf = 0; g.coyote = 0; } }
+    if (sea && g.buf > 0) { h.vy = -235; h.on = false; g.buf = 0; GameSfx.play('swim'); g.fx.push({ t: 0.7, x: h.x + 12, y: h.y + 4, bub: 1 }); }   // 水裡：每按一下往上游
+    if (g.buf > 0) { g.buf -= dt; if (g.coyote > 0 && h.vy >= 0) { h.vy = -JUMP; h.on = false; h.hold = keys.j ? HOLD : 0.06; g.buf = 0; g.coyote = 0; GameSfx.play('jump'); } }
     const footR = Math.floor((h.y + h.h + 1) / T);
     if (h.on && solid(tile(Math.floor((h.x + 1) / T), footR)) && solid(tile(Math.floor((h.x + h.w - 1) / T), footR))) { h.safeX = h.x; h.safeY = h.y; }   // 兩腳都踩在地上才記為安全點
     // 雲端空島：飛彈從畫面右邊飛來
@@ -330,9 +359,9 @@ const WD = (() => {
         if (solid(tile(c, GROUND - 1)) || !solid(tile(c, rFeet))) { e.vx = -e.vx; e.x += e.vx * dt * 2; }   // 撞牆或坑邊就回頭
         if (hit(h, e)) {
           if (h.vy > 60 && h.y + h.h - e.y < 12) {   // 從上面踩
-            e.alive = false; h.vy = -320; g.score += P.stomp; g.stomps++;
+            e.alive = false; h.vy = -320; g.score += P.stomp; g.stomps++; GameSfx.play('stomp');
             pop(e.x + e.w / 2, e.y, `+${P.stomp}`, '#ffd23f');
-          } else if (h.star > 0) { e.alive = false; g.score += P.stomp; g.stomps++; pop(e.x + e.w / 2, e.y, `🌟+${P.stomp}`, '#ffd23f'); }
+          } else if (h.star > 0) { e.alive = false; g.score += P.stomp; g.stomps++; GameSfx.play('stomp'); pop(e.x + e.w / 2, e.y, `🌟+${P.stomp}`, '#ffd23f'); }
           else if (h.inv <= 0) { hurt(e); if (g.energy <= 0) return die('hungry'); }
         }
       } else if ((e.t === 'missile' || e.t === 'fish') && e.alive) {
@@ -342,13 +371,13 @@ const WD = (() => {
         if (e.x < g.camX - 80) { e.alive = false; continue; }
         if (hit(h, e)) {
           if (h.vy > 40 && h.y + h.h - e.y < 12) {   // 從上面踩
-            e.alive = false; h.vy = sea ? -200 : -320; g.score += P.stomp; g.stomps++;
+            e.alive = false; h.vy = sea ? -200 : -320; g.score += P.stomp; g.stomps++; GameSfx.play('stomp');
             pop(e.x + e.w / 2, e.y, `+${P.stomp}`, '#ffd23f');
-          } else if (h.star > 0) { e.alive = false; g.score += P.stomp; g.stomps++; pop(e.x + e.w / 2, e.y, `🌟+${P.stomp}`, '#ffd23f'); }
+          } else if (h.star > 0) { e.alive = false; g.score += P.stomp; g.stomps++; GameSfx.play('stomp'); pop(e.x + e.w / 2, e.y, `🌟+${P.stomp}`, '#ffd23f'); }
           else if (h.inv <= 0) { hurt(e); if (g.energy <= 0) return die('hungry'); }
         }
       } else if (e.t === 'coin' && !e.got && hit(h, e)) {
-        e.got = true; g.coins++; g.score += P.coin; pop(e.x + 6, e.y, `+${P.coin}`, '#ffd23f');
+        e.got = true; g.coins++; GameSfx.play('coin'); g.score += P.coin; pop(e.x + 6, e.y, `+${P.coin}`, '#ffd23f');
       }
     }
     // 旗子
@@ -379,6 +408,7 @@ const WD = (() => {
   function bump(c, r) {
     const g = game, v = tile(c, r);
     g.fx.push({ t: 0.15, bump: [c, r] });
+    GameSfx.play(v === QB ? 'qblock' : v === SB ? 'power' : 'bonk');
     if (v === QB) { g.lv.map[c][r] = UB; ask(c); }
     else if (v === SB) { g.lv.map[c][r] = UB; g.hero.star = STAR_SEC; g.stars = (g.stars || 0) + 1; banner('🌟', L(`無敵 ${STAR_SEC} 秒！`, `Invincible for ${STAR_SEC}s!`), L('撞到敵人直接打倒，體力不會減少', 'Smash enemies; energy stays full'), '#ffd23f'); }
   }
@@ -390,7 +420,7 @@ const WD = (() => {
     const w = shuffle(fresh.length ? fresh : pool)[0]; g.used.add(w.id);
     const seen = new Set([short(w)]), others = shuffle(pool.filter((x) => x.id !== w.id)).filter((x) => { const s = short(x); if (!s || seen.has(s)) return false; seen.add(s); return true; }).slice(0, 2);
     g.q = { w, opts: shuffle([w, ...others]), c };
-    releaseAll(); speak(w.word);
+    releaseAll(); speak(w.word); GameSfx.duck(true);
     pane(`<div class="wj-card wd-quiz">
       <div class="wj-kicker">❓ ${L('這個字是什麼意思？', 'What does it mean?')}</div>
       <div class="wd-word">${esc(w.word)}<button class="spk small" data-say="${esc(w.word)}">🔊</button></div>
@@ -401,7 +431,8 @@ const WD = (() => {
   function answer(i) {
     const g = game, q = g && g.q; if (!q) return;
     const o = q.opts[i], ok = o === q.w, x0 = (q.c + 0.5) * T, y0 = 6 * T;
-    g.q = null; pane(''); g.last = performance.now();
+    g.q = null; pane(''); g.last = performance.now(); GameSfx.duck(false);
+    GameSfx.play(ok ? 'right' : 'wrong');
     if (ok) {
       g.right++; g.streak++; g.best = Math.max(g.best, g.streak);
       const pts = P.right + (g.streak >= 3 ? P.streak : 0); g.score += pts; g.energy = Math.min(ENERGY, g.energy + E_RIGHT);
@@ -426,11 +457,13 @@ const WD = (() => {
     }
   }
   function hurt(e) {   // 被甲蟲撞到：扣體力、彈開、短暫無敵（不中斷遊戲）
+    GameSfx.play('hurt');
     const g = game, h = g.hero; g.energy -= E_HIT; g.streak = 0; g.hits = (g.hits || 0) + 1;
     h.inv = 1.5; h.vy = -260; h.vx = (h.x < e.x ? -1 : 1) * 140;
     pop(h.x + 8, h.y, `⚡−${E_HIT}`, '#ff6b57');
   }
   function pitFall() {   // 掉坑：扣體力、回到站穩的地方（體力用完才要拼字）
+    GameSfx.play('fall');
     const g = game, h = g.hero; g.energy -= E_PIT; g.falls = (g.falls || 0) + 1;
     if (g.energy <= 0) { g.energy = 0; return die('hungry'); }
     respawn(); pop(h.x + 8, h.y, `⚡−${E_PIT}`, '#ff6b57');
@@ -444,7 +477,7 @@ const WD = (() => {
 
   // ── 過關、失誤 ──
   function clear() {
-    const g = game; g.clears++;
+    const g = game; g.clears++; GameSfx.stopMusic(); GameSfx.play('clear');
     const bonus = P.flag + Math.round(g.energy) * 2; g.score += bonus; g.elapsed -= CLEAR_SEC;
     banner('🚩', L(`過關！+${bonus}　⏱️ +${CLEAR_SEC} 秒`, `Stage clear! +${bonus}  ⏱️ +${CLEAR_SEC}s`), L('下一關更難喔', 'Next stage is harder'), '#CCFF00');
     g.after = nextLevel; g.pause = 1.4; g.hero.vx = 0;
@@ -454,7 +487,7 @@ const WD = (() => {
     releaseAll();
     const pool = spellPool(), fresh = pool.filter((w) => !g.used.has(w.id));
     const w = shuffle(fresh.length ? fresh : pool)[0];
-    g.spell = { w, ans: answersOf(w)[0], shown: 1, tries: 0, why };
+    g.spell = { w, ans: answersOf(w)[0], shown: 1, tries: 0, why }; GameSfx.duck(true);
     showQ(); renderSpell(); speak(w.word);
   }
   function renderSpell(bad) {
@@ -481,11 +514,11 @@ const WD = (() => {
       const g = game, h = g.hero; g.spell = null; pane(''); g.last = performance.now();
       g.energy = ENERGY * 0.7;
       if (h.y > GROUND * T || !h.on) respawn();
-      h.inv = 2; showQ();
+      h.inv = 2; showQ(); GameSfx.duck(false); GameSfx.play('right');
       banner('✓', L('答對！繼續冒險', 'Correct! Keep going'), '', '#CCFF00');
     } else {
       s.tries++; s.shown = Math.min(s.ans.length, s.shown + 1);
-      renderSpell(true); speak(s.w.word);
+      renderSpell(true); speak(s.w.word); GameSfx.play('wrong');
     }
   }
   function pop(x, y, txt, c) { game.fx.push({ t: 0.8, x, y, txt, c }); }
@@ -502,7 +535,7 @@ const WD = (() => {
   function end() {
     cancelAnimationFrame(raf);
     const g = game; if (!g || g.over) return;
-    g.over = true; g.spell = null; showQ();
+    g.over = true; g.spell = null; showQ(); GameSfx.stopMusic(); GameSfx.play('end');
     const sc = g.score, pts = toPts(sc);
     let gain = 0, prev = 0, record = false, best = sc;
     if (!trial) {
@@ -702,6 +735,7 @@ const WD = (() => {
     const t = e.target.closest('[data-wd]'); if (!t) return;
     const a = t.dataset.wd;
     if (a === 'start') { if (typeof unlockAudio === 'function') unlockAudio(); start(); }
+    if (a === 'snd') return GameSfx.toggle(t);
     if (a === 'close') close();
     if (a === 'check') check();
     if (a === 'ans') answer(+t.dataset.i);
