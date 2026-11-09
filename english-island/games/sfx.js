@@ -7,7 +7,7 @@
 const GameSfx = (() => {
   let ac = null, master = null, noiseBuf = null;
   const last = {};                                   // 節流：同一種聲音太密就略過
-  const GAP = { shot: 120, tick: 60, kill: 45, swing: 90, smack: 40, ouch: 300, thud: 60 };     // 毫秒
+  const GAP = { shot: 120, tick: 60, kill: 45, swing: 90, smack: 40, ouch: 300, thud: 60, jump: 80 };     // 毫秒
   const on = () => !(typeof st !== 'undefined' && st.set && st.set.sfxMute);
 
   function audio() {
@@ -62,6 +62,11 @@ const GameSfx = (() => {
     level() { arp([0, 4, 7, 12, 16], 659, 0.06, { type: 'square', vol: 0.06, dur: 0.12 }); },
     full() { tone(523, 0.5, { type: 'triangle', vol: 0.12, slide: 2 }); tone(1047, 0.3, { type: 'sine', vol: 0.1, at: 0.35 }); },
     musou() { hiss(200, 4000, 0.4, 0.5, { type: 'bandpass' }); arp([0, 7, 12], 262, 0.05, { type: 'sawtooth', vol: 0.1, dur: 0.6 }); },
+    // ── Word Jump ──
+    jump() { tone(330 + Math.random() * 40, 0.14, { type: 'sine', vol: 0.09, slide: 2 }); },          // 一般跳：短短上升，很輕
+    spring() { tone(220, 0.45, { type: 'triangle', vol: 0.16, slide: 4 }); tone(880, 0.25, { type: 'sine', vol: 0.06, at: 0.05, slide: 1.5 }); },  // 彈簧：大大的 boing
+    crack() { hiss(5000, 900, 0.3, 0.12, { type: 'bandpass' }); tone(180, 0.1, { type: 'square', vol: 0.06, slide: 0.6 }); },  // 平台碎掉
+    fall() { tone(880, 0.7, { type: 'sine', vol: 0.12, slide: 0.18 }); },                               // 掉下去：往下滑的哨音
     end() { arp([0, 4, 7, 12, 16, 19, 24], 523, 0.08, { type: 'triangle', vol: 0.14, dur: 0.22 }); },
   };
 
