@@ -15,7 +15,7 @@ const WJ = (() => {
   const G = 0.38, JUMP = -11.5, SPRING = -19, RUN = 5.2;
   const PW = 66, PH = 12;
   const EDGE = 0.2;          // 手指模式：左右各 20% 是「穿牆區」，按著就一直往那邊跑
-  const VER = '1.6';
+  const VER = '1.7';
 
   let cv, cx, root, S = 1, VH = 640;   // S＝縮放；VH＝邏輯高度
   let game = null, raf = 0, keys = { l: false, r: false };
@@ -27,9 +27,19 @@ const WJ = (() => {
 
   // ── 解鎖與題庫 ──
   const masteredUnits = () => [...new Set(st.ledger.bonus.filter((b) => b.k.startsWith('master:')).map((b) => b.k.slice(7)))];
+  // 題目範圍（Jeffrey 2026/11/10）：第 N 款遊戲只出第 N 單元的字，對齊「精熟 N 個單元解鎖」；第 7～9 款另外處理。
+  // 這個單元還沒開放就用所有開放單字；符合條件的字不到 6 個（例：THP5／THC6 的 U2 只有 2 個單字能拼），從前面最近的單元補到 6 個以上
+  const SCOPE = 'U' + NEED;
+  const uNo = (w) => parseInt(String(w.unit).replace(/\D/g, ''), 10) || 0;
+  const scoped = (pred) => {
+    const all = st.words.filter(pred), n = +SCOPE.slice(1), out = all.filter((w) => w.unit === SCOPE);
+    if (!out.length) return all;
+    for (let k = n - 1; k >= 1 && out.length < 6; k--) out.push(...all.filter((w) => uNo(w) === k));
+    return out;
+  };
   const unlocked = () => masteredCount() >= NEED;
   // 拼字題：所有已開放單元的單字（不只精熟單元，還沒練熟的字也考）
-  const wordPool = () => st.words.filter((w) => w.type !== '片語' && !/[ ()/]/.test(w.word) && w.word.length >= 3);
+  const wordPool = () => scoped((w) => w.type !== '片語' && !/[ ()/]/.test(w.word) && w.word.length >= 3);
   const toPts = (m) => Math.min(CAP, Math.floor(m / M_PER_PT));
 
   // ── 挑戰頁上的入口卡片 ──

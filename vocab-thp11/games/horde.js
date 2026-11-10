@@ -12,7 +12,7 @@
 //        avatarSVG, lookOf, petOf, AV_TOPC
 // ═══════════════════════════════════════════════════════
 const WH6 = (() => {
-  const ID = 'horde', NEED = 6, VER = '0.5';
+  const ID = 'horde', NEED = 6, VER = '0.5.1';
   const TIME = 180, CAP = 20, S_PER_PT = 300;   // 每 300 分 1 ⭐ — 分數主要來自拼字，打小怪只有一點點
   const P = { kill: 1, brute: 10, letter: 15, word: 250, boss: 400 };   // v0.4：分數以拼字為主；無雙、炸彈打倒的怪不給分
   const G_GAIN = { kill: 1, brute: 6, letter: 4, word: 35 }, G_MAX = 100;   // 無雙集氣
@@ -41,8 +41,18 @@ const WH6 = (() => {
   let game = null, raf = 0, trial = false, joy = null, heroImg = null, petImg = null, look = null, lastW = 0, lastH = 0;
   const keys = {};
 
+  // 題目範圍（Jeffrey 2026/11/10）：第 N 款遊戲只出第 N 單元的字，對齊「精熟 N 個單元解鎖」；第 7～9 款另外處理。
+  // 這個單元還沒開放就用所有開放單字；符合條件的字不到 6 個（例：THP5／THC6 的 U2 只有 2 個單字能拼），從前面最近的單元補到 6 個以上
+  const SCOPE = 'U' + NEED;
+  const uNo = (w) => parseInt(String(w.unit).replace(/\D/g, ''), 10) || 0;
+  const scoped = (pred) => {
+    const all = st.words.filter(pred), n = +SCOPE.slice(1), out = all.filter((w) => w.unit === SCOPE);
+    if (!out.length) return all;
+    for (let k = n - 1; k >= 1 && out.length < 6; k--) out.push(...all.filter((w) => uNo(w) === k));
+    return out;
+  };
   const unlocked = () => masteredCount() >= NEED;
-  const spellPool = () => st.words.filter((w) => /^[a-z]{3,9}$/i.test(w.word) && meaning(w));
+  const spellPool = () => scoped((w) => /^[a-z]{3,9}$/i.test(w.word) && meaning(w));
   const toPts = (sc) => Math.min(CAP, Math.floor(sc / S_PER_PT));
   const card = () => gameCard({ id: ID, need: NEED, icon: '⚔️', name: 'Word Brawl 單字無雙' });
   const bestText = () => { const b = st.meta.games && st.meta.games[ID] && st.meta.games[ID].best; return b ? `Word Brawl ${b}` : ''; };

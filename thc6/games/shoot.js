@@ -10,7 +10,7 @@
 //        saveLedger, saveMeta, afterPoints, points, gameWeekBestAll, gameCard, masteredCount, GAMES, toast, confetti
 // ═══════════════════════════════════════════════════════
 const WS = (() => {
-  const ID = 'shoot', NEED = 4, VER = '0.9';
+  const ID = 'shoot', NEED = 4, VER = '0.9.1';
   const TIME = 180, CAP = 20;
   const S_PER_PT = 200;               // 每 200 分 1 ⭐（4000 分滿 20）— 待實玩後調整
   const LW = 360;                     // 邏輯寬度
@@ -21,8 +21,18 @@ const WS = (() => {
   let cv, cx, root, S = 1, VH = 640;
   let game = null, raf = 0, aim = null, trial = false;
 
+  // 題目範圍（Jeffrey 2026/11/10）：第 N 款遊戲只出第 N 單元的字，對齊「精熟 N 個單元解鎖」；第 7～9 款另外處理。
+  // 這個單元還沒開放就用所有開放單字；符合條件的字不到 6 個（例：THP5／THC6 的 U2 只有 2 個單字能拼），從前面最近的單元補到 6 個以上
+  const SCOPE = 'U' + NEED;
+  const uNo = (w) => parseInt(String(w.unit).replace(/\D/g, ''), 10) || 0;
+  const scoped = (pred) => {
+    const all = st.words.filter(pred), n = +SCOPE.slice(1), out = all.filter((w) => w.unit === SCOPE);
+    if (!out.length) return all;
+    for (let k = n - 1; k >= 1 && out.length < 6; k--) out.push(...all.filter((w) => uNo(w) === k));
+    return out;
+  };
   const unlocked = () => masteredCount() >= NEED;
-  const wordPool = () => st.words.filter((w) => w.type !== '片語' && !/[ ()/]/.test(w.word) && w.word.length >= 3);
+  const wordPool = () => scoped((w) => w.type !== '片語' && !/[ ()/]/.test(w.word) && w.word.length >= 3);
   const toPts = (sc) => Math.min(CAP, Math.floor(sc / S_PER_PT));
   const card = () => gameCard({ id: ID, need: NEED, icon: '🏀', name: 'Word Shot' });
   const bestText = () => { const b = st.meta.games && st.meta.games[ID] && st.meta.games[ID].best; return b ? `Word Shot ${b}` : ''; };

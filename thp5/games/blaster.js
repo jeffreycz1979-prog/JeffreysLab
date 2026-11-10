@@ -8,7 +8,7 @@
 //        saveLedger, saveMeta, saveSet, afterPoints, points, gameWeekBestAll, gameCard, masteredCount, GAMES, toast, confetti
 // ═══════════════════════════════════════════════════════
 const WB = (() => {
-  const ID = 'blaster', NEED = 2, VER = '1.6';
+  const ID = 'blaster', NEED = 2, VER = '1.7';
   const TIME = 180, CAP = 20;
   const S_PER_PT = 550;      // 每 550 分 = 1 ⭐（11000 分滿 20）；10/21 Jeffrey 實玩 v1.2 一局一萬多分，要求調到 10000～12000 才滿分
   const LW = 360;
@@ -33,8 +33,18 @@ const WB = (() => {
   addEventListener('deviceorientation', (e) => { if (e.gamma != null) { tiltG = e.gamma; tiltSeen = Date.now(); } });
   const ctl = () => st.set.blasterCtl || 'drag';   // drag＝手指拖曳（預設）、tilt＝搖晃（只控制左右）
 
+  // 題目範圍（Jeffrey 2026/11/10）：第 N 款遊戲只出第 N 單元的字，對齊「精熟 N 個單元解鎖」；第 7～9 款另外處理。
+  // 這個單元還沒開放就用所有開放單字；符合條件的字不到 6 個（例：THP5／THC6 的 U2 只有 2 個單字能拼），從前面最近的單元補到 6 個以上
+  const SCOPE = 'U' + NEED;
+  const uNo = (w) => parseInt(String(w.unit).replace(/\D/g, ''), 10) || 0;
+  const scoped = (pred) => {
+    const all = st.words.filter(pred), n = +SCOPE.slice(1), out = all.filter((w) => w.unit === SCOPE);
+    if (!out.length) return all;
+    for (let k = n - 1; k >= 1 && out.length < 6; k--) out.push(...all.filter((w) => uNo(w) === k));
+    return out;
+  };
   const unlocked = () => masteredCount() >= NEED;
-  const wordPool = () => st.words.filter((w) => w.type !== '片語' && !/[ ()/]/.test(w.word) && w.word.length >= 3);
+  const wordPool = () => scoped((w) => w.type !== '片語' && !/[ ()/]/.test(w.word) && w.word.length >= 3);
   const toPts = (sc) => Math.min(CAP, Math.floor(sc / S_PER_PT));
   const card = () => gameCard({ id: ID, need: NEED, icon: '👾', name: 'Word Blaster' });
   const bestText = () => { const b = st.meta.games && st.meta.games[ID] && st.meta.games[ID].best; return b ? `Word Blaster ${b}` : ''; };
@@ -290,7 +300,7 @@ const WB = (() => {
     g.inStation = { end: Date.now() + STATION_SEC * 1000, got: 0, n: 0, q: null, used: new Set(), shop: false };
     nextQ(); stationTick();
   }
-  const qPool = () => st.words.filter((w) => w.zh);
+  const qPool = () => scoped((w) => w.zh);
   function pickW(n) {
     const S = g2().used, pool = shuffle(qPool()), out = [];
     for (const w of pool) { if (!S.has(w.id)) { out.push(w); S.add(w.id); } if (out.length >= n) break; }

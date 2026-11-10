@@ -9,7 +9,7 @@
 //        saveLedger, saveMeta, saveSet, afterPoints, points, gameWeekBestAll, gameCard, masteredCount, GAMES, toast, confetti
 // ═══════════════════════════════════════════════════════
 const WR = (() => {
-  const ID = 'run', NEED = 3, VER = '1.2';
+  const ID = 'run', NEED = 3, VER = '1.3';
   const TIME = 180, CAP = 20;
   const S_PER_PT = 200;      // 每 200 分 = 1 ⭐（4000 分滿 20）；機器人（瞬間拼字）：單字門全對約 4200、答對 75% 約 3300、答對 55% 約 2700 — 待 Jeffrey 實玩後調整
   const LW = 360, LANE = 104;            // 邏輯寬度；跑道寬（玩家位置）
@@ -21,8 +21,18 @@ const WR = (() => {
   let cv, cx, root, S = 1, VH = 640;
   let game = null, raf = 0, sw = null;
 
+  // 題目範圍（Jeffrey 2026/11/10）：第 N 款遊戲只出第 N 單元的字，對齊「精熟 N 個單元解鎖」；第 7～9 款另外處理。
+  // 這個單元還沒開放就用所有開放單字；符合條件的字不到 6 個（例：THP5／THC6 的 U2 只有 2 個單字能拼），從前面最近的單元補到 6 個以上
+  const SCOPE = 'U' + NEED;
+  const uNo = (w) => parseInt(String(w.unit).replace(/\D/g, ''), 10) || 0;
+  const scoped = (pred) => {
+    const all = st.words.filter(pred), n = +SCOPE.slice(1), out = all.filter((w) => w.unit === SCOPE);
+    if (!out.length) return all;
+    for (let k = n - 1; k >= 1 && out.length < 6; k--) out.push(...all.filter((w) => uNo(w) === k));
+    return out;
+  };
   const unlocked = () => masteredCount() >= NEED;
-  const wordPool = () => st.words.filter((w) => w.type !== '片語' && !/[ ()/]/.test(w.word) && w.word.length >= 3);
+  const wordPool = () => scoped((w) => w.type !== '片語' && !/[ ()/]/.test(w.word) && w.word.length >= 3);
   const toPts = (sc) => Math.min(CAP, Math.floor(sc / S_PER_PT));
   const card = () => gameCard({ id: ID, need: NEED, icon: '🏃', name: 'Word Run' });
   const bestText = () => { const b = st.meta.games && st.meta.games[ID] && st.meta.games[ID].best; return b ? `Word Run ${b}` : ''; };
@@ -168,7 +178,7 @@ const WR = (() => {
     if (Math.random() < 0.7) game.deco.push({ z: z + 2.5, x: -side * (1.8 + Math.random() * 1.2), t: Math.random() < 0.3 ? 'bush' : 'tree', h: 0.8 + Math.random() * 0.5 });
   }
   function makeGate(z) {
-    const g = game, pool = st.words.filter((w) => w.zh || w.def);
+    const g = game, pool = scoped((w) => w.zh || w.def);
     const fresh = pool.filter((w) => !g.used.has('g' + w.id));
     const w = shuffle(fresh.length ? fresh : pool)[0]; g.used.add('g' + w.id);
     let wrong = distract(w).filter((o) => short(o) !== short(w));
