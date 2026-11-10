@@ -9,7 +9,7 @@
 //        saveLedger, saveMeta, afterPoints, points, gameWeekBestAll, gameCard, masteredCount, GAMES, toast, confetti
 // ═══════════════════════════════════════════════════════
 const WD = (() => {
-  const ID = 'dino', NEED = 5, VER = '0.8.1';
+  const ID = 'dino', NEED = 5, VER = '0.8.2';
   const TIME = 180, CAP = 20, S_PER_PT = 300;   // 每 300 分 1 ⭐（6000 分滿 20；v0.4 試玩 4754 分就滿 20，太好拿）
   const T = 24, ROWS = 11, WH = ROWS * T;         // 磚塊大小、地圖列數、世界高度
   const GROUND = 9;                               // 地面從第 9 列開始（第 9、10 列是土）
@@ -83,8 +83,24 @@ const WD = (() => {
     for (let k = n - 1; k >= 1 && out.length < 6; k--) out.push(...all.filter((w) => uNo(w) === k));
     return out;
   };
+  // 片語只拼關鍵字（Jeffrey 2026/11/10）：去掉括號、斜線後面的另一種說法、「...」和小字（a, the, to, one's, someone…），
+  // 取最長的字（同長取前面的）。例：lend (someone) a hand → hand、in style / in fashion → style、give ... to → give
+  const SMALL = new Set("a an the to of in on at for and or but with from by into onto is are be it its one's someone somebody something sb sth up out off down away around over back about".split(' '));
+  const spellKey = (w) => {
+    const s = String(w.word || '');
+    if (!/[ ()…]|\.\.\./.test(s)) return null;   // color/colour 這種沒有空格的斜線＝兩種拼法，照原本的 answersOf
+    const ws = s.split('/')[0].replace(/\([^)]*\)/g, ' ').replace(/\.{2,}|…/g, ' ').split(/\s+/)
+      .map((x) => x.replace(/^[^a-z]+|[^a-z]+$/gi, ''))
+      .filter((x) => /^[a-z][a-z-]*[a-z]$/i.test(x) && x.length >= 3 && !SMALL.has(x.toLowerCase()));
+    return ws.reduce((b, x) => (x.length > b.length ? x : b), '') || null;
+  };
+  const keyOf = (w) => spellKey(w) || String(w.word || '');
+  const canSpell = (w) => { const k = keyOf(w); return k.length >= 3 && !/[ ()]/.test(k); };
+  const ansOf = (w) => { const k = spellKey(w); return k ? [norm(k)] : answersOf(w); };
+  const blankPhrase = (w) => { const k = spellKey(w), s = String(w.word); return k ? (/\s\/\s/.test(s) ? s.split('/')[0].trim() : s).replace(new RegExp('\\b' + k + '\\b', 'i'), '_'.repeat(Math.max(4, k.length))) : ''; };
+  const phraseLine = (w) => (spellKey(w) ? `<div style="font-size:17px;font-weight:700;letter-spacing:.5px;margin:6px 0">${esc(blankPhrase(w))}</div>` : '');
   const unlocked = () => masteredCount() >= NEED;
-  const spellPool = () => scoped((w) => w.type !== '片語' && !/[ ()/]/.test(w.word) && w.word.length >= 3);
+  const spellPool = () => scoped(canSpell);
   const quizPool = () => scoped((w) => meaning(w));
   const toPts = (sc) => Math.min(CAP, Math.floor(sc / S_PER_PT));
   const card = () => gameCard({ id: ID, need: NEED, icon: '🦖', name: 'Dino Quest' });
@@ -530,7 +546,7 @@ const WD = (() => {
     releaseAll();
     const pool = spellPool(), fresh = pool.filter((w) => !g.used.has(w.id));
     const w = shuffle(fresh.length ? fresh : pool)[0];
-    g.spell = { w, ans: answersOf(w)[0], shown: 1, tries: 0, why }; GameSfx.duck(true);
+    g.spell = { w, ans: ansOf(w)[0], shown: 1, tries: 0, why }; GameSfx.duck(true);
     showQ(); renderSpell(); speak(w.word);
   }
   function renderSpell(bad) {
@@ -541,7 +557,7 @@ const WD = (() => {
       <div class="wj-kicker">${what} ${L('拼對才能繼續', 'Spell it to keep going')} ✏️</div>
       <div class="wj-mean" ${EN() ? 'style="font-size:17px"' : ''}>${esc(meaning(s.w))}</div>
       <div class="qmid"><span class="pos">${esc(s.w.pos || '')}</span><button class="spk small" data-say="${esc(s.w.word)}">🔊</button></div>
-      <div class="hintw">${esc(hint)}</div>
+      ${phraseLine(s.w)}<div class="hintw">${esc(hint)}</div>
       <input class="spellin" id="wdIn" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="type here">
       ${s.tries ? `<div class="wj-small" style="color:var(--coral)">${L(`拼錯 ${s.tries} 次，多給你一個字母`, `${s.tries} wrong — here's another letter`)}</div>` : ''}
       <button class="btn wide" style="margin-top:10px" data-wd="check">${L('確認 Check', 'Check')}</button>
@@ -553,7 +569,7 @@ const WD = (() => {
     const s = game && game.spell; if (!s) return;
     const v = norm($('wdIn').value || '');
     if (!v) return $('wdIn').focus();
-    if (answersOf(s.w).includes(v)) {
+    if (ansOf(s.w).includes(v)) {
       const g = game, h = g.hero; g.spell = null; pane(''); g.last = performance.now();
       g.energy = ENERGY * 0.7;
       if (h.y > GROUND * T || !h.on) respawn();

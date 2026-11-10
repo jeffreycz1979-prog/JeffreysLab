@@ -9,7 +9,7 @@
 //        saveLedger, saveMeta, saveSet, afterPoints, points, gameWeekBestAll, gameCard, masteredCount, GAMES, toast, confetti
 // ═══════════════════════════════════════════════════════
 const WR = (() => {
-  const ID = 'run', NEED = 3, VER = '1.3';
+  const ID = 'run', NEED = 3, VER = '1.4';
   const TIME = 180, CAP = 20;
   const S_PER_PT = 200;      // 每 200 分 = 1 ⭐（4000 分滿 20）；機器人（瞬間拼字）：單字門全對約 4200、答對 75% 約 3300、答對 55% 約 2700 — 待 Jeffrey 實玩後調整
   const LW = 360, LANE = 104;            // 邏輯寬度；跑道寬（玩家位置）
@@ -31,8 +31,24 @@ const WR = (() => {
     for (let k = n - 1; k >= 1 && out.length < 6; k--) out.push(...all.filter((w) => uNo(w) === k));
     return out;
   };
+  // 片語只拼關鍵字（Jeffrey 2026/11/10）：去掉括號、斜線後面的另一種說法、「...」和小字（a, the, to, one's, someone…），
+  // 取最長的字（同長取前面的）。例：lend (someone) a hand → hand、in style / in fashion → style、give ... to → give
+  const SMALL = new Set("a an the to of in on at for and or but with from by into onto is are be it its one's someone somebody something sb sth up out off down away around over back about".split(' '));
+  const spellKey = (w) => {
+    const s = String(w.word || '');
+    if (!/[ ()…]|\.\.\./.test(s)) return null;   // color/colour 這種沒有空格的斜線＝兩種拼法，照原本的 answersOf
+    const ws = s.split('/')[0].replace(/\([^)]*\)/g, ' ').replace(/\.{2,}|…/g, ' ').split(/\s+/)
+      .map((x) => x.replace(/^[^a-z]+|[^a-z]+$/gi, ''))
+      .filter((x) => /^[a-z][a-z-]*[a-z]$/i.test(x) && x.length >= 3 && !SMALL.has(x.toLowerCase()));
+    return ws.reduce((b, x) => (x.length > b.length ? x : b), '') || null;
+  };
+  const keyOf = (w) => spellKey(w) || String(w.word || '');
+  const canSpell = (w) => { const k = keyOf(w); return k.length >= 3 && !/[ ()]/.test(k); };
+  const ansOf = (w) => { const k = spellKey(w); return k ? [norm(k)] : answersOf(w); };
+  const blankPhrase = (w) => { const k = spellKey(w), s = String(w.word); return k ? (/\s\/\s/.test(s) ? s.split('/')[0].trim() : s).replace(new RegExp('\\b' + k + '\\b', 'i'), '_'.repeat(Math.max(4, k.length))) : ''; };
+  const phraseLine = (w) => (spellKey(w) ? `<div style="font-size:17px;font-weight:700;letter-spacing:.5px;margin:6px 0">${esc(blankPhrase(w))}</div>` : '');
   const unlocked = () => masteredCount() >= NEED;
-  const wordPool = () => scoped((w) => w.type !== '片語' && !/[ ()/]/.test(w.word) && w.word.length >= 3);
+  const wordPool = () => scoped(canSpell);
   const toPts = (sc) => Math.min(CAP, Math.floor(sc / S_PER_PT));
   const card = () => gameCard({ id: ID, need: NEED, icon: '🏃', name: 'Word Run' });
   const bestText = () => { const b = st.meta.games && st.meta.games[ID] && st.meta.games[ID].best; return b ? `Word Run ${b}` : ''; };
@@ -285,7 +301,7 @@ const WR = (() => {
     sw = null;
     const pool = wordPool(), fresh = pool.filter((w) => !g.used.has(w.id));
     const w = shuffle(fresh.length ? fresh : pool)[0]; g.used.add(w.id);
-    g.spell = { w, ans: answersOf(w)[0], shown: 1, tries: 0, what: o.t };
+    g.spell = { w, ans: ansOf(w)[0], shown: 1, tries: 0, what: o.t };
     showGate(); renderSpell(); speak(w.word);
   }
   function renderSpell(bad) {
@@ -296,7 +312,7 @@ const WR = (() => {
       <div class="wj-kicker">${what} ${L('拼對才能繼續', 'Spell it to keep going')} ✏️</div>
       <div class="wj-mean" ${EN() ? 'style="font-size:17px"' : ''}>${esc(meaning(s.w))}</div>
       <div class="qmid"><span class="pos">${esc(s.w.pos)}</span><button class="spk small" data-say="${esc(s.w.word)}">🔊</button></div>
-      <div class="hintw">${esc(hint)}</div>
+      ${phraseLine(s.w)}<div class="hintw">${esc(hint)}</div>
       <input class="spellin" id="wrIn" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="type here">
       ${s.tries ? `<div class="wj-small" style="color:var(--coral)">${L(`拼錯 ${s.tries} 次，多給你一個字母`, `${s.tries} wrong — here's another letter`)}</div>` : ''}
       <button class="btn wide" style="margin-top:10px" data-wr="check">${L('確認 Check', 'Check')}</button>
@@ -308,7 +324,7 @@ const WR = (() => {
     const s = game && game.spell; if (!s) return;
     const v = norm($('wrIn').value || '');
     if (!v) return $('wrIn').focus();
-    if (answersOf(s.w).includes(v)) {
+    if (ansOf(s.w).includes(v)) {
       const g = game; g.spell = null; pane('');
       g.objs = g.objs.filter((o) => o.t === 'gate' || o.t === 'coin' || o.z - g.dist > 16);   // 清掉前面的障礙
       g.p.inv = 2000; g.p.jump = 0; g.p.slide = 0; g.last = performance.now();

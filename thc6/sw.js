@@ -1,6 +1,6 @@
 // 英文島 THC6 班級版 - Service Worker（scope：/JeffreysLab/thc6/）
 // 頁面與程式改成網路優先；改了檔案仍建議把版本號 +1，舊快取會自動清除
-const CACHE_NAME = 'thc6-v14';
+const CACHE_NAME = 'thc6-v15';
 
 const PRECACHE_URLS = [
   '/JeffreysLab/thc6/',
@@ -10,12 +10,12 @@ const PRECACHE_URLS = [
   '/JeffreysLab/thc6/words.csv',
   '/JeffreysLab/thc6/island3d.js?v=6',
   '/JeffreysLab/thc6/games/sfx.js?v=1.5',
-  '/JeffreysLab/thc6/games/jump.js?v=1.7',
-  '/JeffreysLab/thc6/games/blaster.js?v=1.7',
-  '/JeffreysLab/thc6/games/run.js?v=1.3',
-  '/JeffreysLab/thc6/games/shoot.js?v=0.9.1',
-  '/JeffreysLab/thc6/games/dino.js?v=0.8.1',
-  '/JeffreysLab/thc6/games/horde.js?v=0.5.1',
+  '/JeffreysLab/thc6/games/jump.js?v=1.8',
+  '/JeffreysLab/thc6/games/blaster.js?v=1.8',
+  '/JeffreysLab/thc6/games/run.js?v=1.4',
+  '/JeffreysLab/thc6/games/shoot.js?v=0.9.2',
+  '/JeffreysLab/thc6/games/dino.js?v=0.8.2',
+  '/JeffreysLab/thc6/games/horde.js?v=0.5.2',
   '/JeffreysLab/thc6/cloud.js?v=8',
   '/JeffreysLab/thc6/msg.js?v=7',
   '/JeffreysLab/thc6/grant.js?v=1',

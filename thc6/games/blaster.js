@@ -8,7 +8,7 @@
 //        saveLedger, saveMeta, saveSet, afterPoints, points, gameWeekBestAll, gameCard, masteredCount, GAMES, toast, confetti
 // ═══════════════════════════════════════════════════════
 const WB = (() => {
-  const ID = 'blaster', NEED = 2, VER = '1.7';
+  const ID = 'blaster', NEED = 2, VER = '1.8';
   const TIME = 180, CAP = 20;
   const S_PER_PT = 550;      // 每 550 分 = 1 ⭐（11000 分滿 20）；10/21 Jeffrey 實玩 v1.2 一局一萬多分，要求調到 10000～12000 才滿分
   const LW = 360;
@@ -43,8 +43,24 @@ const WB = (() => {
     for (let k = n - 1; k >= 1 && out.length < 6; k--) out.push(...all.filter((w) => uNo(w) === k));
     return out;
   };
+  // 片語只拼關鍵字（Jeffrey 2026/11/10）：去掉括號、斜線後面的另一種說法、「...」和小字（a, the, to, one's, someone…），
+  // 取最長的字（同長取前面的）。例：lend (someone) a hand → hand、in style / in fashion → style、give ... to → give
+  const SMALL = new Set("a an the to of in on at for and or but with from by into onto is are be it its one's someone somebody something sb sth up out off down away around over back about".split(' '));
+  const spellKey = (w) => {
+    const s = String(w.word || '');
+    if (!/[ ()…]|\.\.\./.test(s)) return null;   // color/colour 這種沒有空格的斜線＝兩種拼法，照原本的 answersOf
+    const ws = s.split('/')[0].replace(/\([^)]*\)/g, ' ').replace(/\.{2,}|…/g, ' ').split(/\s+/)
+      .map((x) => x.replace(/^[^a-z]+|[^a-z]+$/gi, ''))
+      .filter((x) => /^[a-z][a-z-]*[a-z]$/i.test(x) && x.length >= 3 && !SMALL.has(x.toLowerCase()));
+    return ws.reduce((b, x) => (x.length > b.length ? x : b), '') || null;
+  };
+  const keyOf = (w) => spellKey(w) || String(w.word || '');
+  const canSpell = (w) => { const k = keyOf(w); return k.length >= 3 && !/[ ()]/.test(k); };
+  const ansOf = (w) => { const k = spellKey(w); return k ? [norm(k)] : answersOf(w); };
+  const blankPhrase = (w) => { const k = spellKey(w), s = String(w.word); return k ? (/\s\/\s/.test(s) ? s.split('/')[0].trim() : s).replace(new RegExp('\\b' + k + '\\b', 'i'), '_'.repeat(Math.max(4, k.length))) : ''; };
+  const phraseLine = (w) => (spellKey(w) ? `<div style="font-size:17px;font-weight:700;letter-spacing:.5px;margin:6px 0">${esc(blankPhrase(w))}</div>` : '');
   const unlocked = () => masteredCount() >= NEED;
-  const wordPool = () => scoped((w) => w.type !== '片語' && !/[ ()/]/.test(w.word) && w.word.length >= 3);
+  const wordPool = () => scoped(canSpell);
   const toPts = (sc) => Math.min(CAP, Math.floor(sc / S_PER_PT));
   const card = () => gameCard({ id: ID, need: NEED, icon: '👾', name: 'Word Blaster' });
   const bestText = () => { const b = st.meta.games && st.meta.games[ID] && st.meta.games[ID].best; return b ? `Word Blaster ${b}` : ''; };
@@ -459,7 +475,7 @@ const WB = (() => {
     keys = { l: 0, r: 0, u: 0, d: 0 }; finger = null;
     const pool = wordPool(), fresh = pool.filter((w) => !g.used.has(w.id));
     const w = shuffle(fresh.length ? fresh : pool)[0]; g.used.add(w.id);
-    g.spell = { w, ans: answersOf(w)[0], shown: 1, tries: 0 };
+    g.spell = { w, ans: ansOf(w)[0], shown: 1, tries: 0 };
     renderSpell(); speak(w.word);
   }
   function renderSpell(bad) {
@@ -469,7 +485,7 @@ const WB = (() => {
       <div class="wj-kicker">${L('被打中了！拼對才能繼續', 'Hit! Spell it to keep going')} ✏️</div>
       <div class="wj-mean" ${EN() ? 'style="font-size:17px"' : ''}>${esc(meaning(s.w))}</div>
       <div class="qmid"><span class="pos">${esc(s.w.pos)}</span><button class="spk small" data-say="${esc(s.w.word)}">🔊</button></div>
-      <div class="hintw">${esc(hint)}</div>
+      ${phraseLine(s.w)}<div class="hintw">${esc(hint)}</div>
       <input class="spellin" id="wbIn" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="type here">
       ${s.tries ? `<div class="wj-small" style="color:var(--coral)">${L(`拼錯 ${s.tries} 次，多給你一個字母`, `${s.tries} wrong — here's another letter`)}</div>` : ''}
       <button class="btn wide" style="margin-top:10px" data-wb="check">${L('確認 Check', 'Check')}</button>
@@ -481,7 +497,7 @@ const WB = (() => {
     const s = game && game.spell; if (!s) return;
     const v = norm($('wbIn').value || '');
     if (!v) return $('wbIn').focus();
-    if (answersOf(s.w).includes(v)) {
+    if (ansOf(s.w).includes(v)) {
       const g = game; g.spell = null; pane('');
       g.ship = { x: LW / 2, y: VH - 90, inv: 2500 };          // 2.5 秒無敵
       g.eshots = []; g.pw = { rapid: 0, spread: 0, slow: 0 }; g.spreadLv = 1;   // 道具消失

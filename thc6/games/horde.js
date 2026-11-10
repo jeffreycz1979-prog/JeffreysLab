@@ -12,7 +12,7 @@
 //        avatarSVG, lookOf, petOf, AV_TOPC
 // ═══════════════════════════════════════════════════════
 const WH6 = (() => {
-  const ID = 'horde', NEED = 6, VER = '0.5.1';
+  const ID = 'horde', NEED = 6, VER = '0.5.2';
   const TIME = 180, CAP = 20, S_PER_PT = 300;   // 每 300 分 1 ⭐ — 分數主要來自拼字，打小怪只有一點點
   const P = { kill: 1, brute: 10, letter: 15, word: 250, boss: 400 };   // v0.4：分數以拼字為主；無雙、炸彈打倒的怪不給分
   const G_GAIN = { kill: 1, brute: 6, letter: 4, word: 35 }, G_MAX = 100;   // 無雙集氣
@@ -51,8 +51,24 @@ const WH6 = (() => {
     for (let k = n - 1; k >= 1 && out.length < 6; k--) out.push(...all.filter((w) => uNo(w) === k));
     return out;
   };
+  // 片語只拼關鍵字（Jeffrey 2026/11/10）：去掉括號、斜線後面的另一種說法、「...」和小字（a, the, to, one's, someone…），
+  // 取最長的字（同長取前面的）。例：lend (someone) a hand → hand、in style / in fashion → style、give ... to → give
+  const SMALL = new Set("a an the to of in on at for and or but with from by into onto is are be it its one's someone somebody something sb sth up out off down away around over back about".split(' '));
+  const spellKey = (w) => {
+    const s = String(w.word || '');
+    if (!/[ ()…]|\.\.\./.test(s)) return null;   // color/colour 這種沒有空格的斜線＝兩種拼法，照原本的 answersOf
+    const ws = s.split('/')[0].replace(/\([^)]*\)/g, ' ').replace(/\.{2,}|…/g, ' ').split(/\s+/)
+      .map((x) => x.replace(/^[^a-z]+|[^a-z]+$/gi, ''))
+      .filter((x) => /^[a-z][a-z-]*[a-z]$/i.test(x) && x.length >= 3 && !SMALL.has(x.toLowerCase()));
+    return ws.reduce((b, x) => (x.length > b.length ? x : b), '') || null;
+  };
+  const keyOf = (w) => spellKey(w) || String(w.word || '');
+  const canSpell = (w) => { const k = keyOf(w); return k.length >= 3 && !/[ ()]/.test(k); };
+  const ansOf = (w) => { const k = spellKey(w); return k ? [norm(k)] : answersOf(w); };
+  const blankPhrase = (w) => { const k = spellKey(w), s = String(w.word); return k ? (/\s\/\s/.test(s) ? s.split('/')[0].trim() : s).replace(new RegExp('\\b' + k + '\\b', 'i'), '_'.repeat(Math.max(4, k.length))) : ''; };
+  const phraseLine = (w) => (spellKey(w) ? `<div style="font-size:17px;font-weight:700;letter-spacing:.5px;margin:6px 0">${esc(blankPhrase(w))}</div>` : '');
   const unlocked = () => masteredCount() >= NEED;
-  const spellPool = () => scoped((w) => /^[a-z]{3,9}$/i.test(w.word) && meaning(w));
+  const spellPool = () => scoped((w) => /^[a-z]{3,9}$/i.test(keyOf(w)) && meaning(w));
   const toPts = (sc) => Math.min(CAP, Math.floor(sc / S_PER_PT));
   const card = () => gameCard({ id: ID, need: NEED, icon: '⚔️', name: 'Word Brawl 單字無雙' });
   const bestText = () => { const b = st.meta.games && st.meta.games[ID] && st.meta.games[ID].best; return b ? `Word Brawl ${b}` : ''; };
@@ -215,9 +231,9 @@ const WH6 = (() => {
     const el = root && root.querySelector('#whWord'); if (!el) return;
     const g = game;
     if (!g || !g.w || g.over || paused()) { el.style.display = 'none'; return; }
-    const a = g.w.word.toLowerCase();
+    const a = keyOf(g.w).toLowerCase();
     el.style.display = '';
-    el.innerHTML = `<div class="in"><span class="zh">${esc(short(g.w))}</span><span class="slots">${a.split('').map((c, i) =>
+    el.innerHTML = `<div class="in"><span class="zh">${esc(short(g.w))}${spellKey(g.w) ? ' · ' + esc(blankPhrase(g.w)) : ''}</span><span class="slots">${a.split('').map((c, i) =>
       i < g.idx ? `<b class="ok ${i === g.popSlot ? 'pop' : ''}">${esc(c)}</b>` : i === g.idx ? `<b class="next ${g.miss >= 3 ? 'hint' : ''}">${g.miss >= 3 ? esc(c) : ''}</b>` : '<b></b>').join('')}</span>
       <button class="spk small" data-say="${esc(g.w.word)}">🔊</button></div>`;
   }
@@ -447,7 +463,7 @@ const WH6 = (() => {
   }
   // 掉字母：一半是下一個要的字母、一半干擾；場上沒有正確的而且太久沒掉，就保證掉一個
   function drop(x, y) {
-    const g = game, a = g.w.word.toLowerCase(), need = a[g.idx]; if (!need) return;
+    const g = game, a = keyOf(g.w).toLowerCase(), need = a[g.idx]; if (!need) return;
     // 場上最多 3 顆：正確的那顆一定先出現，之後才補 1～2 顆干擾
     const onField = g.orbs.some((o) => o.c === need);
     let c;
@@ -458,7 +474,7 @@ const WH6 = (() => {
     g.fx.push({ t: 0.6, ring: 1, x, y });
   }
   function pick(c, o) {
-    const g = game, a = g.w.word.toLowerCase();
+    const g = game, a = keyOf(g.w).toLowerCase();
     if (c === a[g.idx]) {
       GameSfx.play('pop');
       g.idx++; g.miss = 0; g.score += P.letter; addGauge(G_GAIN.letter); g.popSlot = g.idx - 1;
@@ -524,7 +540,7 @@ const WH6 = (() => {
   function die() {
     const g = game; g.deaths++; joy = null;
     const pool = spellPool(), w = shuffle(pool.filter((x) => x.id !== g.w.id))[0] || pool[0];
-    g.spell = { w, ans: answersOf(w)[0], shown: 1, tries: 0 };
+    g.spell = { w, ans: ansOf(w)[0], shown: 1, tries: 0 };
     showWord(); musouBtn(); renderSpell(); speak(w.word);
   }
   function renderSpell(bad) {
@@ -534,7 +550,7 @@ const WH6 = (() => {
       <div class="wj-kicker">${L('血量用完了！拼對才能繼續', 'Out of HP! Spell it to keep going')} ✏️</div>
       <div class="wj-mean" ${EN() ? 'style="font-size:17px"' : ''}>${esc(meaning(s.w))}</div>
       <div class="qmid"><span class="pos">${esc(s.w.pos || '')}</span><button class="spk small" data-say="${esc(s.w.word)}">🔊</button></div>
-      <div class="hintw">${esc(hint)}</div>
+      ${phraseLine(s.w)}<div class="hintw">${esc(hint)}</div>
       <input class="spellin" id="whIn" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="type here">
       ${s.tries ? `<div class="wj-small" style="color:var(--coral)">${L(`拼錯 ${s.tries} 次，多給你一個字母`, `${s.tries} wrong — here's another letter`)}</div>` : ''}
       <button class="btn wide" style="margin-top:10px" data-wh="check">${L('確認 Check', 'Check')}</button>
@@ -546,7 +562,7 @@ const WH6 = (() => {
     const s = game && game.spell; if (!s) return;
     const v = norm($('whIn').value || '');
     if (!v) return $('whIn').focus();
-    if (answersOf(s.w).includes(v)) {
+    if (ansOf(s.w).includes(v)) {
       const g = game, h = g.hero; g.spell = null; pane(''); g.last = performance.now();
       h.hp = Math.round(h.max * 0.7); h.inv = 2.5; g.hazards = [];
       g.foes.slice().forEach((f) => { if (f.type !== 'boss' && Math.hypot(f.x - h.x, f.y - h.y) < 120) kill(f); });   // 復活時把身邊的怪打飛
@@ -742,7 +758,7 @@ const WH6 = (() => {
     }
     // 第一個字：箭頭指向要撿的字母
     if (g.words === 0 && !paused()) {
-      const need = g.w && g.w.word.toLowerCase()[g.idx], o = need && g.orbs.filter((x) => x.c === need && x.pop <= 0).sort((a, b) => Math.hypot(a.x - h.x, a.y - h.y) - Math.hypot(b.x - h.x, b.y - h.y))[0];
+      const need = g.w && keyOf(g.w).toLowerCase()[g.idx], o = need && g.orbs.filter((x) => x.c === need && x.pop <= 0).sort((a, b) => Math.hypot(a.x - h.x, a.y - h.y) - Math.hypot(b.x - h.x, b.y - h.y))[0];
       if (o) {
         const a = Math.atan2(o.y - h.y, o.x - h.x), d = Math.hypot(o.x - h.x, o.y - h.y);
         if (d > 70) { const ax = h.x + Math.cos(a) * 46, ay = h.y + Math.sin(a) * 46; cx.save(); cx.translate(ax, ay); cx.rotate(a); cx.fillStyle = '#CCFF00'; cx.beginPath(); cx.moveTo(14, 0); cx.lineTo(-6, -10); cx.lineTo(-2, 0); cx.lineTo(-6, 10); cx.fill(); cx.restore(); }
