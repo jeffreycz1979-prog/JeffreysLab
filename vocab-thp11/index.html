@@ -1483,7 +1483,7 @@ function spotCheck() {
   if (!spot || spot.done) return;
   const inp = $('spotIn'), v = norm(inp.value || '');
   if (!v) return inp.focus();
-  const ok = answersOf(spot.w).includes(v);
+  const ok = spellOk(spot.w, v);
   inp.classList.add(ok ? 'ok' : 'bad'); inp.disabled = true;
   const btn = document.querySelector('[data-act="spotcheck"]'); if (btn) btn.remove();
   if (!ok) return spotFail(`${L('正確拼法', 'Correct spelling')}：<b>${esc(spot.w.word)}</b>`);
@@ -2901,6 +2901,11 @@ function answersOf(w) {   // 可接受的拼法：括號裡的字打或不打都
   out.slice().forEach((a) => { if (a.includes('…')) GAP.forEach((g) => out.push(norm(a.replace(/…/g, g)))); });
   return [...new Set(out)];
 }
+// 拼字比對（Jeffrey 2026/11/10）：不被標點卡住——撇號、. , ! ? ; : 引號都不用打（someones = someone's），
+// 連字號打空格或不打都算對（hide and seek／hideandseek = hide-and-seek）；大小寫、多個空白本來就不管
+const looseA = (s) => norm(s).replace(/['".,!?;:“”]/g, '').replace(/-/g, ' ').replace(/\s+/g, ' ').trim();
+const looseB = (s) => norm(s).replace(/['".,!?;:“”]/g, '').replace(/\s*-\s*/g, '').replace(/\s+/g, ' ').trim();
+const spellOk = (w, v) => answersOf(w).some((a) => a === v || looseA(a) === looseA(v) || looseB(a) === looseB(v));
 function clozeOf(w) {
   if (!w.ex || /[()/]/.test(w.word)) return null;
   const base = w.word.length > 4 && !w.word.includes(' ') ? w.word.replace(/(e|y)$/i, '') : w.word;
@@ -2932,7 +2937,7 @@ function startQuiz(unit) {
       if (ws.length === 4) q = { type, ws, left: shuffle(ws), right: shuffle(ws), done: [], miss: 0 };
       else ws.forEach((w) => used.delete(w.id));
     } else if (type === 'spell') {
-      const w = take((x) => x.type !== '片語' && !/[ ()/]/.test(x.word)); if (w) q = { type, w };
+      const w = take((x) => /[a-z]/i.test(x.word)); if (w) q = { type, w };   // 2026/11/10 起片語、句子也考，要完整打出來（遊戲才只拼關鍵字）
     } else if (type === 'cloze') {
       const w = take((x) => clozeOf(x)); if (w) q = { ...choice(type, w), text: clozeOf(w) };
     } else if (type === 'gram') {
@@ -3187,7 +3192,7 @@ function checkSpell() {
   const q = qz.qs[qz.i], inp = $('spellIn'); if (!inp) return;
   const v = norm(inp.value);
   if (!v) return inp.focus();
-  const ok = answersOf(q.w).includes(v);
+  const ok = spellOk(q.w, v);
   inp.classList.add(ok ? 'ok' : 'bad'); inp.disabled = true;
   document.querySelector('[data-act="qspell"]').remove();
   scoreQ(ok, [q.w]);
