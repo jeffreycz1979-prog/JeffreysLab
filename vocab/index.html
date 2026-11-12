@@ -289,6 +289,8 @@ nav button.on{color:var(--green);font-weight:700}
     <input class="search" id="search" type="search" placeholder="搜尋英文或中文…">
     <div class="flabel">狀態</div>
     <div class="chips" id="fStatus"></div>
+    <div class="flabel">難度 <small style="font-weight:400">可複選</small></div>
+    <div class="chips" id="fListLv"></div>
     <div class="count" id="listCount"></div>
     <div class="list" id="list"></div>
   </section>
@@ -452,6 +454,7 @@ const st = {
   qlog: [], wstat: {},              // 挑戰紀錄、每個字的挑戰成績
   sess: { total: 0, done: 0, again: 0 }, undoStack: [],
   listStatus: 'all',
+  listLevels: [],
 };
 const todayKey = () => { const d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); };
 const $ = (id) => document.getElementById(id);
@@ -901,8 +904,13 @@ function renderList() {
   const q = $('search').value.trim().toLowerCase();
   const sts = [['all', '全部'], ['new', '未學'], ['learn', '學習中'], ['known', '已記得'], ['hard', '頑固字']];
   $('fStatus').innerHTML = sts.map(([k, l]) => `<button class="chip ${st.listStatus === k ? 'on' : ''}" data-st="${k}">${l}</button>`).join('');
+  const lvs = LEVELS.filter((l) => st.words.some((w) => w.lv === l));
+  const nLv = (l) => st.words.filter((w) => w.lv === l).length;
+  $('fListLv').innerHTML = `<button class="chip ${st.listLevels.length ? '' : 'on'}" data-llv="">全部</button>` +
+    lvs.map((l) => `<button class="chip ${st.listLevels.includes(l) ? 'on' : ''}" data-llv="${l}">${l}・${nLv(l)}</button>`).join('');
   const items = st.words.filter((w) =>
     (st.listStatus === 'all' || statusOf(w) === st.listStatus) &&
+    (!st.listLevels.length || st.listLevels.includes(w.lv)) &&
     (!q || w.word.toLowerCase().includes(q) || w.zh.includes(q)));
   $('listCount').textContent = `共 ${items.length} 筆`;
   $('list').innerHTML = items.map(rowHTML).join('') || '<p class="hint" style="margin-top:20px">沒有符合的單字</p>';
@@ -1329,6 +1337,11 @@ document.addEventListener('click', (e) => {
   if (t.dataset.grp) return toggleFilter(t.dataset.grp, t.dataset.val);
   if (t.dataset.g) return flyOut(+t.dataset.g);
   if (t.dataset.st) { st.listStatus = t.dataset.st; return renderList(); }
+  if (t.dataset.llv !== undefined) {   // 單字庫難度：可複選，點「全部」清空
+    const v = t.dataset.llv;
+    st.listLevels = !v ? [] : st.listLevels.includes(v) ? st.listLevels.filter((x) => x !== v) : [...st.listLevels, v];
+    return renderList();
+  }
   if (t.dataset.act === 'start') return buildQueue();
   if (t.dataset.act === 'more') return buildQueue(5);
   if (t.dataset.act === 'hard') return practiceHard();
