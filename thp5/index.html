@@ -183,8 +183,8 @@ main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
 @keyframes petIdle{to{transform:translateY(-1px)}}
 @keyframes petHop{to{transform:translateY(-4px)}}
 /* 📮 信箱、宣言、同學分身 */
-.island-head > div:first-child{flex:none}.island-head b{white-space:nowrap}
-#islandSum{min-width:0;text-align:center;line-height:1.25;white-space:normal}
+.island-head > div:first-child{flex:1 1 auto;min-width:0}.island-head b{white-space:nowrap}.island-head small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}   /* 標題可以縮，英文小字太長就截掉 */
+#islandSum{display:inline-block;margin-top:5px;font-size:12px;padding:3px 10px;line-height:1.3;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}   /* 進度標籤在標題下面一行 */
 .mail-btn{position:relative;margin-left:auto;border:2px solid var(--green);background:#fff;border-radius:12px;font-size:18px;line-height:1;padding:5px 8px;cursor:pointer}
 .mail-btn i{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;border-radius:9px;background:var(--coral);color:#fff;font:800 11px/18px Syne,sans-serif;font-style:normal;padding:0 4px;border:2px solid #fff}
 .mail-btn.shake{animation:shake .5s 2}
@@ -734,8 +734,7 @@ nav button.on{color:var(--lime);font-weight:700}
     <div id="installTip"></div>
     <div class="island-card">
       <div class="island-head">
-        <div><b>探索英文島</b><small>ENGLISH ISLAND</small></div>
-        <span id="islandSum"></span>
+        <div><b>探索英文島</b><small>ENGLISH ISLAND</small><span id="islandSum"></span></div>   <!-- 進度標籤放在標題下面，右邊按鈕才不會擠到它 -->
         <button class="mail-btn" id="mailBtn" aria-label="信箱" hidden>📮<i id="mailDot" hidden></i></button>
         <button class="map-tog" id="mapTog" aria-label="切換 2D／3D 地圖" style="display:none">3D</button>
       </div>
