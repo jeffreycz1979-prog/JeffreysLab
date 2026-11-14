@@ -189,9 +189,13 @@
       ? `<div class="srow" style="display:block"><div>☁️ 雲端帳號：${esc(auth.nick || st.profile && st.profile.name || '')}${auth.cls ? '（' + esc(auth.cls) + '）' : ''}
           <small>${auth.syncedAt ? '上次備份 ' + hhmm(auth.syncedAt) : '還沒備份'}・練習後會自動備份${MOCK ? '・🧪 模擬後台' : ''}</small></div>
           <div class="btnrow" style="justify-content:flex-start;margin-top:8px"><button class="btn ghost" data-act="cloudpush">立即備份</button><button class="btn ghost" data-act="cloudout">登出</button></div></div>`
-      : `<div class="srow"><div>☁️ 雲端帳號<small>用老師發的登入小卡登入，進度自動備份，換手機直接登入${MOCK ? '・🧪 模擬後台' : ''}</small></div><button class="btn" data-act="cloudin">登入</button></div>`;
+      : `<div class="srow"><div>☁️ 雲端帳號<small>用老師發的登入小卡登入，進度自動備份，換手機直接登入${MOCK ? '・🧪 模擬後台' : ''}</small></div><button class="btn" data-act="cloudin">🎫 輸入登入小卡</button></div>`;
     const code = $('codeBox'); if (code) code.style.display = auth ? 'none' : '';
     const onb = $('onbLogin'); if (onb) onb.style.display = auth ? 'none' : '';
+    // 還沒登入：雲端帳號搬到「我的」最上面＋紅框（原本在設定下面，學生滑不到、說找不到輸入的地方）
+    const firstH = $('v-me') && $('v-me').querySelector('h3');
+    if (firstH && box.nextElementSibling !== firstH) firstH.parentNode.insertBefore(box, firstH);
+    box.classList.toggle('cloud-need', !auth);
     nagBar();
   }
 
@@ -233,7 +237,8 @@
   }
   if (!document.getElementById('lgCss')) {
     const c = document.createElement('style'); c.id = 'lgCss';
-    c.textContent = `.login-nag{display:flex;align-items:center;gap:10px;width:100%;text-align:left;margin:0 0 12px;padding:10px 12px;border-radius:16px;border:2px solid #FF6B57;background:#3a1c18;color:#fff;animation:lgPulse 2s ease-in-out infinite}
+    c.textContent = `.cloud-need{border:2px solid #FF6B57!important;background:#3a1c18!important;margin-bottom:14px}.cloud-need .btn{white-space:nowrap}
+      .login-nag{display:flex;align-items:center;gap:10px;width:100%;text-align:left;margin:0 0 12px;padding:10px 12px;border-radius:16px;border:2px solid #FF6B57;background:#3a1c18;color:#fff;animation:lgPulse 2s ease-in-out infinite}
       .login-nag>span{font-size:22px}.login-nag>div{flex:1;min-width:0}.login-nag b{display:block;font-size:15px}.login-nag small{display:block;font-size:12px;color:#ffc9c0}
       .login-nag i{font-style:normal;font-weight:800;font-size:13px;background:#FF6B57;color:#1a0a08;border-radius:10px;padding:6px 10px;white-space:nowrap}
       @keyframes lgPulse{50%{box-shadow:0 0 0 4px rgba(255,107,87,.25)}}
