@@ -246,6 +246,7 @@
   }
 
   document.addEventListener('click', (e) => {
+    if (e.target.closest('#onbGo')) setTimeout(nagBar, 600);   // 第一次取好暱稱：紅色「還沒登入」提醒條馬上出現（原本要等下次打開）
     const t = e.target.closest('[data-act]'); if (!t || !t.dataset.act.startsWith('cloud')) return;
     const a = t.dataset.act;
     if (a === 'cloudin') return openLogin();
