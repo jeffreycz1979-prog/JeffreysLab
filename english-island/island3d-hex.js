@@ -476,7 +476,32 @@ export async function createIsland3D(el, host) {
   let heroKey = '', heroLen = 0, heroFlip = false, walking = null;
   // 貼圖：[面右, 面左] 各一組；站著一張、走路一步切成幾格（手腳真的前後擺）。面左的圖另外畫，泡泡的字才不會反過來
   let idleTex = [null, null], walkTex = [[], []], step = -1;
-  const toTex = (cv) => { const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; return t; };
+  // 立體紙偶：角色圖外面加一圈白邊（像剪下來的貼紙），下方再墊一層米色當紙板厚度
+  function sticker(cv) {
+    const w = cv.width, h = cv.height, k = w / 264;
+    const sil = (color) => { const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); g.drawImage(cv, 0, 0); g.globalCompositeOperation = 'source-in'; g.fillStyle = color; g.fillRect(0, 0, w, h); return c; };
+    const edge = sil('#B9AE98'), white = sil('#ffffff');
+    const out = document.createElement('canvas'); out.width = w; out.height = h; const g = out.getContext('2d');
+    const ring = (img, r, dx, dy) => { for (let a = 0; a < 16; a++) g.drawImage(img, Math.cos(a * Math.PI / 8) * r + dx, Math.sin(a * Math.PI / 8) * r + dy); };
+    ring(edge, 5 * k, 1.5 * k, 4.5 * k);   // 紙板厚度（往右下偏一點）
+    ring(white, 5 * k, 0, 0);              // 白邊
+    g.drawImage(cv, 0, 0);
+    return out;
+  }
+  const toTex = (cv) => { const t = new THREE.CanvasTexture(sticker(cv)); t.colorSpace = THREE.SRGBColorSpace; return t; };
+  // 腳下的圓形影子（自己的角色、同學分身共用一張漸層貼圖）
+  const shadowTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'); const gr = g.createRadialGradient(32, 32, 2, 32, 32, 31); gr.addColorStop(0, 'rgba(20,40,20,.55)'); gr.addColorStop(1, 'rgba(20,40,20,0)'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); })();
+  const shadowGeo = flat(new THREE.PlaneGeometry(1, 1));
+  function makeShadow(size) { const m = new THREE.Mesh(shadowGeo, new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false })); m.scale.set(size, 1, size * 0.6); m.renderOrder = 2; scene.add(m); return m; }
+  function placeShadow(sh, sp, size) {   // 跳起來時影子變小、變淡
+    const gy = groundAt(sp.position.x, sp.position.z), lift = Math.max(0, sp.position.y - gy), s = size * (1 - Math.min(0.35, lift * 0.8));
+    sh.position.set(sp.position.x, gy + 0.08, sp.position.z); sh.scale.set(s, 1, s * 0.6); sh.material.opacity = 1 - Math.min(0.5, lift);
+  }
+  const heroShadow = makeShadow(2.6);
+  // 轉身：紙偶像翻牌一樣從窄變寬（約 0.16 秒）
+  const FLIP_MS = 160;
+  const flipScale = (t0, now) => (t0 ? Math.min(1, 0.08 + (now - t0) / FLIP_MS) : 1);
+  let heroFlipT = 0;
   async function refreshHero() {
     const k = host.heroKey(); if (k === heroKey) return; heroKey = k;
     const cv = await host.heroCanvas(); if (!cv) return;
@@ -503,6 +528,7 @@ export async function createIsland3D(el, host) {
   function setFlip(f, force) {
     if (f === heroFlip && !force) return; heroFlip = f;
     hero.center.x = f ? 1 - HERO_CX : HERO_CX; showHero();
+    if (!force && !host.reduce) heroFlipT = performance.now();
   }
   function placeHero(l) { const r = roadAt(l); hero.position.x = r.x; hero.position.z = r.z; }
 
@@ -513,14 +539,15 @@ export async function createIsland3D(el, host) {
   async function refreshMates() {
     const list = host.mates ? host.mates() : [];
     const k = JSON.stringify(list.map((m) => [m.key, m.at, m.look, m.tags])); if (k === matesKey) { placeMateHomes(); return; } matesKey = k;
-    mateList.forEach((m) => { m.tex.forEach((side) => side.forEach((t) => t && t.dispose())); m.sp.material.dispose(); matesG.remove(m.sp); });
+    mateList.forEach((m) => { m.tex.forEach((side) => side.forEach((t) => t && t.dispose())); m.sp.material.dispose(); matesG.remove(m.sp); scene.remove(m.sh); m.sh.material.dispose(); });
     mateList = [];
     for (const [i, m] of list.entries()) {
       const mat = new THREE.SpriteMaterial({ transparent: true, depthWrite: false });
       const sp = new THREE.Sprite(mat); sp.renderOrder = 3; sp.userData.mate = m.key;
       sp.scale.set(MATE_H * 264 / 384, MATE_H, 1); sp.center.set(HERO_CX, HERO_CY);
+      const sh = makeShadow(2.1);
       matesG.add(sp);
-      const w = { key: m.key, at: m.at, i, sp, tex: [[], []], home: 0, l: 0, to: 0, pause: 800 + i * 900, left: i % 2 === 0, moving: false, dist: 0 };
+      const w = { key: m.key, at: m.at, i, sp, sh, ft: 0, tex: [[], []], home: 0, l: 0, to: 0, pause: 800 + i * 900, left: i % 2 === 0, moving: false, dist: 0 };
       mateList.push(w);
       // 先畫站著的兩張（面右、面左），走路的格子之後再補
       const [r0, l0] = await Promise.all([host.mateCanvas(m, null, false), host.mateCanvas(m, null, true)]);
@@ -558,7 +585,7 @@ export async function createIsland3D(el, host) {
       const before = proj.copy(w.sp.position).project(camera).x;
       w.l += dir * d; w.dist += d; w.moving = true; placeMate(w);
       const after = proj.copy(w.sp.position).project(camera).x;
-      if (Math.abs(after - before) > 0.0002) { const lf = after < before; if (lf !== w.left) { w.left = lf; w.sp.center.x = lf ? 1 - HERO_CX : HERO_CX; } }
+      if (Math.abs(after - before) > 0.0002) { const lf = after < before; if (lf !== w.left) { w.left = lf; w.sp.center.x = lf ? 1 - HERO_CX : HERO_CX; w.ft = performance.now(); } }
       showMate(w);
     });
   }
@@ -700,6 +727,9 @@ export async function createIsland3D(el, host) {
     if (routeEnd && motion) routeEnd.position.y = routeEnd.userData.y + Math.sin(t * 4) * 0.25;
     const gy = groundAt(hero.position.x, hero.position.z) + (walking ? Math.abs(Math.sin(now / 70)) * 0.18 : motion ? Math.sin(t * 2.2) * 0.04 : 0);
     hero.position.y += (gy - hero.position.y) * 0.35;
+    hero.scale.x = HERO_H * 264 / 384 * flipScale(heroFlipT, now); if (heroFlipT && now - heroFlipT > FLIP_MS) heroFlipT = 0;
+    placeShadow(heroShadow, hero, 2.6);
+    mateList.forEach((w) => { w.sp.scale.x = MATE_H * 264 / 384 * flipScale(w.ft, now); if (w.ft && now - w.ft > FLIP_MS) w.ft = 0; w.sh.visible = !!w.sp.material.map; placeShadow(w.sh, w.sp, 2.1); });
     if (motion) {
       const a = seaGeo.attributes.position, arr = a.array;
       for (let i = 0; i < arr.length; i += 3) arr[i + 1] = seaBase[i + 1] + Math.sin(seaBase[i] * 0.25 + t * 1.2) * 0.18 + Math.cos(seaBase[i + 2] * 0.3 + t) * 0.15;
