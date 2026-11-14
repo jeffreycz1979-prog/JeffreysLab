@@ -9,7 +9,8 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 const R = 5, GAP = 0.2, HX = Math.sqrt(3) * R;            // 六角形外接圓半徑、間隙、橫向間距
 const GROUND = 1.0, TILE_H = 1.9;
-const hexXZ = (q, r) => [HX * (q + r / 2), 1.5 * R * r];  // 軸座標 → 3D（尖頂朝前後）
+const SPREAD = 1.42;   // 島與島之間拉開的比例（1＝地塊貼在一起；越大海峽越寬）
+const hexXZ = (q, r) => [HX * (q + r / 2) * SPREAD, 1.5 * R * r * SPREAD];  // 軸座標 → 3D（尖頂朝前後）
 // 單元地塊順序：內圈 6 格從左前方順時針，第 7～9 單元接在外圈正前方
 const UNIT_CELLS = [[-1, 1], [-1, 0], [0, -1], [1, -1], [1, 0], [0, 1], [0, 2], [-1, 2], [-2, 2]];
 // 外圈 12 格的風景（被單元用掉的就不放）
@@ -55,7 +56,7 @@ export async function createIsland3D(el, host) {
   const sun = new THREE.DirectionalLight(0xfff2d6, 2.1);
   sun.position.set(-30, 45, 20);
   sun.shadow.mapSize.set(1024, 1024);
-  Object.assign(sun.shadow.camera, { left: -30, right: 30, top: 30, bottom: -30, near: 1, far: 120 });
+  Object.assign(sun.shadow.camera, { left: -40, right: 40, top: 40, bottom: -40, near: 1, far: 120 });
   sun.shadow.bias = -0.0015;
   scene.add(sun);
 
@@ -115,7 +116,7 @@ export async function createIsland3D(el, host) {
 
   // ── 海 ──
   const seaMat = M(C.water, { transparent: true, opacity: 0.94 }), seaLMat = M(C.waterL), shallowMat = M(C.waterL, { transparent: true, opacity: 0.55, depthWrite: false });
-  scene.add(mesh(flat(new THREE.CircleGeometry(25, 48)), shallowMat, 0, -0.2, 0, false));   // 淺水圈（在海浪最高點之上，不會被切成鋸齒）
+  scene.add(mesh(flat(new THREE.CircleGeometry(36, 48)), shallowMat, 0, -0.2, 0, false));   // 淺水圈（在海浪最高點之上，不會被切成鋸齒）
   const seaGeo = flat(new THREE.PlaneGeometry(260, 260, 40, 40));
   const seaBase = seaGeo.attributes.position.array.slice();
   scene.add(mesh(seaGeo, seaMat, 0, -0.6, 0, false));
@@ -135,13 +136,15 @@ export async function createIsland3D(el, host) {
   // ── 六角地塊本體（底座＋草皮）──
   const baseGeo = new THREE.CylinderGeometry(R - GAP, R - GAP + 0.35, TILE_H, 6);
   const capGeo = new THREE.CylinderGeometry(R - GAP - 0.12, R - GAP, 0.4, 6);
+  const beachGeo = new THREE.CylinderGeometry(R - GAP + 1.0, R - GAP + 1.5, 0.5, 6);
   function hexTile(parent, top, side = C.earth) {
     const b = mesh(baseGeo, M(side), 0, GROUND - 0.4 - TILE_H / 2, 0, false); parent.add(b);
     const c = mesh(capGeo, M(top), 0, GROUND - 0.2, 0, false); parent.add(c);
+    parent.add(mesh(beachGeo, M(C.sand), 0, -0.32, 0, false));   // 每座小島一圈沙灘
     return c;
   }
   function addFoam(x, z) {
-    const f = mesh(flat(new THREE.CircleGeometry(R + 0.55, 6)), M(0xffffff, { transparent: true, opacity: 0.55, depthWrite: false }), x, -0.12, z, false);
+    const f = mesh(flat(new THREE.CircleGeometry(R + 1.6, 6)), M(0xffffff, { transparent: true, opacity: 0.55, depthWrite: false }), x, -0.12, z, false);
     f.rotation.y = Math.PI / 2; scene.add(f); foams.push({ f, p: x * 0.3 + z * 0.2 });
   }
 
@@ -280,7 +283,7 @@ export async function createIsland3D(el, host) {
   for (let i = 0; i < 3; i++) {
     const b = new THREE.Group(); scene.add(b);
     [-1, 1].forEach((s) => { const w = mesh(new THREE.BoxGeometry(0.9, 0.05, 0.3), M(C.white), s * 0.45, 0, 0, false); w.userData.side = s; b.add(w); });
-    birds.push({ b, r: 14 + i * 4, h: 11 + i * 1.5, sp: 0.18 + i * 0.05, p: i * 2.1 });
+    birds.push({ b, r: 18 + i * 5, h: 11 + i * 1.5, sp: 0.18 + i * 0.05, p: i * 2.1 });
   }
 
   // ── 路燈（沿小路，晚上會亮）──
@@ -318,11 +321,19 @@ export async function createIsland3D(el, host) {
     ROAD_PTS = curve.getSpacedPoints(320).map((v) => new THREE.Vector2(v.x, v.z)); ROAD_LEN = [0];
     for (let i = 1; i < ROAD_PTS.length; i++) ROAD_LEN.push(ROAD_LEN[i - 1] + ROAD_PTS[i].distanceTo(ROAD_PTS[i - 1]));
     layoutG.add(mesh(ribbon(ROAD_PTS, 1.4, GROUND + 0.04), M(C.road, { side: THREE.DoubleSide }), 0, 0, 0, false));
-    // 經過地塊之間的縫：鋪木板橋
-    for (let i = 2; i < ROAD_PTS.length - 2; i += 2) {
-      const p = ROAD_PTS[i]; if (inHex(p.x, p.y, R - GAP - 0.25)) continue;
-      const q = ROAD_PTS[i + 1], pl = mesh(new THREE.BoxGeometry(0.34, 0.14, 1.7), M(C.wood), p.x, GROUND - 0.02, p.y, false);
-      pl.rotation.y = -Math.atan2(q.y - p.y, q.x - p.x); layoutG.add(pl);
+    // 跨海的地方：木橋（橋板＋兩側欄杆＋橋墩）
+    const step = ROAD_LEN[ROAD_LEN.length - 1] / (ROAD_PTS.length - 1);
+    for (let i = 1, n = 0; i < ROAD_PTS.length - 1; i++) {
+      const p = ROAD_PTS[i]; if (inHex(p.x, p.y, R - GAP - 0.2)) { n = 0; continue; }
+      const q = ROAD_PTS[i + 1], ang = -Math.atan2(q.y - p.y, q.x - p.x);
+      const pl = mesh(new THREE.BoxGeometry(step * 1.08, 0.14, 1.9), M(n % 2 ? C.wood : 0xA06C3A), p.x, GROUND + 0.06, p.y, false); pl.rotation.y = ang; layoutG.add(pl);
+      const nx = Math.sin(ang), nz = Math.cos(ang);   // 橋的側邊方向
+      if (n % 3 === 0) [-1, 1].forEach((sd) => {
+        layoutG.add(mesh(new THREE.BoxGeometry(0.1, 0.6, 0.1), M(0x8A5A30), p.x + nx * sd * 0.92, GROUND + 0.4, p.y + nz * sd * 0.92, false));
+        if (n % 9 === 0) layoutG.add(mesh(new THREE.CylinderGeometry(0.13, 0.13, 1.8, 6), M(0x7A4A26), p.x + nx * sd * 0.8, GROUND - 0.85, p.y + nz * sd * 0.8, false));
+      });
+      [-1, 1].forEach((sd) => { const rl = mesh(new THREE.BoxGeometry(step * 1.08, 0.07, 0.07), M(0x8A5A30), p.x + nx * sd * 0.92, GROUND + 0.68, p.y + nz * sd * 0.92, false); rl.rotation.y = ang; layoutG.add(rl); });
+      n++;
     }
     // 路燈：每隔約 9 單位一支，放在路邊
     for (let l = 5; l < ROAD_LEN[ROAD_LEN.length - 1] - 2; l += 9) {
@@ -425,7 +436,7 @@ export async function createIsland3D(el, host) {
         }
       }
       const lb = new THREE.Sprite(new THREE.SpriteMaterial({ map: labelTex(u.code, u.sel), depthTest: false }));
-      lb.scale.set(2.4, 1.08, 1); lb.center.set(0.5, 0); lb.renderOrder = 5;
+      lb.scale.set(3.2, 1.44, 1); lb.center.set(0.5, 0); lb.renderOrder = 5;
       lb.position.set(best[0], GROUND + (u.locked ? 4.2 : 0.3 + u.floors * 0.85 + (u.full ? 3.6 : 1.8)), best[1]); plat.add(lb);
       tiles.push({ u, g, plat, x: c.x, z: c.z, door: c.door, sel: u.sel });
       plat.position.y = u.sel ? 0.45 : 0;
@@ -554,9 +565,9 @@ export async function createIsland3D(el, host) {
 
   // ── 視角 ──
   const controls = new OrbitControls(camera, renderer.domElement);
-  Object.assign(controls, { enableDamping: true, dampingFactor: 0.08, enablePan: false, minDistance: 16, maxDistance: 85, maxPolarAngle: 1.32, minPolarAngle: 0.02, rotateSpeed: 0.7, zoomSpeed: 0.9 });
+  Object.assign(controls, { enableDamping: true, dampingFactor: 0.08, enablePan: false, minDistance: 16, maxDistance: 115, maxPolarAngle: 1.32, minPolarAngle: 0.02, rotateSpeed: 0.7, zoomSpeed: 0.9 });
   // eye＝平視：鏡頭降到角色身後、看著角色（像在島上散步）
-  const VIEWS = { bird: { polar: 0.9, az: 0.18, dist: 60 }, top: { polar: 0.03, az: 0, dist: 60 }, low: { polar: 1.22, az: 0.6, dist: 44 }, eye: { polar: 1.18, dist: 20, hero: true } };
+  const VIEWS = { bird: { polar: 0.9, az: 0.18, dist: 80 }, top: { polar: 0.03, az: 0, dist: 82 }, low: { polar: 1.22, az: 0.6, dist: 60 }, eye: { polar: 1.18, dist: 20, hero: true } };
   const FOLLOW = { polar: 1.02, dist: 26 };   // 走路時的跟隨鏡頭
   const fitK = () => Math.max(1, 1.05 / camera.aspect);
   const heroTarget = () => new THREE.Vector3(hero.position.x, hero.position.y + 2.2, hero.position.z);
@@ -579,7 +590,7 @@ export async function createIsland3D(el, host) {
     const w = el.clientWidth, h = el.clientHeight; if (!w || !h) return;
     renderer.setSize(w, h, false); renderer.domElement.style.width = w + 'px'; renderer.domElement.style.height = h + 'px';
     camera.aspect = w / h; camera.updateProjectionMatrix();
-    controls.maxDistance = 85 * fitK(); scene.fog.near = 90 * fitK(); scene.fog.far = 170 * fitK();
+    controls.maxDistance = 115 * fitK(); scene.fog.near = 120 * fitK(); scene.fog.far = 220 * fitK();
   }
   const ro = new ResizeObserver(resize); ro.observe(el);
   controls.addEventListener('start', () => { fly = null; });
@@ -705,7 +716,7 @@ export async function createIsland3D(el, host) {
       });
       spinners.forEach((s) => { if (s.axis === 'z') s.g.rotation.z = t * s.sp; else s.g.rotation.y = Math.sin(t * 3) * 0.25; });
       // 帆船繞島、海鷗盤旋
-      const ba = t * 0.035; boat.position.set(Math.cos(ba) * 30, -0.3 + Math.sin(t * 1.8) * 0.12, Math.sin(ba) * 30); boat.rotation.set(0, -ba - Math.PI / 2, Math.sin(t * 1.3) * 0.08);
+      const ba = t * 0.035; boat.position.set(Math.cos(ba) * 40, -0.3 + Math.sin(t * 1.8) * 0.12, Math.sin(ba) * 40); boat.rotation.set(0, -ba - Math.PI / 2, Math.sin(t * 1.3) * 0.08);
       birds.forEach((b) => { const a = t * b.sp + b.p; b.b.position.set(Math.cos(a) * b.r, b.h + Math.sin(t * 0.7 + b.p) * 0.6, Math.sin(a) * b.r); b.b.rotation.y = -a; b.b.children.forEach((w) => (w.rotation.x = 0, w.rotation.z = w.userData.side * Math.sin(t * 6 + b.p) * 0.45)); });
       tileAnim.forEach((c) => { if (c.userData.flag) c.rotation.y = Math.sin(t * 3) * 0.25; if (c.userData.spin) c.rotation.y = t * 0.8; });
     }
