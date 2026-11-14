@@ -325,10 +325,13 @@
     t.push({ text: m.nick || L('同學', 'Classmate'), bg: '#1a3a1a', fg: '#CCFF00', size: 28 });
     return t;
   };
+  // 老師帳號：後台會回傳所有班的分身 → 只留這座島的班（看學號前兩碼）；學生本來就只拿到同班
+  const MATE_PREFIX = { thp5: ['05'], 'vocab-thp11': ['11'], thc6: ['61', '62'] }[typeof APP_ID !== 'undefined' ? APP_ID : ''];
+  const hereMate = (m) => !MATE_PREFIX || MATE_PREFIX.some((p) => String(m.key).startsWith(p));
   function mates() {
     if (!on()) return [];
     const open = allUnits();
-    return box.mates.slice(0, MATE_MAX).map((m) => ({ key: m.key, nick: m.nick, at: open.includes(m.at) ? m.at : open[0], look: safeLook(m.look), decl: m.decl, tags: mateTags(m) }));
+    return box.mates.filter(hereMate).slice(0, MATE_MAX).map((m) => ({ key: m.key, nick: m.nick, at: open.includes(m.at) ? m.at : open[0], look: safeLook(m.look), decl: m.decl, tags: mateTags(m) }));
   }
   function openMate(key) {
     const m = box.mates.find((x) => x.key === key); if (!m) return;

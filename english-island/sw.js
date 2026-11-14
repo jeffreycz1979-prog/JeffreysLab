@@ -1,6 +1,6 @@
 // 英文順起來．探索英文島 - Service Worker（scope：/JeffreysLab/english-island/）
 // 頁面與程式改成網路優先；改了檔案仍建議把版本號 +1，舊快取會自動清除
-const CACHE_NAME = 'eisland-v71';
+const CACHE_NAME = 'eisland-v72';
 
 const PRECACHE_URLS = [
   '/JeffreysLab/english-island/',
@@ -20,7 +20,7 @@ const PRECACHE_URLS = [
   '/JeffreysLab/english-island/games/slice.js?v=0.3',
   '/JeffreysLab/english-island/games/beat.js?v=0.2',
   '/JeffreysLab/english-island/cloud.js?v=7',
-  '/JeffreysLab/english-island/msg.js?v=7',
+  '/JeffreysLab/english-island/msg.js?v=8',
   '/JeffreysLab/english-island/grant.js?v=1',
   '/JeffreysLab/icons/icon-192.png',
   '/JeffreysLab/icons/icon-512.png',
