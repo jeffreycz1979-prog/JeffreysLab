@@ -1971,14 +1971,15 @@ function ensure3D() {
   if (i3dLoading) return;
   i3dLoading = (async () => {
     try {
-      // ?hex＝六角小島試作版（只在測試島，正式島不動）
-      const mod = await import(/[?&]hex\b/.test(location.search) ? './island3d-hex.js?v=2' : './island3d.js?v=5');
+      // 測試島預設用六角小島試作版（主畫面 App 不會帶網址參數）；?hex=0 看舊版。正式島不動
+      const mod = await import(/[?&]hex=0\b/.test(location.search) ? './island3d.js?v=5' : './island3d-hex.js?v=2');
       i3d = await mod.createIsland3D($('island3d'), island3dHost);
       $('island3d').classList.add('ready');
     } catch (e) {
       console.error('3D 地圖載入失敗', e);
       st.map3dFailed = true;
-      toast(L('3D 地圖載入失敗，先用 2D 地圖', '3D map failed to load — using 2D'));
+      toast(L('3D 地圖載入失敗，先用 2D 地圖', '3D map failed to load — using 2D') + '（' + String((e && e.message) || e).slice(0, 80) + '）');
+      clearTimeout(toast._t); toast._t = setTimeout(() => $('toast').classList.remove('show'), 8000);   // 測試島：錯誤訊息多留幾秒，方便截圖
       renderIsland();
     } finally { i3dLoading = null; }
   })();
