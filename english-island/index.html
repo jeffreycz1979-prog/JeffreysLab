@@ -1962,7 +1962,7 @@ const island3dHost = {
   mateTap: (key) => window.islandMsg && islandMsg.openMate(key),
   reduce: matchMedia('(prefers-reduced-motion: reduce)').matches,
   lang: () => (EN() ? 'en' : 'zh'),
-  active: () => $('v-home').classList.contains('active') && !document.hidden && use3D() && !$('modal').classList.contains('show'),
+  active: () => $('v-home').classList.contains('active') && !document.hidden && use3D() && !$('modal').classList.contains('show') && !$('island3d').hidden,   // 群島總覽時 3D 藏起來 → 不畫，省電
   quality: () => st.set.map3dQ || 'high',
   setQuality(q) { st.set.map3dQ = q; saveSet(); },
 };
@@ -1972,7 +1972,7 @@ function ensure3D() {
   i3dLoading = (async () => {
     try {
       // 測試島預設用六角小島試作版（主畫面 App 不會帶網址參數）；?hex=0 看舊版。正式島不動
-      const mod = await import(/[?&]hex=0\b/.test(location.search) ? './island3d.js?v=5' : '/JeffreysLab/island3d-hex.js?v=4');
+      const mod = await import(/[?&]hex=0\b/.test(location.search) ? './island3d.js?v=5' : '/JeffreysLab/island3d-hex.js?v=5');
       i3d = await mod.createIsland3D($('island3d'), island3dHost);
       $('island3d').classList.add('ready');
     } catch (e) {

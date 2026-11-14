@@ -3,7 +3,8 @@
 //  靈感：卡坦島式六角地塊。中間是廣場島，每個單元一座六角小島＋一棟房子，木橋相連；
 //  外圈是風景小島；天空依手機時間變化（清晨→白天→黃昏→夜晚）
 //  與 index.html 的溝通方式跟 island3d.js 一樣（host）；host.hexTheme 選主題：
-//    'meadow'（預設：森林、雪山、麥田、牧場）、'tropical'（火山椰林島：椰林、火山、草屋村、珊瑚海灘）
+//    'meadow'（預設：森林、雪山、麥田、牧場）、'tropical'（火山椰林島：椰林、火山、草屋村、珊瑚海灘）、
+//    'autumn'（秋楓城堡島：楓林、城堡、巫師塔、南瓜田、魔法水晶）
 //  host.chests() 有回傳就顯示每週神秘寶箱（放在風景小島的沙灘上）
 // ═══════════════════════════════════════════════════════
 import * as THREE from 'three';
@@ -43,10 +44,13 @@ const walkEase = (k, r = 0.15) => { const v = 1 / (1 - r); return k < r ? 0.5 * 
 const rnd = (s) => { const x = Math.sin(s * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };   // 固定亂數（每次排一樣）
 
 export async function createIsland3D(el, host) {
-  const TROPIC = host.hexTheme === 'tropical';
+  const TROPIC = host.hexTheme === 'tropical', AUTUMN = host.hexTheme === 'autumn';
+  if (AUTUMN) Object.assign(C, { sand: 0xF3E2C4, grass: 0xE6C77E, grassD: 0xD8B46A, water: 0x5E9FD6, waterL: 0x9CC6EC, road: 0xE8D6AE, mount: 0xA99ABF, pine: 0x2F6E4F, earth: 0xB98E62 });
+  const MAPLE = [0xE8833A, 0xD9532B, 0xF2B24A];
   if (TROPIC) Object.assign(C, { sand: 0xFFEFC8, grass: 0x9FD27C, grassD: 0x8CC86A, water: 0x3FBFCB, waterL: 0x8EE3E6, road: 0xEAD6A8, leaf: 0x4FAE5C, leafL: 0x7ACB6A, earth: 0xC79A6A });
   // 同一組外圈位置，換成各主題的風景
-  const TYPE_MAP = TROPIC ? { forest: 'palms', mountain: 'volcano', peak: 'volcanoBig', meadow: 'huts', wheat: 'reef' } : {};
+  const TYPE_MAP = TROPIC ? { forest: 'palms', mountain: 'volcano', peak: 'volcanoBig', meadow: 'huts', wheat: 'reef' }
+    : AUTUMN ? { forest: 'maples', mountain: 'tower', peak: 'castle', meadow: 'pumpkins', wheat: 'crystals' } : {};
   // ── 繪圖器 ──
   const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
   if (!renderer.getContext()) throw new Error('WebGL 無法使用');
@@ -160,6 +164,13 @@ export async function createIsland3D(el, host) {
   function tree(g, kind, x, z, s) {
     const t = new THREE.Group(); t.position.set(x, GROUND, z); t.scale.setScalar(s); t.rotation.y = x * 0.37;
     if (TROPIC) kind = 'palm';   // 火山椰林島：所有樹都是椰子樹
+    if (AUTUMN && kind === 't') kind = 'm';   // 秋楓城堡島：闊葉樹換楓樹（松樹保留）
+    if (kind === 'm') {   // 楓樹：橘紅黃三色輪流
+      t.add(mesh(new THREE.CylinderGeometry(0.22, 0.3, 1.4, 6), M(C.trunk), 0, 0.7, 0));
+      t.add(mesh(new THREE.IcosahedronGeometry(1.25, 0), M(MAPLE[Math.floor(rnd(x * 3 + z) * 3)]), 0, 2.2, 0));
+      t.add(mesh(new THREE.IcosahedronGeometry(0.7, 0), M(0xF7C25A), -0.5, 2.7, 0.4));
+      g.add(t); swayList.push({ g: t, p: x * 0.1 + z }); return;
+    }
     if (kind === 'palm') {   // 椰子樹：彎彎的樹幹＋扁平葉子＋椰子
       const tr = mesh(new THREE.CylinderGeometry(0.14, 0.24, 2.6, 6), M(0xA0703C), 0.25, 1.3, 0); tr.rotation.z = -0.18; t.add(tr);
       for (let i = 0; i < 6; i++) { const lf = mesh(new THREE.BoxGeometry(1.6, 0.06, 0.42), M(i % 2 ? C.leaf : C.leafL), 0, 0, 0); lf.position.set(0.5 + Math.cos(i) * 0.7, 2.62, Math.sin(i) * 0.7); lf.rotation.set(0, -i, -0.35); t.add(lf); }
@@ -174,6 +185,12 @@ export async function createIsland3D(el, host) {
       t.add(mesh(new THREE.IcosahedronGeometry(0.7, 0), M(C.leafL), -0.5, 2.7, 0.4));
     }
     g.add(t); swayList.push({ g: t, p: x * 0.1 + z });
+  }
+  function crystal(g, x, z, sc) {   // 魔法水晶（會微微浮動、晚上一樣有光）
+    [[0, 0, 1.3, 0x7FD3FF], [-0.5, 0.2, 0.9, 0xB48CFF], [0.5, 0.1, 0.7, 0xFF9AC1]].forEach(([a, b, h, c]) => {
+      const m = mesh(new THREE.OctahedronGeometry(0.35 * h, 0), M(c, { emissive: c, emissiveIntensity: 0.35 }), x + a * sc, GROUND + 0.4 * h * sc, z + b * sc);
+      m.scale.set(sc, sc * 1.8, sc); g.add(m); bobbers.push({ g: m, y: m.position.y, p: a * 3 + x });
+    });
   }
   const rock = (g, x, z, s) => { const r = mesh(new THREE.DodecahedronGeometry(0.55 * s, 0), M(C.rock), x, GROUND + 0.2 * s, z); r.rotation.set(x, z, 0); g.add(r); };
   const flower = (g, x, z, c) => { g.add(mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.4, 4), M(0x3F8F43), x, GROUND + 0.2, z, false)); g.add(mesh(new THREE.IcosahedronGeometry(0.16, 0), M(c), x, GROUND + 0.45, z, false)); };
@@ -192,7 +209,42 @@ export async function createIsland3D(el, host) {
     type = TYPE_MAP[type] || type;
     const g = new THREE.Group(); g.position.set(x, 0, z); scene.add(g);
     const top = { wheat: C.wheat, harbor: C.sand, lighthouse: C.sand, mountain: C.mount, peak: C.mount, lake: C.grass, forest: C.grassD, meadow: C.grass,
-      palms: C.grass, volcano: 0xA8886C, volcanoBig: 0xA8886C, huts: C.sand, reef: C.sand }[type];
+      palms: C.grass, volcano: 0xA8886C, volcanoBig: 0xA8886C, huts: C.sand, reef: C.sand,
+      maples: C.grassD, castle: 0xD9CFC0, tower: C.grass, pumpkins: 0xC9A06A, crystals: 0xB9AFCF }[type];
+    if (type === 'maples') { for (let i = 0; i < 8; i++) { const [a, b] = spot(seed * 10 + i, 0.4); tree(g, rnd(seed + i) > 0.7 ? 'p' : 'm', a, b, 0.75 + rnd(i + seed) * 0.4); } }
+    if (type === 'castle') {   // 城堡：城牆＋左右塔＋中間主塔（窗戶晚上會亮）
+      const c = new THREE.Group(); c.position.set(0, GROUND, -0.4); c.scale.setScalar(0.72); c.rotation.y = Math.atan2(x, z); g.add(c);
+      c.add(mesh(new THREE.BoxGeometry(5.2, 2.2, 2.2), M(0xE9E1F2), 0, 1.1, 0));
+      for (let i = -2; i <= 2; i++) c.add(mesh(new THREE.BoxGeometry(0.5, 0.45, 2.2), M(0xE9E1F2), i * 1.05, 2.42, 0));
+      [-2.9, 2.9].forEach((tx) => { c.add(mesh(new THREE.CylinderGeometry(0.75, 0.8, 3.6, 8), M(0xD9CDEB), tx, 1.8, 0)); c.add(mesh(new THREE.ConeGeometry(1.0, 1.6, 8), M(0x8E6FC4), tx, 4.4, 0)); c.add(mesh(new THREE.BoxGeometry(0.3, 0.45, 0.05), winMat, tx, 2.6, 0.8, false)); });
+      c.add(mesh(new THREE.CylinderGeometry(0.85, 0.9, 4.6, 8), M(0xD9CDEB), 0, 2.3, -0.3));
+      c.add(mesh(new THREE.ConeGeometry(1.15, 2.0, 8), M(0xE8833A), 0, 5.6, -0.3));
+      c.add(mesh(new THREE.BoxGeometry(0.9, 1.2, 0.1), M(0x7A4A26), 0, 0.6, 1.12, false));
+      [-1.6, 1.6].forEach((wx) => c.add(mesh(new THREE.BoxGeometry(0.35, 0.5, 0.05), winMat, wx, 1.3, 1.12, false)));
+      c.add(mesh(new THREE.BoxGeometry(0.35, 0.55, 0.05), winMat, 0, 3.4, 0.6, false));
+      c.add(mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.0, 4), M(C.ink), 0, 6.9, -0.3, false));
+      const fl = mesh(new THREE.BoxGeometry(0.7, 0.4, 0.05), M(C.lime), 0.38, 7.1, -0.3, false); c.add(fl); spinners.push({ g: fl, axis: 'flag' });
+      tree(g, 'm', 3.2, 2.0, 0.7); tree(g, 'p', -3.3, 1.8, 0.7);
+    }
+    if (type === 'tower') {   // 巫師塔＋魔法水晶
+      const w = new THREE.Group(); w.position.set(-0.6, GROUND, -0.6); g.add(w);
+      w.add(mesh(new THREE.CylinderGeometry(0.7, 0.95, 4.2, 8), M(0xCFC4E3), 0, 2.1, 0));
+      w.add(mesh(new THREE.ConeGeometry(1.2, 2.6, 8), M(0x5B4A9E), 0, 5.5, 0));
+      w.add(mesh(new THREE.IcosahedronGeometry(0.26, 0), lampMat, 0, 6.95, 0, false));
+      [1.4, 2.8].forEach((wy) => w.add(mesh(new THREE.BoxGeometry(0.3, 0.45, 0.05), winMat, 0, wy, 0.86, false)));
+      crystal(g, 2.0, 1.2, 0.9); tree(g, 'm', -2.6, 2.2, 0.75); tree(g, 'p', 2.6, -2.0, 0.8);
+    }
+    if (type === 'crystals') { crystal(g, 0, 0, 1.4); crystal(g, -2.2, 1.4, 0.9); crystal(g, 2.2, -1.2, 1); crystal(g, 1.6, 2.2, 0.7); rock(g, -2.4, -1.6, 1); rock(g, 0.4, -2.8, 0.7); }
+    if (type === 'pumpkins') {   // 南瓜田＋稻草人
+      for (let i = 0; i < 9; i++) { const [a, b] = spot(seed * 30 + i, 0.8, R - 1.5), sc = 0.8 + rnd(i + seed) * 0.6; const pm = mesh(new THREE.SphereGeometry(0.42 * sc, 8, 6), M(i % 3 ? 0xFF8A3D : 0xF2A33A), a, GROUND + 0.3 * sc, b); pm.scale.y = 0.75; g.add(pm); g.add(mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.25, 4), M(0x3F8F43), a, GROUND + 0.62 * sc, b, false)); }
+      const sc = new THREE.Group(); sc.position.set(0, GROUND, 0); g.add(sc);
+      sc.add(mesh(new THREE.CylinderGeometry(0.07, 0.07, 2.4, 5), M(C.wood), 0, 1.2, 0));
+      sc.add(mesh(new THREE.BoxGeometry(1.8, 0.1, 0.1), M(C.wood), 0, 1.7, 0));
+      sc.add(mesh(new THREE.BoxGeometry(0.9, 0.9, 0.4), M(0x8E6FC4), 0, 1.5, 0));
+      sc.add(mesh(new THREE.SphereGeometry(0.32, 8, 6), M(0xF2CF5B), 0, 2.3, 0));
+      sc.add(mesh(new THREE.ConeGeometry(0.5, 0.6, 8), M(0x6B4423), 0, 2.75, 0));
+      sway.push({ g: sc, p: seed });
+    }
     hexTile(g, top);
     if (type === 'palms') { for (let i = 0; i < 7; i++) { const [a, b] = spot(seed * 10 + i, 0.4); tree(g, 'palm', a, b, 0.8 + rnd(i + seed) * 0.35); } rock(g, 2.6, 1.8, 0.8); }
     if (type === 'volcano' || type === 'volcanoBig') {   // 火山：岩石＋岩漿口＋冒煙
