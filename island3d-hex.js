@@ -1,8 +1,10 @@
 // ═══════════════════════════════════════════════════════
-//  英文島 3D 地圖・六角小島試作版（網址加 ?hex 才載入）
-//  靈感：卡坦島式六角地塊。中間是廣場，每個單元一塊六角地＋一棟房子，
-//  外圈是森林、山、湖、麥田、港口、牧場等風景地塊；天空依手機時間變化（清晨→白天→黃昏→夜晚）
-//  與 index.html 的溝通方式跟 island3d.js 完全一樣（host）
+//  英文島 3D 地圖・六角群島版（各島共用：/JeffreysLab/island3d-hex.js）
+//  靈感：卡坦島式六角地塊。中間是廣場島，每個單元一座六角小島＋一棟房子，木橋相連；
+//  外圈是風景小島；天空依手機時間變化（清晨→白天→黃昏→夜晚）
+//  與 index.html 的溝通方式跟 island3d.js 一樣（host）；host.hexTheme 選主題：
+//    'meadow'（預設：森林、雪山、麥田、牧場）、'tropical'（火山椰林島：椰林、火山、草屋村、珊瑚海灘）
+//  host.chests() 有回傳就顯示每週神秘寶箱（放在風景小島的沙灘上）
 // ═══════════════════════════════════════════════════════
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -41,6 +43,10 @@ const walkEase = (k, r = 0.15) => { const v = 1 / (1 - r); return k < r ? 0.5 * 
 const rnd = (s) => { const x = Math.sin(s * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };   // 固定亂數（每次排一樣）
 
 export async function createIsland3D(el, host) {
+  const TROPIC = host.hexTheme === 'tropical';
+  if (TROPIC) Object.assign(C, { sand: 0xFFEFC8, grass: 0x9FD27C, grassD: 0x8CC86A, water: 0x3FBFCB, waterL: 0x8EE3E6, road: 0xEAD6A8, leaf: 0x4FAE5C, leafL: 0x7ACB6A, earth: 0xC79A6A });
+  // 同一組外圈位置，換成各主題的風景
+  const TYPE_MAP = TROPIC ? { forest: 'palms', mountain: 'volcano', peak: 'volcanoBig', meadow: 'huts', wheat: 'reef' } : {};
   // ── 繪圖器 ──
   const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
   if (!renderer.getContext()) throw new Error('WebGL 無法使用');
@@ -153,7 +159,12 @@ export async function createIsland3D(el, host) {
   let swayList = sway;   // 單元地塊上的樹另外記（每次更新進度會重建）
   function tree(g, kind, x, z, s) {
     const t = new THREE.Group(); t.position.set(x, GROUND, z); t.scale.setScalar(s); t.rotation.y = x * 0.37;
-    if (kind === 'p') {
+    if (TROPIC) kind = 'palm';   // 火山椰林島：所有樹都是椰子樹
+    if (kind === 'palm') {   // 椰子樹：彎彎的樹幹＋扁平葉子＋椰子
+      const tr = mesh(new THREE.CylinderGeometry(0.14, 0.24, 2.6, 6), M(0xA0703C), 0.25, 1.3, 0); tr.rotation.z = -0.18; t.add(tr);
+      for (let i = 0; i < 6; i++) { const lf = mesh(new THREE.BoxGeometry(1.6, 0.06, 0.42), M(i % 2 ? C.leaf : C.leafL), 0, 0, 0); lf.position.set(0.5 + Math.cos(i) * 0.7, 2.62, Math.sin(i) * 0.7); lf.rotation.set(0, -i, -0.35); t.add(lf); }
+      [[0.4, 0.15], [0.6, -0.1], [0.45, -0.25]].forEach(([a, b]) => t.add(mesh(new THREE.SphereGeometry(0.13, 6, 5), M(0x7A4A26), a, 2.45, b)));
+    } else if (kind === 'p') {
       t.add(mesh(new THREE.CylinderGeometry(0.18, 0.24, 0.9, 6), M(C.trunk), 0, 0.45, 0));
       t.add(mesh(new THREE.ConeGeometry(1.2, 1.8, 7), M(C.pine), 0, 1.6, 0));
       t.add(mesh(new THREE.ConeGeometry(0.85, 1.5, 7), M(C.pine), 0, 2.5, 0));
@@ -178,9 +189,44 @@ export async function createIsland3D(el, host) {
 
   // ── 風景地塊 ──
   function buildDecor(type, x, z, seed) {
+    type = TYPE_MAP[type] || type;
     const g = new THREE.Group(); g.position.set(x, 0, z); scene.add(g);
-    const top = { wheat: C.wheat, harbor: C.sand, lighthouse: C.sand, mountain: C.mount, peak: C.mount, lake: C.grass, forest: C.grassD, meadow: C.grass }[type];
+    const top = { wheat: C.wheat, harbor: C.sand, lighthouse: C.sand, mountain: C.mount, peak: C.mount, lake: C.grass, forest: C.grassD, meadow: C.grass,
+      palms: C.grass, volcano: 0xA8886C, volcanoBig: 0xA8886C, huts: C.sand, reef: C.sand }[type];
     hexTile(g, top);
+    if (type === 'palms') { for (let i = 0; i < 7; i++) { const [a, b] = spot(seed * 10 + i, 0.4); tree(g, 'palm', a, b, 0.8 + rnd(i + seed) * 0.35); } rock(g, 2.6, 1.8, 0.8); }
+    if (type === 'volcano' || type === 'volcanoBig') {   // 火山：岩石＋岩漿口＋冒煙
+      const sc = type === 'volcanoBig' ? 1.15 : 0.8, v = new THREE.Group(); v.position.set(0, GROUND, -0.3); v.scale.setScalar(sc); g.add(v);
+      v.add(mesh(new THREE.CylinderGeometry(1.2, 3.9, 5.2, 8), M(0x8A6A58), 0, 2.6, 0));
+      v.add(mesh(new THREE.CylinderGeometry(1.15, 1.3, 0.5, 8), M(0xFF6B2C, { emissive: 0xFF4A00, emissiveIntensity: 0.6 }), 0, 5.1, 0, false));
+      [[0.9, 1.6], [0.2, 0.9], [-0.7, 1.3]].forEach(([a, r], i) => { const lv = mesh(new THREE.BoxGeometry(0.35, 2.2, 0.2), M(0xFF8A3D, { emissive: 0xFF5A00, emissiveIntensity: 0.4 }), a * 1.6, 3.9 - i * 0.2, 1.0 + r * 0.5, false); lv.rotation.x = -0.45; v.add(lv); });
+      [0, 1, 2].forEach((i) => { const sm = mesh(new THREE.IcosahedronGeometry(0.7 + i * 0.25, 0), M(0xE8E4DE, { transparent: true, opacity: 0.85 }), i * 0.4, 6.2 + i * 1.0, -i * 0.2, false); v.add(sm); bobbers.push({ g: sm, y: sm.position.y, p: i * 1.7 + seed }); });
+      rock(g, 3.0, 1.6, 0.9); rock(g, -3.0, 1.2, 0.7); tree(g, 'palm', 2.6, 2.6, 0.7);
+    }
+    if (type === 'huts') {   // 草屋村：三間草屋＋營火
+      [[-1.8, -1.2, 1], [1.6, -1.6, 0.9], [0.2, 1.9, 0.85]].forEach(([a, b, sc]) => {
+        const h = new THREE.Group(); h.position.set(a, GROUND, b); h.scale.setScalar(sc); h.rotation.y = Math.atan2(-a, -b); g.add(h);
+        h.add(mesh(new THREE.CylinderGeometry(0.9, 0.9, 1.1, 8), M(0xD9B07A), 0, 0.55, 0));
+        h.add(mesh(new THREE.ConeGeometry(1.4, 1.2, 8), M(0xC8963E), 0, 1.7, 0));
+        h.add(mesh(new THREE.BoxGeometry(0.42, 0.42, 0.06), winMat, 0, 0.62, 0.9, false));
+      });
+      g.add(mesh(new THREE.CylinderGeometry(0.5, 0.55, 0.15, 8), M(C.rock), 0, GROUND + 0.07, -0.1, false));
+      const fire = mesh(new THREE.ConeGeometry(0.28, 0.6, 6), lampMat, 0, GROUND + 0.45, -0.1, false); g.add(fire); bobbers.push({ g: fire, y: fire.position.y, p: 0, pulse: true });
+      tree(g, 'palm', 3.0, 0.4, 0.8); tree(g, 'palm', -3.0, 1.4, 0.75);
+    }
+    if (type === 'reef') {   // 珊瑚海灘：海龜、貝殼、海星、陽傘
+      const turtle = (a, b, ry) => { const tt = new THREE.Group(); tt.position.set(a, GROUND, b); tt.rotation.y = ry; g.add(tt);
+        const sh = mesh(new THREE.SphereGeometry(0.6, 8, 5, 0, Math.PI * 2, 0, Math.PI / 2), M(0x4F8F4A), 0, 0.05, 0); sh.scale.y = 0.7; tt.add(sh);
+        tt.add(mesh(new THREE.SphereGeometry(0.2, 6, 5), M(0x8BC47A), 0.7, 0.15, 0));
+        bobbers.push({ g: tt, y: GROUND, p: a, graze: true }); };
+      turtle(-1.6, 0.8, 0.5); turtle(1.2, 1.8, 2.2);
+      [[0.8, -0.6, 0xFF9AC1], [-0.4, -2.2, 0xFFD84D], [2.4, -0.4, 0xFF6B57], [-2.6, -0.8, 0xffffff]].forEach(([a, b, c]) => { const sh = mesh(new THREE.ConeGeometry(0.22, 0.3, 5), M(c), a, GROUND + 0.12, b, false); sh.rotation.z = 1.2; g.add(sh); });
+      const um = new THREE.Group(); um.position.set(1.8, GROUND, -2.0); g.add(um);
+      um.add(mesh(new THREE.CylinderGeometry(0.05, 0.05, 2.2, 5), M(C.white), 0, 1.1, 0));
+      for (let i = 0; i < 8; i++) { const sl = mesh(new THREE.ConeGeometry(1.5, 0.6, 8, 1, true, i * Math.PI / 4, Math.PI / 4), M(i % 2 ? C.coral : C.white, { side: THREE.DoubleSide }), 0, 2.3, 0, false); um.add(sl); }
+      um.add(mesh(new THREE.BoxGeometry(1.4, 0.12, 0.7), M(0x5FC8DA), -0.6, 0.25, 0.9));
+      tree(g, 'palm', -2.8, -1.8, 0.8);
+    }
     if (type === 'forest') for (let i = 0; i < 8; i++) { const [a, b] = spot(seed * 10 + i, 0.4); tree(g, rnd(seed + i) > 0.5 ? 'p' : 't', a, b, 0.75 + rnd(i + seed) * 0.4); }
     if (type === 'mountain' || type === 'peak') {
       const big = type === 'peak';
@@ -292,7 +338,7 @@ export async function createIsland3D(el, host) {
   // ── 會隨單元數重建：小路、單元地塊、外圈風景 ──
   const layoutG = new THREE.Group(); scene.add(layoutG);
   const tilesG = new THREE.Group(); scene.add(tilesG);
-  let ROAD_PTS = [], ROAD_LEN = [], curN = -1, cells = [];
+  let ROAD_PTS = [], ROAD_LEN = [], curN = -1, cells = [], decorSpots = [];
   function roadAt(l) {
     let i = ROAD_LEN.findIndex((v) => v >= l); if (i < 1) i = 1;
     const t = (l - ROAD_LEN[i - 1]) / ((ROAD_LEN[i] - ROAD_LEN[i - 1]) || 1), a = ROAD_PTS[i - 1], b = ROAD_PTS[i];
@@ -344,9 +390,11 @@ export async function createIsland3D(el, host) {
       lampsG.add(mesh(new THREE.SphereGeometry(0.2, 8, 6), lampMat, x, GROUND + 1.7, z, false));
     }
     // 外圈風景
+    decorSpots = []; chestSig = '';
     DECOR_CELLS.forEach(([[q, r], type], i) => {
       if (UNIT_CELLS.slice(0, n).some(([a, b]) => a === q && b === r)) return;
       const [x, z] = hexXZ(q, r), before = scene.children.length;
+      decorSpots.push({ x, z });
       buildDecor(type, x, z, i + 1); addFoam(x, z);
       scene.children.slice(before).forEach((o) => (o.userData.decor = true));
     });
@@ -432,7 +480,7 @@ export async function createIsland3D(el, host) {
         for (let k = 0; k < 7; k++) {
           const [a, b] = spot(i * 31 + k, 2.2, R - 1.1), wx = c.x + a, wz = c.z + b;
           if (Math.hypot(a - best[0], b - best[1]) < 2.2 || Math.min(...ROAD_PTS.map((p) => Math.hypot(p.x - wx, p.y - wz))) < 1.4) continue;
-          if (k < 3) tree(plat, k % 2 ? 'p' : 't', a, b, 0.6 + rnd(k + i) * 0.25); else flower(plat, a, b, [0xFF9AC1, 0xFFD84D, 0xffffff, 0xFF6B57][k % 4]);
+          if (k < 3) tree(plat, TROPIC ? 'palm' : k % 2 ? 'p' : 't', a, b, 0.6 + rnd(k + i) * 0.25); else flower(plat, a, b, [0xFF9AC1, 0xFFD84D, 0xffffff, 0xFF6B57][k % 4]);
         }
       }
       const lb = new THREE.Sprite(new THREE.SpriteMaterial({ map: labelTex(u.code, u.sel), depthTest: false }));
@@ -624,6 +672,35 @@ export async function createIsland3D(el, host) {
 
   // ── 走路路線：黃色圓點沿小路排到目的地，走過的點消失；終點一支倒立的旗標上下浮動 ──
   const routeG = new THREE.Group(); scene.add(routeG);
+
+  // ── 每週神秘寶箱：放在風景小島朝外的沙灘上；點了交給 host.chestTap ──
+  const chestG = new THREE.Group(); scene.add(chestG);
+  let chestPick = [], chestSig = '';
+  function buildChests(list) {
+    const sig = JSON.stringify(list.map((c) => [c.i, c.x, c.y, c.tried])) + decorSpots.length; if (sig === chestSig) return; chestSig = sig;
+    chestG.clear(); chestPick = [];
+    const used = new Set();
+    list.forEach((c) => {
+      if (!decorSpots.length) return;
+      let k = Math.abs(Math.round(c.x * 0.37 + c.y * 0.11 + c.i * 5)) % decorSpots.length;   // 同一週、同一個學生位置固定（2D 座標本來就依週＋學生 ID 挑）
+      while (used.has(k) && used.size < decorSpots.length) k = (k + 1) % decorSpots.length; used.add(k);
+      const d = decorSpots[k], a = Math.atan2(d.z, d.x) + (rnd(c.i + c.x) - 0.5) * 0.8;
+      const g = new THREE.Group(); g.position.set(d.x + Math.cos(a) * (R - GAP + 0.6), -0.05, d.z + Math.sin(a) * (R - GAP + 0.6)); g.rotation.y = -a + Math.PI / 2;
+      const box = new THREE.Group(); box.scale.setScalar(1.4); g.add(box);
+      box.add(mesh(new THREE.BoxGeometry(1.5, 0.9, 1.0), M(0xB9773A), 0, 0.45, 0));
+      box.add(mesh(new THREE.CylinderGeometry(0.5, 0.5, 1.5, 8, 1, false, 0, Math.PI), M(0xE09A4A), 0, 0.9, 0).rotateZ(Math.PI / 2));
+      box.add(mesh(new THREE.BoxGeometry(0.34, 0.42, 0.08), M(0xFFD84D), 0, 0.7, 0.52, false));
+      [-0.55, 0.55].forEach((bx) => box.add(mesh(new THREE.BoxGeometry(0.12, 0.92, 1.04), M(0x6B4423), bx, 0.46, 0, false)));
+      if (!c.tried) {
+        const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.9, 7, 12, 1, true), new THREE.MeshBasicMaterial({ color: 0xFFD84D, transparent: true, opacity: 0.28, depthWrite: false, side: THREE.DoubleSide }));
+        beam.position.y = 3.5; g.add(beam); beam.userData.chest = c.i; chestPick.push(beam);
+      }
+      box.children.forEach((m) => { m.userData.chest = c.i; chestPick.push(m); });
+      g.userData = { box, tried: c.tried, p: c.i * 1.7 };
+      if (c.tried) box.scale.setScalar(1.2);
+      chestG.add(g);
+    });
+  }
   const dotGeo = new THREE.SphereGeometry(0.2, 8, 6), dotMat = new THREE.MeshBasicMaterial({ color: 0xFFC93D });
   const pinMat = new THREE.MeshLambertMaterial({ color: 0xFFC93D, emissive: 0xFFA800, emissiveIntensity: 0.5 });
   let routeEnd = null;
@@ -661,6 +738,8 @@ export async function createIsland3D(el, host) {
     ray.setFromCamera(ptr, camera);
     if (ray.intersectObject(hero, false).length) return host.heroTap();
     const mh = ray.intersectObjects(matesG.children, false)[0]; if (mh && host.mateTap) return host.mateTap(mh.object.userData.mate);
+    const ch = chestPick.length && ray.intersectObjects(chestPick, false)[0];
+    if (ch && host.chestTap) return host.chestTap(ch.object.userData.chest);
     const hit = ray.intersectObjects(pickables, false)[0]; if (!hit) return;
     const t = tileByCode(hit.object.userData.unit); if (!t) return;
     if (t.u.locked) { t.bounce = performance.now(); return host.tileTap(t.u.code); }
@@ -686,6 +765,7 @@ export async function createIsland3D(el, host) {
     if (view === 'eye' && !walking && !follow) controls.target.copy(heroTarget());
     await refreshHero();
     refreshMates();
+    if (host.chests) buildChests(host.chests());
   }
 
   // ── 動畫迴圈：首頁看不到時暫停，省電 ──
@@ -748,6 +828,7 @@ export async function createIsland3D(el, host) {
       // 帆船繞島、海鷗盤旋
       const ba = t * 0.035; boat.position.set(Math.cos(ba) * 40, -0.3 + Math.sin(t * 1.8) * 0.12, Math.sin(ba) * 40); boat.rotation.set(0, -ba - Math.PI / 2, Math.sin(t * 1.3) * 0.08);
       birds.forEach((b) => { const a = t * b.sp + b.p; b.b.position.set(Math.cos(a) * b.r, b.h + Math.sin(t * 0.7 + b.p) * 0.6, Math.sin(a) * b.r); b.b.rotation.y = -a; b.b.children.forEach((w) => (w.rotation.x = 0, w.rotation.z = w.userData.side * Math.sin(t * 6 + b.p) * 0.45)); });
+      chestG.children.forEach((g) => { if (g.userData.tried) return; g.userData.box.position.y = Math.abs(Math.sin(t * 2.4 + g.userData.p)) * 0.35; g.userData.box.rotation.y = Math.sin(t * 0.9 + g.userData.p) * 0.5; });
       tileAnim.forEach((c) => { if (c.userData.flag) c.rotation.y = Math.sin(t * 3) * 0.25; if (c.userData.spin) c.rotation.y = t * 0.8; });
     }
     tiles.forEach((x) => {

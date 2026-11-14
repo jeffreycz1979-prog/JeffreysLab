@@ -1998,6 +1998,7 @@ function heroCanvas(pose, flip) {   // 自己的角色（含寵物）＋頭上�
   return avatarCanvas(lookOf(), pose, flip, tags);
 }
 const island3dHost = {
+  hexTheme: 'tropical',   // 六角群島版：火山椰林島（椰林、火山、草屋村、珊瑚海灘）
   theme: () => ({   // 3D 版的火山椰林島（景物位置對齊 2D 的 islandDecor）
     sky: 0xBFEDEF, pts: ISLAND_THEME.pts,
     c: { sand: 0xFFEFC8, grass: 0x9FD27C, water: 0x3FBFCB, waterL: 0x8EE3E6, road: 0xEAD6A8, leaf: 0x4FAE5C, leafL: 0x7ACB6A, boat: 0xFF6B57 },
@@ -2041,7 +2042,8 @@ function ensure3D() {
   if (i3dLoading) return;
   i3dLoading = (async () => {
     try {
-      const mod = await import('./island3d.js?v=6');
+      // 六角群島版（各島共用 /JeffreysLab/island3d-hex.js）；?hex=0 看舊版
+      const mod = await import(/[?&]hex=0\b/.test(location.search) ? './island3d.js?v=6' : '/JeffreysLab/island3d-hex.js?v=4');
       i3d = await mod.createIsland3D($('island3d'), island3dHost);
       $('island3d').classList.add('ready');
     } catch (e) {
