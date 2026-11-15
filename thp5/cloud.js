@@ -298,6 +298,8 @@
       try { await afterAuth(); } catch (e) { toast('老師帳號登入失敗：' + e.message); }
       return;
     }
+    // 這座島存的老師登入是舊的（同一個帳號、不同 token）：換成剛帶過來的，不然會被當成「登入已失效」
+    if (hand && auth && auth.sid === hand.s && auth.token !== hand.t) { auth.token = hand.t; await saveAuth(); }
     if (auth && auth.cls === '老師') ringSet(auth);
     render();
     const k = qs.get('k');

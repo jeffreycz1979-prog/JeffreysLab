@@ -2072,7 +2072,7 @@ function ensure3D() {
   i3dLoading = (async () => {
     try {
       // 六角群島版（各島共用 /JeffreysLab/island3d-hex.js）；?hex=0 看舊版
-      const mod = await import(/[?&]hex=0\b/.test(location.search) ? './island3d.js?v=4' : '/JeffreysLab/island3d-hex.js?v=7');
+      const mod = await import(/[?&]hex=0\b/.test(location.search) ? './island3d.js?v=4' : '/JeffreysLab/island3d-hex.js?v=8');
       i3d = await mod.createIsland3D($('island3d'), island3dHost);
       $('island3d').classList.add('ready');
     } catch (e) {
@@ -4058,7 +4058,7 @@ document.addEventListener('keydown', (e) => {
 <script src="games/shoot.js?v=0.9.2"></script>
 <script src="games/dino.js?v=0.8.2"></script>
 <script src="games/horde.js?v=0.5.2"></script>
-<script src="cloud.js?v=10"></script>
+<script src="cloud.js?v=11"></script>
 <script src="msg.js?v=8"></script>
 <script src="grant.js?v=1"></script>
 <script src="/JeffreysLab/archipelago.js?v=5"></script>

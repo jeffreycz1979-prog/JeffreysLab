@@ -953,12 +953,14 @@ export async function createIsland3D(el, host) {
         else {
           next('wait');
           const arch = ARCH(); if (r.w.ghost) arch.ghostTap(r.w.lv); else arch.tap(r.key);
-          r.stay = !r.w.ghost && r.w.ok;   // 能去的島：archipelago 會換網址，停在這裡等
+          // 能去的島：archipelago 會換網址，停在這裡等。用「現在」的登入狀態判斷（地圖畫好之後登入可能失效）
+          const live = !r.w.ghost && arch.world().find((x) => x.id === r.key);
+          r.stay = !!(live && live.ok);
         }
       }
     } else if (r.phase === 'wait') {
       rideG.position.y = -0.15 + Math.sin(t * 3) * 0.12; hero.position.y = seatY();
-      if (!r.stay && now - r.t0 > 1500) next('back');
+      if (now - r.t0 > (r.stay ? 5000 : 1500)) next('back');   // 等 5 秒還沒換島（網路慢、登入失效）就開回來，不要卡在海上
     }
     const after = proj.copy(hero.position).project(camera).x;
     if (Math.abs(after - before) > 0.0008) setFlip(after < before);
