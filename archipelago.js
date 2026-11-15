@@ -16,15 +16,15 @@
   const ISLAND_ACCESS = 'own';
   const K = 0.38, LY = Math.round(250 * K);   // LY＝島名牌在島中心下方多遠   // 全景裡每座島的縮小比例
   const ISLANDS = [
-    { id: 'thp5', lv: 5, name: ['綠野春天島', 'Spring Meadow Island'], book: 'Tree House 5', cls: ['THP5'], icon: '🌳',
+    { id: 'thp5', lv: 5, theme: 'meadow', name: ['綠野春天島', 'Spring Meadow Island'], book: 'Tree House 5', cls: ['THP5'], icon: '🌳',
       sea: '#C9EEEA', sand: '#F4F1EB', grass: '#D5EBB4', at: [100, 104],
       pts: [[44, 432], [4, 372, 6, 262, 30, 196], [50, 132, 16, 70, 84, 34], [150, 2, 270, -4, 330, 34], [386, 72, 380, 160, 370, 228], [360, 300, 386, 382, 326, 430], [262, 470, 104, 474, 44, 432]],
       deco: [['🌳', 110, 96, 70], ['🌲', 170, 70, 60], ['⛰️', 330, 210, 90], ['🌸', 120, 420, 50], ['🦆', 196, 230, 50], ['🌳', 290, 400, 66]] },
-    { id: 'thc6', lv: 6, name: ['秋楓城堡島', 'Maple Castle Island'], book: 'Tree House C6', cls: ['G2/THC6'], icon: '🏰',
+    { id: 'thc6', lv: 6, theme: 'autumn', name: ['秋楓城堡島', 'Maple Castle Island'], book: 'Tree House C6', cls: ['G2/THC6'], icon: '🏰',
       sea: '#AFCBEB', sand: '#F6ECD8', grass: '#EED9A2', at: [292, 162],
       pts: [[40, 440], [0, 384, -2, 270, 22, 200], [40, 140, 4, 64, 70, 30], [130, -4, 230, 6, 290, 14], [350, 22, 396, 60, 380, 130], [366, 180, 394, 214, 384, 262], [374, 330, 394, 400, 330, 440], [250, 486, 100, 480, 40, 440]],
       deco: [['🍁', 100, 96, 66], ['🍂', 180, 70, 50], ['🏰', 320, 210, 100], ['🔮', 196, 236, 54], ['🎃', 120, 320, 54], ['🍁', 290, 410, 66]] },
-    { id: 'vocab-thp11', lv: 11, name: ['火山椰林島', 'Volcano Palm Island'], book: 'THP11', cls: ['THP11'], icon: '🌋',
+    { id: 'vocab-thp11', lv: 11, theme: 'tropical', name: ['火山椰林島', 'Volcano Palm Island'], book: 'THP11', cls: ['THP11'], icon: '🌋',
       sea: '#7FD6DC', sand: '#FFF0CF', grass: '#B6DE95', at: [156, 326],
       pts: [[50, 440], [10, 400, 0, 300, 14, 230], [26, 160, 0, 90, 60, 40], [120, -10, 270, -6, 330, 40], [390, 86, 392, 180, 376, 250], [364, 300, 330, 330, 350, 380], [372, 430, 300, 470, 200, 462], [120, 458, 80, 460, 50, 440]],
       deco: [['🌴', 110, 96, 70], ['🛖', 180, 70, 50], ['🌋', 326, 220, 100], ['🌴', 140, 330, 60], ['🐚', 200, 440, 40], ['🌴', 290, 410, 70]] },
@@ -196,13 +196,17 @@
       return;
     }
     const gh = e.target.closest('[data-ghost]');
-    if (gh) { e.stopPropagation(); return toast(L(`☁️ Level ${gh.dataset.ghost} 的島還藏在海霧裡，即將開放！`, `☁️ The Level ${gh.dataset.ghost} island is still hidden in the mist!`)); }
+    if (gh) { e.stopPropagation(); return ghostTap(gh.dataset.ghost); }
     const t = e.target.closest('[data-arch]'); if (!t) return;
     e.stopPropagation();
     if (t.closest('#archView')) return tapIsle(t.dataset.arch);
     go(t.dataset.arch);
   }, true);
-  window.archipelago = { render, zoomIn, zoomOut, go, islands: ISLANDS, isInside: () => inside };
+  // 給 3D 地圖用：遠方海上的其他級數島（island3d-hex.js 的 buildWorld）
+  const world = () => ISLANDS.map((is) => ({ id: is.id, lv: is.lv, theme: is.theme, name: L(is.name[0], is.name[1]), here: is.id === HERE, ok: canGo(is) }))
+    .concat(GHOSTS.map(([lv]) => ({ lv, ghost: true }))).sort((a, b) => a.lv - b.lv);
+  const ghostTap = (lv) => toast(L(`☁️ Level ${lv} 的島還藏在海霧裡，即將開放！`, `☁️ The Level ${lv} island is still hidden in the mist!`));
+  window.archipelago = { render, zoomIn, zoomOut, go, islands: ISLANDS, isInside: () => inside, world, tap: tapIsle, ghostTap };
   if (document.readyState !== 'loading') renderBtn(); else document.addEventListener('DOMContentLoaded', renderBtn);
   addEventListener('island-ready', () => render());
 })();

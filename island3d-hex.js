@@ -692,9 +692,9 @@ export async function createIsland3D(el, host) {
 
   // ── 視角 ──
   const controls = new OrbitControls(camera, renderer.domElement);
-  Object.assign(controls, { enableDamping: true, dampingFactor: 0.08, enablePan: false, minDistance: 16, maxDistance: 115, maxPolarAngle: 1.32, minPolarAngle: 0.02, rotateSpeed: 0.7, zoomSpeed: 0.9 });
+  Object.assign(controls, { enableDamping: true, dampingFactor: 0.08, enablePan: false, minDistance: 16, maxDistance: 130, maxPolarAngle: 1.32, minPolarAngle: 0.02, rotateSpeed: 0.7, zoomSpeed: 0.9 });
   // eye＝平視：鏡頭降到角色身後、看著角色（像在島上散步）
-  const VIEWS = { bird: { polar: 0.9, az: 0.18, dist: 80 }, top: { polar: 0.03, az: 0, dist: 82 }, low: { polar: 1.22, az: 0.6, dist: 60 }, eye: { polar: 1.18, dist: 20, hero: true } };
+  const VIEWS = { bird: { polar: 0.9, az: 0.18, dist: 92 }, top: { polar: 0.03, az: 0, dist: 82 }, low: { polar: 1.22, az: 0.6, dist: 60 }, eye: { polar: 1.18, dist: 20, hero: true } };
   const FOLLOW = { polar: 1.02, dist: 26 };   // 走路時的跟隨鏡頭
   const fitK = () => Math.max(1, 1.05 / camera.aspect);
   const heroTarget = () => new THREE.Vector3(hero.position.x, hero.position.y + 2.2, hero.position.z);
@@ -717,13 +717,65 @@ export async function createIsland3D(el, host) {
     const w = el.clientWidth, h = el.clientHeight; if (!w || !h) return;
     renderer.setSize(w, h, false); renderer.domElement.style.width = w + 'px'; renderer.domElement.style.height = h + 'px';
     camera.aspect = w / h; camera.updateProjectionMatrix();
-    controls.maxDistance = 115 * fitK(); scene.fog.near = 120 * fitK(); scene.fog.far = 220 * fitK();
+    controls.maxDistance = 130 * fitK(); scene.fog.near = 135 * fitK(); scene.fog.far = 240 * fitK();
   }
   const ro = new ResizeObserver(resize); ro.observe(el);
   controls.addEventListener('start', () => { fly = null; });
 
   // ── 走路路線：黃色圓點沿小路排到目的地，走過的點消失；終點一支倒立的旗標上下浮動 ──
   const routeG = new THREE.Group(); scene.add(routeG);
+
+  // ── 遠方海上的其他級數島（window.archipelago.world()）：看得到、還過不去；點了交給群島處理 ──
+  const worldG = new THREE.Group(); scene.add(worldG);
+  let worldPick = [], worldSig = '';
+  const WORLD_R = 50, BIG = 9.5, WORLD_K = 0.72;   // 離主島多遠、小島大小、整體縮小比例
+  function worldLabel(text) {
+    const cv = document.createElement('canvas'); cv.width = 512; cv.height = 112; const g = cv.getContext('2d');
+    g.fillStyle = '#ffffff'; g.strokeStyle = '#1a3a1a'; g.lineWidth = 8; g.beginPath(); g.roundRect(8, 8, 496, 96, 48); g.fill(); g.stroke();
+    g.fillStyle = '#1a3a1a'; g.font = '800 44px "Noto Sans TC", system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(text, 256, 60, 460);
+    const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace;
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, fog: false, transparent: true })); sp.scale.set(24, 5.25, 1); sp.center.set(0.5, 0); return sp;
+  }
+  function buildWorld() {
+    const arch = window.archipelago; if (!arch || !arch.world) return;
+    const list = arch.world().filter((w) => !w.here), sig = JSON.stringify(list) + (host.lang ? host.lang() : '');
+    if (sig === worldSig) return; worldSig = sig;
+    worldG.traverse((o) => { if (o.isSprite) { o.material.map.dispose(); o.material.dispose(); } }); worldG.clear(); worldPick = [];
+    const add = (g, m, key) => { m.castShadow = false; m.userData.world = key; g.add(m); worldPick.push(m); return m; };
+    list.forEach((w, i) => {
+      // 低級數在左後方、高級數在右後方，繞著後半圈排
+      const a = (-152 + (list.length > 1 ? i * 124 / (list.length - 1) : 62)) * Math.PI / 180;
+      const g = new THREE.Group(); g.position.set(Math.cos(a) * WORLD_R, 0, Math.sin(a) * WORLD_R); g.scale.setScalar(WORLD_K); worldG.add(g);
+      const key = w.ghost ? 'g' + w.lv : w.id;
+      if (w.ghost) {   // 還沒建的級數：灰色小島罩著霧
+        add(g, mesh(new THREE.CylinderGeometry(BIG * 0.7, BIG * 0.75, 1.2, 6), M(0xD9D4C8), 0, 0.1, 0, false), key);
+        [[0, 2.2, 0, 3.6], [3.2, 1.8, 1.4, 2.6], [-3, 1.9, -1.2, 2.8], [0.6, 3.6, -1.6, 2.2]].forEach(([x, y, z, r]) => add(g, mesh(new THREE.IcosahedronGeometry(r, 1), M(0xF2F0EA, { transparent: true, opacity: 0.9 }), x, y, z, false), key));
+      } else {
+        const col = { meadow: [0x9BD06E, 0xF1E3BE], autumn: [0xE6C77E, 0xF3E2C4], tropical: [0x9FD27C, 0xFFEFC8] }[w.theme] || [0x9BD06E, 0xF1E3BE];
+        add(g, mesh(new THREE.CylinderGeometry(BIG + 1.2, BIG + 1.8, 0.6, 6), M(col[1]), 0, -0.3, 0, false), key);
+        add(g, mesh(new THREE.CylinderGeometry(BIG, BIG + 0.4, 1.6, 6), M(0xC9A877), 0, 0.2, 0, false), key);
+        add(g, mesh(new THREE.CylinderGeometry(BIG - 0.2, BIG, 0.4, 6), M(col[0]), 0, 1.1, 0, false), key);
+        const blob = (x, z, r, c) => { add(g, mesh(new THREE.CylinderGeometry(0.3, 0.4, 1.6, 5), M(0x8B5A2B), x, 2.0, z, false), key); add(g, mesh(new THREE.IcosahedronGeometry(r, 0), M(c), x, 3.6, z, false), key); };
+        if (w.theme === 'autumn') {   // 城堡＋楓樹
+          add(g, mesh(new THREE.BoxGeometry(6, 3, 3), M(0xE9E1F2), 0, 2.8, -1, false), key);
+          [-3.4, 3.4].forEach((x) => { add(g, mesh(new THREE.CylinderGeometry(1, 1.1, 5, 8), M(0xD9CDEB), x, 3.8, -1, false), key); add(g, mesh(new THREE.ConeGeometry(1.4, 2.2, 8), M(0x8E6FC4), x, 7.4, -1, false), key); });
+          add(g, mesh(new THREE.ConeGeometry(1.6, 2.8, 8), M(0xE8833A), 0, 5.7, -1, false), key);
+          blob(-5, 3.5, 1.7, 0xE8833A); blob(4.6, 4, 1.5, 0xD9532B); blob(0, 5.5, 1.4, 0xF2B24A);
+        } else if (w.theme === 'tropical') {   // 火山＋椰樹
+          add(g, mesh(new THREE.CylinderGeometry(1.6, 5.2, 7, 8), M(0x8A6A58), 0.5, 4.8, -1.5, false), key);
+          add(g, mesh(new THREE.CylinderGeometry(1.5, 1.7, 0.6, 8), M(0xFF6B2C, { emissive: 0xFF4A00, emissiveIntensity: 0.6 }), 0.5, 8.3, -1.5, false), key);
+          const sm = add(g, mesh(new THREE.IcosahedronGeometry(1.3, 0), M(0xE8E4DE, { transparent: true, opacity: 0.85 }), 0.9, 10.2, -1.5, false), key); bobbers.push({ g: sm, y: 10.2, p: i });
+          blob(-5.5, 2.5, 1.5, 0x4FAE5C); blob(5.2, 3.6, 1.4, 0x7ACB6A); blob(-2, 5.6, 1.3, 0x4FAE5C);
+        } else {   // 綠野：雪山＋樹
+          add(g, mesh(new THREE.ConeGeometry(4.2, 8, 6), M(0x7FA67C), 0.5, 5.3, -1.5, false), key);
+          add(g, mesh(new THREE.ConeGeometry(1.6, 3, 6), M(0xffffff), 0.5, 7.9, -1.5, false), key);
+          blob(-5.5, 2.5, 1.7, 0x5FB35A); blob(5.2, 3.6, 1.5, 0x86CF6E); blob(-2, 5.6, 1.4, 0x3E9150);
+        }
+      }
+      const lb = worldLabel((w.ghost ? '☁️ ' : w.ok ? '⛵ ' : '🔒 ') + 'Lv' + w.lv + (w.ghost ? '' : ' ' + w.name));
+      lb.position.set(0, w.ghost ? 6.5 : 12.5, 0); lb.userData.world = key; g.add(lb); worldPick.push(lb);
+    });
+  }
 
   // ── 每週神秘寶箱：放在風景小島朝外的沙灘上；點了交給 host.chestTap ──
   const chestG = new THREE.Group(); scene.add(chestG);
@@ -790,6 +842,8 @@ export async function createIsland3D(el, host) {
     ray.setFromCamera(ptr, camera);
     if (ray.intersectObject(hero, false).length) return host.heroTap();
     const mh = ray.intersectObjects(matesG.children, false)[0]; if (mh && host.mateTap) return host.mateTap(mh.object.userData.mate);
+    const wh = worldPick.length && !ray.intersectObjects(pickables, false)[0] && ray.intersectObjects(worldPick, false)[0];
+    if (wh && window.archipelago) { const k = wh.object.userData.world; return k[0] === 'g' && !isNaN(k.slice(1)) ? window.archipelago.ghostTap(k.slice(1)) : window.archipelago.tap(k); }
     const ch = chestPick.length && ray.intersectObjects(chestPick, false)[0];
     if (ch && host.chestTap) return host.chestTap(ch.object.userData.chest);
     const hit = ray.intersectObjects(pickables, false)[0]; if (!hit) return;
@@ -818,6 +872,7 @@ export async function createIsland3D(el, host) {
     await refreshHero();
     refreshMates();
     if (host.chests) buildChests(host.chests());
+    buildWorld();
   }
 
   // ── 動畫迴圈：首頁看不到時暫停，省電 ──
