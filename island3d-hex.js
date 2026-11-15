@@ -736,8 +736,15 @@ export async function createIsland3D(el, host) {
     const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace;
     const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, fog: false, transparent: true })); sp.scale.set(24, 5.25, 1); sp.center.set(0.5, 0); return sp;
   }
+  // 沒接群島的島（測試島）：放幾座示範島，交通工具才有地方試
+  const DEMO_ARCH = {
+    world: () => [{ id: 'd5', lv: 5, theme: 'meadow', name: '綠野春天島' }, { id: 'd6', lv: 6, theme: 'autumn', name: '秋楓城堡島' }, { lv: 7, ghost: true }, { lv: 8, ghost: true }, { id: 'd11', lv: 11, theme: 'tropical', name: '火山椰林島' }],
+    tap: () => window.toast && window.toast('🔒 測試島只能靠近看看，不能上岸'),
+    ghostTap: (lv) => window.toast && window.toast(`☁️ Level ${lv} 的島還藏在海霧裡，即將開放！`),
+  };
+  const ARCH = () => (window.archipelago && window.archipelago.world ? window.archipelago : DEMO_ARCH);
   function buildWorld() {
-    const arch = window.archipelago; if (!arch || !arch.world) return;
+    const arch = ARCH();
     const list = arch.world().filter((w) => !w.here), sig = JSON.stringify(list) + (host.lang ? host.lang() : '');
     if (sig === worldSig) return; worldSig = sig;
     worldG.traverse((o) => { if (o.isSprite) { o.material.map.dispose(); o.material.dispose(); } }); worldG.clear(); worldPick = [];
@@ -747,6 +754,7 @@ export async function createIsland3D(el, host) {
       const a = (-152 + (list.length > 1 ? i * 124 / (list.length - 1) : 62)) * Math.PI / 180;
       const g = new THREE.Group(); g.position.set(Math.cos(a) * WORLD_R, 0, Math.sin(a) * WORLD_R); g.scale.setScalar(WORLD_K); worldG.add(g);
       const key = w.ghost ? 'g' + w.lv : w.id;
+      g.userData = { key, w };
       if (w.ghost) {   // 還沒建的級數：灰色小島罩著霧
         add(g, mesh(new THREE.CylinderGeometry(BIG * 0.7, BIG * 0.75, 1.2, 6), M(0xD9D4C8), 0, 0.1, 0, false), key);
         [[0, 2.2, 0, 3.6], [3.2, 1.8, 1.4, 2.6], [-3, 1.9, -1.2, 2.8], [0.6, 3.6, -1.6, 2.2]].forEach(([x, y, z, r]) => add(g, mesh(new THREE.IcosahedronGeometry(r, 1), M(0xF2F0EA, { transparent: true, opacity: 0.9 }), x, y, z, false), key));
@@ -830,6 +838,132 @@ export async function createIsland3D(el, host) {
   pill.addEventListener('click', (e) => { e.stopPropagation(); if (walking) walking.skip = true; });
   el.appendChild(pill);
 
+  // ── 交通工具：點遠方的島 → 跳上交通工具出海；能去的島就上岸（換網址），不能去的靠近看看再回來 ──
+  // host.ride() 回傳學生選的交通工具（商店買的）；預設小舟
+  const RIDES = {
+    boat:    { sc: 1.4, air: 0,  speed: 9,  seat: 0.55, zh: '小舟', icon: '🛶' },
+    jetski:  { sc: 1.5, air: 0,  speed: 17, seat: 0.95, zh: '水上摩托車', icon: '🌊' },
+    whale:   { sc: 1.25, air: 0,  speed: 12, seat: 1.75, zh: '鯨魚', icon: '🐋' },
+    glider:  { sc: 1, air: 8,  speed: 11, seat: 0,    zh: '飛行傘', icon: '🪂' },
+    balloon: { sc: 1, air: 10, speed: 8,  seat: 0.2, zh: '熱氣球', icon: '🎈' },
+    plane:   { sc: 1.4, air: 11, speed: 20, seat: 0.8,  zh: '飛機', icon: '✈️' },
+    dragon:  { sc: 1.3, air: 10, speed: 18, seat: 1.05, zh: '飛龍', icon: '🐉' },
+    rocket:  { sc: 1.4, air: 16, speed: 30, seat: 0.8,  zh: '火箭太空梭', icon: '🚀' },
+  };
+  const rideG = new THREE.Group(); rideG.visible = false; scene.add(rideG);
+  let rideKind = '', rideAnim = [], riding = null;
+  function buildRide(kind) {   // 模型朝 +x；原點＝水面／角色腳下
+    if (kind === rideKind) return; rideKind = kind; rideG.clear(); rideAnim = []; rideG.scale.setScalar(RIDES[kind].sc);
+    const g = rideG, A = (m) => { m.castShadow = false; g.add(m); return m; };
+    const along = (geo) => { geo.rotateZ(-Math.PI / 2); return geo; };   // 圓柱／圓錐改成朝 +x
+    const rod = (a, b, r, c) => {   // 兩點之間的細桿（繩子）
+      const va = new THREE.Vector3(...a), vb = new THREE.Vector3(...b), m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, va.distanceTo(vb), 4), M(c));
+      m.position.copy(va).add(vb).multiplyScalar(0.5); m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), vb.clone().sub(va).normalize()); return m;
+    };
+    if (kind === 'boat') {
+      A(mesh(new THREE.BoxGeometry(3.2, 0.7, 1.5), M(0xB07A45), 0, 0.2, 0, false));
+      A(mesh(along(new THREE.ConeGeometry(0.75, 1.3, 4)), M(0xB07A45), 2.2, 0.2, 0, false)).rotation.x = Math.PI / 4;
+      A(mesh(new THREE.BoxGeometry(3.3, 0.12, 1.62), M(0x7A4A26), 0, 0.58, 0, false));
+      A(mesh(new THREE.BoxGeometry(0.5, 0.12, 1.4), M(0xE6D7B5), -0.7, 0.62, 0, false));
+      [-1, 1].forEach((sd) => { const o = A(mesh(new THREE.BoxGeometry(0.12, 0.08, 2.2), M(0xE6D7B5), 0.4, 0.5, sd * 1.5, false)); o.userData.sd = sd; rideAnim.push((t) => (o.rotation.y = Math.sin(t * 4) * 0.5 * sd)); });
+    } else if (kind === 'jetski') {
+      A(mesh(new THREE.BoxGeometry(2.8, 0.7, 1.1), M(C.mint), 0, 0.3, 0, false));
+      A(mesh(along(new THREE.ConeGeometry(0.6, 1.2, 4)), M(C.lime), 1.9, 0.35, 0, false)).rotation.x = Math.PI / 4;
+      A(mesh(new THREE.BoxGeometry(1.3, 0.3, 0.7), M(C.ink), -0.4, 0.8, 0, false));
+      A(mesh(new THREE.BoxGeometry(0.12, 0.7, 0.12), M(C.ink), 0.8, 0.95, 0, false)); A(mesh(new THREE.BoxGeometry(0.12, 0.12, 1.1), M(C.ink), 0.8, 1.3, 0, false));
+      [0, 1, 2].forEach((i) => { const sp = A(mesh(new THREE.IcosahedronGeometry(0.4 - i * 0.08, 0), M(0xffffff, { transparent: true, opacity: 0.85 }), -1.9 - i * 0.6, 0.3, 0, false)); rideAnim.push((t) => (sp.position.y = 0.3 + Math.abs(Math.sin(t * 9 + i)) * 0.6)); });
+    } else if (kind === 'whale') {
+      const b = A(mesh(new THREE.SphereGeometry(1.5, 12, 8), M(0x4A7FD0), 0, 0.3, 0, false)); b.scale.set(2, 1, 1.15);
+      const be = A(mesh(new THREE.SphereGeometry(1.4, 12, 8), M(0xDCEBFA), 0.2, -0.05, 0, false)); be.scale.set(1.9, 0.85, 1.05);
+      const tail = new THREE.Group(); tail.position.set(-2.9, 0.5, 0); g.add(tail);
+      [-1, 1].forEach((sd) => { const f = mesh(along(new THREE.ConeGeometry(0.5, 1.5, 4)), M(0x4A7FD0), -0.5, 0.3, sd * 0.55, false); f.rotation.y = sd * 0.6; f.castShadow = false; tail.add(f); });
+      rideAnim.push((t) => (tail.rotation.z = Math.sin(t * 3) * 0.3));
+      [-1, 1].forEach((sd) => { A(mesh(new THREE.SphereGeometry(0.14, 6, 5), M(C.ink), 2.3, 0.6, sd * 0.95, false)); A(mesh(new THREE.BoxGeometry(0.9, 0.12, 0.5), M(0x3E6DB8), 0.6, -0.2, sd * 1.7, false)); });
+      [0, 1, 2].forEach((i) => { const sp = A(mesh(new THREE.IcosahedronGeometry(0.22, 0), M(0xBDEFF5), 1.6 + (i - 1) * 0.3, 2, 0, false)); rideAnim.push((t) => (sp.position.y = 1.9 + ((t * 1.6 + i * 0.33) % 1) * 1.6)); });
+    } else if (kind === 'glider') {   // 傘在頭上（角色高 5.4），橫跨左右
+      const shell = (r, len, c) => { const ge = new THREE.CylinderGeometry(r, r, len, 14, 1, true, 0, Math.PI); ge.rotateZ(Math.PI / 2); const m = new THREE.Mesh(ge, M(c, { side: THREE.DoubleSide })); m.scale.y = 0.5; m.position.y = 6.6; g.add(m); return m; };
+      shell(3.6, 2.6, C.coral); shell(3.64, 0.7, C.lime);
+      [-1, 1].forEach((sd) => [-0.9, 0.9].forEach((dx) => A(rod([0, 3.4, sd * 0.7], [dx, 6.7, sd * 3.5], 0.03, C.ink))));
+      rideAnim.push((t) => (g.rotation.x = Math.sin(t * 1.5) * 0.06));
+    } else if (kind === 'balloon') {
+      A(mesh(new THREE.SphereGeometry(3.3, 12, 10), M(C.coral), 0, 10.2, 0, false));
+      [0, 1, 2, 3].forEach((i) => A(mesh(new THREE.SphereGeometry(3.35, 4, 10, i * Math.PI / 2, Math.PI / 4), M(i % 2 ? C.lime : 0xffffff), 0, 10.2, 0, false)));
+      A(mesh(new THREE.CylinderGeometry(1.1, 2.4, 1.8, 10, 1, true), M(C.coral, { side: THREE.DoubleSide }), 0, 6.9, 0, false));
+      A(mesh(new THREE.BoxGeometry(2.6, 1.3, 2.2), M(C.wood), 0, 0.65, 0, false)); A(mesh(new THREE.BoxGeometry(2.75, 0.16, 2.35), M(0x7A4A26), 0, 1.32, 0, false));
+      [[-1, -1], [-1, 1], [1, -1], [1, 1]].forEach(([a, b]) => A(rod([a * 1.25, 1.3, b * 1.05], [a * 1.0, 6.1, b * 1.0], 0.035, C.ink)));
+      const fl = A(mesh(new THREE.ConeGeometry(0.35, 0.8, 6), lampMat, 0, 6.3, 0, false)); rideAnim.push((t) => fl.scale.setScalar(1 + Math.sin(t * 12) * 0.2));
+    } else if (kind === 'plane') {
+      A(mesh(along(new THREE.CylinderGeometry(0.6, 0.45, 3.8, 10)), M(0xffffff), 0, 0.3, 0, false));
+      A(mesh(along(new THREE.ConeGeometry(0.6, 0.8, 10)), M(C.coral), 2.3, 0.3, 0, false));
+      A(mesh(new THREE.BoxGeometry(1.3, 0.14, 6), M(C.coral), 0.3, 0.3, 0, false));
+      A(mesh(new THREE.BoxGeometry(0.8, 0.12, 2.2), M(C.coral), -1.7, 0.4, 0, false)); A(mesh(new THREE.BoxGeometry(0.8, 1.0, 0.12), M(C.lime), -1.7, 0.9, 0, false));
+      const pr = A(mesh(new THREE.BoxGeometry(0.08, 2.2, 0.22), M(C.ink), 2.75, 0.3, 0, false)); rideAnim.push((t) => (pr.rotation.x = t * 30));
+      [-1, 1].forEach((sd) => A(mesh(new THREE.CylinderGeometry(0.25, 0.25, 0.14, 8), M(C.ink), 0.6, -0.5, sd * 0.8, false)).rotation.x = Math.PI / 2);
+    } else if (kind === 'dragon') {
+      const GC = 0x4FB36A, GD = 0x3A9455;
+      [[1.2, 0.95], [0.3, 1.05], [-0.7, 0.95], [-1.6, 0.75], [-2.4, 0.55], [-3.1, 0.38]].forEach(([x, r], i) => { const sg = A(mesh(new THREE.SphereGeometry(r, 8, 6), M(i % 2 ? GD : GC), x, 0.2, 0, false)); if (i > 2) rideAnim.push((t) => (sg.position.y = 0.2 + Math.sin(t * 5 - i * 0.8) * 0.25)); });
+      A(mesh(new THREE.SphereGeometry(0.85, 8, 6), M(GC), 2.3, 0.8, 0, false)); A(mesh(new THREE.BoxGeometry(0.9, 0.5, 0.7), M(GC), 3.0, 0.65, 0, false));
+      [-1, 1].forEach((sd) => { A(mesh(new THREE.ConeGeometry(0.16, 0.6, 5), M(0xFFD84D), 2.1, 1.7, sd * 0.4, false)); A(mesh(new THREE.SphereGeometry(0.12, 6, 5), M(C.ink), 2.75, 1.05, sd * 0.5, false));
+        const wg = new THREE.BufferGeometry(); wg.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 1.6, 0, sd * 3.4, -1.6, 0, sd * 2.6, 0, 0, 0, -1.6, 0, sd * 2.6, -1.2, 0, 0], 3)); wg.computeVertexNormals();
+        const wing = new THREE.Mesh(wg, M(0xFFB547, { side: THREE.DoubleSide })); wing.position.set(0.2, 0.9, sd * 0.6); g.add(wing); rideAnim.push((t) => (wing.rotation.x = -sd * Math.sin(t * 7) * 0.55)); });
+      [0.9, 0, -0.9].forEach((x) => A(mesh(new THREE.ConeGeometry(0.2, 0.5, 4), M(0xFFD84D), x, 1.25, 0, false)));
+    } else if (kind === 'rocket') {
+      A(mesh(along(new THREE.CylinderGeometry(0.75, 0.75, 3.4, 12)), M(0xffffff), 0, 0.3, 0, false));
+      A(mesh(along(new THREE.ConeGeometry(0.75, 1.5, 12)), M(C.coral), 2.45, 0.3, 0, false));
+      A(mesh(along(new THREE.CylinderGeometry(0.78, 0.78, 0.4, 12)), M(C.lime), 0.9, 0.3, 0, false));
+      [0, 1, 2].forEach((i) => { const f = new THREE.Group(); f.rotation.x = i * Math.PI * 2 / 3 + Math.PI / 3; g.add(f); const fin = mesh(new THREE.BoxGeometry(1.1, 0.12, 0.9), M(C.coral), -1.5, 0, 1.0, false); fin.castShadow = false; f.add(fin); f.position.y = 0.3; });
+      [-1, 1].forEach((sd) => A(mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.08, 10), M(0x7FD3FF), 0.2, 0.3, sd * 0.76, false)).rotation.x = Math.PI / 2);
+      const fl = A(mesh(along(new THREE.ConeGeometry(0.6, 2.2, 8)), lampMat.clone(), -2.8, 0.3, 0, false)); fl.rotation.z = Math.PI; fl.material.emissiveIntensity = 1.5; fl.material.color.set(0xFF8A3D);
+      rideAnim.push((t) => fl.scale.set(1 + Math.sin(t * 40) * 0.25, 1, 1));
+    }
+  }
+  function startRide(key) {
+    if (riding || walking) return;
+    const tg = worldG.children.find((c) => c.userData.key === key); if (!tg) return;
+    const kind = RIDES[host.ride && host.ride()] ? host.ride() : 'boat', R0 = RIDES[kind];
+    buildRide(kind);
+    const T = tg.position, d = Math.hypot(T.x, T.z), ux = T.x / d, uz = T.z / d, stop = d - (BIG + 1.8) * WORLD_K - 3.5;
+    const S = hero.position.clone(), D = new THREE.Vector3(ux * 37, 0, uz * 37), E = new THREE.Vector3(ux * stop, 0, uz * stop);
+    const hopMs = Math.min(1100, Math.max(550, S.distanceTo(D) * 22)), goMs = host.reduce ? 600 : Math.max(1400, D.distanceTo(E) / R0.speed * 1000);
+    riding = { key, w: tg.userData.w, kind, R0, S, D, E, hopMs, goMs, phase: 'hop', t0: performance.now(), lookX: ux, lookZ: uz };
+    rideG.position.copy(D); rideG.position.y = -0.15; rideG.rotation.set(0, -Math.atan2(uz, ux), 0); rideG.visible = true;
+    fly = null; follow = true;
+    const en = host.lang && host.lang() === 'en', nm = 'Lv' + riding.w.lv + (riding.w.name ? ' ' + riding.w.name : '');
+    pill.textContent = en ? `${R0.icon} Heading to ${nm}…` : `${R0.icon} 搭${R0.zh}前往 ${nm}…`; pill.hidden = false;
+  }
+  function tickRide(now, t) {
+    const r = riding, R0 = r.R0, k = (ms) => Math.min(1, (now - r.t0) / ms), next = (ph) => { r.phase = ph; r.t0 = now; };
+    const seatY = () => rideG.position.y + R0.seat * R0.sc;
+    rideAnim.forEach((f) => f(t));
+    const before = proj.copy(hero.position).project(camera).x;
+    if (r.phase === 'hop' || r.phase === 'hopback') {   // 跳上／跳下交通工具
+      const back = r.phase === 'hopback', kk = ease(k(r.hopMs)), a = back ? r.D : r.S, b = back ? r.S : r.D;
+      const y0 = back ? -0.15 + R0.seat * R0.sc : r.S.y, y1 = back ? r.S.y : -0.15 + R0.seat * R0.sc;
+      hero.position.set(a.x + (b.x - a.x) * kk, y0 + (y1 - y0) * kk + Math.sin(kk * Math.PI) * 7, a.z + (b.z - a.z) * kk);
+      if (kk >= 1) { if (back) { riding = null; rideG.visible = false; follow = false; pill.hidden = true; return; } next('go'); }
+    } else if (r.phase === 'go' || r.phase === 'back') {
+      const back = r.phase === 'back', kk = walkEase(k(r.goMs)), a = back ? r.E : r.D, b = back ? r.D : r.E;
+      const alt = R0.air ? Math.pow(Math.sin(kk * Math.PI), 0.55) * R0.air : 0;
+      rideG.position.set(a.x + (b.x - a.x) * kk, -0.15 + alt + Math.sin(t * (R0.air ? 2 : 3.2)) * (R0.air ? 0.25 : 0.12), a.z + (b.z - a.z) * kk);
+      const sgn = back ? -1 : 1; rideG.rotation.y = -Math.atan2(r.lookZ * sgn, r.lookX * sgn);
+      rideG.rotation.z = R0.air && r.kind !== 'balloon' && r.kind !== 'glider' ? Math.cos(kk * Math.PI) * 0.28 : 0;   // 起飛抬頭、降落低頭
+      hero.position.set(rideG.position.x, seatY(), rideG.position.z);
+      if (kk >= 1) {
+        if (back) next('hopback');
+        else {
+          next('wait');
+          const arch = ARCH(); if (r.w.ghost) arch.ghostTap(r.w.lv); else arch.tap(r.key);
+          r.stay = !r.w.ghost && r.w.ok;   // 能去的島：archipelago 會換網址，停在這裡等
+        }
+      }
+    } else if (r.phase === 'wait') {
+      rideG.position.y = -0.15 + Math.sin(t * 3) * 0.12; hero.position.y = seatY();
+      if (!r.stay && now - r.t0 > 1500) next('back');
+    }
+    const after = proj.copy(hero.position).project(camera).x;
+    if (Math.abs(after - before) > 0.0008) setFlip(after < before);
+  }
+
   // ── 點選：地塊、角色 ──
   const ray = new THREE.Raycaster(), ptr = new THREE.Vector2();
   let down = null;
@@ -837,13 +971,14 @@ export async function createIsland3D(el, host) {
   renderer.domElement.addEventListener('pointerup', (e) => {
     if (!down || Math.hypot(e.clientX - down.x, e.clientY - down.y) > 8 || performance.now() - down.t > 500) return;
     if (walking) { walking.skip = true; return; }
+    if (riding) return;
     const r = renderer.domElement.getBoundingClientRect();
     ptr.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
     ray.setFromCamera(ptr, camera);
     if (ray.intersectObject(hero, false).length) return host.heroTap();
     const mh = ray.intersectObjects(matesG.children, false)[0]; if (mh && host.mateTap) return host.mateTap(mh.object.userData.mate);
     const wh = worldPick.length && !ray.intersectObjects(pickables, false)[0] && ray.intersectObjects(worldPick, false)[0];
-    if (wh && window.archipelago) { const k = wh.object.userData.world; return k[0] === 'g' && !isNaN(k.slice(1)) ? window.archipelago.ghostTap(k.slice(1)) : window.archipelago.tap(k); }
+    if (wh) return startRide(wh.object.userData.world);
     const ch = chestPick.length && ray.intersectObjects(chestPick, false)[0];
     if (ch && host.chestTap) return host.chestTap(ch.object.userData.chest);
     const hit = ray.intersectObjects(pickables, false)[0]; if (!hit) return;
@@ -867,7 +1002,7 @@ export async function createIsland3D(el, host) {
     if (units.length !== curN) buildLayout(units.length);
     buildTiles(units);
     const at = tileByCode(host.heroAt()) || tiles.find((t) => !t.u.locked);
-    if (at && !walking) { heroLen = standLen(at); placeHero(heroLen); hero.position.y = groundAt(hero.position.x, hero.position.z); }
+    if (at && !walking && !riding) { heroLen = standLen(at); placeHero(heroLen); hero.position.y = groundAt(hero.position.x, hero.position.z); }
     if (view === 'eye' && !walking && !follow) controls.target.copy(heroTarget());
     await refreshHero();
     refreshMates();
@@ -913,9 +1048,9 @@ export async function createIsland3D(el, host) {
     if (motion) tickMates(dt * 1000);
     if (routeEnd && motion) routeEnd.position.y = routeEnd.userData.y + Math.sin(t * 4) * 0.25;
     const gy = groundAt(hero.position.x, hero.position.z) + (walking ? Math.abs(Math.sin(now / 70)) * 0.18 : motion ? Math.sin(t * 2.2) * 0.04 : 0);
-    hero.position.y += (gy - hero.position.y) * 0.35;
+    if (riding) tickRide(now, t); else hero.position.y += (gy - hero.position.y) * 0.35;
     hero.scale.x = HERO_H * 264 / 384 * flipScale(heroFlipT, now); if (heroFlipT && now - heroFlipT > FLIP_MS) heroFlipT = 0;
-    placeShadow(heroShadow, hero, 2.6);
+    heroShadow.visible = !riding; placeShadow(heroShadow, hero, 2.6);
     mateList.forEach((w) => { w.sp.scale.x = MATE_H * 264 / 384 * flipScale(w.ft, now); if (w.ft && now - w.ft > FLIP_MS) w.ft = 0; w.sh.visible = !!w.sp.material.map; placeShadow(w.sh, w.sp, 2.1); });
     if (motion) {
       const a = seaGeo.attributes.position, arr = a.array;
@@ -975,6 +1110,7 @@ export async function createIsland3D(el, host) {
   return {
     update, setView,
     _debug: { camera, tiles: () => tiles, hero, renderer },   // 測試用
+    rideTo: (key) => startRide(key || (worldG.children[0] && worldG.children[0].userData.key)),   // 出海到某座遠方的島（沒給就去第一座）
     destroy() { cancelAnimationFrame(raf); ro.disconnect(); skyBtn.remove(); controls.dispose(); renderer.dispose(); renderer.domElement.remove(); },
   };
 }

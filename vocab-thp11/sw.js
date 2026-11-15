@@ -1,6 +1,6 @@
 // THP11 英文島（正式版）- Service Worker（scope：/JeffreysLab/vocab-thp11/）
 // 頁面與程式改成網路優先；改了檔案仍建議把版本號 +1，舊快取會自動清除
-const CACHE_NAME = 'thp11-v59';
+const CACHE_NAME = 'thp11-v60';
 
 const PRECACHE_URLS = [
   '/JeffreysLab/vocab-thp11/',
@@ -8,7 +8,7 @@ const PRECACHE_URLS = [
   '/JeffreysLab/vocab-thp11/manifest.json',
   '/JeffreysLab/vocab-thp11/grammar.json',
   '/JeffreysLab/vocab-thp11/island3d.js?v=6',
-  '/JeffreysLab/island3d-hex.js?v=6',
+  '/JeffreysLab/island3d-hex.js?v=7',
   '/JeffreysLab/vocab-thp11/games/sfx.js?v=1.5',
   '/JeffreysLab/vocab-thp11/games/jump.js?v=1.8',
   '/JeffreysLab/vocab-thp11/games/blaster.js?v=1.8',

@@ -2036,6 +2036,7 @@ function heroCanvas(pose, flip) {   // 自己的角色（含寵物）＋頭上�
   return avatarCanvas(lookOf(), pose, flip, tags);
 }
 const island3dHost = {
+  ride: () => lookOf().ride,   // 出海用的交通工具（商店買的）
   hexTheme: 'meadow',   // 六角群島版：綠野春天島（森林、雪山、麥田、牧場）
   layout() { const n = Math.min(9, allUnits().length + (st.lockedUnits || []).length), lay = n <= 6 ? 6 : 9; return { lay, pos: ISLAND_POS[lay], road: ISLAND_ROAD[lay] }; },
   units() {
@@ -2071,7 +2072,7 @@ function ensure3D() {
   i3dLoading = (async () => {
     try {
       // 六角群島版（各島共用 /JeffreysLab/island3d-hex.js）；?hex=0 看舊版
-      const mod = await import(/[?&]hex=0\b/.test(location.search) ? './island3d.js?v=4' : '/JeffreysLab/island3d-hex.js?v=6');
+      const mod = await import(/[?&]hex=0\b/.test(location.search) ? './island3d.js?v=4' : '/JeffreysLab/island3d-hex.js?v=7');
       i3d = await mod.createIsland3D($('island3d'), island3dHost);
       $('island3d').classList.add('ready');
     } catch (e) {
@@ -2185,6 +2186,8 @@ const AV_OPTS = {
   acc:   [['none', '不戴'], ['glasses', '眼鏡'], ['scarf', '圍巾'], ['backpack', '背包'], ['star', '星星貼紙'], ['cape', '披風']],
   pet:   [['none', '不帶'], ['dog', '小狗'], ['cat', '小貓'], ['bird', '小鳥'], ['rabbit', '兔子'], ['turtle', '烏龜'], ['snake', '小蛇'],
           ['capybara', '卡皮巴拉'], ['seal', '海豹'], ['trex', '暴龍'], ['dragon', '西方龍'], ['unicorn', '獨角獸']],
+  // 交通工具（2026/11/15）：在 3D 地圖點遠方的島就會搭它出海；小舟免費
+  ride:  [['boat', '小舟'], ['jetski', '水上摩托車'], ['glider', '飛行傘'], ['balloon', '熱氣球'], ['whale', '鯨魚'], ['plane', '飛機'], ['dragon', '飛龍'], ['rocket', '火箭太空梭']],
 };
 // ── 角色商店：衣服、顏色、帽子、配件、寵物都用積分買 ──
 // 定價：一般 30、很酷的 60（翻倍）、換色 20。一週正常練習（約 90～100 分）大約買得起 3 樣一般的
@@ -2195,11 +2198,14 @@ const AV_COOL = ['top:princess', 'top:hero', 'top:knight', 'top:robot', 'top:war
   'pet:capybara', 'pet:seal', 'pet:trex', 'pet:dragon', 'pet:unicorn',
   'top:elf', 'top:commando', 'top:police', 'top:santa', 'hat:straw', 'hold:sword', 'hold:katana', 'hold:bow'];
 // 新上架（2026/11/06 學生許願）：商店顯示 NEW，買了就消失
-const AV_NEW = ['top:elf', 'top:commando', 'top:police', 'top:santa', 'hat:straw', 'hold:sword', 'hold:katana', 'hold:bow'];
+const AV_NEW = ['top:elf', 'top:commando', 'top:police', 'top:santa', 'hat:straw', 'hold:sword', 'hold:katana', 'hold:bow',
+  'ride:jetski', 'ride:glider', 'ride:balloon', 'ride:whale', 'ride:plane', 'ride:dragon', 'ride:rocket'];
 const AV_PRICE = { 'color:hair': PRICE_COLOR, 'color:top': PRICE_COLOR, 'color:bot': PRICE_COLOR };
 ['top', 'hat', 'deco', 'ear', 'acc', 'hold', 'pet'].forEach((k) => AV_OPTS[k].forEach(([v]) => {
   if (v !== 'tee' && v !== 'none') AV_PRICE[k + ':' + v] = AV_COOL.includes(k + ':' + v) ? PRICE_COOL : PRICE_BASIC;
 }));
+// 交通工具比衣服貴：積分換島會累加，要有值得存的東西
+Object.assign(AV_PRICE, { 'ride:jetski': 100, 'ride:glider': 120, 'ride:balloon': 150, 'ride:whale': 200, 'ride:plane': 250, 'ride:dragon': 350, 'ride:rocket': 500 });
 const spentPts = () => (st.ledger.shop || []).reduce((a, b) => a + b.p, 0);
 const redeemSpent = () => (st.ledger.redeem || []).reduce((a, b) => a + (b.cost || 0), 0);
 const walletPts = () => Math.max(0, points().total - spentPts() - redeemSpent());
@@ -2367,10 +2373,10 @@ function showVoucher(n) {
   const tick = () => { const c = $('clock'); if (!c) return clearInterval(openProof._i); c.textContent = new Date().toLocaleString('zh-TW', { hour12: false }); };
   clearInterval(openProof._i); tick(); openProof._i = setInterval(tick, 1000);
 }
-const DEFAULT_LOOK = { skin: 1, eyes: 'dot', mouth: 'smile', hair: 'short', hairC: 0, top: 'tee', topC: 0, botC: 0, hat: 'none', deco: 'none', ear: 'none', acc: 'none', hold: 'none', pet: 'none' };
+const DEFAULT_LOOK = { skin: 1, eyes: 'dot', mouth: 'smile', hair: 'short', hairC: 0, top: 'tee', topC: 0, botC: 0, hat: 'none', deco: 'none', ear: 'none', acc: 'none', hold: 'none', pet: 'none', ride: 'boat' };
 function sanitizeLook(l) {   // 還沒解鎖的東西換回預設（例如解鎖規則改了）
   const out = { ...DEFAULT_LOOK, ...l };
-  ['top', 'hat', 'deco', 'ear', 'acc', 'hold', 'pet'].forEach((k) => { if (!AV_OPTS[k].some((o) => o[0] === out[k]) || avLock(k, out[k])) out[k] = DEFAULT_LOOK[k]; });
+  ['top', 'hat', 'deco', 'ear', 'acc', 'hold', 'pet', 'ride'].forEach((k) => { if (!AV_OPTS[k].some((o) => o[0] === out[k]) || avLock(k, out[k])) out[k] = DEFAULT_LOOK[k]; });
   if (colorLock('hairC')) out.hairC = DEFAULT_LOOK.hairC;
   if (colorLock('topC')) out.topC = DEFAULT_LOOK.topC;
   if (colorLock('botC')) out.botC = DEFAULT_LOOK.botC;
@@ -2666,6 +2672,17 @@ function avatarParts(look) {
   return `<g class="bob">${back}${legs}${arms}${body}${face}${hairF}${O.over}${front}${O.front}${hat}</g>${pet}`;
 }
 const AV_VB = { full: '-6 -12 132 152', body: '0 -12 100 152', head: '10 -8 80 86', pet: '72 60 56 80' };
+const RIDE_THUMB = {
+  boat: `<path d="M10 34 h40 l-6 10 h-28 Z" fill="#B07A45" stroke="#1a3a1a" stroke-width="1.6" stroke-linejoin="round"/><path d="M30 34 v-18 l14 14 Z" fill="#fff" stroke="#1a3a1a" stroke-width="1.6" stroke-linejoin="round"/><path d="M18 30 l-8 12 M42 30 l8 12" stroke="#1a3a1a" stroke-width="1.6" stroke-linejoin="round"/><path d="M4 46 q7 -5 14 0 t14 0 t14 0 t10 0" fill="none" stroke="#3FA7C9" stroke-width="2.5" stroke-linecap="round"/>`,
+  jetski: `<path d="M8 38 q4 -10 20 -10 h14 l10 8 v4 l-6 4 h-34 Z" fill="#4ECDC4" stroke="#1a3a1a" stroke-width="1.6" stroke-linejoin="round"/><path d="M22 28 h12 v-4 h-12 Z" fill="#1a3a1a"/><path d="M38 28 l4 -8 h6" fill="none" stroke="#1a3a1a" stroke-width="1.6" stroke-linejoin="round"/><path d="M46 34 l6 2" stroke="#CCFF00" stroke-width="4" stroke-linecap="round"/><path d="M4 46 q7 -5 14 0 t14 0 t14 0 t10 0" fill="none" stroke="#3FA7C9" stroke-width="2.5" stroke-linecap="round"/>`,
+  glider: `<path d="M6 22 q24 -22 48 0 q-24 -8 -48 0 Z" fill="#FF6B57" stroke="#1a3a1a" stroke-width="1.6" stroke-linejoin="round"/><path d="M22 14 q8 -3 16 0" fill="none" stroke="#CCFF00" stroke-width="3"/><path d="M8 22 L28 44 M52 22 L32 44 M22 17 L29 44 M38 17 L31 44" stroke="#1a3a1a" stroke-width="1"/><circle cx="30" cy="44" r="4" fill="#FFD9B8" stroke="#1a3a1a" stroke-width="1.6" stroke-linejoin="round"/><path d="M26 49 h8 v7 h-8 Z" fill="#CCFF00" stroke="#1a3a1a" stroke-width="1.6" stroke-linejoin="round"/>`,
+  balloon: `<path d="M30 4 c-14 0 -20 10 -20 18 c0 9 8 15 14 20 h12 c6 -5 14 -11 14 -20 c0 -8 -6 -18 -20 -18 Z" fill="#FF6B57" stroke="#1a3a1a" stroke-width="1.6" stroke-linejoin="round"/><path d="M30 4 c-6 6 -7 26 -3 38 h6 c4 -12 3 -32 -3 -38 Z" fill="#CCFF00" stroke="#1a3a1a" stroke-width="1.6" stroke-linejoin="round"/><path d="M24 42 l1 6 M36 42 l-1 6" stroke="#1a3a1a" stroke-width="1.2"/><rect x="23" y="48" width="14" height="9" rx="2" fill="#B07A45" stroke="#1a3a1a" stroke-width="1.6" stroke-linejoin="round"/>`,
+  whale: `<path d="M6 34 c0 -12 12 -18 26 -18 c10 0 16 6 18 12 l6 -6 l-1 12 l-5 -2 c-3 8 -12 12 -22 12 c-14 0 -22 -4 -22 -10 Z" fill="#4A7FD0" stroke="#1a3a1a" stroke-width="1.6" stroke-linejoin="round"/><path d="M8 38 c6 6 28 8 38 -2 c-6 10 -34 12 -38 2 Z" fill="#DCEBFA"/><circle cx="16" cy="30" r="2" fill="#1a3a1a"/><path d="M26 14 q-3 -8 -8 -8 M26 14 q3 -8 8 -8" fill="none" stroke="#7FD3FF" stroke-width="2.5" stroke-linecap="round"/>`,
+  plane: `<path d="M6 30 q0 -6 8 -6 h30 q10 0 10 6 q0 6 -10 6 h-30 q-8 0 -8 -6 Z" fill="#fff" stroke="#1a3a1a" stroke-width="1.6" stroke-linejoin="round"/><path d="M26 30 l-10 16 h8 l14 -16 Z M26 26 l-6 -12 h6 l10 12 Z" fill="#FF6B57" stroke="#1a3a1a" stroke-width="1.6" stroke-linejoin="round"/><path d="M8 26 l-4 -10 h6 l6 8 Z" fill="#CCFF00" stroke="#1a3a1a" stroke-width="1.6" stroke-linejoin="round"/><path d="M55 20 v20" stroke="#1a3a1a" stroke-width="2.5" stroke-linecap="round"/><circle cx="42" cy="29" r="3" fill="#7FD3FF" stroke="#1a3a1a" stroke-width="1.6" stroke-linejoin="round"/>`,
+  dragon: `<path d="M4 40 q8 -2 12 -8 q6 -10 18 -8 q6 -10 14 -8 q8 2 8 10 l-6 4 h-8 q-2 12 -14 14 q-14 2 -24 -4 Z" fill="#4FB36A" stroke="#1a3a1a" stroke-width="1.6" stroke-linejoin="round"/><path d="M24 26 l-6 -20 l16 12 l6 -10 l2 16 Z" fill="#FFB547" stroke="#1a3a1a" stroke-width="1.6" stroke-linejoin="round"/><path d="M44 16 l2 -8 M50 18 l4 -7" stroke="#FFD84D" stroke-width="3" stroke-linecap="round"/><circle cx="49" cy="25" r="1.8" fill="#1a3a1a"/><path d="M14 44 q10 4 22 0" fill="none" stroke="#FFD84D" stroke-width="2.5" stroke-linecap="round"/>`,
+  rocket: `<g transform="rotate(-35 30 30)"><path d="M12 30 q0 -8 8 -8 h18 q14 2 16 8 q-2 6 -16 8 h-18 q-8 0 -8 -8 Z" fill="#fff" stroke="#1a3a1a" stroke-width="1.6" stroke-linejoin="round"/><path d="M38 22 q14 2 16 8 q-2 6 -16 8 Z" fill="#FF6B57" stroke="#1a3a1a" stroke-width="1.6" stroke-linejoin="round"/><path d="M18 22 l-8 -8 h10 l6 8 Z M18 38 l-8 8 h10 l6 -8 Z" fill="#FF6B57" stroke="#1a3a1a" stroke-width="1.6" stroke-linejoin="round"/><circle cx="30" cy="30" r="4" fill="#7FD3FF" stroke="#1a3a1a" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 30 l-10 -4 l4 4 l-4 4 Z" fill="#FFB547" stroke="#1a3a1a" stroke-width="1.6" stroke-linejoin="round"/></g>`,
+};
+const rideThumb = (v) => `<svg viewBox="0 0 60 60" aria-hidden="true">${RIDE_THUMB[v] || ''}</svg>`;
 const petThumb = (v) => (v === 'none'
   ? `<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="11" fill="none" stroke="#1a3a1a" stroke-width="2.5" stroke-dasharray="4 4"/></svg>`
   : `<svg class="av idle" viewBox="${v === 'bird' ? '58 52 40 38' : ['dragon', 'trex', 'unicorn'].includes(v) ? '74 82 56 56' : '76 86 52 52'}" aria-hidden="true"><g class="pet">${petOf(v)}</g></svg>`);
@@ -2687,8 +2704,8 @@ function checkAvUnlocks() {
 }
 
 // ── 捏人頁（含商店）──
-const AV_TABS = [['face', '臉', 'Face'], ['hair', '頭髮', 'Hair'], ['clothes', '衣服', 'Clothes'], ['acc', '配件', 'Extras'], ['pet', '寵物', 'Pets']];
-const TAB_KEYS = { face: ['ear'], hair: ['deco', 'color:hair'], clothes: ['top', 'color:top', 'color:bot'], acc: ['hat', 'acc', 'hold'], pet: ['pet'] };
+const AV_TABS = [['face', '臉', 'Face'], ['hair', '頭髮', 'Hair'], ['clothes', '衣服', 'Clothes'], ['acc', '配件', 'Extras'], ['pet', '寵物', 'Pets'], ['ride', '交通', 'Rides']];
+const TAB_KEYS = { face: ['ear'], hair: ['deco', 'color:hair'], clothes: ['top', 'color:top', 'color:bot'], acc: ['hat', 'acc', 'hold'], pet: ['pet'], ride: ['ride'] };
 function tabProgress(tab) {   // 這一頁擁有幾樣
   const keys = Object.keys(AV_PRICE).filter((k) => TAB_KEYS[tab].some((pp) => pp.includes(':') ? k === pp : k.startsWith(pp + ':')));
   return [keys.filter(owns).length, keys.length];
@@ -2718,7 +2735,7 @@ function renderAvCreator() {
   const opt = (k, label, vb = 'head') => `<div class="flabel">${label}</div><div class="avopts">${AV_OPTS[k].map(([v, name]) => {
     const pr = avLock(k, v), on = d[k] === v;
     return `<button class="avopt ${on ? 'on' : ''} ${pr ? 'avlocked' : ''}" data-avopt="${k}:${v}" aria-label="${esc(name)}${pr ? L(`（${pr} 積分）`, ` (${pr} points)`) : ''}" aria-pressed="${on}">
-      ${k === 'pet' ? petThumb(v) : avatarSVG({ ...d, pet: 'none', [k]: v }, '', vb)}<span>${esc(name)}</span>${pr ? tag(pr) : ''}${pr && AV_NEW.includes(k + ':' + v) ? '<i class="avnew">NEW</i>' : ''}</button>`;
+      ${k === 'pet' ? petThumb(v) : k === 'ride' ? rideThumb(v) : avatarSVG({ ...d, pet: 'none', [k]: v }, '', vb)}<span>${esc(name)}</span>${pr ? tag(pr) : ''}${pr && AV_NEW.includes(k + ':' + v) ? '<i class="avnew">NEW</i>' : ''}</button>`;
   }).join('')}</div>`;
   const col = (k, list, label) => {
     const pr = colorLock(k);
@@ -2738,6 +2755,7 @@ function renderAvCreator() {
     : tab === 'hair' ? opt('hair', L('髮型', 'Style')) + col('hairC', AV_HAIRC, L('髮色', 'Color')) + opt('deco', L('髮飾', 'Hair accessory'))
     : tab === 'clothes' ? progLine + opt('top', L('服裝', 'Outfit'), 'body') + col('topC', AV_TOPC, L('上衣顏色', 'Top color')) + col('botC', AV_BOTC, L('褲子／裙子顏色', 'Pants / skirt color'))
     : tab === 'acc' ? progLine + opt('hat', L('帽子', 'Hat')) + opt('acc', L('配件', 'Extra'), 'body') + opt('hold', L('手拿', 'In hand'), 'body')
+    : tab === 'ride' ? progLine + `<p class="avprog">${L('🗺️ 在 3D 地圖點遠方的島，角色就會搭上交通工具出海去看看', '🗺️ Tap a faraway island on the 3D map to ride out and see it')}</p>` + opt('ride', L('交通工具', 'Ride'))
     : progLine + opt('pet', L('寵物', 'Pet'), 'pet');
   $('sheet').innerHTML = `<div class="avc">
       <div class="avc-stage ${st.avWalk ? 'walking' : ''}">${avatarSVG(d, st.avWalk ? 'walk' : 'idle')}</div>
@@ -3785,7 +3803,7 @@ document.addEventListener('click', (e) => {
   if (t.dataset.act === 'avbuy') return confirmBuy();
   if (t.dataset.act === 'avbuyno') return cancelBuy();
   if (t.dataset.act === 'avwalk') { st.avWalk = !st.avWalk; return renderAvCreator(); }
-  if (t.dataset.act === 'avrand') { st.avBuy = null; st.avDraft = randomLook(); return renderAvCreator(); }
+  if (t.dataset.act === 'avrand') { st.avBuy = null; st.avDraft = { ...randomLook(), ride: st.avDraft.ride }; return renderAvCreator(); }
   if (t.dataset.act === 'avsave') return saveAvatar();
   if (t.dataset.act === 'avedit') return openAvCreator();
   if (t.dataset.say) { e.stopPropagation(); return speak(t.dataset.say, t, t.dataset.slow === '1'); }
