@@ -835,20 +835,20 @@ export async function createIsland3D(el, host) {
   pill.type = 'button'; pill.className = 'i3d-pill'; pill.hidden = true;
   pill.style.cssText = 'position:absolute;left:50%;top:10px;transform:translateX(-50%);z-index:3;border:0;border-radius:999px;padding:8px 14px;'
     + 'background:#1a3a1a;color:#fff;font:700 13px "Noto Sans TC",system-ui,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.18);white-space:nowrap';
-  pill.addEventListener('click', (e) => { e.stopPropagation(); if (walking) walking.skip = true; });
+  pill.addEventListener('click', (e) => { e.stopPropagation(); if (walking) walking.skip = true; if (riding && riding.phase === 'go') riding.skip = true; });
   el.appendChild(pill);
 
   // ── 交通工具：點遠方的島 → 跳上交通工具出海；能去的島就上岸（換網址），不能去的靠近看看再回來 ──
   // host.ride() 回傳學生選的交通工具（商店買的）；預設小舟
   const RIDES = {
-    boat:    { sc: 1.4, air: 0,  speed: 9,  seat: 0.55, zh: '小舟', icon: '🛶' },
-    jetski:  { sc: 1.5, air: 0,  speed: 17, seat: 0.95, zh: '水上摩托車', icon: '🌊' },
-    whale:   { sc: 1.25, air: 0,  speed: 12, seat: 1.75, zh: '鯨魚', icon: '🐋' },
-    glider:  { sc: 1, air: 8,  speed: 11, seat: 0,    zh: '飛行傘', icon: '🪂' },
-    balloon: { sc: 1, air: 10, speed: 8,  seat: 0.2, zh: '熱氣球', icon: '🎈' },
-    plane:   { sc: 1.4, air: 11, speed: 20, seat: 0.8,  zh: '飛機', icon: '✈️' },
-    dragon:  { sc: 1.3, air: 10, speed: 18, seat: 1.05, zh: '飛龍', icon: '🐉' },
-    rocket:  { sc: 1.4, air: 16, speed: 30, seat: 0.8,  zh: '火箭太空梭', icon: '🚀' },
+    boat:    { sc: 1.4, dur: 13, air: 0,  speed: 9,  seat: 0.55, zh: '小舟', icon: '🛶' },
+    jetski:  { sc: 1.5, dur: 9, air: 0,  speed: 17, seat: 0.95, zh: '水上摩托車', icon: '🌊' },
+    whale:   { sc: 1.25, dur: 11, air: 0,  speed: 12, seat: 1.75, zh: '鯨魚', icon: '🐋' },
+    glider:  { sc: 1, dur: 11, air: 8,  speed: 11, seat: 0,    zh: '飛行傘', icon: '🪂' },
+    balloon: { sc: 1, dur: 13, air: 10, speed: 8,  seat: 0.2, zh: '熱氣球', icon: '🎈' },
+    plane:   { sc: 1.4, dur: 8, air: 11, speed: 20, seat: 0.8,  zh: '飛機', icon: '✈️' },
+    dragon:  { sc: 1.3, dur: 9, air: 10, speed: 18, seat: 1.05, zh: '飛龍', icon: '🐉' },
+    rocket:  { sc: 1.4, dur: 6.5, air: 16, speed: 30, seat: 0.8,  zh: '火箭太空梭', icon: '🚀' },
   };
   const rideG = new THREE.Group(); rideG.visible = false; scene.add(rideG);
   let rideKind = '', rideAnim = [], riding = null;
@@ -922,14 +922,22 @@ export async function createIsland3D(el, host) {
     const tg = worldG.children.find((c) => c.userData.key === key); if (!tg) return;
     const kind = RIDES[host.ride && host.ride()] ? host.ride() : 'boat', R0 = RIDES[kind];
     buildRide(kind);
-    const T = tg.position, d = Math.hypot(T.x, T.z), ux = T.x / d, uz = T.z / d, stop = d - (BIG + 1.8) * WORLD_K - 3.5;
-    const S = hero.position.clone(), D = new THREE.Vector3(ux * 37, 0, uz * 37), E = new THREE.Vector3(ux * stop, 0, uz * stop);
-    const hopMs = Math.min(1100, Math.max(550, S.distanceTo(D) * 22)), goMs = host.reduce ? 600 : Math.max(1400, D.distanceTo(E) / R0.speed * 1000);
-    riding = { key, w: tg.userData.w, kind, R0, S, D, E, hopMs, goMs, phase: 'hop', t0: performance.now(), lookX: ux, lookZ: uz };
-    rideG.position.copy(D); rideG.position.y = -0.15; rideG.rotation.set(0, -Math.atan2(uz, ux), 0); rideG.visible = true;
+    // 去程路線：在自己的群島外海繞小半圈 → 開向目標 → 繞目標島一圈 → 停在岸邊（讓交通工具有得看）
+    const T = tg.position, th = Math.atan2(T.z, T.x), ux = Math.cos(th), uz = Math.sin(th), way = [];
+    const SW = 150 * Math.PI / 180, HR = 40;
+    for (let a = SW; a > 0.3; a -= 0.2) way.push(new THREE.Vector3(Math.cos(th + a) * HR, 0, Math.sin(th + a) * HR));
+    const CR = (BIG + 1.8) * WORLD_K + 3.6;
+    for (let a = 0; a <= Math.PI * 1.75; a += 0.3) way.push(new THREE.Vector3(T.x + Math.cos(th + Math.PI - 0.5 - a) * CR, 0, T.z + Math.sin(th + Math.PI - 0.5 - a) * CR));
+    const path = new THREE.CatmullRomCurve3(way, false, 'centripetal').getSpacedPoints(260);
+    const S = hero.position.clone(), D = path[0].clone(), E = path[path.length - 1].clone(), HOME = new THREE.Vector3(ux * 37, 0, uz * 37);
+    const hopMs = Math.min(1100, Math.max(550, S.distanceTo(D) * 22)), goMs = host.reduce ? 600 : R0.dur * 1000;
+    const backMs = host.reduce ? 600 : Math.max(2200, E.distanceTo(HOME) / R0.speed * 1000);
+    riding = { key, w: tg.userData.w, kind, R0, S, D, E, HOME, path, hopMs, goMs, backMs, phase: 'hop', t0: performance.now(), skip: false };
+    const d0 = path[1].clone().sub(path[0]);
+    rideG.position.copy(D); rideG.position.y = -0.15; rideG.rotation.set(0, -Math.atan2(d0.z, d0.x), 0); rideG.visible = true;
     fly = null; follow = true;
     const en = host.lang && host.lang() === 'en', nm = 'Lv' + riding.w.lv + (riding.w.name ? ' ' + riding.w.name : '');
-    pill.textContent = en ? `${R0.icon} Heading to ${nm}…` : `${R0.icon} 搭${R0.zh}前往 ${nm}…`; pill.hidden = false;
+    pill.textContent = en ? `${R0.icon} Heading to ${nm} · tap to skip ›` : `${R0.icon} 搭${R0.zh}前往 ${nm}・點一下直接抵達 ›`; pill.hidden = false;
   }
   function tickRide(now, t) {
     const r = riding, R0 = r.R0, k = (ms) => Math.min(1, (now - r.t0) / ms), next = (ph) => { r.phase = ph; r.t0 = now; };
@@ -937,16 +945,30 @@ export async function createIsland3D(el, host) {
     rideAnim.forEach((f) => f(t));
     const before = proj.copy(hero.position).project(camera).x;
     if (r.phase === 'hop' || r.phase === 'hopback') {   // 跳上／跳下交通工具
-      const back = r.phase === 'hopback', kk = ease(k(r.hopMs)), a = back ? r.D : r.S, b = back ? r.S : r.D;
+      const back = r.phase === 'hopback', kk = ease(k(r.hopMs)), a = back ? r.HOME : r.S, b = back ? r.S : r.D;
       const y0 = back ? -0.15 + R0.seat * R0.sc : r.S.y, y1 = back ? r.S.y : -0.15 + R0.seat * R0.sc;
       hero.position.set(a.x + (b.x - a.x) * kk, y0 + (y1 - y0) * kk + Math.sin(kk * Math.PI) * 7, a.z + (b.z - a.z) * kk);
       if (kk >= 1) { if (back) { riding = null; rideG.visible = false; follow = false; pill.hidden = true; return; } next('go'); }
     } else if (r.phase === 'go' || r.phase === 'back') {
-      const back = r.phase === 'back', kk = walkEase(k(r.goMs)), a = back ? r.E : r.D, b = back ? r.D : r.E;
-      const alt = R0.air ? Math.pow(Math.sin(kk * Math.PI), 0.55) * R0.air : 0;
-      rideG.position.set(a.x + (b.x - a.x) * kk, -0.15 + alt + Math.sin(t * (R0.air ? 2 : 3.2)) * (R0.air ? 0.25 : 0.12), a.z + (b.z - a.z) * kk);
-      const sgn = back ? -1 : 1; rideG.rotation.y = -Math.atan2(r.lookZ * sgn, r.lookX * sgn);
-      rideG.rotation.z = R0.air && r.kind !== 'balloon' && r.kind !== 'glider' ? Math.cos(kk * Math.PI) * 0.28 : 0;   // 起飛抬頭、降落低頭
+      const back = r.phase === 'back', kk = r.skip ? 1 : walkEase(k(back ? r.backMs : r.goMs), back ? 0.15 : 0.06);
+      const px = rideG.position.x, pz = rideG.position.z, py = rideG.position.y;
+      let alt = 0;
+      if (back) {   // 回程走直線
+        rideG.position.x = r.E.x + (r.HOME.x - r.E.x) * kk; rideG.position.z = r.E.z + (r.HOME.z - r.E.z) * kk;
+        alt = R0.air ? Math.pow(Math.sin(kk * Math.PI), 0.55) * R0.air : 0;
+      } else {      // 去程沿著繞島路線；飛行類：起飛爬升 → 巡航 → 降落
+        const f = kk * (r.path.length - 1), i0 = Math.min(r.path.length - 2, Math.floor(f)), a = r.path[i0], b = r.path[i0 + 1], u = f - i0;
+        rideG.position.x = a.x + (b.x - a.x) * u; rideG.position.z = a.z + (b.z - a.z) * u;
+        const ss = (x) => { x = Math.min(1, Math.max(0, x)); return x * x * (3 - 2 * x); };
+        alt = R0.air ? R0.air * ss(kk / 0.14) * ss((1 - kk) / 0.14) : 0;
+      }
+      rideG.position.y = -0.15 + alt + Math.sin(t * (R0.air ? 2 : 3.2)) * (R0.air ? 0.25 : 0.12);
+      const dx = rideG.position.x - px, dz = rideG.position.z - pz, dl = Math.hypot(dx, dz);
+      if (dl > 0.002) {   // 朝行進方向（轉向放慢一點，不要抖）
+        const want = -Math.atan2(dz, dx); let df = want - rideG.rotation.y; df = Math.atan2(Math.sin(df), Math.cos(df)); rideG.rotation.y += df * 0.25;
+        const pitch = R0.air && r.kind !== 'balloon' && r.kind !== 'glider' ? Math.max(-0.4, Math.min(0.4, (rideG.position.y - py) / dl * 0.9)) : 0;
+        rideG.rotation.z += (pitch - rideG.rotation.z) * 0.15;   // 爬升抬頭、下降低頭
+      }
       hero.position.set(rideG.position.x, seatY(), rideG.position.z);
       if (kk >= 1) {
         if (back) next('hopback');
@@ -973,7 +995,7 @@ export async function createIsland3D(el, host) {
   renderer.domElement.addEventListener('pointerup', (e) => {
     if (!down || Math.hypot(e.clientX - down.x, e.clientY - down.y) > 8 || performance.now() - down.t > 500) return;
     if (walking) { walking.skip = true; return; }
-    if (riding) return;
+    if (riding) { if (riding.phase === 'go') riding.skip = true; return; }
     const r = renderer.domElement.getBoundingClientRect();
     ptr.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
     ray.setFromCamera(ptr, camera);
@@ -1043,7 +1065,7 @@ export async function createIsland3D(el, host) {
     if (follow) {
       const s = new THREE.Spherical().setFromVector3(camera.position.clone().sub(controls.target));
       const fz = 1 - Math.pow(0.05, dt), ft = 1 - Math.pow(0.0005, dt);
-      s.radius += (FOLLOW.dist - s.radius) * fz; s.phi += (FOLLOW.polar - s.phi) * fz;
+      s.radius += ((riding ? 42 : FOLLOW.dist) - s.radius) * fz; s.phi += (FOLLOW.polar - s.phi) * fz;   // 出海時鏡頭拉遠一點看風景
       controls.target.lerp(heroTarget(), ft);
       camera.position.copy(controls.target).add(new THREE.Vector3().setFromSpherical(s));
     }
