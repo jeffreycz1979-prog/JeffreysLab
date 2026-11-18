@@ -802,6 +802,8 @@ nav button.on{color:var(--lime);font-weight:700}
 //  設定常數
 // ═══════════════════════════════════════════════════════
 const DEFAULT_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT_RDSP7cX66J-_fEkEGiDT5hHjnOi5_f9ToRZKVDqMHj6i12xvfpqcSBtSgziSBi-K_rEuT0eYBVC4/pub?output=csv';
+// 題庫切換（2026/11/18）：網址 ?set=thc10 → 改用 THC10 題庫（thc10.csv，九款遊戲都從這份出題），會記住；?set=thp11 換回原本的 THP11 Sheet
+const BANKS = { thp11: DEFAULT_CSV, thc10: 'thc10.csv' };
 const GATEWAY_URL   = 'https://script.google.com/macros/s/AKfycbz0O6eB9fVC3Xp7g0Kt4U-32Inmf9ieDYJygEf3jW78xaWx10glPscEefEQwgB0jCioug/exec';
 const GATEWAY_TOKEN = 'MYVIEWBOARDgoogleAPI';
 const DB_NAME = 'english-island';   // 不能和 vocab-thp11 相同，否則進度互相覆蓋
@@ -1076,7 +1078,7 @@ function rowsToWords(rows) {
   const h = rows[0].map((x) => x.trim());
   const col = (n) => h.indexOf(n);
   const C = { id: col('ID'), w: col('單字'), type: col('類型'), pos: col('詞性'), ipa: col('音標'), zh: col('中文'), def: col('英文定義'),
-    ex: col('例句'), exzh: col('例句中文'), book: col('教材'), unit: col('單元'), lesson: col('課次'), lv: col('CEFR'), status: col('狀態'), note: col('備註'), open: col('開放') };
+    ex: col('例句'), exzh: col('例句中文'), book: col('教材'), unit: col('單元'), lesson: col('課次'), lv: col('CEFR'), status: col('狀態'), note: col('備註'), open: col('開放'), key: col('關鍵字') };
   if (C.w < 0) throw new Error('CSV 找不到「單字」欄');
   const g = (r, i) => (i >= 0 && r[i] != null ? r[i].trim() : '');
   return rows.slice(1).filter((r) => g(r, C.w)).map((r, i) => ({
@@ -1085,6 +1087,7 @@ function rowsToWords(rows) {
     ex: g(r, C.ex), exzh: g(r, C.exzh), books: g(r, C.book).split(/[,，、]/).map((s) => s.trim()).filter(Boolean),
     unit: g(r, C.unit).toUpperCase(), lesson: g(r, C.lesson).toUpperCase(), lv: g(r, C.lv).toUpperCase(), status: g(r, C.status), note: g(r, C.note),
     openCol: C.open >= 0, open: !/^(N|NO|否|關|0|X|×)$/i.test(g(r, C.open)),
+    key: g(r, C.key),   // 遊戲拼字的關鍵字（手動指定；空白＝自動挑最長的字）
   }));
 }
 // 單元開放：Sheet 有「開放」欄就照它（填 N 的字不開放）；沒有這欄就只開放 DEFAULT_OPEN
@@ -3382,7 +3385,7 @@ async function applyData(data) {
   if (!confirm(msg)) return false;
   st.profile = data.profile || st.profile; st.prog = data.prog; st.meta = { ...st.meta, ...data.meta };
   st.ledger = data.ledger || { days: {}, bonus: [] };
-  if (data.set) st.set = { ...st.set, ...data.set, csvUrl: st.set.csvUrl };
+  if (data.set) st.set = { ...st.set, ...data.set, csvUrl: st.set.csvUrl, bank: st.set.bank };
   st.tampered = data.sig !== ledgerSig();   // 先用原簽章驗證，再記錄這次轉入
   delete st.meta.movedOut;
   st.ledger.moves = [...(st.ledger.moves || []), Date.now()];
@@ -3474,10 +3477,13 @@ document.addEventListener('keydown', (e) => {
   if (prog) st.prog = prog;
   if (meta) st.meta = { ...st.meta, ...meta };
   if (set) st.set = { ...st.set, ...set };
-  st.set.csvUrl = qs || DEFAULT_CSV;   // 單字來源以程式為準；測試可用 ?csv=
+  const bankQ = (new URLSearchParams(location.search).get('set') || '').toLowerCase();
+  if (BANKS[bankQ] && st.set.bank !== bankQ) { st.set.bank = bankQ; st.bankSwitched = true; }
+  st.set.csvUrl = qs || BANKS[st.set.bank] || DEFAULT_CSV;   // 單字來源以程式為準；測試可用 ?csv=、?set=
+  if (st.bankSwitched) { saveSet(); setTimeout(() => toast('已切換題庫：' + st.set.bank.toUpperCase()), 1200); }
   if (ledger) { st.ledger = ledger; st.tampered = !!sig && sig !== ledgerSig(); }
   if (ledger && repairQuizExploit()) { saveLedger(); db.set('meta', st.meta); st.fixedNotice = true; }   // 先驗證簽章再修正，修正後重新簽章
-  if (words && words.length) setWords(words);
+  if (words && words.length && !st.bankSwitched) setWords(words);
 
   const last = st.meta.lastActive;
   applyLang();

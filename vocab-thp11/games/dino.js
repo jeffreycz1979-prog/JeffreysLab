@@ -87,6 +87,7 @@ const WD = (() => {
   // 取最長的字（同長取前面的）。例：lend (someone) a hand → hand、in style / in fashion → style、give ... to → give
   const SMALL = new Set("a an the to of in on at for and or but with from by into onto is are be it its one's someone somebody something sb sth up out off down away around over back about".split(' '));
   const spellKey = (w) => {
+    if (w.key) return w.key;   // 題庫「關鍵字」欄手動指定（例：THC10 文法句 → those、were）
     const s = String(w.word || '');
     if (!/[ ()…]|\.\.\./.test(s)) return null;   // color/colour 這種沒有空格的斜線＝兩種拼法，照原本的 answersOf
     const ws = s.split('/')[0].replace(/\([^)]*\)/g, ' ').replace(/\.{2,}|…/g, ' ').split(/\s+/)

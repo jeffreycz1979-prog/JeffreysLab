@@ -1,6 +1,6 @@
 // 英文順起來．探索英文島 - Service Worker（scope：/JeffreysLab/english-island/）
 // 頁面與程式改成網路優先；改了檔案仍建議把版本號 +1，舊快取會自動清除
-const CACHE_NAME = 'eisland-v80';
+const CACHE_NAME = 'eisland-v81';
 
 const PRECACHE_URLS = [
   '/JeffreysLab/english-island/',
@@ -53,7 +53,7 @@ self.addEventListener('fetch', (event) => {
   if (url.includes('docs.google.com') || url.includes('googleusercontent.com')) return;
 
   // 自己的頁面與程式（HTML、JS、JSON）：網路優先，3 秒沒回應或離線才用快取 → 更新開一次就生效
-  const own = url.includes('/JeffreysLab/english-island/') && (req.mode === 'navigate' || /\.(html|js|json)(\?|$)/.test(url) || url.endsWith('/'));
+  const own = url.includes('/JeffreysLab/english-island/') && (req.mode === 'navigate' || /\.(html|js|json|csv)(\?|$)/.test(url) || url.endsWith('/'));
   if (own) {
     event.respondWith((async () => {
       const cache = await caches.open(CACHE_NAME);
