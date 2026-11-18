@@ -804,6 +804,7 @@ nav button.on{color:var(--lime);font-weight:700}
 const DEFAULT_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT_RDSP7cX66J-_fEkEGiDT5hHjnOi5_f9ToRZKVDqMHj6i12xvfpqcSBtSgziSBi-K_rEuT0eYBVC4/pub?output=csv';
 // 題庫切換（2026/11/18）：網址 ?set=thc10 → 改用 THC10 題庫（thc10.csv，九款遊戲都從這份出題），會記住；?set=thp11 換回原本的 THP11 Sheet
 const BANKS = { thp11: DEFAULT_CSV, thc10: 'thc10.csv' };
+const TEST_BANK = 'thc10';   // 測試島預設題庫（臨時給哪一班上課就改這裡）；不帶 ?set= 打開（主畫面 App）也用這份
 const GATEWAY_URL   = 'https://script.google.com/macros/s/AKfycbz0O6eB9fVC3Xp7g0Kt4U-32Inmf9ieDYJygEf3jW78xaWx10glPscEefEQwgB0jCioug/exec';
 const GATEWAY_TOKEN = 'MYVIEWBOARDgoogleAPI';
 const DB_NAME = 'english-island';   // 不能和 vocab-thp11 相同，否則進度互相覆蓋
@@ -1118,6 +1119,7 @@ async function syncCSV(manual) {
     const added = words.filter((w) => !st.byId[w.id]).length;
     setWords(words);
     await db.set('words', words);
+    st.set.wordsFrom = st.set.csvUrl;
     st.set.syncedAt = Date.now(); saveSet();
     if (manual) toast('已同步 ' + words.length + ' 個字' + (added ? '，新增 ' + added + ' 個' : ''));
     return true;
@@ -3482,11 +3484,11 @@ document.addEventListener('keydown', (e) => {
   if (set) st.set = { ...st.set, ...set };
   const bankQ = (new URLSearchParams(location.search).get('set') || '').toLowerCase();
   if (BANKS[bankQ] && st.set.bank !== bankQ) { st.set.bank = bankQ; st.bankSwitched = true; }
-  st.set.csvUrl = qs || BANKS[st.set.bank] || DEFAULT_CSV;   // 單字來源以程式為準；測試可用 ?csv=、?set=
+  st.set.csvUrl = qs || BANKS[st.set.bank || TEST_BANK] || DEFAULT_CSV;   // 單字來源以程式為準；測試可用 ?csv=、?set=
   if (st.bankSwitched) { saveSet(); setTimeout(() => toast('已切換題庫：' + st.set.bank.toUpperCase()), 1200); }
   if (ledger) { st.ledger = ledger; st.tampered = !!sig && sig !== ledgerSig(); }
   if (ledger && repairQuizExploit()) { saveLedger(); db.set('meta', st.meta); st.fixedNotice = true; }   // 先驗證簽章再修正，修正後重新簽章
-  if (words && words.length && !st.bankSwitched) setWords(words);
+  if (words && words.length && st.set.wordsFrom === st.set.csvUrl) setWords(words);   // 離線單字是別的題庫的就不要先顯示
 
   const last = st.meta.lastActive;
   applyLang();
