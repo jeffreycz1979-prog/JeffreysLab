@@ -994,6 +994,9 @@ const gameWeekBestAll = () => bestOf((weeks()[thisWeek()] || {}).gb);
 const GAMES = [];
 // 測試版：全部單元開放、遊戲不看精熟門檻（正式版 THP11／THP5 沒有這個開關）
 const TEST_ALL_OPEN = true;
+// 測試島（Jeffrey 2026/11/18：臨時給別的班上課用，例：THC10）→ 九款遊戲不分單元，全部題目一起出；其他島沒有這個變數＝照單元
+const GAME_ALL_WORDS = true;
+const GAME_ALL_UNITS = true;   // 測試島（Jeffrey 2026/11/18：臨時給別的班上課用）：九款遊戲不分單元，全部題目混合出題；其他島沒有這行＝照單元
 const masteredCount = () => TEST_ALL_OPEN ? 99 : new Set(st.ledger.bonus.filter((b) => b.k.startsWith('master:')).map((b) => b.k.slice(7))).size;
 function gameCard(g) {
   const ok = masteredCount() >= g.need, best = gameWeekBestAll();

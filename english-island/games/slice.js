@@ -41,7 +41,8 @@ const WSL = (() => {
   const unlocked = () => (typeof gameOpen === 'function' ? gameOpen({ need: NEED }) : masteredCount() >= NEED);   // THP11：前 6 款都滿星會驚喜開放
   const ansOf = (w) => String(answersOf(w)[0] || w.word).toLowerCase();
   const okWord = (w) => w.type !== '片語' && /^[a-z]+$/.test(ansOf(w)) && ansOf(w).length >= 3 && ansOf(w).length <= 9;
-  const unitWords = () => { const u = st.words.filter((w) => w.unit === UNIT && okWord(w)); return u.length >= 6 ? u : st.words.filter(okWord); };
+  const ALLU = () => (typeof GAME_ALL_UNITS !== 'undefined' && GAME_ALL_UNITS);   // 測試島不分單元
+  const unitWords = () => { if (typeof GAME_ALL_WORDS !== 'undefined' && GAME_ALL_WORDS) return st.words.filter(okWord); const u = st.words.filter((w) => w.unit === UNIT && okWord(w)); return u.length >= 6 && !ALLU() ? u : st.words.filter(okWord); };
   const wordPool = () => unitWords();
   const toPts = (sc) => Math.min(CAP, Math.floor(sc / S_PER_PT));
   const card = () => gameCard({ id: ID, need: NEED, icon: '🍉', name: 'Word Slice' });

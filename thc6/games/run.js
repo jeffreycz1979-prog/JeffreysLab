@@ -26,8 +26,9 @@ const WR = (() => {
   const SCOPE = 'U' + NEED;
   const uNo = (w) => parseInt(String(w.unit).replace(/\D/g, ''), 10) || 0;
   const scoped = (pred) => {
+    if (typeof GAME_ALL_WORDS !== 'undefined' && GAME_ALL_WORDS) return st.words.filter(pred);   // 測試島不分單元
     const all = st.words.filter(pred), n = +SCOPE.slice(1), out = all.filter((w) => w.unit === SCOPE);
-    if (!out.length) return all;
+    if (!out.length || (typeof GAME_ALL_UNITS !== 'undefined' && GAME_ALL_UNITS)) return all;   // 測試島不分單元
     for (let k = n - 1; k >= 1 && out.length < 6; k--) out.push(...all.filter((w) => uNo(w) === k));
     return out;
   };

@@ -39,7 +39,8 @@ const WBT = (() => {
   const unlocked = () => (typeof gameOpen === 'function' ? gameOpen({ need: NEED }) : masteredCount() >= NEED);
   const ansOf = (w) => String(answersOf(w)[0] || w.word).toLowerCase();
   const okWord = (w) => w.type !== '片語' && /^[a-z]+$/.test(ansOf(w)) && ansOf(w).length >= 3 && ansOf(w).length <= 10;
-  const wordPool = () => { const u = st.words.filter((w) => w.unit === UNIT && okWord(w)); return u.length >= 6 ? u : st.words.filter(okWord); };
+  const ALLU = () => (typeof GAME_ALL_UNITS !== 'undefined' && GAME_ALL_UNITS);   // 測試島不分單元
+  const wordPool = () => { if (typeof GAME_ALL_WORDS !== 'undefined' && GAME_ALL_WORDS) return st.words.filter(okWord); const u = st.words.filter((w) => w.unit === UNIT && okWord(w)); return u.length >= 6 && !ALLU() ? u : st.words.filter(okWord); };
   const toPts = (sc) => Math.min(CAP, Math.floor(sc / S_PER_PT));
   const card = () => gameCard({ id: ID, need: NEED, icon: '🥁', name: 'Word Beat' });
   const bestText = () => { const b = st.meta.games && st.meta.games[ID] && st.meta.games[ID].best; return b ? `Word Beat ${b}` : ''; };
