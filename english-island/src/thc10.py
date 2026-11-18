@@ -1,9 +1,9 @@
-# THC10 題庫（測試島用）：課本 Vocabulary C01＋Grammar C02（These and Those、Wish、Embedded Questions、Phrasal Verbs）
+# THC10 Unit 5 題庫（測試島用）：課本 Vocabulary C01＋Grammar C02（These and Those、Wish、Embedded Questions、Phrasal Verbs）
 # 產生：python3 thc10.py ../thc10.csv
 # 欄位：單字 | 類型 | 詞性 | 中文 | 英文定義（課本手寫的同義說明） | 例句 | 例句中文 | 關鍵字
 # 類型：單字／片語／句子。遊戲的拼字題：片語、句子只拼「關鍵字」——關鍵字欄空白就自動挑最長的字；
 #       文法句子手動指定關鍵字＝文法重點（例：These priests are richer than ____ priests. → those）
-# 單元全部是 U1 → 九款遊戲都從這一份題庫出題（遊戲的單元不存在時用全部單字）
+# 單元全部是 U5（課本 Unit 5）→ 第 5 款只出 U5；其他款找不到自己的單元就用全部單字＝也是 U5 → 九款都出這一份
 import csv, sys
 
 V = [
@@ -88,7 +88,7 @@ def main(out):
     for part, rows in (('V', V), ('G', G)):
       for (w, t, pos, zh, d, ex, exzh, key) in rows:
         n += 1
-        wr.writerow([f'T10-{n:03d}', w, t, pos, '', zh, d, ex, exzh, 'THC10', 'U1', '', '', '', '', '', key])
+        wr.writerow([f'T10-{n:03d}', w, t, pos, '', zh, d, ex, exzh, 'THC10', 'U5', '', '', '', '', '', key])
   print(out, n, '筆')
 
 if __name__ == '__main__':
