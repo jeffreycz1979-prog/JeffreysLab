@@ -306,7 +306,10 @@
     if (k) {
       qs.delete('k'); history.replaceState(null, '', location.pathname + (qs.toString() ? '?' + qs : '') + location.hash);
       if (auth) toast('已經登入了');
-      else login({ code: k }).catch((e) => toast('小卡登入失敗：' + e.message));
+      else login({ code: k }).catch((e) => {   // QR 代碼只能用一次（掃過、或家長先掃過）→ 直接打開輸入畫面，不要只閃一下提示
+        openLogin();
+        const er = $('cErr'); if (er) er.innerHTML = `⚠️ 小卡上的 QR 已經用過了（${esc(e.message)}）<br>請改輸入小卡上的${ID_LABEL}和 4 位數密碼`;
+      });
     } else nagToday();
   });
 
