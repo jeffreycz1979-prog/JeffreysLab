@@ -1,0 +1,26 @@
+{
+  "name": "IA Core 課文導讀 English Island",
+  "short_name": "IA Core 導讀",
+  "description": "Jeffrey's Lab：英文順起來．IA Core 課文導讀（IA2 Connections Book 2）— 單字、句型、課文導讀、捏角色與 3D 島嶼",
+  "start_url": "/JeffreysLab/ia-core/",
+  "scope": "/JeffreysLab/ia-core/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#0a0a14",
+  "background_color": "#0a0a14",
+  "lang": "zh-TW",
+  "icons": [
+    {
+      "src": "/JeffreysLab/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/JeffreysLab/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
