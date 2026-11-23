@@ -84,7 +84,93 @@ html,body{height:100%;background:var(--bg);color:var(--ink);font-family:'Noto Sa
 .hole{margin-top:10px;display:grid;gap:8px}
 .hole div{display:flex;justify-content:space-between;gap:10px;background:#121a33;border-radius:12px;padding:10px 14px;border-left:4px solid #A06CFF}
 .hole b{font-family:Syne}
+
+/* 共用 */
+.page{background:radial-gradient(ellipse at 50% -10%,#1b2a55 0%,var(--bg) 60%);overflow-y:auto;touch-action:pan-y}
+.back{display:inline-flex;align-items:center;gap:6px;border:1.5px solid #2E3D66;background:#121a33;color:var(--ink);border-radius:999px;padding:7px 14px;font-weight:700;font-size:14px;cursor:pointer}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+
+/* 文法艙：全像 */
+.holo{position:relative;margin-top:14px;border-radius:20px;padding:18px 16px 16px;border:1.5px solid rgba(78,205,196,.7);
+  background:repeating-linear-gradient(0deg,rgba(78,205,196,.05) 0 2px,transparent 2px 5px),linear-gradient(180deg,rgba(20,60,80,.55),rgba(10,16,40,.75));
+  box-shadow:0 0 30px rgba(78,205,196,.25),inset 0 0 40px rgba(78,205,196,.08);animation:holoIn .7s}
+@keyframes holoIn{0%{opacity:0;transform:scaleY(.04)}40%{opacity:1;transform:scaleY(.04)}70%{transform:scaleY(1.03)}100%{transform:scaleY(1)}}
+.holo::before{content:'';position:absolute;left:12%;right:12%;bottom:-14px;height:14px;background:radial-gradient(ellipse at 50% 0,rgba(78,205,196,.55),transparent 70%)}
+.holo h3{font-size:21px;line-height:1.3}
+.holo .sub{font-family:Syne;font-size:13px;color:var(--m);margin-top:2px}
+.exs{display:grid;gap:14px;margin-top:16px}
+.exline{display:flex;flex-wrap:wrap;gap:7px;align-items:flex-end}
+.blk{position:relative;padding:7px 11px;border-radius:10px;font-family:Syne,'Noto Sans TC';font-weight:800;font-size:17px;color:#0a0a14;cursor:pointer;animation:float 3s ease-in-out infinite;box-shadow:0 0 14px var(--bc)}
+.blk:nth-child(2n){animation-delay:-1.2s}.blk:nth-child(3n){animation-delay:-2s}
+@keyframes float{50%{transform:translateY(-4px)}}
+.blk i{position:absolute;left:50%;top:-24px;transform:translateX(-50%);white-space:nowrap;font-style:normal;font-family:'Noto Sans TC';font-size:11px;font-weight:700;background:#0a0a14;color:var(--bc);border:1px solid var(--bc);border-radius:6px;padding:1px 6px;opacity:0;transition:opacity .2s;pointer-events:none}
+.blk.show i{opacity:1}
+.exzh{font-size:13px;color:#A9B8D8;margin-top:6px;width:100%}
+.legend{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:14px;font-size:12px;color:#A9B8D8}
+.legend span::before{content:'';display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--bc);margin-right:5px;vertical-align:-1px}
+.pts{margin-top:14px;display:grid;gap:8px}
+.pts div{background:#121a33;border-radius:12px;padding:10px 12px;font-size:15px;line-height:1.6;border-left:3px solid var(--y)}
+.ulist{display:grid;gap:10px;margin-top:12px}
+.uitem{display:flex;gap:12px;align-items:center;padding:13px 14px;border-radius:16px;background:linear-gradient(135deg,#141f3d,#0f1528);border:1.5px solid #26355c;cursor:pointer}
+.uitem b{font-family:Syne;color:var(--y);font-size:18px;width:38px}
+.uitem div{font-size:15px;font-weight:700}
+.uitem small{display:block;font-size:12px;color:#8FA3C8;font-weight:400;font-family:Syne}
+.uitem.done{border-color:var(--m)}
+.uitem.done::after{content:'🛡️';margin-left:auto}
+
+/* 護盾充能 */
+.shield{display:flex;justify-content:center;margin-top:6px}
+.shield svg{width:120px;height:120px}
+.seg{fill:none;stroke:#1f2b4d;stroke-width:12;transition:stroke .4s}
+.seg.on{stroke:var(--m);filter:drop-shadow(0 0 6px var(--m))}
+.shield text{fill:var(--ink);font-family:Syne;font-weight:800;font-size:26px;text-anchor:middle}
+.qcard{margin-top:10px;background:#121a33;border:1.5px solid #26355c;border-radius:18px;padding:16px}
+.qtype{font-size:12px;font-weight:700;color:var(--m);letter-spacing:.08em}
+.qtext{font-family:Syne,'Noto Sans TC';font-weight:800;font-size:20px;line-height:1.45;margin-top:6px}
+.opts{display:grid;gap:10px;margin-top:14px}
+.opt{text-align:left;border:1.5px solid #2E3D66;background:#0f1528;color:var(--ink);padding:13px 14px;border-radius:14px;font-size:17px;font-weight:700;font-family:Syne,'Noto Sans TC';cursor:pointer}
+.opt.ok{border-color:var(--y);background:rgba(204,255,0,.14);color:var(--y)}
+.opt.no{border-color:#FF5F6D;background:rgba(255,95,109,.12)}
+.opt.pick{border-color:var(--m);background:rgba(78,205,196,.14)}
+.line{min-height:58px;margin-top:14px;padding:8px;border-radius:14px;border:1.5px dashed #3a4b7a;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.tiles{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.tile{padding:9px 13px;border-radius:11px;background:#1d2a52;border:1.5px solid #3a4b7a;font-family:Syne,'Noto Sans TC';font-weight:800;font-size:17px;cursor:pointer}
+.line .tile{background:rgba(78,205,196,.16);border-color:var(--m)}
+.tile.ghost{opacity:.2;pointer-events:none}
+.tile.bad{border-color:#FF5F6D;background:rgba(255,95,109,.2)}
+.tile.good{border-color:var(--y);background:rgba(204,255,0,.18)}
+.fb{margin-top:12px;border-radius:14px;padding:12px 14px;font-size:15px;line-height:1.6;display:none}
+.fb.on{display:block}
+.fb.no{background:rgba(255,95,109,.1);border:1.5px solid #FF5F6D}
+.fb.yes{background:rgba(204,255,0,.1);border:1.5px solid var(--y)}
+.fb b{font-family:Syne,'Noto Sans TC'}
+.sm{margin-top:12px;padding:12px;font-size:16px}
+
+/* 段考艙 */
+.ehud{position:sticky;top:0;z-index:5;background:rgba(10,10,20,.92);backdrop-filter:blur(6px);padding:calc(10px + env(safe-area-inset-top)) 18px 10px;border-bottom:1px solid #1f2b4d}
+.ehud .ttl{font-family:Syne;font-weight:800;font-size:15px}
+.ehud .tm{font-family:Syne;font-weight:800;color:var(--m)}
+.starmap{display:flex;gap:4px;margin-top:9px}
+.starmap i{flex:1;max-width:15px;aspect-ratio:1;border-radius:50%;background:#1f2b4d;border:1.5px solid var(--c);cursor:pointer;transition:all .2s}
+.starmap i.ans{background:var(--c);box-shadow:0 0 8px var(--c)}
+.starmap i.cur{transform:scale(1.35)}
+.sectag{display:inline-block;font-size:12px;font-weight:700;padding:2px 10px;border-radius:999px;color:#0a0a14;background:var(--c)}
+.passage{margin-top:12px;background:#0f1528;border:1.5px solid #26355c;border-radius:16px;padding:14px 15px;font-family:Georgia,'Noto Sans TC',serif;font-size:16.5px;line-height:1.75;white-space:pre-line}
+.passage h4{font-family:Syne;font-size:17px;margin-bottom:6px;color:var(--y)}
+.rq{margin-top:16px}
+.rq .qtext{font-size:17px}
+.enav{display:flex;gap:10px;margin-top:20px}
+.enav .btn{margin-top:0}
+.secbar{margin-top:10px;display:grid;gap:10px}
+.secbar div{background:#121a33;border-radius:14px;padding:12px 14px}
+.secbar .t{display:flex;justify-content:space-between;font-weight:700}
+.secbar .g{height:8px;border-radius:4px;background:#1f2b4d;margin-top:8px;overflow:hidden}
+.secbar .g i{display:block;height:100%;background:var(--c)}
+.wrong{margin-top:10px;display:grid;gap:8px}
+.wrong div{background:#121a33;border-radius:12px;padding:10px 13px;border-left:4px solid #FF5F6D;font-size:14px;line-height:1.6}
+.wrong b{font-family:Syne,'Noto Sans TC';font-size:15px}
 </style>
+<script src="jh-content.js"></script>
 <script type="importmap">
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js"}}
 </script>
@@ -105,14 +191,14 @@ html,body{height:100%;background:var(--bg);color:var(--ink);font-family:'Noto Sa
     <div class="sec">航線（冊別）</div>
     <div class="chips" id="books"></div>
 
-    <div class="sec">範圍（單元）</div>
+    <div class="sec">範圍（單元，單字艙用）</div>
     <div class="chips" id="units"></div>
 
     <div class="sec">選擇艙室</div>
     <div class="cabins">
       <div class="cabin go" data-cab="vocab"><div class="ic">🪐</div><div><b>單字艙・星際快刷</b><span>英文字 → 擊中正確的中文星球</span></div></div>
-      <div class="cabin off"><div class="ic">🔬</div><div><b>文法艙・全像解析</b><span>句型積木＋護盾充能挑戰</span></div><i class="tag">下一版</i></div>
-      <div class="cabin off"><div class="ic">🚀</div><div><b>段考艙・模擬任務</b><span>20 題：字彙、句型、兩篇閱讀</span></div><i class="tag">下一版</i></div>
+      <div class="cabin go" data-cab="gram"><div class="ic">🔬</div><div><b>文法艙・全像解析</b><span>句型積木＋護盾充能挑戰</span></div></div>
+      <div class="cabin go" data-cab="exam"><div class="ic">🚀</div><div><b>段考艙・模擬任務</b><span>20 題：字彙、句型、兩篇閱讀</span></div></div>
     </div>
 
     <div class="sec">單字艙模式</div>
@@ -122,7 +208,7 @@ html,body{height:100%;background:var(--bg);color:var(--ink);font-family:'Noto Sa
     </div>
     <button class="btn" id="go">發射 🚀</button>
     <button class="btn ghost" id="land">回島上</button>
-    <p class="note">試作版：不計分、不存進度。資料：1上（113 修訂版）、2上（113 單字寶典）。</p>
+    <p class="note">文法艙、段考艙進去後再選課／段考範圍。<br>試作版：不計分、不存進度。資料：1上（113 修訂版）、2上（113 單字寶典）。</p>
   </div>
 </section>
 
@@ -157,6 +243,20 @@ html,body{height:100%;background:var(--bg);color:var(--ink);font-family:'Noto Sa
     <button class="btn" id="again">黑洞重刷</button>
     <button class="btn ghost" id="toBridge">回艦橋</button>
   </div>
+</section>
+
+
+<!-- ⑤ 文法艙 -->
+<section id="gram" class="scr page">
+  <div class="wrap">
+    <div class="row"><button class="back" id="gBack">‹ 艦橋</button><span class="sub" style="font-family:Syne;color:var(--m);font-weight:800">GRAMMAR LAB</span></div>
+    <div id="gBody"></div>
+  </div>
+</section>
+
+<!-- ⑥ 段考艙 -->
+<section id="exam" class="scr page">
+  <div id="eBody"></div>
 </section>
 
 <div id="fade"></div>
@@ -514,8 +614,244 @@ function finish(){
 $('again').onclick = () => startRound(R.hole.slice());
 $('toBridge').onclick = () => { show('bridge'); renderBridge(); };
 
+
+/* ================= ⑤ 文法艙 ================= */
+const C = window.JH_CONTENT;
+const ROLE = { S:['主詞','#5AA9FF'], V:['動詞','#CCFF00'], O:['受詞','#FF7A59'], C:['補語','#C9A6FF'], T:['時間','#FFC94D'],
+               P:['地點','#4ECDC4'], Q:['疑問詞','#FF8CC0'], N:['否定','#FF5F6D'], X:['其他','#A9B8D8'] };
+const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
+const shieldDone = new Set();          // 試作：只記在這次開啟
+let G = null;
+
+function openGram(){ show('gram'); gramList(); }
+function gramList(){
+  const book = C.grammar[S.book];
+  $('gBody').innerHTML = `<div class="brand" style="margin-top:14px">文法艙<small>${S.book}・選一課進入全像解析</small></div>
+    <div class="chips" style="margin-top:12px">${['1上','2上'].map(b => `<div class="chip ${S.book === b ? 'on' : ''}" data-gb="${b}">${b}</div>`).join('')}</div>
+    <div class="ulist">${Object.entries(book).map(([u, L]) =>
+      `<div class="uitem ${shieldDone.has(S.book + u) ? 'done' : ''}" data-gu="${u}"><b>${u}</b><div>${esc(L.title)}<small>${esc(L.sub)}</small></div></div>`).join('')}</div>`;
+}
+function gramLesson(u){
+  const L = C.grammar[S.book][u];
+  const used = new Set(L.ex.flatMap(e => e.b.map(x => x[1])));
+  $('gBody').innerHTML = `
+    <div class="holo">
+      <div class="sub">${S.book} ${u} · ${esc(L.sub)}</div>
+      <h3>${esc(L.title)}</h3>
+      <div class="exs">${L.ex.map(e => `<div class="exline">${e.b.map(([w, r]) =>
+        `<span class="blk" style="--bc:${ROLE[r][1]};background:${ROLE[r][1]}"><i>${ROLE[r][0]}</i>${esc(w)}</span>`).join('')}
+        <div class="exzh">${esc(e.zh)}</div></div>`).join('')}</div>
+      <div class="legend">${[...used].map(r => `<span style="--bc:${ROLE[r][1]}">${ROLE[r][0]}</span>`).join('')}</div>
+    </div>
+    <p class="note">點積木看它在句子裡的角色 ✦</p>
+    <div class="pts">${L.points.map(t => `<div>${esc(t)}</div>`).join('')}</div>
+    <button class="btn" id="gStart">開始護盾充能 🛡️</button>
+    <button class="btn ghost" id="gList">換一課</button>`;
+  $('gStart').onclick = () => gramStart(u);
+  $('gList').onclick = gramList;
+  $('gram').scrollTop = 0;
+}
+const NEED = 6;
+function shieldSVG(n){
+  const r = 46, c = 60, segs = [];
+  for (let i = 0; i < NEED; i++) {
+    const a0 = (i / NEED) * Math.PI * 2 - Math.PI / 2 + .07, a1 = ((i + 1) / NEED) * Math.PI * 2 - Math.PI / 2 - .07;
+    segs.push(`<path class="seg ${i < n ? 'on' : ''}" d="M${c + r * Math.cos(a0)} ${c + r * Math.sin(a0)} A${r} ${r} 0 0 1 ${c + r * Math.cos(a1)} ${c + r * Math.sin(a1)}"/>`);
+  }
+  return `<svg viewBox="0 0 120 120">${segs.join('')}<text x="60" y="69">${n}/${NEED}</text></svg>`;
+}
+function gramStart(u){
+  G = { u, q: shuffle(C.grammar[S.book][u].q.slice()), n: 0, miss: 0 };
+  gramQ();
+}
+function gramQ(){
+  const q = G.q[0];
+  const tname = { mc: '選擇題', order: '排句子：依序點積木', spot: '找錯字：點出錯的那一格' }[q.t];
+  let body = '';
+  if (q.t === 'mc') body = `<div class="qtext">${esc(q.q)}</div><div class="opts">${q.o.map((o, i) => `<button class="opt" data-o="${i}">${esc(o)}</button>`).join('')}</div>`;
+  if (q.t === 'order') {
+    let idx; do { idx = shuffle(q.w.map((_, i) => i)); } while (q.w.length > 1 && idx.every((v, i) => v === i));
+    G.ord = { idx, picked: [] };
+    body = `<div class="line" id="oLine"></div><div class="tiles" id="oPool">${idx.map(i => `<span class="tile" data-w="${i}">${esc(q.w[i])}</span>`).join('')}</div>
+            <button class="btn sm" id="oChk" disabled style="opacity:.4">確認</button>`;
+  }
+  if (q.t === 'spot') body = `<div class="tiles" id="sLine">${q.s.map((w, i) => `<span class="tile" data-s="${i}">${esc(w)}</span>`).join('')}</div>`;
+  $('gBody').innerHTML = `<div class="shield">${shieldSVG(G.n)}</div>
+    <div class="qcard"><div class="qtype">${tname}</div>${body}<div class="fb" id="fb"></div></div>
+    <button class="btn ghost" id="gQuit">離開挑戰</button>`;
+  $('gQuit').onclick = () => gramLesson(G.u);
+  G.lock = false;
+  if (q.t === 'mc') $('gBody').querySelectorAll('.opt').forEach(b => b.onclick = () => {
+    if (G.lock) return; const k = +b.dataset.o, ok = k === q.a;
+    b.classList.add(ok ? 'ok' : 'no'); if (!ok) $('gBody').querySelector(`[data-o="${q.a}"]`).classList.add('ok');
+    gramJudge(ok, q.o[q.a]);
+  });
+  if (q.t === 'order') {
+    const draw = () => {
+      $('oLine').innerHTML = G.ord.picked.map(i => `<span class="tile" data-back="${i}">${esc(q.w[i])}</span>`).join('');
+      $('oPool').querySelectorAll('.tile').forEach(t => t.classList.toggle('ghost', G.ord.picked.includes(+t.dataset.w)));
+      const full = G.ord.picked.length === q.w.length; $('oChk').disabled = !full; $('oChk').style.opacity = full ? 1 : .4;
+    };
+    $('oPool').onclick = e => { const t = e.target.closest('[data-w]'); if (!t || G.lock) return; G.ord.picked.push(+t.dataset.w); draw(); };
+    $('oLine').onclick = e => { const t = e.target.closest('[data-back]'); if (!t || G.lock) return; G.ord.picked = G.ord.picked.filter(i => i !== +t.dataset.back); draw(); };
+    $('oChk').onclick = () => { if (G.lock) return;
+      const ok = G.ord.picked.map(i => q.w[i]).join(' ') === q.w.join(' ');
+      gramJudge(ok, q.w.join(' ')); };
+  }
+  if (q.t === 'spot') $('sLine').onclick = e => {
+    const t = e.target.closest('[data-s]'); if (!t || G.lock) return;
+    const k = +t.dataset.s, ok = k === q.bad;
+    $('sLine').querySelector(`[data-s="${q.bad}"]`).classList.add(ok ? 'good' : 'bad');
+    if (!ok) t.classList.add('bad');
+    gramJudge(ok, `${q.s[q.bad]} → ${q.fix}`);
+  };
+}
+function gramJudge(ok, ans){
+  const q = G.q[0]; G.lock = true;
+  const fb = $('fb');
+  if (ok) {
+    G.n++; G.q.shift();
+    fb.className = 'fb on yes'; fb.innerHTML = `<b>✓ 護盾 +1</b>${q.t === 'spot' ? `　${esc(ans)}` : ''}<br>${esc(q.ex)}`;
+    $('gBody').querySelector('.shield').innerHTML = shieldSVG(G.n);
+    setTimeout(() => G.n >= NEED ? gramDone() : gramQ(), q.t === 'spot' ? 1500 : 1000);
+  } else {
+    G.miss++; G.q.push(G.q.shift());   // 答錯的題目排到後面再來一次
+    fb.className = 'fb on no'; fb.innerHTML = `<b>✗ 正確：${esc(ans)}</b><br>${esc(q.ex)}<button class="btn sm" id="fbGo">繼續</button>`;
+    $('fbGo').onclick = gramQ;
+  }
+}
+function gramDone(){
+  shieldDone.add(S.book + G.u);
+  const L = C.grammar[S.book][G.u], units = Object.keys(C.grammar[S.book]), nx = units[units.indexOf(G.u) + 1];
+  $('gBody').innerHTML = `<div class="shield" style="margin-top:20px">${shieldSVG(NEED)}</div>
+    <div class="brand" style="text-align:center;margin-top:6px">護盾充滿！<small>${S.book} ${G.u} · ${esc(L.title)}</small></div>
+    <div class="stats"><div class="stat"><b>${NEED}</b><span>充能</span></div><div class="stat"><b>${G.miss}</b><span>答錯</span></div>
+      <div class="stat"><b>${G.miss ? Math.round(NEED / (NEED + G.miss) * 100) : 100}%</b><span>命中率</span></div></div>
+    <p class="note" style="text-align:center">正式版：第一次充滿開艙內寶箱，積分記在登船的島。</p>
+    ${nx ? `<button class="btn" id="gNext">下一課 ${nx} ›</button>` : ''}
+    <button class="btn ghost" id="gAgain">再挑戰一次</button>
+    <button class="btn ghost" id="gToList">回課程列表</button>`;
+  if (nx) $('gNext').onclick = () => gramLesson(nx);
+  $('gAgain').onclick = () => gramStart(G.u);
+  $('gToList').onclick = gramList;
+}
+$('gBody').addEventListener('click', e => {
+  const gb = e.target.closest('[data-gb]'); if (gb) { S.book = gb.dataset.gb; S.units = new Set(['U1']); gramList(); return; }
+  const gu = e.target.closest('[data-gu]'); if (gu) { gramLesson(gu.dataset.gu); return; }
+  const blk = e.target.closest('.blk'); if (blk) { blk.classList.add('show'); setTimeout(() => blk.classList.remove('show'), 1600); }
+});
+$('gBack').onclick = () => { show('bridge'); renderBridge(); };
+
+/* ================= ⑥ 段考艙 ================= */
+const SEC = { v: ['字彙', '#4ECDC4'], g: ['文法', '#CCFF00'], r: ['閱讀', '#FF8CC0'] };
+let E = null;
+function openExam(){ show('exam'); examPick(); }
+function examPick(){
+  const ex = C.exams[S.book];
+  $('eBody').innerHTML = `<div class="wrap">
+    <div class="row"><button class="back" id="eBack">‹ 艦橋</button><span style="font-family:Syne;color:var(--m);font-weight:800">MOCK MISSION</span></div>
+    <div class="brand" style="margin-top:14px">段考艙<small>${S.book}・選擇任務範圍</small></div>
+    <div class="chips" style="margin-top:12px">${['1上','2上'].map(b => `<div class="chip ${S.book === b ? 'on' : ''}" data-eb="${b}">${b}</div>`).join('')}</div>
+    <div class="ulist">${ex.map(e => `<div class="uitem" data-ek="${e.key}"><b>🚀</b><div>${e.name}<small>${e.units.join(' – ')}</small></div></div>`).join('')}
+      <div class="uitem" data-ek="ALL"><b>🌌</b><div>全冊總複習<small>U1 – U6</small></div></div></div>
+    <p class="note">每次 20 題：字彙 8、文法 6、閱讀 2 篇 × 3 題，每題 5 分。題目每次重新抽。<br>可以前後翻頁，全部作答後再交卷。</p></div>`;
+  $('eBack').onclick = () => { show('bridge'); renderBridge(); };
+}
+$('eBody').addEventListener('click', e => {
+  const b = e.target.closest('[data-eb]'); if (b) { S.book = b.dataset.eb; S.units = new Set(['U1']); examPick(); return; }
+  const k = e.target.closest('[data-ek]'); if (k) examStart(k.dataset.ek);
+});
+function vocabQs(units, n){
+  const pool = shuffle(WORDS.filter(w => w.book === S.book && units.includes(w.unit) && !/[.!?]$/.test(w.en)));
+  return pool.slice(0, n).map((w, i) => {
+    const ds = distractors(w);
+    if (i % 2 === 0) { const o = shuffle([w, ...ds]); return { sec: 'v', q: `「${w.en}」的意思是？`, o: o.map(x => x.zh), a: o.indexOf(w), ex: `${w.en}（${w.pos}）＝${w.zh}` }; }
+    const enDs = [];   // 中翻英：干擾選項換成英文，避免拼字相同
+    for (const d of shuffle(WORDS.filter(x => x.book === w.book && x.en !== w.en && pos1(x.pos) === pos1(w.pos) && !/[.!?]$/.test(x.en))))
+      { if (!enDs.some(y => y.en === d.en)) enDs.push(d); if (enDs.length === 2) break; }
+    const o = shuffle([w, ...enDs]);
+    return { sec: 'v', q: `「${w.zh}」的英文是？`, o: o.map(x => x.en), a: o.indexOf(w), ex: `${w.zh}＝${w.en}（${w.pos}）` };
+  });
+}
+function examStart(key){
+  const all = C.exams[S.book];
+  const units = key === 'ALL' ? ['U1','U2','U3','U4','U5','U6'] : all.find(e => e.key === key).units;
+  const pass = key === 'ALL' ? shuffle(all.flatMap(e => e.passages)).slice(0, 2) : all.find(e => e.key === key).passages;
+  const gq = shuffle(units.flatMap(u => C.grammar[S.book][u].q.filter(q => q.t === 'mc').map(q => ({ ...q, sec: 'g', u })))).slice(0, 6);
+  // 文法題的選項也打散
+  gq.forEach(q => { const o = shuffle(q.o.map((t, i) => ({ t, i }))); q.a = o.findIndex(x => x.i === q.a); q.o = o.map(x => x.t); });
+  const items = [...vocabQs(units, 8).map(q => ({ kind: 'q', qs: [q] })), ...gq.map(q => ({ kind: 'q', qs: [q] })),
+                 ...pass.map(p => ({ kind: 'p', p, qs: p.q.map(q => ({ ...q, sec: 'r', title: p.title })) }))];
+  const flat = items.flatMap(it => it.qs);
+  E = { key, name: key === 'ALL' ? '全冊總複習' : all.find(e => e.key === key).name, items, flat, ans: new Array(flat.length).fill(-1), page: 0, t0: Date.now() };
+  examPage();
+  clearInterval(E.tick); E.tick = setInterval(() => { const el = $('eTime'); if (el && E) { const s = (Date.now() - E.t0) / 1000 | 0; el.textContent = `${s / 60 | 0}:${String(s % 60).padStart(2, '0')}`; } }, 1000);
+}
+function examPage(){
+  const it = E.items[E.page], base = E.items.slice(0, E.page).reduce((n, x) => n + x.qs.length, 0);
+  const dots = E.flat.map((q, i) => `<i style="--c:${SEC[q.sec][1]}" class="${E.ans[i] >= 0 ? 'ans' : ''} ${i >= base && i < base + it.qs.length ? 'cur' : ''}" data-dot="${i}"></i>`).join('');
+  const qHTML = (q, i) => `<div class="${it.kind === 'p' ? 'rq' : 'qcard'}"><div class="qtype">第 ${i + 1} 題</div><div class="qtext">${esc(q.q)}</div>
+    <div class="opts">${q.o.map((o, k) => `<button class="opt ${E.ans[i] === k ? 'pick' : ''}" data-q="${i}" data-k="${k}">(${'ABC'[k]}) ${esc(o)}</button>`).join('')}</div></div>`;
+  const sec = it.qs[0].sec;
+  const last = E.page === E.items.length - 1;
+  $('eBody').innerHTML = `<div class="ehud"><div class="row"><span class="ttl">${S.book}・${E.name}</span><span class="tm">⏱ <span id="eTime">0:00</span></span></div><div class="starmap">${dots}</div></div>
+    <div class="wrap" style="padding-top:12px">
+      <span class="sectag" style="--c:${SEC[sec][1]}">${SEC[sec][0]}</span>
+      ${it.kind === 'p' ? `<div class="passage"><h4>${esc(it.p.title)}</h4>${esc(it.p.text)}</div>${it.qs.map((q, j) => qHTML(q, base + j)).join('')}`
+                       : qHTML(it.qs[0], base)}
+      <div class="enav">${E.page ? '<button class="btn ghost" id="ePrev">‹ 上一題</button>' : ''}
+        ${last ? '<button class="btn" id="eSubmit">交卷 🚀</button>' : '<button class="btn" id="eNext">下一題 ›</button>'}</div>
+      <button class="btn ghost" id="eQuit" style="margin-top:12px">放棄任務</button>
+    </div>`;
+  $('exam').scrollTop = 0;
+}
+$('eBody').addEventListener('click', e => {
+  if (!E || !$('exam').classList.contains('on')) return;
+  const o = e.target.closest('[data-q]');
+  if (o) { const i = +o.dataset.q; E.ans[i] = +o.dataset.k;
+    o.parentElement.querySelectorAll('.opt').forEach(b => b.classList.toggle('pick', b === o));
+    const d = $('eBody').querySelector(`[data-dot="${i}"]`); if (d) d.classList.add('ans');
+    // 單題頁選完自動往下
+    if (E.items[E.page].kind === 'q' && E.page < E.items.length - 1) setTimeout(() => { E.page++; examPage(); }, 280);
+    return; }
+  const dot = e.target.closest('[data-dot]');
+  if (dot) { let i = +dot.dataset.dot, n = 0; for (let p = 0; p < E.items.length; p++) { n += E.items[p].qs.length; if (i < n) { E.page = p; break; } } examPage(); return; }
+  if (e.target.id === 'ePrev') { E.page--; examPage(); }
+  if (e.target.id === 'eNext') { E.page++; examPage(); }
+  if (e.target.id === 'eQuit') { clearInterval(E.tick); E = null; examPick(); }
+  if (e.target.id === 'eSubmit') {
+    const left = E.ans.filter(a => a < 0).length;
+    if (left && !e.target.dataset.sure) { e.target.dataset.sure = 1; e.target.textContent = `還有 ${left} 題沒答，確定交卷？`; return; }
+    examResult();
+  }
+});
+function examResult(){
+  clearInterval(E.tick);
+  const sec = { v: [0, 0], g: [0, 0], r: [0, 0] }, wrong = [];
+  E.flat.forEach((q, i) => { sec[q.sec][1]++; if (E.ans[i] === q.a) sec[q.sec][0]++; else wrong.push({ q, i }); });
+  const right = E.flat.length - wrong.length, s = (Date.now() - E.t0) / 1000 | 0;
+  $('eBody').innerHTML = `<div class="wrap">
+    <div class="brand">任務報告<small>${S.book}・${E.name}・${s / 60 | 0} 分 ${s % 60} 秒</small></div>
+    <div class="big">${right * 5}<span style="font-size:20px;color:#8FA3C8"> / 100</span></div>
+    <div class="secbar">${Object.entries(sec).map(([k, [a, n]]) => `<div><div class="t"><span>${SEC[k][0]}</span><span>${a} / ${n}</span></div><div class="g"><i style="--c:${SEC[k][1]};width:${n ? a / n * 100 : 0}%;background:${SEC[k][1]}"></i></div></div>`).join('')}</div>
+    <div class="sec">${wrong.length ? '❌ 錯題回顧' : '✨ 全對！'}</div>
+    <div class="wrong">${wrong.map(({ q, i }) => `<div><span class="sectag" style="--c:${SEC[q.sec][1]}">${SEC[q.sec][0]}</span> 第 ${i + 1} 題${q.title ? `・${esc(q.title)}` : ''}<br><b>${esc(q.q)}</b><br>
+      你的答案：${E.ans[i] < 0 ? '（沒答）' : esc(q.o[E.ans[i]])}　正確：<b style="color:var(--y)">${esc(q.o[q.a])}</b>${q.ex ? `<br>${esc(q.ex)}` : ''}</div>`).join('')}</div>
+    <p class="note">正式版：段考艙的積分記在登船的島；錯題可以一鍵送去單字艙／文法艙複習。</p>
+    <button class="btn" id="eRe">同範圍再考一次</button>
+    <button class="btn ghost" id="ePick">換範圍</button></div>`;
+  const key = E.key;
+  $('eRe').onclick = () => examStart(key);
+  $('ePick').onclick = examPick;
+  $('exam').scrollTop = 0;
+}
+
+/* 艦橋入口 */
+document.querySelector('[data-cab="gram"]').onclick = openGram;
+document.querySelector('[data-cab="exam"]').onclick = openExam;
+
 loadWords().then(renderBridge);
-window.__ship = { get R(){ return R; } }; // 測試用
+window.__ship = { get R(){ return R; }, get G(){ return G; }, get E(){ return E; } }; // 測試用
 </script>
 </body>
 </html>
