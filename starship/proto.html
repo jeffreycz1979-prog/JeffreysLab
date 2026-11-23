@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>國中星艦 JH Starship｜試作</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;800&family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--g:#1a3a1a;--y:#CCFF00;--m:#4ECDC4;--bg:#0a0a14;--ink:#EAF2FF}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--ink);font-family:'Noto Sans TC',sans-serif;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
+.scr{position:fixed;inset:0;display:none}
+.scr.on{display:block}
+#dock canvas{display:block}
+.hint{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(28px + env(safe-area-inset-bottom));background:rgba(10,10,20,.78);border:1px solid var(--m);padding:10px 18px;border-radius:999px;font-weight:700;font-size:15px;white-space:nowrap;animation:pulse 1.6s infinite}
+@keyframes pulse{50%{box-shadow:0 0 18px var(--m)}}
+.toptag{position:absolute;top:calc(14px + env(safe-area-inset-top));left:14px;font-family:Syne;font-weight:800;font-size:13px;letter-spacing:.12em;color:var(--m);opacity:.85}
+#fade{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .5s;z-index:50}
+
+/* 艦橋 */
+#bridge{background:radial-gradient(ellipse at 50% -10%,#1b2a55 0%,var(--bg) 60%);overflow-y:auto;touch-action:pan-y}
+.wrap{max-width:560px;margin:0 auto;padding:calc(18px + env(safe-area-inset-top)) 18px 40px}
+.brand{font-family:Syne;font-weight:800;font-size:26px;letter-spacing:.04em}
+.brand small{display:block;font-family:'Noto Sans TC';font-weight:700;font-size:14px;color:var(--m);letter-spacing:.1em;margin-top:2px}
+.sec{margin-top:22px;font-size:13px;color:#8FA3C8;font-weight:700;letter-spacing:.08em}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.chip{border:1.5px solid #2E3D66;background:#121a33;color:var(--ink);padding:8px 14px;border-radius:999px;font-weight:700;font-size:15px;cursor:pointer}
+.chip.on{border-color:var(--y);background:rgba(204,255,0,.12);color:var(--y)}
+.cabins{display:grid;gap:12px;margin-top:12px}
+.cabin{display:flex;align-items:center;gap:14px;padding:16px;border-radius:18px;background:linear-gradient(135deg,#141f3d,#0f1528);border:1.5px solid #26355c;cursor:pointer;position:relative;overflow:hidden}
+.cabin .ic{font-size:34px;width:52px;text-align:center}
+.cabin b{display:block;font-size:18px}
+.cabin span{font-size:13px;color:#8FA3C8}
+.cabin.go{border-color:var(--m);box-shadow:0 0 0 1px rgba(78,205,196,.25),0 8px 30px rgba(78,205,196,.15)}
+.cabin.off{opacity:.45;cursor:default}
+.cabin .tag{position:absolute;right:12px;top:10px;font-size:11px;font-weight:700;color:var(--bg);background:var(--y);padding:2px 8px;border-radius:999px}
+.modes{display:flex;gap:10px;margin-top:10px}
+.modes .chip{flex:1;text-align:center}
+.btn{display:block;width:100%;margin-top:18px;padding:15px;border-radius:16px;border:none;background:var(--y);color:#0a0a14;font-weight:900;font-size:18px;cursor:pointer}
+.ghost{background:transparent;color:var(--ink);border:1.5px solid #2E3D66}
+.note{font-size:12px;color:#6F82A8;margin-top:14px;line-height:1.6}
+
+/* 單字艙 */
+#vocab canvas#warp{position:absolute;inset:0;width:100%;height:100%}
+.hud{position:absolute;top:calc(10px + env(safe-area-inset-top));left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:0 14px;font-family:Syne;font-weight:800;z-index:3}
+.hud .x{width:38px;height:38px;border-radius:50%;border:1.5px solid #2E3D66;background:rgba(10,10,20,.6);color:var(--ink);font-size:18px;cursor:pointer}
+.hud .mid{text-align:center;font-size:13px;color:#8FA3C8}
+.hud .mid b{display:block;font-size:22px;color:var(--ink)}
+.bar{position:absolute;top:calc(58px + env(safe-area-inset-top));left:14px;right:14px;height:6px;border-radius:3px;background:#1a2340;z-index:3;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--m),var(--y));transition:width .3s}
+.combo{position:absolute;top:calc(74px + env(safe-area-inset-top));left:0;right:0;text-align:center;font-family:Syne;font-weight:800;font-size:15px;color:var(--y);z-index:3;opacity:0;transition:opacity .2s}
+.combo.on{opacity:1}
+.word{position:absolute;left:0;right:0;top:26%;text-align:center;z-index:3;padding:0 16px}
+.word .en{font-family:Syne;font-weight:800;font-size:clamp(30px,9vw,52px);line-height:1.1;text-shadow:0 0 24px rgba(78,205,196,.55);word-break:break-word}
+.word .pos{margin-top:8px;font-size:14px;color:#8FA3C8}
+.word .say{margin-top:10px;border:1.5px solid #2E3D66;background:rgba(18,26,51,.7);color:var(--ink);border-radius:999px;padding:6px 14px;font-size:14px;cursor:pointer}
+.word.pop .en{animation:pop .35s}
+@keyframes pop{0%{transform:scale(.6);opacity:0}100%{transform:scale(1);opacity:1}}
+.planets{position:absolute;left:0;right:0;bottom:calc(9% + env(safe-area-inset-bottom));height:42%;z-index:3}
+.pl{position:absolute;width:30vw;max-width:170px;aspect-ratio:1;border-radius:50%;display:flex;align-items:center;justify-content:center;text-align:center;padding:10px;font-weight:900;font-size:clamp(15px,4.4vw,22px);line-height:1.25;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.6);cursor:pointer;transition:transform .15s;box-shadow:inset -14px -18px 30px rgba(0,0,0,.45),0 0 26px var(--glow)}
+.pl::after{content:'';position:absolute;inset:-9px -26px;border-radius:50%;border:2px solid rgba(255,255,255,.22);transform:rotate(-18deg);pointer-events:none}
+.pl:active{transform:scale(.94)}
+.pl.p0{left:3%;top:18%}.pl.p1{left:50%;top:0;transform:translateX(-50%)}.pl.p2{right:3%;top:18%}
+.pl.p1:active{transform:translateX(-50%) scale(.94)}
+.pl .arr{position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-size:14px;color:#8FA3C8;text-shadow:none}
+.pl.boom{animation:boom .45s forwards}
+@keyframes boom{60%{filter:brightness(2.2);opacity:1}100%{opacity:0;filter:brightness(3)}}
+.pl.bad{animation:shake .4s}
+@keyframes shake{20%,60%{margin-left:-10px}40%,80%{margin-left:10px}}
+.pl.right{box-shadow:0 0 0 4px var(--y),0 0 40px var(--y)}
+.pl.fade{opacity:.25}
+.swipehint{position:absolute;bottom:calc(14px + env(safe-area-inset-bottom));left:0;right:0;text-align:center;font-size:12px;color:#6F82A8;z-index:3}
+.toast{position:absolute;left:50%;top:15%;transform:translate(-50%,-50%);z-index:5;font-size:20px;font-weight:900;padding:10px 18px;border-radius:14px;background:rgba(10,10,20,.85);border:1.5px solid var(--y);opacity:0;transition:opacity .2s;pointer-events:none;text-align:center}
+.toast.on{opacity:1}
+
+/* 結算 */
+#result{background:radial-gradient(ellipse at 50% 0%,#1b2a55 0%,var(--bg) 65%);overflow-y:auto;touch-action:pan-y}
+.big{font-family:Syne;font-weight:800;font-size:48px;color:var(--y);margin-top:8px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+.stat{background:#121a33;border:1.5px solid #26355c;border-radius:14px;padding:12px;text-align:center}
+.stat b{display:block;font-family:Syne;font-size:24px}
+.stat span{font-size:12px;color:#8FA3C8}
+.hole{margin-top:10px;display:grid;gap:8px}
+.hole div{display:flex;justify-content:space-between;gap:10px;background:#121a33;border-radius:12px;padding:10px 14px;border-left:4px solid #A06CFF}
+.hole b{font-family:Syne}
+</style>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js"}}
+</script>
+</head>
+<body>
+
+<!-- ① 停靠：島旁的飛船 -->
+<section id="dock" class="scr on">
+  <div class="toptag">JH STARSHIP · 試作</div>
+  <div class="hint" id="dockHint">🛸 點飛船登船</div>
+</section>
+
+<!-- ② 艦橋 -->
+<section id="bridge" class="scr">
+  <div class="wrap">
+    <div class="brand">JH STARSHIP<small>國中星艦・艦橋</small></div>
+
+    <div class="sec">航線（冊別）</div>
+    <div class="chips" id="books"></div>
+
+    <div class="sec">範圍（單元）</div>
+    <div class="chips" id="units"></div>
+
+    <div class="sec">選擇艙室</div>
+    <div class="cabins">
+      <div class="cabin go" data-cab="vocab"><div class="ic">🪐</div><div><b>單字艙・星際快刷</b><span>英文字 → 擊中正確的中文星球</span></div></div>
+      <div class="cabin off"><div class="ic">🔬</div><div><b>文法艙・全像解析</b><span>句型積木＋護盾充能挑戰</span></div><i class="tag">下一版</i></div>
+      <div class="cabin off"><div class="ic">🚀</div><div><b>段考艙・模擬任務</b><span>20 題：字彙、句型、兩篇閱讀</span></div><i class="tag">下一版</i></div>
+    </div>
+
+    <div class="sec">單字艙模式</div>
+    <div class="modes">
+      <div class="chip on" data-mode="20">20 字一回合</div>
+      <div class="chip" data-mode="60">60 秒衝刺</div>
+    </div>
+    <button class="btn" id="go">發射 🚀</button>
+    <button class="btn ghost" id="land">回島上</button>
+    <p class="note">試作版：不計分、不存進度。資料：1上（113 修訂版）、2上（113 單字寶典）。</p>
+  </div>
+</section>
+
+<!-- ③ 單字艙 -->
+<section id="vocab" class="scr">
+  <canvas id="warp"></canvas>
+  <div class="hud">
+    <button class="x" id="quit">✕</button>
+    <div class="mid" id="hudL">第 1／20 題<b id="score">0</b></div>
+    <div style="width:38px"></div>
+  </div>
+  <div class="bar"><i id="barI"></i></div>
+  <div class="combo" id="combo">COMBO ×3</div>
+  <div class="word" id="word"><div class="en" id="en">—</div><div class="pos" id="pos"></div><button class="say" id="say">🔊 再聽一次</button></div>
+  <div class="planets" id="planets"></div>
+  <div class="toast" id="toast"></div>
+  <div class="swipehint">點星球，或往 ← ↑ → 滑</div>
+</section>
+
+<!-- ④ 結算 -->
+<section id="result" class="scr">
+  <div class="wrap">
+    <div class="brand">任務完成<small id="resSub">MISSION REPORT</small></div>
+    <div class="big" id="resScore">0</div>
+    <div class="stats">
+      <div class="stat"><b id="rRight">0</b><span>答對</span></div>
+      <div class="stat"><b id="rCombo">0</b><span>最高連擊</span></div>
+      <div class="stat"><b id="rRate">0%</b><span>命中率</span></div>
+    </div>
+    <div class="sec" id="holeT">🕳️ 黑洞（答錯的字）</div>
+    <div class="hole" id="hole"></div>
+    <button class="btn" id="again">黑洞重刷</button>
+    <button class="btn ghost" id="toBridge">回艦橋</button>
+  </div>
+</section>
+
+<div id="fade"></div>
+
+<script type="module">
+import * as THREE from 'three';
+
+/* ================= 資料 ================= */
+let WORDS = [];
+const S = { book: '1上', units: new Set(['U1','U2']), mode: '20' };
+async function loadWords(){
+  const t = await (await fetch('jh-words.tsv')).text();
+  WORDS = t.trim().split('\n').slice(1).map(l => { const [book,unit,en,zh,pos] = l.split('\t'); return {book,unit,en,zh,pos}; });
+}
+const $ = id => document.getElementById(id);
+const show = id => { document.querySelectorAll('.scr').forEach(s => s.classList.toggle('on', s.id === id)); };
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const pos1 = p => (p || '').split(';')[0].trim();
+
+/* ================= ① 停靠場景 ================= */
+const dock = $('dock');
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+dock.prepend(renderer.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0b1430);
+scene.fog = new THREE.Fog(0x0b1430, 60, 140);
+const cam = new THREE.PerspectiveCamera(45, 1, .1, 400);
+const CAM0 = new THREE.Vector3(0, 17, 36);
+cam.position.copy(CAM0);
+const look = new THREE.Vector3(2, 5, 0);
+
+scene.add(new THREE.HemisphereLight(0xbfd8ff, 0x203040, 1.1));
+const sun = new THREE.DirectionalLight(0xffffff, 1.3); sun.position.set(20, 40, 20); scene.add(sun);
+
+// 星空
+{ const g = new THREE.BufferGeometry(), n = 900, p = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) { const r = 160, t = Math.random() * Math.PI * 2, f = Math.random() * Math.PI * .45;
+    p[i*3] = r * Math.sin(f) * Math.cos(t); p[i*3+1] = r * Math.cos(f) * .9 + 10; p[i*3+2] = r * Math.sin(f) * Math.sin(t); }
+  g.setAttribute('position', new THREE.BufferAttribute(p, 3));
+  scene.add(new THREE.Points(g, new THREE.PointsMaterial({ color: 0xffffff, size: .6, fog: false }))); }
+
+// 海
+const sea = new THREE.Mesh(new THREE.CircleGeometry(200, 64), new THREE.MeshStandardMaterial({ color: 0x123a6b, roughness: .35, metalness: .2 }));
+sea.rotation.x = -Math.PI / 2; scene.add(sea);
+
+// 六角島（示意）
+const HEX = [[0,0,1.6,0x9fe3b0],[6.2,0,1.2,0x7fd39a],[-6.2,0,1.3,0x8cdba5],[3.1,5.4,1.0,0x7fd39a],[-3.1,5.4,1.4,0xa8e8bc],[3.1,-5.4,1.1,0x8cdba5],[-3.1,-5.4,1.0,0x7fd39a]];
+HEX.forEach(([x,z,h,c]) => {
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(3.4, 3.6, h, 6), new THREE.MeshStandardMaterial({ color: c, flatShading: true }));
+  m.position.set(x, h / 2, z); scene.add(m);
+  const sand = new THREE.Mesh(new THREE.CylinderGeometry(3.6, 3.9, .5, 6), new THREE.MeshStandardMaterial({ color: 0xe9dcb4, flatShading: true }));
+  sand.position.set(x, .25, z); scene.add(sand);
+});
+[[ -6,1.3,-1],[ -3,1.4,6],[ 4,1.1,-6]].forEach(([x,y,z]) => {
+  const t = new THREE.Mesh(new THREE.ConeGeometry(.9, 2.6, 6), new THREE.MeshStandardMaterial({ color: 0x3e9b5c, flatShading: true }));
+  t.position.set(x, y + 1.3, z); scene.add(t);
+});
+
+// 角色（紙娃娃看板示意）
+function heroTex(){
+  const c = document.createElement('canvas'); c.width = 128; c.height = 192; const x = c.getContext('2d');
+  x.fillStyle = '#fff'; x.strokeStyle = '#fff'; x.lineWidth = 10; x.lineJoin = 'round';
+  const draw = (fill) => { x.fillStyle = fill;
+    x.beginPath(); x.arc(64, 52, 30, 0, 7); x.fill(); x.stroke();
+    x.beginPath(); x.roundRect(38, 82, 52, 62, 16); x.fill(); x.stroke();
+    x.fillRect(42, 140, 16, 36); x.fillRect(70, 140, 16, 36); };
+  draw('#fff');
+  x.fillStyle = '#F3C9A4'; x.beginPath(); x.arc(64, 52, 28, 0, 7); x.fill();
+  x.fillStyle = '#3b2a20'; x.beginPath(); x.arc(64, 44, 29, Math.PI, 0); x.fill();
+  x.fillStyle = '#222'; x.beginPath(); x.arc(54, 56, 3.5, 0, 7); x.arc(74, 56, 3.5, 0, 7); x.fill();
+  x.fillStyle = '#4ECDC4'; x.beginPath(); x.roundRect(40, 84, 48, 58, 14); x.fill();
+  x.fillStyle = '#1a3a1a'; x.fillRect(44, 140, 14, 34); x.fillRect(70, 140, 14, 34);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+const hero = new THREE.Sprite(new THREE.SpriteMaterial({ map: heroTex() }));
+hero.scale.set(2.4, 3.6, 1);
+const HERO0 = new THREE.Vector3(4.2, 1.6 + 1.8, 1.2);
+hero.position.copy(HERO0); scene.add(hero);
+
+// 飛船
+const ship = new THREE.Group();
+{
+  const metal = new THREE.MeshStandardMaterial({ color: 0xdfe7f2, metalness: .75, roughness: .28 });
+  const dark = new THREE.MeshStandardMaterial({ color: 0x2a3550, metalness: .6, roughness: .4 });
+  const prof = [[0,-.9],[1.6,-.85],[3.4,-.45],[4.6,0],[3.6,.35],[2.2,.6],[0,.7]].map(([x,y]) => new THREE.Vector2(x, y));
+  ship.add(new THREE.Mesh(new THREE.LatheGeometry(prof, 48), metal));
+  const belly = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.1, .4, 32), dark); belly.position.y = -.95; ship.add(belly);
+  const dome = new THREE.Mesh(new THREE.SphereGeometry(1.9, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2),
+    new THREE.MeshStandardMaterial({ color: 0x7ff0e6, transparent: true, opacity: .55, metalness: .2, roughness: .05, emissive: 0x1d6f6a, emissiveIntensity: .5 }));
+  dome.position.y = .6; ship.add(dome);
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(4.15, .13, 12, 64), new THREE.MeshBasicMaterial({ color: 0x4ECDC4 }));
+  ring.rotation.x = Math.PI / 2; ring.position.y = .02; ship.add(ring);
+  ship.userData.lights = [];
+  for (let i = 0; i < 12; i++) {
+    const a = i / 12 * Math.PI * 2;
+    const l = new THREE.Mesh(new THREE.SphereGeometry(.17, 10, 8), new THREE.MeshBasicMaterial({ color: 0xCCFF00 }));
+    l.position.set(Math.cos(a) * 3.7, .28, Math.sin(a) * 3.7); ship.add(l); ship.userData.lights.push(l);
+  }
+  const glow = new THREE.Mesh(new THREE.CircleGeometry(1.25, 32), new THREE.MeshBasicMaterial({ color: 0x9ffcf5, transparent: true, opacity: .9 }));
+  glow.rotation.x = Math.PI / 2; glow.position.y = -1.16; ship.add(glow);
+  // 字樣環
+  const c = document.createElement('canvas'); c.width = 512; c.height = 64; const x = c.getContext('2d');
+  x.fillStyle = '#0a0a14'; x.fillRect(0, 0, 512, 64); x.fillStyle = '#CCFF00'; x.font = '800 40px Syne, sans-serif'; x.textAlign = 'center';
+  x.fillText('JH STARSHIP ✦ 國中星艦 ✦', 256, 46);
+  const tx = new THREE.CanvasTexture(c); tx.wrapS = THREE.RepeatWrapping; tx.repeat.x = 2;
+  const band = new THREE.Mesh(new THREE.CylinderGeometry(3.0, 3.75, .32, 48, 1, true), new THREE.MeshBasicMaterial({ map: tx, side: THREE.DoubleSide }));
+  band.position.y = .2; ship.add(band);
+}
+const SHIP0 = new THREE.Vector3(6.5, 9.5, -2);
+ship.position.copy(SHIP0); scene.add(ship);
+
+// 牽引光束
+const beam = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 2.6, 1, 32, 1, true),
+  new THREE.MeshBasicMaterial({ color: 0x9ffcf5, transparent: true, opacity: 0, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false }));
+scene.add(beam);
+
+function resize(){ const w = innerWidth, h = innerHeight; renderer.setSize(w, h); cam.aspect = w / h; cam.fov = w < h ? 55 : 42; cam.updateProjectionMatrix(); }
+addEventListener('resize', resize); resize();
+
+let phase = 'idle', pT = 0, last = performance.now();
+const ray = new THREE.Raycaster(), ptr = new THREE.Vector2();
+renderer.domElement.addEventListener('pointerdown', e => {
+  if (phase !== 'idle') return;
+  ptr.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+  ray.setFromCamera(ptr, cam);
+  const hit = ray.intersectObject(ship, true).length > 0;
+  // 手機上點飛船附近也算（飛船小時好點一點）
+  const sp = ship.position.clone().project(cam);
+  const near = Math.hypot((sp.x - ptr.x) * innerWidth / 2, (sp.y - ptr.y) * innerHeight / 2) < 90;
+  if (hit || near) board();
+});
+function board(){ phase = 'descend'; pT = 0; $('dockHint').style.display = 'none'; }
+function landBack(){ // 從艦橋回島：飛船降回原位、角色落地
+  phase = 'land'; pT = 0; show('dock'); $('fade').style.opacity = 0;
+}
+
+const ease = t => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+function tick(now){
+  const dt = Math.min(.05, (now - last) / 1000); last = now; pT += dt;
+  const t = now / 1000;
+  ship.rotation.y += dt * .35;
+  ship.userData.lights.forEach((l, i) => l.material.color.setHex(((i + (t * 6 | 0)) % 3) ? 0xCCFF00 : 0x4ECDC4));
+  if (phase === 'idle') {
+    ship.position.y = SHIP0.y + Math.sin(t * 1.4) * .45;
+    hero.position.y = HERO0.y + Math.abs(Math.sin(t * 2.2)) * .12;
+    cam.position.lerp(CAM0, .04);
+  } else if (phase === 'descend') {            // 飛船移到角色正上方
+    const k = ease(Math.min(1, pT / 1.1));
+    ship.position.lerpVectors(SHIP0, new THREE.Vector3(HERO0.x, 8.5, HERO0.z), k);
+    if (pT > 1.1) { phase = 'beam'; pT = 0; }
+  } else if (phase === 'beam') {               // 光束＋角色被吸上去
+    const k = Math.min(1, pT / 1.8);
+    const top = ship.position.y - 1.1, bot = .9;
+    beam.position.set(ship.position.x, (top + bot) / 2, ship.position.z);
+    beam.scale.set(1, top - bot, 1);
+    beam.material.opacity = Math.min(.45, pT * 1.2) * (.85 + Math.sin(t * 20) * .15);
+    hero.position.y = HERO0.y + ease(k) * (top - HERO0.y - .4);
+    hero.material.rotation = Math.sin(pT * 9) * .15 * k;
+    hero.scale.setScalar(1).set(2.4 * (1 - k * .5), 3.6 * (1 - k * .5), 1);
+    if (pT > 1.8) { hero.visible = false; phase = 'lift'; pT = 0; }
+  } else if (phase === 'lift') {               // 收光束、升空，鏡頭跟上
+    beam.material.opacity = Math.max(0, .45 - pT);
+    ship.position.y += dt * (6 + pT * 30);
+    cam.position.lerp(new THREE.Vector3(ship.position.x, ship.position.y - 4, ship.position.z + 26), .06);
+    look.lerp(ship.position, .1);
+    if (pT > .9) $('fade').style.opacity = 1;
+    if (pT > 1.5) { phase = 'away'; openBridge(); }
+  } else if (phase === 'land') {               // 回島：反向
+    const k = ease(Math.min(1, pT / 1.6));
+    if (pT < .05) { ship.position.set(HERO0.x, 40, HERO0.z); hero.visible = false; }
+    ship.position.y = 40 + (8.5 - 40) * k;
+    cam.position.lerp(CAM0, .06); look.lerp(new THREE.Vector3(2, 5, 0), .08);
+    if (pT > 1.6 && pT < 2.6) {
+      const b = Math.min(1, (pT - 1.6) / .8), top = ship.position.y - 1.1;
+      hero.visible = true; hero.scale.set(2.4, 3.6, 1); hero.material.rotation = 0;
+      hero.position.y = top - .4 - ease(b) * (top - .4 - HERO0.y);
+      beam.position.set(ship.position.x, (top + .9) / 2, ship.position.z); beam.scale.set(1, top - .9, 1);
+      beam.material.opacity = .4 * (1 - b);
+    }
+    if (pT > 2.6) {
+      const k2 = ease(Math.min(1, (pT - 2.6) / 1));
+      ship.position.lerpVectors(new THREE.Vector3(HERO0.x, 8.5, HERO0.z), SHIP0, k2);
+      if (pT > 3.6) { phase = 'idle'; $('dockHint').style.display = ''; }
+    }
+  }
+  cam.lookAt(look);
+  if (dock.classList.contains('on')) renderer.render(scene, cam);
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+
+/* ================= ② 艦橋 ================= */
+function openBridge(){
+  show('bridge'); renderBridge();
+  setTimeout(() => $('fade').style.opacity = 0, 60);
+}
+function renderBridge(){
+  $('books').innerHTML = ['1上','2上'].map(b => `<div class="chip ${S.book === b ? 'on' : ''}" data-b="${b}">${b}</div>`).join('');
+  const us = [...new Set(WORDS.filter(w => w.book === S.book).map(w => w.unit))];
+  $('units').innerHTML = us.map(u => `<div class="chip ${S.units.has(u) ? 'on' : ''}" data-u="${u}">${u}</div>`).join('');
+}
+$('books').onclick = e => { const b = e.target.dataset.b; if (!b) return; S.book = b; S.units = new Set(['U1']); renderBridge(); };
+$('units').onclick = e => { const u = e.target.dataset.u; if (!u) return;
+  S.units.has(u) ? S.units.delete(u) : S.units.add(u); if (!S.units.size) S.units.add(u); renderBridge(); };
+document.querySelector('.modes').onclick = e => { const m = e.target.dataset.mode; if (!m) return; S.mode = m;
+  document.querySelectorAll('.modes .chip').forEach(c => c.classList.toggle('on', c.dataset.mode === m)); };
+$('go').onclick = () => startRound();
+document.querySelector('[data-cab="vocab"]').onclick = () => startRound();
+$('land').onclick = landBack;
+
+/* ================= ③ 單字艙 ================= */
+const warp = $('warp'), wx = warp.getContext('2d');
+let stars = [], speed = 1, targetSpeed = 1, fx = [];
+function initWarp(){
+  warp.width = innerWidth * devicePixelRatio; warp.height = innerHeight * devicePixelRatio;
+  stars = Array.from({ length: 260 }, () => ({ x: (Math.random() - .5) * 2, y: (Math.random() - .5) * 2, z: Math.random() }));
+}
+addEventListener('resize', () => { if ($('vocab').classList.contains('on')) initWarp(); });
+
+let R = null; // 回合狀態
+function startRound(list){
+  const pool = list || WORDS.filter(w => w.book === S.book && S.units.has(w.unit));
+  if (pool.length < 3) return;
+  R = { q: shuffle(pool.slice()), i: 0, right: 0, score: 0, combo: 0, maxC: 0, hole: [], lock: false,
+        timed: !list && S.mode === '60', end: 0, total: 0, retry: !!list };
+  if (!R.timed) R.q = R.q.slice(0, list ? list.length : 20);
+  R.total = R.timed ? 0 : R.q.length;
+  if (R.timed) R.end = performance.now() + 60000;
+  show('vocab'); initWarp(); speed = 1; targetSpeed = 1; next();
+}
+function distractors(w){
+  // 優先：選定範圍內同詞性 → 同冊同詞性 → 同冊其他
+  const same = WORDS.filter(x => x.book === w.book && x.zh !== w.zh && x.en !== w.en);
+  const sp = p => p ? pos1(p.pos) === pos1(w.pos) : false;
+  const a = shuffle(same.filter(x => S.units.has(x.unit) && sp(x)));
+  const b = shuffle(same.filter(x => !S.units.has(x.unit) && sp(x)));
+  const c = shuffle(same.filter(x => !sp(x)));
+  const out = [], seen = new Set([w.zh]);
+  for (const x of [...a, ...b, ...c]) { if (!seen.has(x.zh)) { out.push(x); seen.add(x.zh); } if (out.length === 2) break; }
+  return out;
+}
+const PAL = [['#FF7A59','#8a2a14','#FF7A59'],['#4ECDC4','#145b57','#4ECDC4'],['#A06CFF','#3b1a7a','#A06CFF'],['#FFC94D','#7a5208','#FFC94D'],['#5AA9FF','#123f7a','#5AA9FF'],['#FF5FA2','#7a1444','#FF5FA2']];
+function next(){
+  if (!R.timed && R.i >= R.q.length) return finish();
+  if (R.timed && R.i >= R.q.length) R.q.push(...shuffle(R.q.slice(0, R.i)));
+  const w = R.q[R.i]; R.cur = w; R.lock = false;
+  const opts = shuffle([w, ...distractors(w)]); R.opts = opts;
+  const pal = shuffle(PAL.slice());
+  $('planets').innerHTML = opts.map((o, k) => `<div class="pl p${k}" data-k="${k}" style="--glow:${pal[k][2]}88;background:radial-gradient(circle at 32% 28%,${pal[k][0]},${pal[k][1]} 75%)"><i class="arr">${['←','↑','→'][k]}</i>${o.zh}</div>`).join('');
+  $('en').textContent = w.en; $('pos').textContent = w.pos;
+  const wd = $('word'); wd.classList.remove('pop'); void wd.offsetWidth; wd.classList.add('pop');
+  hud(); say(w.en);
+}
+function hud(){
+  $('score').textContent = R.score;
+  const done = R.right + R.hole.length;
+  if (R.timed) { const s = Math.max(0, Math.ceil((R.end - performance.now()) / 1000)); $('hudL').firstChild.textContent = `⏱ ${s} 秒`; $('barI').style.width = (100 - s / 60 * 100) + '%'; }
+  else { $('hudL').firstChild.textContent = `第 ${Math.min(R.i + 1, R.total)}／${R.total} 題`; $('barI').style.width = (done / R.total * 100) + '%'; }
+  const c = $('combo'); c.textContent = `COMBO ×${R.combo}`; c.classList.toggle('on', R.combo >= 3);
+}
+function say(t){ try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t.replace(/\.\.\./g, ' ')); u.lang = 'en-US'; u.rate = .9; speechSynthesis.speak(u); } catch (e) {} }
+$('say').onclick = () => R && say(R.cur.en);
+
+function pick(k){
+  if (!R || R.lock) return; R.lock = true;
+  const els = [...document.querySelectorAll('.pl')], ok = R.opts[k] === R.cur;
+  const target = els[k].getBoundingClientRect();
+  laser(target, ok);
+  if (ok) {
+    R.right++; R.combo++; R.maxC = Math.max(R.maxC, R.combo);
+    const gain = 100 + Math.min(R.combo - 1, 10) * 20; R.score += gain;
+    els[k].classList.add('boom'); els.forEach((e, j) => j !== k && e.classList.add('fade'));
+    burst(target, 46, ['#CCFF00', '#4ECDC4', '#ffffff']);
+    targetSpeed = 1 + Math.min(R.combo, 12) * .9;
+    if (R.combo && R.combo % 5 === 0) toast(`🔥 ${R.combo} 連擊！`);
+    R.i++; hud(); setTimeout(next, 520);
+  } else {
+    R.combo = 0; targetSpeed = 1;
+    if (!R.hole.includes(R.cur)) R.hole.push(R.cur);
+    els[k].classList.add('bad');
+    const rk = R.opts.indexOf(R.cur); els[rk].classList.add('right');
+    els.forEach((e, j) => j !== k && j !== rk && e.classList.add('fade'));
+    toast(`${R.cur.en}＝${R.cur.zh}`);
+    R.i++; hud(); setTimeout(next, 1400);
+  }
+}
+$('planets').addEventListener('click', e => { const p = e.target.closest('.pl'); if (p) pick(+p.dataset.k); });
+// 滑動：← 左、↑ 中、→ 右
+let sx = 0, sy = 0, st = 0;
+$('vocab').addEventListener('pointerdown', e => { sx = e.clientX; sy = e.clientY; st = 1; });
+$('vocab').addEventListener('pointerup', e => {
+  if (!st) return; st = 0;
+  const dx = e.clientX - sx, dy = e.clientY - sy;
+  if (Math.hypot(dx, dy) < 45 || e.target.closest('.pl,.x,.say')) return;
+  if (dy < -45 && Math.abs(dy) > Math.abs(dx)) pick(1); else if (dx < 0) pick(0); else pick(2);
+});
+addEventListener('keydown', e => { if (!$('vocab').classList.contains('on')) return;
+  if (e.key === 'ArrowLeft') pick(0); if (e.key === 'ArrowUp') pick(1); if (e.key === 'ArrowRight') pick(2); });
+$('quit').onclick = () => { R = null; show('bridge'); };
+
+let toastT;
+function toast(s){ const t = $('toast'); t.textContent = s; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 1100); }
+
+function laser(rect, ok){
+  const d = devicePixelRatio, w = $('en').getBoundingClientRect();
+  fx.push({ type: 'laser', x1: (w.left + w.width / 2) * d, y1: (w.bottom + 6) * d, x2: (rect.left + rect.width / 2) * d, y2: (rect.top + rect.height / 2) * d, life: .28, max: .28, c: ok ? '#CCFF00' : '#FF5F6D' });
+}
+function burst(rect, n, cols){
+  const d = devicePixelRatio, cx = (rect.left + rect.width / 2) * d, cy = (rect.top + rect.height / 2) * d;
+  for (let i = 0; i < n; i++) { const a = Math.random() * 7, v = (2 + Math.random() * 7) * d;
+    fx.push({ type: 'p', x: cx, y: cy, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: .7, max: .7, c: cols[i % cols.length], r: (2 + Math.random() * 3) * d }); }
+}
+function warpLoop(){
+  if ($('vocab').classList.contains('on')) {
+    speed += (targetSpeed - speed) * .06;
+    const W = warp.width, H = warp.height, cx = W / 2, cy = H * .38;
+    wx.fillStyle = `rgba(10,10,20,${speed > 3 ? .35 : .55})`; wx.fillRect(0, 0, W, H);
+    wx.lineCap = 'round';
+    for (const s of stars) {
+      const pz = s.z; s.z -= .0035 * speed; if (s.z <= .02) { s.x = (Math.random() - .5) * 2; s.y = (Math.random() - .5) * 2; s.z = 1; continue; }
+      const k = .5 / s.z, k0 = .5 / pz;
+      const x = cx + s.x * W * k, y = cy + s.y * H * k, x0 = cx + s.x * W * k0, y0 = cy + s.y * H * k0;
+      wx.strokeStyle = speed > 4 ? `rgba(160,240,255,${1 - s.z})` : `rgba(255,255,255,${1 - s.z})`;
+      wx.lineWidth = (1 - s.z) * 2.4 * devicePixelRatio;
+      wx.beginPath(); wx.moveTo(x0, y0); wx.lineTo(x, y); wx.stroke();
+    }
+    fx = fx.filter(f => (f.life -= 1 / 60) > 0);
+    for (const f of fx) {
+      const a = f.life / f.max;
+      if (f.type === 'laser') { wx.strokeStyle = f.c; wx.globalAlpha = a; wx.lineWidth = 6 * devicePixelRatio * a + 1; wx.shadowColor = f.c; wx.shadowBlur = 20;
+        wx.beginPath(); wx.moveTo(f.x1, f.y1); wx.lineTo(f.x2, f.y2); wx.stroke(); wx.shadowBlur = 0; }
+      else { f.x += f.vx; f.y += f.vy; f.vx *= .95; f.vy *= .95; wx.globalAlpha = a; wx.fillStyle = f.c;
+        wx.beginPath(); wx.arc(f.x, f.y, f.r, 0, 7); wx.fill(); }
+      wx.globalAlpha = 1;
+    }
+    if (R && R.timed) { hud(); if (performance.now() > R.end && !R.lock) { R.lock = true; finish(); } }
+  }
+  requestAnimationFrame(warpLoop);
+}
+requestAnimationFrame(warpLoop);
+
+/* ================= ④ 結算 ================= */
+function finish(){
+  const tried = R.right + R.hole.length;
+  $('resSub').textContent = R.retry ? '黑洞重刷 · REVIEW' : (R.timed ? '60 秒衝刺 · SPRINT' : '20 字一回合 · MISSION');
+  $('resScore').textContent = R.score;
+  $('rRight').textContent = R.right; $('rCombo').textContent = R.maxC;
+  $('rRate').textContent = tried ? Math.round(R.right / tried * 100) + '%' : '0%';
+  $('hole').innerHTML = R.hole.length ? R.hole.map(w => `<div><b>${w.en}</b><span>${w.zh}</span></div>`).join('') : '<div><b>黑洞是空的 ✨</b><span>全部擊中！</span></div>';
+  $('again').style.display = R.hole.length ? '' : 'none';
+  show('result');
+}
+$('again').onclick = () => startRound(R.hole.slice());
+$('toBridge').onclick = () => { show('bridge'); renderBridge(); };
+
+loadWords().then(renderBridge);
+window.__ship = { get R(){ return R; } }; // 測試用
+</script>
+</body>
+</html>
