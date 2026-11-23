@@ -85,6 +85,35 @@ html,body{height:100%;background:var(--bg);color:var(--ink);font-family:'Noto Sa
 .hole div{display:flex;justify-content:space-between;gap:10px;background:#121a33;border-radius:12px;padding:10px 14px;border-left:4px solid #A06CFF}
 .hole b{font-family:Syne}
 
+/* 航程與計分 */
+.voy{margin-top:16px;border-radius:18px;padding:14px 15px;background:linear-gradient(135deg,rgba(204,255,0,.1),rgba(78,205,196,.08));border:1.5px solid rgba(204,255,0,.45)}
+.voy .vt{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.voy .vt b{font-size:17px}
+.voy .vt span{font-size:12px;color:#A9B8D8;white-space:nowrap}
+.vgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.vgrid div{background:rgba(10,10,20,.55);border-radius:12px;padding:8px;text-align:center}
+.vgrid b{display:block;font-family:Syne;font-size:20px}
+.vgrid span{font-size:11px;color:#A9B8D8}
+.vgrid .full b{color:var(--y)}
+.vtot{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-weight:700}
+.vtot .n{font-family:Syne;font-size:24px;color:var(--y)}
+.vbar{height:8px;border-radius:4px;background:#1f2b4d;margin-top:6px;overflow:hidden}
+.vbar i{display:block;height:100%;background:linear-gradient(90deg,var(--m),var(--y))}
+.vnote{font-size:12px;color:#A9B8D8;margin-top:8px;line-height:1.6}
+.vdemo{display:flex;gap:8px;margin-top:10px;align-items:center;font-size:12px;color:#6F82A8}
+.vdemo select{flex:1;background:#121a33;color:var(--ink);border:1.5px solid #2E3D66;border-radius:10px;padding:6px 8px;font-size:13px}
+.vdemo button{background:none;border:1.5px solid #2E3D66;color:#A9B8D8;border-radius:10px;padding:6px 10px;font-size:12px;cursor:pointer}
+.chip.out{opacity:.45}
+.rangeTip{font-size:12px;margin-top:8px;color:#A9B8D8}
+.rangeTip.ok{color:var(--y)}
+.cabin em{margin-left:auto;font-style:normal;font-family:Syne;font-weight:800;font-size:13px;color:var(--y);white-space:nowrap;text-align:right}
+.cabin em small{display:block;font-family:'Noto Sans TC';font-weight:400;font-size:10px;color:#8FA3C8}
+.ptsline{margin-top:14px;border-radius:14px;padding:12px 14px;font-size:14px;line-height:1.7;background:#121a33;border:1.5px solid #26355c}
+.ptsline.gain{border-color:var(--y);background:rgba(204,255,0,.08)}
+.ptsline b.d{font-family:Syne;font-size:20px;color:var(--y)}
+#credit{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top));transform:translate(-50%,-250%);z-index:60;background:var(--y);color:#0a0a14;font-weight:900;padding:10px 18px;border-radius:999px;box-shadow:0 6px 24px rgba(204,255,0,.45);transition:transform .35s cubic-bezier(.2,1.4,.4,1);white-space:nowrap}
+#credit.on{transform:translate(-50%,0)}
+
 /* 共用 */
 .mute{width:38px;height:38px;border-radius:50%;border:1.5px solid #2E3D66;background:rgba(10,10,20,.6);color:var(--ink);font-size:17px;cursor:pointer}
 .spk{border:1.5px solid #2E3D66;background:#121a33;color:var(--ink);border-radius:999px;padding:4px 11px;font-size:13px;cursor:pointer;margin-left:4px;vertical-align:middle}
@@ -164,7 +193,7 @@ html,body{height:100%;background:var(--bg);color:var(--ink);font-family:'Noto Sa
 .enav{display:flex;gap:10px;margin-top:20px}
 .enav .btn{margin-top:0}
 .secbar{margin-top:10px;display:grid;gap:10px}
-.secbar div{background:#121a33;border-radius:14px;padding:12px 14px}
+.secbar>div{background:#121a33;border-radius:14px;padding:12px 14px}
 .secbar .t{display:flex;justify-content:space-between;font-weight:700}
 .secbar .g{height:8px;border-radius:4px;background:#1f2b4d;margin-top:8px;overflow:hidden}
 .secbar .g i{display:block;height:100%;background:var(--c)}
@@ -179,6 +208,7 @@ function saveSet(){ localStorage.setItem('jhship-mute', st.set.sfxMute ? '1' : '
 </script>
 <script src="../english-island/games/sfx.js"></script>
 <script src="ship-audio.js"></script>
+<script src="ship-score.js"></script>
 <script src="jh-content.js"></script>
 <script type="importmap">
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js"}}
@@ -197,17 +227,20 @@ function saveSet(){ localStorage.setItem('jhship-mute', st.set.sfxMute ? '1' : '
   <div class="wrap">
     <div class="row"><div class="brand">JH STARSHIP<small>國中星艦・艦橋</small></div><button class="mute" data-mute></button></div>
 
+    <div id="voy"></div>
+
     <div class="sec">航線（冊別）</div>
     <div class="chips" id="books"></div>
 
     <div class="sec">範圍（單元，單字艙用）</div>
     <div class="chips" id="units"></div>
+    <div class="rangeTip" id="rangeTip"></div>
 
     <div class="sec">選擇艙室</div>
     <div class="cabins">
-      <div class="cabin go" data-cab="vocab"><div class="ic">🪐</div><div><b>單字艙・星際快刷</b><span>英文字 → 擊中正確的中文星球</span></div></div>
-      <div class="cabin go" data-cab="gram"><div class="ic">🔬</div><div><b>文法艙・全像解析</b><span>句型積木＋護盾充能挑戰</span></div></div>
-      <div class="cabin go" data-cab="exam"><div class="ic">🚀</div><div><b>段考艙・模擬任務</b><span>20 題：字彙、句型、兩篇閱讀</span></div></div>
+      <div class="cabin go" data-cab="vocab"><div class="ic">🪐</div><div><b>單字艙・星際快刷</b><span>英文字 → 擊中正確的中文星球</span></div><em id="bestV"></em></div>
+      <div class="cabin go" data-cab="gram"><div class="ic">🔬</div><div><b>文法艙・全像解析</b><span>句型積木＋護盾充能挑戰</span></div><em id="bestG"></em></div>
+      <div class="cabin go" data-cab="exam"><div class="ic">🚀</div><div><b>段考艙・模擬任務</b><span>20 題：字彙、句型、兩篇閱讀</span></div><em id="bestE"></em></div>
     </div>
 
     <div class="sec">單字艙模式</div>
@@ -217,7 +250,7 @@ function saveSet(){ localStorage.setItem('jhship-mute', st.set.sfxMute ? '1' : '
     </div>
     <button class="btn" id="go">發射 🚀</button>
     <button class="btn ghost" id="land">回島上</button>
-    <p class="note">文法艙、段考艙進去後再選課／段考範圍。<br>試作版：不計分、不存進度。資料：1上（113 修訂版）、2上（113 單字寶典）。</p>
+    <p class="note">文法艙、段考艙進去後再選課／段考範圍。<br>試作版：分數存在這支手機（正式版存進島上的積分）。資料：1上（113 修訂版）、2上（113 單字寶典）。</p>
   </div>
 </section>
 
@@ -247,6 +280,7 @@ function saveSet(){ localStorage.setItem('jhship-mute', st.set.sfxMute ? '1' : '
       <div class="stat"><b id="rCombo">0</b><span>最高連擊</span></div>
       <div class="stat"><b id="rRate">0%</b><span>命中率</span></div>
     </div>
+    <div id="resPts"></div>
     <div class="sec" id="holeT">🕳️ 黑洞（答錯的字）</div>
     <div class="hole" id="hole"></div>
     <button class="btn" id="again">黑洞重刷</button>
@@ -269,6 +303,7 @@ function saveSet(){ localStorage.setItem('jhship-mute', st.set.sfxMute ? '1' : '
 </section>
 
 <div id="fade"></div>
+<div id="credit"></div>
 
 <script type="module">
 import * as THREE from 'three';
@@ -459,17 +494,73 @@ function tick(now){
 }
 requestAnimationFrame(tick);
 
+/* ================= 航程與計分 ================= */
+// 試作：每次段考各一個示範航程（今天往前 3 天到往後 11 天）；正式版由 ship.js 的航線表決定
+const iso = d => d.toISOString().slice(0, 10);
+const VOYAGES = [];
+for (const b of ['1上', '2上']) for (const e of window.JH_CONTENT.exams[b]) {
+  const f = new Date(); f.setDate(f.getDate() - 3); const t = new Date(); t.setDate(t.getDate() + 11);
+  VOYAGES.push({ id: `demo-${b}-${e.key}`, book: b, exam: e.key, units: e.units, name: `${b} ${e.name}`, from: iso(f), to: iso(t) });
+}
+let voyId = localStorage.getItem('jhship-demo-voyage') || 'demo-1上-E1';
+function useVoyage(id){
+  const v = VOYAGES.find(x => x.id === id) || VOYAGES[0];
+  voyId = v.id; localStorage.setItem('jhship-demo-voyage', v.id);
+  ShipScore.setVoyage(v); S.book = v.book; S.units = new Set(v.units);
+}
+let creditT;
+ShipScore.onCredit = (d) => {               // 試作：只顯示入帳；正式版寫進島上的積分帳本
+  const c = $('credit'); c.textContent = `⭐ +${d} 分入帳`; c.classList.add('on');
+  clearTimeout(creditT); creditT = setTimeout(() => c.classList.remove('on'), 2200);
+  setTimeout(() => ShipAudio.sfx('great'), 250);
+};
+const md = d => { const [, m, dd] = d.split('-'); return `${+m}/${+dd}`; };
+function renderVoyage(){
+  const V = ShipScore.voyage, P = ShipScore.parts(), on = ShipScore.active();
+  const goal = Math.max(ShipScore.FULL_BONUS_TO, P.total);
+  $('voy').innerHTML = `<div class="voy">
+    <div class="vt"><b>🛰️ 本次航程：${V.name}（${V.units.join('–')}）</b><span>${md(V.from)}–${md(V.to)}・${on ? `剩 ${ShipScore.daysLeft()} 天` : '已結束'}</span></div>
+    <div class="vgrid">
+      <div class="${P.vocab >= 20 ? 'full' : ''}"><b>${P.vocab}</b><span>單字艙</span></div>
+      <div class="${P.gram >= 6 ? 'full' : ''}"><b>${P.gram}<small style="font-size:12px">/6</small></b><span>文法艙</span></div>
+      <div class="${P.exam >= 100 ? 'full' : ''}"><b>${P.exam}<small style="font-size:12px">/100</small></b><span>段考艙</span></div></div>
+    <div class="vtot"><span>航程積分</span><span class="n">${P.total}</span></div>
+    <div class="vbar"><i style="width:${Math.min(100, P.total / goal * 100)}%"></i></div>
+    <div class="vnote">${P.allFull ? '🎉 三艙全對！總分補到 200。' : '三艙都全對（20 字回合 20/20、文法 6/6、段考 100）→ 總分補到 200。'}<br>每艙只算這次航程最高的一次，刷出新高就把差額存進積分。</div>
+    <div class="vdemo">試作：<select id="voySel">${VOYAGES.map(v => `<option value="${v.id}" ${v.id === voyId ? 'selected' : ''}>${v.name}</option>`).join('')}</select><button id="voyReset">清除分數</button></div>
+  </div>`;
+  $('bestV').innerHTML = `${P.vocab}<small>最佳</small>`;
+  $('bestG').innerHTML = `${P.gram}/6<small>最佳</small>`;
+  $('bestE').innerHTML = `${P.exam}<small>最佳</small>`;
+  $('voySel').onchange = e => { useVoyage(e.target.value); renderBridge(); };
+  $('voyReset').onclick = e => { if (!e.target.dataset.sure) { e.target.dataset.sure = 1; e.target.textContent = '確定清除？'; return; } ShipScore._reset(); renderBridge(); };
+}
+// 結算頁的「這次分數」說明
+function ptsLine(res, what, max){
+  const V = ShipScore.voyage;
+  if (!res.counted) return `<div class="ptsline">🧭 練習模式，不計分。這次航程計分的是 ${what === 'exam' ? V.name : `${V.book} ${V.units.join('、')}`}。</div>`;
+  const best = `本航程最佳 ${res.best}${max ? ` / ${max}` : ''}`;
+  if (res.delta > 0) return `<div class="ptsline gain">${res.newBest ? '🏆 新紀錄！' : ''}這次 ${res.value} 分・${best}<br><b class="d">+${res.delta}</b> 分入帳${res.bonus ? '<br>🎉 三艙全對！總分補到 200！' : ''}</div>`;
+  if (res.capped) return `<div class="ptsline">🏆 新紀錄！這次 ${res.value} 分・${best}<br>航程積分已經滿 200，不再加分。</div>`;
+  return `<div class="ptsline">這次 ${res.value} 分・${best}<br>沒有超過最佳紀錄，這次不加分（可以繼續複習刷新紀錄）。</div>`;
+}
+
 /* ================= ② 艦橋 ================= */
 function openBridge(){
   show('bridge'); renderBridge();
   setTimeout(() => $('fade').style.opacity = 0, 60);
 }
 function renderBridge(){
+  renderVoyage();
   $('books').innerHTML = ['1上','2上'].map(b => `<div class="chip ${S.book === b ? 'on' : ''}" data-b="${b}">${b}</div>`).join('');
   const us = [...new Set(WORDS.filter(w => w.book === S.book).map(w => w.unit))];
-  $('units').innerHTML = us.map(u => `<div class="chip ${S.units.has(u) ? 'on' : ''}" data-u="${u}">${u}</div>`).join('');
+  const V = ShipScore.voyage;
+  $('units').innerHTML = us.map(u => `<div class="chip ${S.units.has(u) ? 'on' : ''} ${S.book === V.book && V.units.includes(u) ? '' : 'out'}" data-u="${u}">${u}</div>`).join('');
+  const ok = ShipScore.inRange(S.book, [...S.units]);
+  $('rangeTip').className = 'rangeTip' + (ok ? ' ok' : '');
+  $('rangeTip').textContent = ok ? '⭐ 單字艙會計分（航程範圍內）' : `🧭 單字艙練習模式：計分範圍是 ${V.book} ${V.units.join('、')}`;
 }
-$('books').onclick = e => { const b = e.target.dataset.b; if (!b) return; S.book = b; S.units = new Set(['U1']); renderBridge(); };
+$('books').onclick = e => { const b = e.target.dataset.b; if (!b) return; S.book = b; S.units = new Set(b === ShipScore.voyage.book ? ShipScore.voyage.units : ['U1']); renderBridge(); };
 $('units').onclick = e => { const u = e.target.dataset.u; if (!u) return;
   S.units.has(u) ? S.units.delete(u) : S.units.add(u); if (!S.units.size) S.units.add(u); renderBridge(); };
 document.querySelector('.modes').onclick = e => { const m = e.target.dataset.mode; if (!m) return; S.mode = m;
@@ -491,7 +582,7 @@ let R = null; // 回合狀態
 function startRound(list){
   const pool = list || WORDS.filter(w => w.book === S.book && S.units.has(w.unit));
   if (pool.length < 3) return;
-  R = { q: shuffle(pool.slice()), i: 0, right: 0, score: 0, combo: 0, maxC: 0, hole: [], lock: false,
+  R = { book: S.book, units: [...S.units], q: shuffle(pool.slice()), i: 0, right: 0, score: 0, combo: 0, maxC: 0, hole: [], lock: false,
         timed: !list && S.mode === '60', end: 0, total: 0, retry: !!list };
   if (!R.timed) R.q = R.q.slice(0, list ? list.length : 20);
   R.total = R.timed ? 0 : R.q.length;
@@ -623,6 +714,11 @@ function finish(){
   $('rRate').textContent = tried ? Math.round(R.right / tried * 100) + '%' : '0%';
   $('hole').innerHTML = R.hole.length ? R.hole.map(w => `<div><b>${w.en}</b><span>${w.zh}</span></div>`).join('') : '<div><b>黑洞是空的 ✨</b><span>全部擊中！</span></div>';
   $('again').style.display = R.hole.length ? '' : 'none';
+  // 計分：黑洞重刷不算；20 字回合要滿 20 題才算
+  let res = { counted: false };
+  if (!R.retry && (R.timed || R.total === 20) && ShipScore.inRange(R.book, R.units))
+    res = ShipScore.record(R.timed ? 'sprint' : 'v20', R.right, { full: !R.timed && R.right === 20 && !R.hole.length });
+  $('resPts').innerHTML = R.retry ? '<div class="ptsline">🕳️ 黑洞重刷是複習，不計分。</div>' : ptsLine(res, 'vocab');
   show('result'); ShipAudio.sfx(tried && R.right / tried >= .8 ? 'great' : 'end');
 }
 $('again').onclick = () => startRound(R.hole.slice());
@@ -642,8 +738,9 @@ function gramList(){
   const book = C.grammar[S.book];
   $('gBody').innerHTML = `<div class="brand" style="margin-top:14px">文法艙<small>${S.book}・選一課進入全像解析</small></div>
     <div class="chips" style="margin-top:12px">${['1上','2上'].map(b => `<div class="chip ${S.book === b ? 'on' : ''}" data-gb="${b}">${b}</div>`).join('')}</div>
+    <p class="note">⭐ 計分的課：6 題第一次就答對＝6 分，每答錯一次少 1 分；航程內取最高的一次。</p>
     <div class="ulist">${Object.entries(book).map(([u, L]) =>
-      `<div class="uitem ${shieldDone.has(S.book + u) ? 'done' : ''}" data-gu="${u}"><b>${u}</b><div>${esc(L.title)}<small>${esc(L.sub)}</small></div></div>`).join('')}</div>`;
+      `<div class="uitem ${shieldDone.has(S.book + u) ? 'done' : ''}" data-gu="${u}"><b>${u}</b><div>${esc(L.title)}<small>${esc(L.sub)}</small></div>${ShipScore.inRange(S.book, [u]) ? '<span style="margin-left:auto;color:var(--y);font-weight:700;font-size:13px;white-space:nowrap">⭐ 計分</span>' : ''}</div>`).join('')}</div>`;
 }
 function gramLesson(u){
   const L = C.grammar[S.book][u];
@@ -744,12 +841,14 @@ function gramJudge(ok, ans){
 }
 function gramDone(){
   shieldDone.add(S.book + G.u); setTimeout(() => ShipAudio.sfx('shieldFull'), 200);
+  const gScore = Math.max(0, NEED - G.miss);   // 第一次就答對才算分
+  const res = ShipScore.inRange(S.book, [G.u]) ? ShipScore.record('gram', gScore) : { counted: false };
   const L = C.grammar[S.book][G.u], units = Object.keys(C.grammar[S.book]), nx = units[units.indexOf(G.u) + 1];
   $('gBody').innerHTML = `<div class="shield" style="margin-top:20px">${shieldSVG(NEED)}</div>
     <div class="brand" style="text-align:center;margin-top:6px">護盾充滿！<small>${S.book} ${G.u} · ${esc(L.title)}</small></div>
     <div class="stats"><div class="stat"><b>${NEED}</b><span>充能</span></div><div class="stat"><b>${G.miss}</b><span>答錯</span></div>
       <div class="stat"><b>${G.miss ? Math.round(NEED / (NEED + G.miss) * 100) : 100}%</b><span>命中率</span></div></div>
-    <p class="note" style="text-align:center">正式版：第一次充滿開艙內寶箱，積分記在登船的島。</p>
+    ${ptsLine(res, 'gram', 6)}
     ${nx ? `<button class="btn" id="gNext">下一課 ${nx} ›</button>` : ''}
     <button class="btn ghost" id="gAgain">再挑戰一次</button>
     <button class="btn ghost" id="gToList">回課程列表</button>`;
@@ -775,7 +874,8 @@ function examPick(){
     <div class="row"><button class="back" id="eBack">‹ 艦橋</button><span style="display:flex;align-items:center;gap:10px"><span style="font-family:Syne;color:var(--m);font-weight:800">MOCK MISSION</span><button class="mute" data-mute></button></span></div>
     <div class="brand" style="margin-top:14px">段考艙<small>${S.book}・選擇任務範圍</small></div>
     <div class="chips" style="margin-top:12px">${['1上','2上'].map(b => `<div class="chip ${S.book === b ? 'on' : ''}" data-eb="${b}">${b}</div>`).join('')}</div>
-    <div class="ulist">${ex.map(e => `<div class="uitem" data-ek="${e.key}"><b>🚀</b><div>${e.name}<small>${e.units.join(' – ')}</small></div></div>`).join('')}
+    <div class="ulist">${ex.map(e => { const sc = S.book === ShipScore.voyage.book && e.key === ShipScore.voyage.exam;
+      return `<div class="uitem" data-ek="${e.key}" ${sc ? 'style="border-color:var(--y)"' : ''}><b>🚀</b><div>${e.name}<small>${e.units.join(' – ')}</small></div>${sc ? '<span style="margin-left:auto;color:var(--y);font-weight:700;font-size:13px">⭐ 計分</span>' : ''}</div>`; }).join('')}
       <div class="uitem" data-ek="ALL"><b>🌌</b><div>全冊總複習<small>U1 – U6</small></div></div></div>
     <p class="note">每次 20 題：字彙 8、文法 6、閱讀 2 篇 × 3 題，每題 5 分。題目每次重新抽。<br>可以前後翻頁，全部作答後再交卷。</p></div>`;
   $('eBack').onclick = () => { show('bridge'); renderBridge(); };
@@ -873,14 +973,17 @@ function examResult(){
   const sec = { v: [0, 0], g: [0, 0], r: [0, 0] }, wrong = [];
   E.flat.forEach((q, i) => { sec[q.sec][1]++; if (E.ans[i] === q.a) sec[q.sec][0]++; else wrong.push({ q, i }); });
   const right = E.flat.length - wrong.length, s = (Date.now() - E.t0) / 1000 | 0;
+  const V = ShipScore.voyage;
+  const res = (S.book === V.book && E.key === V.exam && ShipScore.active()) ? ShipScore.record('exam', right * 5) : { counted: false };
   $('eBody').innerHTML = `<div class="wrap">
     <div class="brand">任務報告<small>${S.book}・${E.name}・${s / 60 | 0} 分 ${s % 60} 秒</small></div>
     <div class="big">${right * 5}<span style="font-size:20px;color:#8FA3C8"> / 100</span></div>
     <div class="secbar">${Object.entries(sec).map(([k, [a, n]]) => `<div><div class="t"><span>${SEC[k][0]}</span><span>${a} / ${n}</span></div><div class="g"><i style="--c:${SEC[k][1]};width:${n ? a / n * 100 : 0}%;background:${SEC[k][1]}"></i></div></div>`).join('')}</div>
+    ${ptsLine(res, 'exam', 100)}
     <div class="sec">${wrong.length ? '❌ 錯題回顧' : '✨ 全對！'}</div>
     <div class="wrong">${wrong.map(({ q, i }) => `<div><span class="sectag" style="--c:${SEC[q.sec][1]}">${SEC[q.sec][0]}</span> 第 ${i + 1} 題${q.title ? `・${esc(q.title)}` : ''}<br><b>${esc(q.q)}</b><br>
       你的答案：${E.ans[i] < 0 ? '（沒答）' : esc(q.o[E.ans[i]])}　正確：<b style="color:var(--y)">${esc(q.o[q.a])}</b>${q.ex ? `<br>${esc(q.ex)}` : ''}</div>`).join('')}</div>
-    <p class="note">正式版：段考艙的積分記在登船的島；錯題可以一鍵送去單字艙／文法艙複習。</p>
+
     <button class="btn" id="eRe">同範圍再考一次</button>
     <button class="btn ghost" id="ePick">換範圍</button></div>`;
   ShipAudio.sfx('end'); if (right >= 16) setTimeout(() => ShipAudio.sfx('great'), 700);
@@ -904,6 +1007,7 @@ document.querySelector('.modes').addEventListener('click', () => ShipAudio.sfx('
 document.querySelector('[data-cab="gram"]').onclick = openGram;
 document.querySelector('[data-cab="exam"]').onclick = openExam;
 
+useVoyage(voyId);
 loadWords().then(renderBridge);
 window.__ship = { get R(){ return R; }, get G(){ return G; }, get E(){ return E; } }; // 測試用
 </script>
