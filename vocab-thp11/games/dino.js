@@ -9,7 +9,7 @@
 //        saveLedger, saveMeta, afterPoints, points, gameWeekBestAll, gameCard, masteredCount, GAMES, toast, confetti
 // ═══════════════════════════════════════════════════════
 const WD = (() => {
-  const ID = 'dino', NEED = 5, VER = '0.8.2';
+  const ID = 'dino', NEED = 5, VER = '0.8.3';
   const TIME = 180, CAP = 20, S_PER_PT = 300;   // 每 300 分 1 ⭐（6000 分滿 20；v0.4 試玩 4754 分就滿 20，太好拿）
   const T = 24, ROWS = 11, WH = ROWS * T;         // 磚塊大小、地圖列數、世界高度
   const GROUND = 9;                               // 地面從第 9 列開始（第 9、10 列是土）
@@ -177,7 +177,8 @@ const WD = (() => {
   function resize() {
     if (!root) return;
     const w = root.clientWidth, h = root.clientHeight; dpr = Math.min(2, devicePixelRatio || 1);
-    lastW = w; lastH = h; portrait = h > w * 1.05;
+    // 只有手機要轉橫：平板（短邊 ≥ 600，例如 iPad）直的也能玩。iPad 從主畫面 App 打開時常常轉不過來（manifest 鎖直式／視窗模式），2026/11/23 學生反映
+    lastW = w; lastH = h; portrait = h > w * 1.05 && Math.min(w, h) < 600;
     root.querySelector('#wdRot').classList.toggle('on', portrait);
     if (portrait) releaseAll();
     cv.width = w * dpr; cv.height = h * dpr; cv.style.width = w + 'px'; cv.style.height = h + 'px';
