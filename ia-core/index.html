@@ -2037,7 +2037,7 @@ function heroCanvas(pose, flip) {   // 自己的角色（含寵物）＋頭上�
 }
 const island3dHost = {
   ride: () => lookOf().ride,   // 出海用的交通工具（商店買的）
-  hexTheme: 'meadow',   // 六角群島版：綠野春天島（森林、雪山、麥田、牧場）
+  hexTheme: 'future',   // 六角群島版：IA Core 未來科技島（太陽能板、玻璃塔、圓頂、風機、霓虹樹）
   layout() { const n = Math.min(9, allUnits().length + (st.lockedUnits || []).length), lay = n <= 6 ? 6 : 9; return { lay, pos: ISLAND_POS[lay], road: ISLAND_ROAD[lay] }; },
   units() {
     const open = allUnits(), locked = st.lockedUnits || [];
@@ -2072,7 +2072,7 @@ function ensure3D() {
   i3dLoading = (async () => {
     try {
       // 六角群島版（各島共用 /JeffreysLab/island3d-hex.js）；?hex=0 看舊版
-      const mod = await import(/[?&]hex=0\b/.test(location.search) ? './island3d.js?v=4' : '/JeffreysLab/island3d-hex.js?v=9');
+      const mod = await import(/[?&]hex=0\b/.test(location.search) ? './island3d.js?v=4' : '/JeffreysLab/island3d-hex.js?v=10');
       i3d = await mod.createIsland3D($('island3d'), island3dHost);
       $('island3d').classList.add('ready');
     } catch (e) {
@@ -4058,8 +4058,9 @@ document.addEventListener('keydown', (e) => {
 <script src="games/shoot.js?v=0.9.2"></script>
 <script src="games/dino.js?v=0.8.2"></script>
 <script src="games/horde.js?v=0.5.2"></script>
-<script src="cloud.js?v=12"></script>
+<script src="cloud.js?v=13"></script>
 <script src="msg.js?v=8"></script>
-<script src="grant.js?v=1"></script>
+<script src="grant.js?v=2"></script>
+<script src="/JeffreysLab/archipelago.js?v=6"></script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 // 英文島 IA Core 課文導讀 - Service Worker（scope：/JeffreysLab/ia-core/）
 // 頁面與程式改成網路優先；改了檔案仍建議把版本號 +1，舊快取會自動清除
-const CACHE_NAME = 'iacore-v1';
+const CACHE_NAME = 'iacore-v2';
 
 const PRECACHE_URLS = [
   '/JeffreysLab/ia-core/',
@@ -9,7 +9,7 @@ const PRECACHE_URLS = [
   '/JeffreysLab/ia-core/grammar.json',
   '/JeffreysLab/ia-core/words.csv',
   '/JeffreysLab/ia-core/island3d.js?v=4',
-  '/JeffreysLab/island3d-hex.js?v=9',
+  '/JeffreysLab/island3d-hex.js?v=10',
   '/JeffreysLab/ia-core/games/sfx.js?v=1.5',
   '/JeffreysLab/ia-core/games/jump.js?v=1.8',
   '/JeffreysLab/ia-core/games/blaster.js?v=1.8',
@@ -17,9 +17,10 @@ const PRECACHE_URLS = [
   '/JeffreysLab/ia-core/games/shoot.js?v=0.9.2',
   '/JeffreysLab/ia-core/games/dino.js?v=0.8.2',
   '/JeffreysLab/ia-core/games/horde.js?v=0.5.2',
-  '/JeffreysLab/ia-core/cloud.js?v=12',
+  '/JeffreysLab/ia-core/cloud.js?v=13',
   '/JeffreysLab/ia-core/msg.js?v=8',
-  '/JeffreysLab/ia-core/grant.js?v=1',
+  '/JeffreysLab/ia-core/grant.js?v=2',
+  '/JeffreysLab/archipelago.js?v=6',
   '/JeffreysLab/icons/icon-192.png',
   '/JeffreysLab/icons/icon-512.png',
 ];

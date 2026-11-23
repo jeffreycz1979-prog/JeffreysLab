@@ -5,8 +5,8 @@
 // ISLAND_API 空白時整個功能隱藏，學生畫面不會有任何變化
 // 測試：網址加 ?api=mock 用手機裡的模擬後台（測試帳號 1101／1234、1102／5678；QR 測試 ?api=mock&k=DEMO1）
 (() => {
-  const ISLAND_API = '';   // IA Core：後台還沒加這座島（ISL_APPS、ISLAND_CLASSES）→ 先關閉雲端登入；加好後填回英文島後台 GAS 網址
-  const ID_LABEL = '學籍卡號';   // IA Core：之後接後台時再確認帳號欄位
+  const ISLAND_API = 'https://script.google.com/macros/s/AKfycbxmJlWTArNJDbuGzpUm0OC3wxqx6FS1aGNonU4RMFyKbEeY31SOQxPhc323PEiZS8DgQA/exec';   // 英文島後台 GAS（IA Core 2026/11/23 接上；後台 ISL_APPS 要有 ia-core 才能備份）
+  const ID_LABEL = '學號';   // IA Core：目前只有老師帳號 0599；IA2 名單匯入後學生用後台學號登入
   const PUSH_GAP = 2 * 60000;    // 自動備份最多每 2 分鐘一次
   const HIDE_GAP = 30000;        // App 切到背景時，距離上次備份 30 秒以上就再備份一次
   const qs = new URLSearchParams(location.search);

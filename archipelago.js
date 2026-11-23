@@ -1,4 +1,4 @@
-// 英文順起來．探索英文島 - 群島（archipelago.js v3，2026/11/15）
+// 英文順起來．探索英文島 - 群島（archipelago.js v4，2026/11/23：加 IA Core 未來科技島、每座島可以有自己的縮小比例 k 與級數名稱 tag）
 // v3：島屬於「級數」不屬於班級。全景依級數畫升級航道 Lv5 → Lv6 → … → Lv11；還沒建的級數（GHOSTS）是霧中的島影
 //     鎖住的島寫「升上 Level N 後開放」。升級換島的機制（班級→目前所在島）還沒做，見《英文島-群島升級規劃》
 // 每座島（thp5、thc6、vocab-thp11…）都載入這一支
@@ -25,12 +25,18 @@
       pts: [[40, 440], [0, 384, -2, 270, 22, 200], [40, 140, 4, 64, 70, 30], [130, -4, 230, 6, 290, 14], [350, 22, 396, 60, 380, 130], [366, 180, 394, 214, 384, 262], [374, 330, 394, 400, 330, 440], [250, 486, 100, 480, 40, 440]],
       deco: [['🍁', 100, 96, 66], ['🍂', 180, 70, 50], ['🏰', 320, 210, 100], ['🔮', 196, 236, 54], ['🎃', 120, 320, 54], ['🍁', 290, 410, 66]] },
     { id: 'vocab-thp11', lv: 11, theme: 'tropical', name: ['火山椰林島', 'Volcano Palm Island'], book: 'THP11', cls: ['THP11'], icon: '🌋',
-      sea: '#7FD6DC', sand: '#FFF0CF', grass: '#B6DE95', at: [156, 326],
+      sea: '#7FD6DC', sand: '#FFF0CF', grass: '#B6DE95', at: [196, 330],
       pts: [[50, 440], [10, 400, 0, 300, 14, 230], [26, 160, 0, 90, 60, 40], [120, -10, 270, -6, 330, 40], [390, 86, 392, 180, 376, 250], [364, 300, 330, 330, 350, 380], [372, 430, 300, 470, 200, 462], [120, 458, 80, 460, 50, 440]],
       deco: [['🌴', 110, 96, 70], ['🛖', 180, 70, 50], ['🌋', 326, 220, 100], ['🌴', 140, 330, 60], ['🐚', 200, 440, 40], ['🌴', 290, 410, 70]] },
+    // IA（Connections）：接在 TH 之後；tag＝顯示用的級數名稱（不是數字）、k＝這座島在全景裡的縮小比例（比較小，塞在左邊）
+    { id: 'ia-core', lv: 12, tag: 'IA', theme: 'future', name: ['IA Core 課文導讀', 'IA Core Reading'], book: 'Connections 2', cls: ['IA2'], icon: '🚀', k: 0.27,
+      sea: '#9FB8E8', sand: '#DDE6F2', grass: '#B9ECE4', at: [68, 300],
+      pts: [[70, 30], [70, 30, 320, 30, 320, 30], [320, 30, 384, 150, 384, 150], [384, 150, 384, 320, 384, 320], [384, 320, 320, 440, 320, 440],
+            [320, 440, 70, 440, 70, 440], [70, 440, 6, 320, 6, 320], [6, 320, 6, 150, 6, 150], [6, 150, 70, 30, 70, 30]],
+      deco: [['🏙️', 120, 120, 90], ['🛸', 280, 90, 70], ['🤖', 110, 330, 80], ['📡', 290, 330, 80], ['⚡', 200, 230, 60]] },
   ];
   // 還沒建的級數：霧中的島影 [級數, x, y]
-  const GHOSTS = [[7, 344, 318], [8, 302, 368], [9, 344, 420], [10, 268, 432]];
+  const GHOSTS = [[7, 344, 318], [8, 312, 366], [9, 356, 410], [10, 300, 440]];
   const HERE = (location.pathname.split('/')[2] || '').toLowerCase();
   const me = () => (window.cloud && window.cloud.auth ? window.cloud.auth() : null);
   const isTeacher = () => { const a = me(); return !!(a && a.cls === '老師'); };
@@ -43,7 +49,9 @@
   let inside = false, busy = false;   // inside＝放大在自己的島裡（看單元地圖）
 
   // 島的座標（390×460）→ 全景座標
-  const P = (is, x, y, k2 = 1) => [is.at[0] + (195 + (x - 195) * k2 - 195) * K, is.at[1] + (230 + (y - 230) * k2 - 230) * K];
+  const kOf = (is) => is.k || K;   // 每座島可以有自己的縮小比例（預設 K）
+  const lvName = (is) => is.tag || 'Level ' + is.lv;   // IA 這種不是數字級數的島，顯示 tag
+  const P = (is, x, y, k2 = 1) => [is.at[0] + (195 + (x - 195) * k2 - 195) * kOf(is), is.at[1] + (230 + (y - 230) * k2 - 230) * kOf(is)];
   function shore(is, k2) {
     const f = (x, y) => P(is, x, y, k2).map((v) => v.toFixed(1)).join(' '), p = is.pts;
     return 'M' + f(p[0][0], p[0][1]) + p.slice(1).map((q) => ` C${f(q[0], q[1])} ${f(q[2], q[3])} ${f(q[4], q[5])}`).join('') + ' Z';
@@ -52,7 +60,7 @@
     try { const us = allUnits(); const full = us.filter((u) => unitStations(u).full).length; return L(`蓋好 ${full} / ${us.length} 座`, `${full} / ${us.length} built`); } catch (e) { return ''; }
   }
   // 鎖住的島：比我高的級數＝「升上 Level N 後開放」；比我低的＝只標級數
-  const lockText = (is) => { const h = here(); return h && is.lv > h.lv ? L(`升上 Level ${is.lv} 後開放`, `Opens at Level ${is.lv}`) : L(`Level ${is.lv}・未開放`, `Level ${is.lv} · locked`); };
+  const lockText = (is) => { const h = here(); return h && is.lv > h.lv ? L(`升上 ${lvName(is)} 後開放`, `Opens at ${lvName(is)}`) : L(`${lvName(is)}・未開放`, `${lvName(is)} · locked`); };
   function ghostSVG([lv, x, y]) {
     return `<g class="arch-ghost" data-ghost="${lv}" role="button" aria-label="Level ${lv}">
       <path d="M${x - 25} ${y + 6} q25 -30 50 0 q-25 14 -50 0 Z" fill="#E9E4D6" stroke="#1a3a1a" stroke-width="1.4" stroke-dasharray="4 4" opacity=".75"/>
@@ -60,22 +68,24 @@
       <text x="${x}" y="${y + 7}" text-anchor="middle" font-size="9.5" font-weight="800" fill="#1a3a1a">Lv${lv}</text></g>`;
   }
   function isleSVG(is) {
-    const own = is.id === HERE, ok = canGo(is), [x, y] = is.at;
-    const deco = is.deco.map(([e, dx, dy, s]) => { const [px, py] = P(is, dx, dy); return `<text x="${px.toFixed(1)}" y="${py.toFixed(1)}" text-anchor="middle" font-size="${(s * K).toFixed(1)}">${e}</text>`; }).join('');
+    const own = is.id === HERE, ok = canGo(is), [x, y] = is.at, k = kOf(is), q = k / K, ly = Math.round(250 * k), fut = is.theme === 'future';
+    const deco = is.deco.map(([e, dx, dy, s]) => { const [px, py] = P(is, dx, dy); return `<text x="${px.toFixed(1)}" y="${py.toFixed(1)}" text-anchor="middle" font-size="${(s * k).toFixed(1)}">${e}</text>`; }).join('');
     return `<g class="arch-isle ${ok ? '' : 'arch-lk'} ${own ? 'arch-own' : ''}" data-arch="${is.id}" role="button" tabindex="0" aria-label="${esc(is.name[0])}">
       ${own ? `<path class="arch-glow" d="${shore(is, 1.12)}" fill="none" stroke="#CCFF00" stroke-width="5" stroke-linejoin="round"/>` : ''}
       <path d="${shore(is, 1.06)}" fill="none" stroke="#ffffff" stroke-opacity=".6" stroke-width="7" stroke-linejoin="round"/>
-      <path d="${shore(is, 1)}" fill="${is.sand}" stroke="#1a3a1a" stroke-width="1.8"/><path d="${shore(is, 0.9)}" fill="${is.grass}"/>
+      <path d="${shore(is, 1)}" fill="${is.sand}" stroke="${fut ? '#4ECDC4' : '#1a3a1a'}" stroke-width="1.8"/><path d="${shore(is, 0.9)}" fill="${is.grass}"/>
+      ${fut ? `<path class="arch-neon" d="${shore(is, 0.82)}" fill="none" stroke="#4ECDC4" stroke-width="1.2" stroke-dasharray="6 4"/>` : ''}
       <g class="arch-deco">${deco}</g>
-      ${own ? `<g class="arch-pin"><text x="${x + 50}" y="${y - 64}" text-anchor="middle" font-size="26">📍</text></g>` : ''}
+      ${own ? `<g class="arch-pin"><text x="${x + 50 * q}" y="${y - 64 * q}" text-anchor="middle" font-size="26">📍</text></g>` : ''}
       ${!ok ? `<circle cx="${x}" cy="${y - 4}" r="17" fill="#ffffff" stroke="#1a3a1a" stroke-width="2"/><text x="${x}" y="${y + 3}" text-anchor="middle" font-size="17">🔒</text>` : ''}
-      <rect x="${x - 58}" y="${y + LY}" width="116" height="22" rx="11" fill="${own ? '#1a3a1a' : '#ffffff'}" stroke="#1a3a1a" stroke-width="1.8"/>
-      <text x="${x}" y="${y + LY + 15.5}" text-anchor="middle" font-size="12" font-weight="800" fill="${own ? '#CCFF00' : '#1a3a1a'}">${esc(L(is.name[0], is.name[1]))}</text>
-      ${own ? `<text x="${x}" y="${y + LY + 34}" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1a3a1a" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">${esc(progress())}・${L('點我進島 ▶', 'Tap to enter ▶')}</text>`
-        : `<text x="${x}" y="${y + LY + 33}" text-anchor="middle" font-size="10" font-weight="700" fill="#1a3a1a" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">${esc(ok ? 'Level ' + is.lv : lockText(is))}</text>`}
-      <circle cx="${x - 52}" cy="${y - 62}" r="13" fill="${own ? '#CCFF00' : '#ffffff'}" stroke="#1a3a1a" stroke-width="1.8"/>
-      <text x="${x - 52}" y="${y - 65}" text-anchor="middle" font-size="6.5" font-weight="800" fill="#1a3a1a">LV</text>
-      <text x="${x - 52}" y="${y - 55.5}" text-anchor="middle" font-size="${is.lv > 9 ? 10 : 11}" font-weight="800" fill="#1a3a1a">${is.lv}</text></g>`;
+      <rect x="${x - 58}" y="${y + ly}" width="116" height="22" rx="11" fill="${own ? '#1a3a1a' : '#ffffff'}" stroke="#1a3a1a" stroke-width="1.8"/>
+      <text x="${x}" y="${y + ly + 15.5}" text-anchor="middle" font-size="12" font-weight="800" fill="${own ? '#CCFF00' : '#1a3a1a'}">${esc(L(is.name[0], is.name[1]))}</text>
+      ${own ? `<text x="${x}" y="${y + ly + 34}" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1a3a1a" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">${esc(progress())}・${L('點我進島 ▶', 'Tap to enter ▶')}</text>`
+        : `<text x="${x}" y="${y + ly + 33}" text-anchor="middle" font-size="10" font-weight="700" fill="#1a3a1a" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">${esc(ok ? lvName(is) : lockText(is))}</text>`}
+      <circle cx="${x - 52 * q}" cy="${y - 62 * q}" r="13" fill="${own ? '#CCFF00' : '#ffffff'}" stroke="#1a3a1a" stroke-width="1.8"/>
+      ${is.tag ? `<text x="${x - 52 * q}" y="${y - 62 * q + 4}" text-anchor="middle" font-size="11" font-weight="800" fill="#1a3a1a">${esc(is.tag)}</text>`
+        : `<text x="${x - 52}" y="${y - 65}" text-anchor="middle" font-size="6.5" font-weight="800" fill="#1a3a1a">LV</text>
+      <text x="${x - 52}" y="${y - 55.5}" text-anchor="middle" font-size="${is.lv > 9 ? 10 : 11}" font-weight="800" fill="#1a3a1a">${is.lv}</text>`}</g>`;
   }
   function worldSVG() {
     const W = (x, y) => `<path class="arch-wave" d="M${x} ${y} q8 -6 16 0 t16 0" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" opacity=".8"/>`;
@@ -94,7 +104,7 @@
       ${ISLANDS.slice().sort((p, q) => q.at[1] - p.at[1]).map(isleSVG).join('')}`;   // 下面的島先畫，上面島的名牌才不會被蓋住
   }
   // 放大到自己的島：全景裡的島（中心 at、縮小 K）放大 1/K 倍並移到中間，剛好疊在單元地圖上
-  const zoomT = () => { const h = here(); if (!h) return ''; const s = 1 / K; return `translate(195px,230px) scale(${s}) translate(${-h.at[0]}px,${-h.at[1]}px)`; };
+  const zoomT = () => { const h = here(); if (!h) return ''; const s = 1 / kOf(h); return `translate(195px,230px) scale(${s}) translate(${-h.at[0]}px,${-h.at[1]}px)`; };
   function ensureView() {
     let v = document.getElementById('archView');
     if (!v) {
@@ -173,7 +183,7 @@
     .arch-view.zooming .arch-world{transition:transform .7s cubic-bezier(.65,0,.35,1)}
     .arch-view.zooming .arch-isle:not(.arch-own),.arch-view.zooming .arch-boat,.arch-view.zooming .arch-boat2{transition:opacity .5s;opacity:.25}
     .arch-isle,.arch-ghost{cursor:pointer}.arch-view.zooming .arch-ghost{transition:opacity .5s;opacity:.25}.arch-isle.arch-lk>path{filter:grayscale(.7) brightness(.97)}.arch-isle.arch-lk .arch-deco{opacity:.45}
-    .arch-glow{animation:archGlow 1.6s ease-in-out infinite alternate}
+    .arch-glow{animation:archGlow 1.6s ease-in-out infinite alternate}.arch-neon{animation:archGlow 1.1s ease-in-out infinite alternate}
     @keyframes archGlow{from{stroke-opacity:.25}to{stroke-opacity:.95}}
     .arch-pin{animation:isBob 1.2s ease-in-out infinite alternate}
     .arch-wave{animation:isWave 2.8s ease-in-out infinite alternate}
@@ -186,7 +196,7 @@
     .arch-fadein{animation:archFade .45s ease-out}
     @keyframes archFade{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}
     #archBack{margin-left:auto}
-    @media (prefers-reduced-motion:reduce){.arch-glow,.arch-pin,.arch-wave,.arch-cloud,.arch-boat,.arch-boat2{animation:none}.arch-view.zooming .arch-world{transition:none}}`;
+    @media (prefers-reduced-motion:reduce){.arch-glow,.arch-pin,.arch-wave,.arch-cloud,.arch-boat,.arch-boat2,.arch-neon{animation:none}.arch-view.zooming .arch-world{transition:none}}`;
   document.head.appendChild(css);
   document.addEventListener('click', (e) => {
     if (e.target.closest('#islandDock') || e.target.closest('#archBack')) {
@@ -203,7 +213,7 @@
     go(t.dataset.arch);
   }, true);
   // 給 3D 地圖用：遠方海上的其他級數島（island3d-hex.js 的 buildWorld）
-  const world = () => ISLANDS.map((is) => ({ id: is.id, lv: is.lv, theme: is.theme, name: L(is.name[0], is.name[1]), here: is.id === HERE, ok: canGo(is) }))
+  const world = () => ISLANDS.map((is) => ({ id: is.id, lv: is.lv, tag: is.tag, theme: is.theme, name: L(is.name[0], is.name[1]), here: is.id === HERE, ok: canGo(is) }))
     .concat(GHOSTS.map(([lv]) => ({ lv, ghost: true }))).sort((a, b) => a.lv - b.lv);
   const ghostTap = (lv) => toast(L(`☁️ Level ${lv} 的島還藏在海霧裡，即將開放！`, `☁️ The Level ${lv} island is still hidden in the mist!`));
   window.archipelago = { render, zoomIn, zoomOut, go, islands: ISLANDS, isInside: () => inside, world, tap: tapIsle, ghostTap };

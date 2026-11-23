@@ -6,7 +6,7 @@
   const C = () => window.cloud;
   const authed = () => !!(C() && C().on && C().auth && C().auth());
   const isT = () => authed() && C().auth().cls === '老師';
-  const ISLES = [['vocab-thp11', 'THP11'], ['thp5', 'THP5'], ['thc6', 'THC6'], ['english-island', '測試島']];
+  const ISLES = [['vocab-thp11', 'THP11'], ['thp5', 'THP5'], ['thc6', 'THC6'], ['english-island', '測試島'], ['ia-core', 'IA Core']];
   const PRESET = [10, 50, 100, 500, 1000], WHY_LEN = 40, MAX = 2000;
   let served = null;            // null＝還不知道；false＝後台沒裝加分.gs
   let tg = null, gTo = '', gApp = APP_ID, gPts = 100;

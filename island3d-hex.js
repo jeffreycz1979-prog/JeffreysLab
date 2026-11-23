@@ -4,7 +4,8 @@
 //  外圈是風景小島；天空依手機時間變化（清晨→白天→黃昏→夜晚）
 //  與 index.html 的溝通方式跟 island3d.js 一樣（host）；host.hexTheme 選主題：
 //    'meadow'（預設：森林、雪山、麥田、牧場）、'tropical'（火山椰林島：椰林、火山、草屋村、珊瑚海灘）、
-//    'autumn'（秋楓城堡島：楓林、城堡、巫師塔、南瓜田、魔法水晶）
+//    'autumn'（秋楓城堡島：楓林、城堡、巫師塔、南瓜田、魔法水晶）、
+//    'future'（IA Core 未來科技島：霓虹樹、玻璃塔、玻璃圓頂、太陽能板、風力發電機；2026/11/23）
 //  host.chests() 有回傳就顯示每週神秘寶箱（放在風景小島的沙灘上）
 // ═══════════════════════════════════════════════════════
 import * as THREE from 'three';
@@ -44,13 +45,16 @@ const walkEase = (k, r = 0.15) => { const v = 1 / (1 - r); return k < r ? 0.5 * 
 const rnd = (s) => { const x = Math.sin(s * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };   // 固定亂數（每次排一樣）
 
 export async function createIsland3D(el, host) {
-  const TROPIC = host.hexTheme === 'tropical', AUTUMN = host.hexTheme === 'autumn';
+  const TROPIC = host.hexTheme === 'tropical', AUTUMN = host.hexTheme === 'autumn', FUTURE = host.hexTheme === 'future';
+  if (FUTURE) Object.assign(C, { sand: 0xDDE6F2, grass: 0xB9ECE4, grassD: 0x9EDFD4, water: 0x3D7FD6, waterL: 0x8FC1F2, road: 0xCFD9E6, mount: 0x9AA8C4, earth: 0x6E7C96, earthD: 0x56627A, rock: 0xA9B4C6, wood: 0x8C98AE, trunk: 0xB8C2D2 });
+  const NEON = [0x4ECDC4, 0xCCFF00, 0x7FB2FF];
   if (AUTUMN) Object.assign(C, { sand: 0xF3E2C4, grass: 0xE6C77E, grassD: 0xD8B46A, water: 0x5E9FD6, waterL: 0x9CC6EC, road: 0xE8D6AE, mount: 0xA99ABF, pine: 0x2F6E4F, earth: 0xB98E62 });
   const MAPLE = [0xE8833A, 0xD9532B, 0xF2B24A];
   if (TROPIC) Object.assign(C, { sand: 0xFFEFC8, grass: 0x9FD27C, grassD: 0x8CC86A, water: 0x3FBFCB, waterL: 0x8EE3E6, road: 0xEAD6A8, leaf: 0x4FAE5C, leafL: 0x7ACB6A, earth: 0xC79A6A });
   // 同一組外圈位置，換成各主題的風景
   const TYPE_MAP = TROPIC ? { forest: 'palms', mountain: 'volcano', peak: 'volcanoBig', meadow: 'huts', wheat: 'reef' }
-    : AUTUMN ? { forest: 'maples', mountain: 'tower', peak: 'castle', meadow: 'pumpkins', wheat: 'crystals' } : {};
+    : AUTUMN ? { forest: 'maples', mountain: 'tower', peak: 'castle', meadow: 'pumpkins', wheat: 'crystals' }
+    : FUTURE ? { forest: 'neonTrees', mountain: 'spire', peak: 'dome', meadow: 'solar', wheat: 'wind' } : {};
   // ── 繪圖器 ──
   const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
   if (!renderer.getContext()) throw new Error('WebGL 無法使用');
@@ -165,6 +169,14 @@ export async function createIsland3D(el, host) {
     const t = new THREE.Group(); t.position.set(x, GROUND, z); t.scale.setScalar(s); t.rotation.y = x * 0.37;
     if (TROPIC) kind = 'palm';   // 火山椰林島：所有樹都是椰子樹
     if (AUTUMN && kind === 't') kind = 'm';   // 秋楓城堡島：闊葉樹換楓樹（松樹保留）
+    if (FUTURE) kind = 'neon';   // 未來科技島：所有樹都是發光的霓虹樹
+    if (kind === 'neon') {   // 霓虹樹：銀色細桿＋發光的多面體樹冠（青、螢光黃、藍輪流）
+      const c = NEON[Math.floor(rnd(x * 3 + z) * 3)];
+      t.add(mesh(new THREE.CylinderGeometry(0.1, 0.18, 1.8, 6), M(0xC9D3E2), 0, 0.9, 0));
+      t.add(mesh(new THREE.OctahedronGeometry(1.0, 0), M(c, { emissive: c, emissiveIntensity: 0.35 }), 0, 2.4, 0));
+      const ring = mesh(new THREE.TorusGeometry(0.75, 0.05, 6, 16), M(0xffffff, { emissive: c, emissiveIntensity: 0.5 }), 0, 1.6, 0, false); ring.rotation.x = Math.PI / 2; t.add(ring);
+      g.add(t); swayList.push({ g: t, p: x * 0.1 + z }); return;
+    }
     if (kind === 'm') {   // 楓樹：橘紅黃三色輪流
       t.add(mesh(new THREE.CylinderGeometry(0.22, 0.3, 1.4, 6), M(C.trunk), 0, 0.7, 0));
       t.add(mesh(new THREE.IcosahedronGeometry(1.25, 0), M(MAPLE[Math.floor(rnd(x * 3 + z) * 3)]), 0, 2.2, 0));
@@ -210,7 +222,62 @@ export async function createIsland3D(el, host) {
     const g = new THREE.Group(); g.position.set(x, 0, z); scene.add(g);
     const top = { wheat: C.wheat, harbor: C.sand, lighthouse: C.sand, mountain: C.mount, peak: C.mount, lake: C.grass, forest: C.grassD, meadow: C.grass,
       palms: C.grass, volcano: 0xA8886C, volcanoBig: 0xA8886C, huts: C.sand, reef: C.sand,
-      maples: C.grassD, castle: 0xD9CFC0, tower: C.grass, pumpkins: 0xC9A06A, crystals: 0xB9AFCF }[type];
+      maples: C.grassD, castle: 0xD9CFC0, tower: C.grass, pumpkins: 0xC9A06A, crystals: 0xB9AFCF,
+      neonTrees: C.grassD, spire: 0xC9D3E2, dome: 0xC9D3E2, solar: C.grass, wind: C.grass }[type];
+    // ── 未來科技島 ──
+    const glass = (c, o = 0.55) => M(c, { transparent: true, opacity: o, emissive: c, emissiveIntensity: 0.15 });
+    if (type === 'neonTrees') { for (let i = 0; i < 8; i++) { const [a, b] = spot(seed * 10 + i, 0.4); tree(g, 'neon', a, b, 0.75 + rnd(i + seed) * 0.4); } }
+    if (type === 'spire') {   // 玻璃大樓：三棟高低不同、頂端發光環＋天線燈（窗戶晚上會亮）
+      [[-1.2, -0.6, 1.6, 6.2, 0x7FB2FF], [1.3, -0.2, 1.3, 4.4, 0x4ECDC4], [0.1, 1.6, 1.1, 3.2, 0xB48CFF]].forEach(([a, b, w, h, c], i) => {
+        const tw = new THREE.Group(); tw.position.set(a, GROUND, b); g.add(tw);
+        tw.add(mesh(new THREE.BoxGeometry(w, h, w), glass(c, 0.75), 0, h / 2, 0));
+        for (let k = 1; k < h - 0.5; k += 1.1) tw.add(mesh(new THREE.BoxGeometry(w + 0.04, 0.12, w + 0.04), winMat, 0, k, 0, false));
+        const ring = mesh(new THREE.TorusGeometry(w * 0.75, 0.08, 6, 20), M(C.lime, { emissive: C.lime, emissiveIntensity: 0.5 }), 0, h + 0.25, 0, false); ring.rotation.x = Math.PI / 2; tw.add(ring);
+        if (i === 0) { tw.add(mesh(new THREE.CylinderGeometry(0.04, 0.04, 1.6, 4), M(0xC9D3E2), 0, h + 0.8, 0, false)); tw.add(mesh(new THREE.IcosahedronGeometry(0.18, 0), lampMat, 0, h + 1.65, 0, false)); }
+      });
+    }
+    if (type === 'dome') {   // 玻璃圓頂實驗室＋雷達碟＋漂浮無人機
+      g.add(mesh(new THREE.CylinderGeometry(3.0, 3.2, 0.5, 16), M(0xE9EEF5), 0, GROUND + 0.25, -0.3));
+      const dm = mesh(new THREE.SphereGeometry(2.8, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2), glass(0x4ECDC4, 0.5), 0, GROUND + 0.5, -0.3); g.add(dm);
+      const dring = mesh(new THREE.TorusGeometry(2.85, 0.1, 6, 24), M(C.lime, { emissive: C.lime, emissiveIntensity: 0.5 }), 0, GROUND + 0.55, -0.3, false); dring.rotation.x = Math.PI / 2; g.add(dring);
+      g.add(mesh(new THREE.CylinderGeometry(0.5, 0.7, 1.6, 8), M(0xC9D3E2), 0, GROUND + 1.3, -0.3));
+      g.add(mesh(new THREE.IcosahedronGeometry(0.4, 0), lampMat, 0, GROUND + 2.3, -0.3, false));
+      const dish = new THREE.Group(); dish.position.set(2.8, GROUND, 2.0); g.add(dish);
+      dish.add(mesh(new THREE.CylinderGeometry(0.1, 0.15, 1.6, 6), M(0xC9D3E2), 0, 0.8, 0));
+      const plate = new THREE.Group(); plate.position.y = 1.7; dish.add(plate);
+      const pl = mesh(new THREE.SphereGeometry(0.9, 12, 6, 0, Math.PI * 2, 0, Math.PI / 3), M(0xffffff, { side: THREE.DoubleSide }), 0, 0, 0); pl.rotation.x = -1.1; plate.add(pl);
+      spinners.push({ g: plate, axis: 'y', sp: 0.6 });
+      const dr = new THREE.Group(); dr.position.set(-2.6, GROUND + 3.2, 1.6); g.add(dr);
+      dr.add(mesh(new THREE.BoxGeometry(0.7, 0.18, 0.7), M(0x2E3A52), 0, 0, 0, false));
+      [[-0.45, -0.45], [0.45, -0.45], [-0.45, 0.45], [0.45, 0.45]].forEach(([a, b]) => dr.add(mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.03, 10), M(C.mint, { emissive: C.mint, emissiveIntensity: 0.4 }), a, 0.12, b, false)));
+      bobbers.push({ g: dr, y: dr.position.y, p: seed });
+    }
+    if (type === 'solar') {   // 太陽能板田＋小機器人
+      for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) {
+        if (i === 0 && j === 0) continue;
+        const pn = new THREE.Group(); pn.position.set(i * 1.9, GROUND, j * 1.7); g.add(pn);
+        pn.add(mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.7, 4), M(0xC9D3E2), 0, 0.35, 0, false));
+        const pa = mesh(new THREE.BoxGeometry(1.5, 0.08, 1.1), M(0x23417A, { emissive: 0x2A5BC4, emissiveIntensity: 0.15 }), 0, 0.75, 0); pa.rotation.x = -0.5; pn.add(pa);
+      }
+      const bot = new THREE.Group(); bot.position.set(0, GROUND, 0); g.add(bot);
+      bot.add(mesh(new THREE.BoxGeometry(0.7, 0.7, 0.6), M(0xE9EEF5), 0, 0.55, 0));
+      bot.add(mesh(new THREE.BoxGeometry(0.55, 0.45, 0.5), M(0xE9EEF5), 0, 1.15, 0));
+      [-0.13, 0.13].forEach((a) => bot.add(mesh(new THREE.SphereGeometry(0.07, 6, 5), M(C.mint, { emissive: C.mint, emissiveIntensity: 0.8 }), a, 1.2, 0.26, false)));
+      bot.add(mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.4, 4), M(0xC9D3E2), 0, 1.55, 0, false));
+      bot.add(mesh(new THREE.SphereGeometry(0.08, 6, 5), M(C.lime, { emissive: C.lime, emissiveIntensity: 0.8 }), 0, 1.78, 0, false));
+      bobbers.push({ g: bot, y: GROUND, p: seed + 2 });
+    }
+    if (type === 'wind') {   // 風力發電機（葉片會轉）
+      [[-1.6, -1.0, 1], [1.8, 0.4, 0.85], [-0.2, 2.2, 0.75]].forEach(([a, b, sc], i) => {
+        const tb = new THREE.Group(); tb.position.set(a, GROUND, b); tb.scale.setScalar(sc); g.add(tb);
+        tb.add(mesh(new THREE.CylinderGeometry(0.12, 0.22, 5, 8), M(0xF4F7FB), 0, 2.5, 0));
+        tb.add(mesh(new THREE.BoxGeometry(0.4, 0.35, 0.7), M(0xF4F7FB), 0, 5.05, 0));
+        const bl = new THREE.Group(); bl.position.set(0, 5.05, 0.42); tb.add(bl);
+        for (let k = 0; k < 3; k++) { const arm = new THREE.Group(); arm.rotation.z = k * Math.PI * 2 / 3; arm.add(mesh(new THREE.BoxGeometry(0.18, 2.3, 0.05), M(0xffffff), 0, 1.15, 0)); bl.add(arm); }
+        bl.add(mesh(new THREE.SphereGeometry(0.14, 8, 6), M(C.mint, { emissive: C.mint, emissiveIntensity: 0.5 }), 0, 0, 0.04, false));
+        spinners.push({ g: bl, axis: 'z', sp: 1.4 + i * 0.3 });
+      });
+    }
     if (type === 'maples') { for (let i = 0; i < 8; i++) { const [a, b] = spot(seed * 10 + i, 0.4); tree(g, rnd(seed + i) > 0.7 ? 'p' : 'm', a, b, 0.75 + rnd(i + seed) * 0.4); } }
     if (type === 'castle') {   // 城堡：城牆＋左右塔＋中間主塔（窗戶晚上會亮）
       const c = new THREE.Group(); c.position.set(0, GROUND, -0.4); c.scale.setScalar(0.72); c.rotation.y = Math.atan2(x, z); g.add(c);
@@ -759,7 +826,7 @@ export async function createIsland3D(el, host) {
         add(g, mesh(new THREE.CylinderGeometry(BIG * 0.7, BIG * 0.75, 1.2, 6), M(0xD9D4C8), 0, 0.1, 0, false), key);
         [[0, 2.2, 0, 3.6], [3.2, 1.8, 1.4, 2.6], [-3, 1.9, -1.2, 2.8], [0.6, 3.6, -1.6, 2.2]].forEach(([x, y, z, r]) => add(g, mesh(new THREE.IcosahedronGeometry(r, 1), M(0xF2F0EA, { transparent: true, opacity: 0.9 }), x, y, z, false), key));
       } else {
-        const col = { meadow: [0x9BD06E, 0xF1E3BE], autumn: [0xE6C77E, 0xF3E2C4], tropical: [0x9FD27C, 0xFFEFC8] }[w.theme] || [0x9BD06E, 0xF1E3BE];
+        const col = { meadow: [0x9BD06E, 0xF1E3BE], autumn: [0xE6C77E, 0xF3E2C4], tropical: [0x9FD27C, 0xFFEFC8], future: [0xB9ECE4, 0xDDE6F2] }[w.theme] || [0x9BD06E, 0xF1E3BE];
         add(g, mesh(new THREE.CylinderGeometry(BIG + 1.2, BIG + 1.8, 0.6, 6), M(col[1]), 0, -0.3, 0, false), key);
         add(g, mesh(new THREE.CylinderGeometry(BIG, BIG + 0.4, 1.6, 6), M(0xC9A877), 0, 0.2, 0, false), key);
         add(g, mesh(new THREE.CylinderGeometry(BIG - 0.2, BIG, 0.4, 6), M(col[0]), 0, 1.1, 0, false), key);
@@ -769,6 +836,12 @@ export async function createIsland3D(el, host) {
           [-3.4, 3.4].forEach((x) => { add(g, mesh(new THREE.CylinderGeometry(1, 1.1, 5, 8), M(0xD9CDEB), x, 3.8, -1, false), key); add(g, mesh(new THREE.ConeGeometry(1.4, 2.2, 8), M(0x8E6FC4), x, 7.4, -1, false), key); });
           add(g, mesh(new THREE.ConeGeometry(1.6, 2.8, 8), M(0xE8833A), 0, 5.7, -1, false), key);
           blob(-5, 3.5, 1.7, 0xE8833A); blob(4.6, 4, 1.5, 0xD9532B); blob(0, 5.5, 1.4, 0xF2B24A);
+        } else if (w.theme === 'future') {   // 玻璃大樓＋圓頂＋霓虹樹
+          add(g, mesh(new THREE.BoxGeometry(2.4, 10, 2.4), M(0x7FB2FF, { transparent: true, opacity: 0.8, emissive: 0x7FB2FF, emissiveIntensity: 0.2 }), -1, 6.2, -1.5, false), key);
+          add(g, mesh(new THREE.BoxGeometry(1.8, 6.5, 1.8), M(0x4ECDC4, { transparent: true, opacity: 0.8, emissive: 0x4ECDC4, emissiveIntensity: 0.2 }), 2, 4.4, -1, false), key);
+          const rg = add(g, mesh(new THREE.TorusGeometry(1.9, 0.15, 6, 20), M(0xCCFF00, { emissive: 0xCCFF00, emissiveIntensity: 0.6 }), -1, 11.4, -1.5, false), key); rg.rotation.x = Math.PI / 2;
+          add(g, mesh(new THREE.SphereGeometry(3, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2), M(0x4ECDC4, { transparent: true, opacity: 0.55 }), 3.5, 1.3, 3.5, false), key);
+          [[-5.5, 2.5, 0xCCFF00], [-2, 5.6, 0x4ECDC4]].forEach(([x, z, c]) => { add(g, mesh(new THREE.CylinderGeometry(0.2, 0.3, 1.8, 5), M(0xC9D3E2), x, 2.1, z, false), key); add(g, mesh(new THREE.OctahedronGeometry(1.3, 0), M(c, { emissive: c, emissiveIntensity: 0.4 }), x, 3.7, z, false), key); });
         } else if (w.theme === 'tropical') {   // 火山＋椰樹
           add(g, mesh(new THREE.CylinderGeometry(1.6, 5.2, 7, 8), M(0x8A6A58), 0.5, 4.8, -1.5, false), key);
           add(g, mesh(new THREE.CylinderGeometry(1.5, 1.7, 0.6, 8), M(0xFF6B2C, { emissive: 0xFF4A00, emissiveIntensity: 0.6 }), 0.5, 8.3, -1.5, false), key);
@@ -780,7 +853,7 @@ export async function createIsland3D(el, host) {
           blob(-5.5, 2.5, 1.7, 0x5FB35A); blob(5.2, 3.6, 1.5, 0x86CF6E); blob(-2, 5.6, 1.4, 0x3E9150);
         }
       }
-      const lb = worldLabel((w.ghost ? '☁️ ' : w.ok ? '⛵ ' : '🔒 ') + 'Lv' + w.lv + (w.ghost ? '' : ' ' + w.name));
+      const lb = worldLabel((w.ghost ? '☁️ ' : w.ok ? '⛵ ' : '🔒 ') + (w.tag || 'Lv' + w.lv) + (w.ghost ? '' : ' ' + w.name));
       lb.position.set(0, w.ghost ? 6.5 : 12.5, 0); lb.userData.world = key; g.add(lb); worldPick.push(lb);
     });
   }
@@ -1090,7 +1163,7 @@ export async function createIsland3D(el, host) {
         b.g.position.y = b.y + Math.sin(t * 1.8 + b.p) * 0.08;
         if (b.swim) { b.g.position.x = b.swim.cx + Math.cos(t * 0.4) * b.swim.rx; b.g.position.z = b.swim.cz + Math.sin(t * 0.4) * b.swim.rz; b.g.rotation.y = -t * 0.4; }
       });
-      spinners.forEach((s) => { if (s.axis === 'z') s.g.rotation.z = t * s.sp; else s.g.rotation.y = Math.sin(t * 3) * 0.25; });
+      spinners.forEach((s) => { if (s.axis === 'z') s.g.rotation.z = t * s.sp; else if (s.axis === 'y') s.g.rotation.y = t * s.sp; else s.g.rotation.y = Math.sin(t * 3) * 0.25; });
       // 帆船繞島、海鷗盤旋
       const ba = t * 0.035; boat.position.set(Math.cos(ba) * 40, -0.3 + Math.sin(t * 1.8) * 0.12, Math.sin(ba) * 40); boat.rotation.set(0, -ba - Math.PI / 2, Math.sin(t * 1.3) * 0.08);
       birds.forEach((b) => { const a = t * b.sp + b.p; b.b.position.set(Math.cos(a) * b.r, b.h + Math.sin(t * 0.7 + b.p) * 0.6, Math.sin(a) * b.r); b.b.rotation.y = -a; b.b.children.forEach((w) => (w.rotation.x = 0, w.rotation.z = w.userData.side * Math.sin(t * 6 + b.p) * 0.45)); });
