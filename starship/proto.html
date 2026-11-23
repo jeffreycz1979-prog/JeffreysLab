@@ -784,30 +784,46 @@ $('eBody').addEventListener('click', e => {
   const b = e.target.closest('[data-eb]'); if (b) { S.book = b.dataset.eb; S.units = new Set(['U1']); examPick(); return; }
   const k = e.target.closest('[data-ek]'); if (k) { ShipAudio.sfx('go'); examStart(k.dataset.ek); }
 });
-function vocabQs(units, n){
-  const pool = shuffle(WORDS.filter(w => w.book === S.book && units.includes(w.unit) && !/[.!?]$/.test(w.en)));
-  return pool.slice(0, n).map((w, i) => {
+function vocabQs(units, n, fresh){
+  const pool = WORDS.filter(w => w.book === S.book && units.includes(w.unit) && !/[.!?]$/.test(w.en)).map(w => ({ ...w, id: 'v:' + w.en }));
+  return fresh(pool, n).map((w, i) => {
     const ds = distractors(w);
-    if (i % 2 === 0) { const o = shuffle([w, ...ds]); return { sec: 'v', q: `「${w.en}」的意思是？`, say: w.en, o: o.map(x => x.zh), a: o.indexOf(w), ex: `${w.en}（${w.pos}）＝${w.zh}` }; }
+    if (i % 2 === 0) { const o = shuffle([w, ...ds]); return { id: w.id, sec: 'v', q: `「${w.en}」的意思是？`, say: w.en, o: o.map(x => x.zh), a: o.indexOf(w), ex: `${w.en}（${w.pos}）＝${w.zh}` }; }
     const enDs = [];   // 中翻英：干擾選項換成英文，避免拼字相同
     const okW = x => x.book === w.book && x.en !== w.en && x.zh !== w.zh && !/[.!?]$/.test(x.en);
     const samePos = shuffle(WORDS.filter(x => okW(x) && pos1(x.pos) === pos1(w.pos)));
     const other = shuffle(WORDS.filter(x => okW(x) && pos1(x.pos) !== pos1(w.pos)));   // 同詞性不夠（例：but 只有 or）就補別的
     for (const d of [...samePos, ...other]) { if (!enDs.some(y => y.en === d.en)) enDs.push(d); if (enDs.length === 2) break; }
     const o = shuffle([w, ...enDs]);
-    return { sec: 'v', q: `「${w.zh}」的英文是？`, o: o.map(x => x.en), a: o.indexOf(w), ex: `${w.zh}＝${w.en}（${w.pos}）` };
+    return { id: w.id, sec: 'v', q: `「${w.zh}」的英文是？`, o: o.map(x => x.en), a: o.indexOf(w), ex: `${w.zh}＝${w.en}（${w.pos}）` };
   });
 }
 function examStart(key){
   const all = C.exams[S.book];
   const units = key === 'ALL' ? ['U1','U2','U3','U4','U5','U6'] : all.find(e => e.key === key).units;
-  const pass = key === 'ALL' ? shuffle(all.flatMap(e => e.passages)).slice(0, 2) : all.find(e => e.key === key).passages;
-  const gq = shuffle(units.flatMap(u => C.grammar[S.book][u].q.filter(q => q.t === 'mc').map(q => ({ ...q, sec: 'g', u })))).slice(0, 6);
+  // 換題：上一次這個範圍考過的題目（id）記起來，這次優先抽沒考過的
+  const seenKey = S.book + '|' + key;
+  let seenAll = {}; try { seenAll = JSON.parse(localStorage.getItem('jhship-exam-seen') || '{}'); } catch (e) {}
+  const last = new Set(seenAll[seenKey] || []);
+  const fresh = (pool, n) => [...shuffle(pool.filter(x => !last.has(x.id))), ...shuffle(pool.filter(x => last.has(x.id)))].slice(0, n);
+  const pass = key === 'ALL' ? fresh(all.flatMap(e => e.passages).map(p => ({ ...p, id: 'p:' + p.title })), 2) : all.find(e => e.key === key).passages;
+  // 文法：每課平均分配（兩課各 3 題；全冊每課 1 題），每課題庫＝挑戰的 4 題選擇＋段考專用 6 題
+  const per = Math.max(1, Math.round(6 / units.length));
+  const gq = shuffle(units.flatMap(u => fresh([
+      ...C.grammar[S.book][u].q.filter(q => q.t === 'mc').map((q, i) => ({ ...q, id: `g:${u}:q${i}` })),
+      ...((C.xq[S.book] || {})[u] || []).map((q, i) => ({ ...q, t: 'mc', id: `g:${u}:x${i}` }))
+    ], per).map(q => ({ ...q, sec: 'g', u })))).slice(0, 6);
+  // 閱讀：同一篇文章，6 題裡抽 3 題，照文章順序排
+  const readQs = p => fresh([...p.q, ...(((C.xr[S.book] || {})[p.title]) || [])].map((q, i) => ({ ...q, id: `r:${p.title}:${i}`, n: i })), 3).sort((x, y) => x.n - y.n);
   // 文法題的選項也打散
   gq.forEach(q => { const o = shuffle(q.o.map((t, i) => ({ t, i }))); q.a = o.findIndex(x => x.i === q.a); q.o = o.map(x => x.t); });
-  const items = [...vocabQs(units, 8).map(q => ({ kind: 'q', qs: [q] })), ...gq.map(q => ({ kind: 'q', qs: [q] })),
-                 ...pass.map(p => ({ kind: 'p', p, qs: p.q.map(q => ({ ...q, sec: 'r', title: p.title })) }))];
+  const vq = vocabQs(units, 8, fresh);
+  const items = [...vq.map(q => ({ kind: 'q', qs: [q] })), ...gq.map(q => ({ kind: 'q', qs: [q] })),
+                 ...pass.map(p => ({ kind: 'p', p, qs: readQs(p).map(q => ({ ...q, sec: 'r', title: p.title })) }))];
+  seenAll[seenKey] = [...vq.map(q => q.id), ...gq.map(q => q.id), ...items.filter(it => it.kind === 'p').flatMap(it => [it.p.id, ...it.qs.map(q => q.id)]).filter(Boolean)];
+  try { localStorage.setItem('jhship-exam-seen', JSON.stringify(seenAll)); } catch (e) {}
   const flat = items.flatMap(it => it.qs);
+  flat.filter(q => q.sec === 'r').forEach(q => { const o = shuffle(q.o.map((t, i) => ({ t, i }))); q.a = o.findIndex(x => x.i === q.a); q.o = o.map(x => x.t); });   // 閱讀選項也打散
   E = { key, name: key === 'ALL' ? '全冊總複習' : all.find(e => e.key === key).name, items, flat, ans: new Array(flat.length).fill(-1), page: 0, t0: Date.now() };
   examPage();
   clearInterval(E.tick); E.tick = setInterval(() => { const el = $('eTime'); if (el && E) { const s = (Date.now() - E.t0) / 1000 | 0; el.textContent = `${s / 60 | 0}:${String(s % 60).padStart(2, '0')}`; } }, 1000);

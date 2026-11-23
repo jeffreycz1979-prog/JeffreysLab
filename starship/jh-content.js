@@ -273,3 +273,142 @@ exams: {
 ]
 }
 };
+
+/* ───────── 段考題庫擴充（2026/11/23）─────────
+ * 同範圍重考要換題：xq＝每課再 6 題文法選擇（段考專用，加上原本的 4 題 → 每課 10 題）
+ *                  xr＝每篇文章再 3 題（加上原本的 3 題 → 每篇 6 題，每次抽 3 題）
+ * 出題時優先抽上一次沒考過的（記在 localStorage jhship-exam-seen）
+ */
+window.JH_CONTENT.xq = {
+'1上': {
+U1: [ { q:'Those boys ___ my cousins.', o:['is','am','are'], a:2, ex:'Those boys 複數，用 are。' },
+      { q:'A: Are you a singer?  B: No, I ___.', o:['am not',"isn't","aren't"], a:0, ex:'I 的否定是 I am not（I\'m not）。' },
+      { q:'Ms. Wang ___ a housewife. She is a writer.', o:["isn't","aren't",'am not'], a:0, ex:'Ms. Wang 單數，否定用 isn\'t。' },
+      { q:'A: Who ___ they?  B: They are my uncle and aunt.', o:['is','are','am'], a:1, ex:'they 複數，用 are。' },
+      { q:'A: Is Mr. Chen your father?  B: Yes, ___ is.', o:['he','she','it'], a:0, ex:'Mr. Chen 是男生，用 he。' },
+      { q:'My wife and I ___ office workers.', o:['am','is','are'], a:2, ex:'My wife and I＝我們，用 are。' } ],
+U2: [ { q:"A: What is ___?  B: It's my pencil case.", o:['these','those','this'], a:2, ex:"用 It's 回答，問的是單數 this。" },
+      { q:'Two ___ are in the living room.', o:['sofa','sofas','sofaes'], a:1, ex:'two 後面接複數 sofas。' },
+      { q:'A: Where are the cookies?  B: ___ are on the table.', o:['It','They','This'], a:1, ex:'the cookies 複數，用 They。' },
+      { q:"My notebook is ___ my bag. I can't see it.", o:['inside','above','between'], a:0, ex:'inside＝在…裡面，所以看不到。' },
+      { q:'___ are my parents over there.', o:['This','That','Those'], a:2, ex:'遠的、複數用 Those。' },
+      { q:'A: Is this your marker?  B: Yes, ___ is.', o:['it','this','they'], a:0, ex:'回答時 this 改成 it。' } ],
+U3: [ { q:'___ talk in the library, please.', o:["Don't",'Not','No'], a:0, ex:"否定祈使句：Don't + 原形動詞。" },
+      { q:"Let's ___ quiet in the museum.", o:['are','be','is'], a:1, ex:"Let's 後面接原形 be。" },
+      { q:'A: Can you help ___?  B: Sure.', o:['we','us','our'], a:1, ex:'動詞 help 後面用受格 us。' },
+      { q:'This is my sister. Please wait for ___.', o:['she','her','hers'], a:1, ex:'介系詞 for 後面用受格 her。' },
+      { q:'___ careful! The rock is big.', o:['Be','Are','Do'], a:0, ex:'祈使句：Be careful!' },
+      { q:"A: Can I turn off the TV?  B: Sorry, you ___.", o:['can',"can't","don't"], a:1, ex:"拒絕：Sorry, you can't." } ],
+U4: [ { q:"It's 6:30 p.m. Mom is ___ dinner.", o:['cook','cooking','cooks'], a:1, ex:'is + V-ing：cooking。' },
+      { q:'A: What are they doing?  B: They ___.', o:['are study','are studying','studying'], a:1, ex:'They are + V-ing。' },
+      { q:'Listen! The band ___ a new song.', o:['sing','is singing','are singing'], a:1, ex:'Listen! 表示正在發生；the band 單數用 is singing。' },
+      { q:"A: What time ___ it?  B: It's ten o'clock.", o:['is','are','does'], a:0, ex:'What time is it?' },
+      { q:"Ken isn't sleeping. He ___ a walk in the park.", o:['is taking','takes','is takeing'], a:0, ex:'take → taking（去 e 加 ing）。' },
+      { q:"A: Are you watching TV?  B: No, I ___. I'm reading.", o:['am not',"isn't","don't"], a:0, ex:'用 Are you 問，回答 I am not。' } ],
+U5: [ { q:'Christmas is on December ___.', o:['twenty-five','twenty-fifth','twentieth-five'], a:1, ex:'日期唸序數：twenty-fifth。' },
+      { q:"A: ___ the date today?  B: It's May 2.", o:["What's","When's","Who's"], a:0, ex:"問日期：What's the date today?" },
+      { q:'February is the ___ month of the year.', o:['two','second','twice'], a:1, ex:'第二＝second。' },
+      { q:'The concert is ___ Friday.', o:['in','on','at'], a:1, ex:'星期幾也用 on。' },
+      { q:"A: When is New Year's Eve?  B: ___ December 31.", o:["It's on","It's in","It's at"], a:0, ex:'有日期用 on。' },
+      { q:'December is the ___ month of the year.', o:['twelve','twelfth','twelveth'], a:1, ex:'twelve → twelfth（ve 改成 f）。' } ],
+U6: [ { q:'There ___ some food on the table.', o:['is','are','be'], a:0, ex:'food 不可數，用 There is。' },
+      { q:'There ___ any monkeys in the zoo.', o:["isn't","aren't","don't"], a:1, ex:'monkeys 複數，否定用 aren\'t。' },
+      { q:'A: Are there any bears in the forest?  B: Yes, there ___.', o:['is','are',"aren't"], a:1, ex:'用 Are there 問，Yes, there are.' },
+      { q:'Is there ___ water in the cup?', o:['some','any','many'], a:1, ex:'問句用 any；water 不可數，不能用 many。' },
+      { q:'There are ___ zebras over there.', o:['a','any','some'], a:2, ex:'肯定句用 some。' },
+      { q:'Look! There ___ a bug on your back.', o:['is','are','be'], a:0, ex:'a bug 單數，用 There is。' } ]
+},
+'2上': {
+U1: [ { q:'We ___ in Australia last summer vacation.', o:['are','was','were'], a:2, ex:'We 的過去式 be 動詞用 were。' },
+      { q:'Grandma sent ___ a postcard.', o:['we','us','our'], a:1, ex:'send + 人（受格 us）+ 物。' },
+      { q:"A: Whose jacket is this?  B: It's ___. My name is on it.", o:['my','mine','me'], a:1, ex:'後面沒有名詞，用 mine。' },
+      { q:'Dad gave a new camera ___ me.', o:['to','for','with'], a:0, ex:'give + 物 + to + 人。' },
+      { q:'It ___ very cold and windy yesterday.', o:['is','was','were'], a:1, ex:'yesterday 是過去，用 was。' },
+      { q:'These gloves are not mine. They are ___.', o:['your','yours','you'], a:1, ex:'後面沒有名詞，用 yours。' } ],
+U2: [ { q:'Before Lisa ___ to bed, she finished her homework.', o:['go','went','goes'], a:1, ex:'過去的事，go → went。' },
+      { q:'When the bell ___, the students ran out.', o:['rings','rang','ring'], a:1, ex:'兩件事都在過去，ring → rang。' },
+      { q:'After ___ lunch, we played soccer.', o:['eat','ate','eating'], a:2, ex:'after 後面直接接動作要用 V-ing。' },
+      { q:'I called Ms. Lin ___ I joined the club. I asked her some questions first.', o:['before','after','when'], a:0, ex:'先打電話問問題，再加入 → before。' },
+      { q:'Ben ___ the violin after he finished his science homework.', o:['practice','practiced','practices'], a:1, ex:'過去的事，用 practiced。' },
+      { q:'A: When did you start to learn math?  B: I started ___ I was five.', o:['when','what','so'], a:0, ex:'when I was five＝我五歲的時候。' } ],
+U3: [ { q:'What ___ you doing at 8 p.m. last night?', o:['are','was','were'], a:2, ex:'last night 是過去，you 用 were。' },
+      { q:'I ___ my homework when Mom came home.', o:['was doing','am doing','did'], a:0, ex:'長動作被打斷，用過去進行式。' },
+      { q:'While I was sleeping, my dog ___ on the sofa.', o:['is sleeping','was sleeping','sleeps'], a:1, ex:'while 連接兩個同時進行的過去動作。' },
+      { q:"It's 3:30. It's half ___ three.", o:['to','past','of'], a:1, ex:'3:30＝half past three。' },
+      { q:'A: Was Jack wiping the windows?  B: No, he ___. He was mopping the floor.', o:["wasn't","weren't","didn't"], a:0, ex:'用 Was 問，否定回答 wasn\'t。' },
+      { q:'They were watching TV ___ the phone rang.', o:['when','while','after'], a:0, ex:'短動作（電話響）打斷長動作，用 when。' } ],
+U4: [ { q:'Amy wants ___ a reporter.', o:['be','to be','being'], a:1, ex:'want + to V。' },
+      { q:'Tom keeps ___ about the test.', o:['worry','to worry','worrying'], a:2, ex:'keep + V-ing。' },
+      { q:'___ a dentist is not easy.', o:['Be','Being','Been'], a:1, ex:'動名詞當主詞：Being。' },
+      { q:'It is fun ___ with robots.', o:['play','to play','played'], a:1, ex:'It is + 形容詞 + to V。' },
+      { q:'He is good at ___ pictures.', o:['draw','drawing','to draw'], a:1, ex:'介系詞 at 後面接 V-ing。' },
+      { q:'We plan ___ the factory next week.', o:['visit','to visit','visiting'], a:1, ex:'plan + to V。' } ],
+U5: [ { q:'A: How ___ you get to the hotel?  B: By taxi.', o:['do','does','are'], a:0, ex:'you 用 do。' },
+      { q:'My sister goes to school ___ bus.', o:['by','on','in'], a:0, ex:'by + 交通工具。' },
+      { q:'They went ___ last Saturday.', o:['jog','jogging','to jog'], a:1, ex:'go + V-ing：went jogging。' },
+      { q:'The bank is ___ the post office. They are on different sides of the street.', o:['next to','across from','behind'], a:1, ex:'在街道兩邊、面對面＝across from。' },
+      { q:'Go ___ for two blocks and turn right.', o:['along','straight','corner'], a:1, ex:'Go straight＝直走。' },
+      { q:'A: How does Ben get to the park?  B: He ___ there on foot.', o:['walk','walks','goes'], a:2, ex:'go … on foot＝走路去；He 用 goes。' } ],
+U6: [ { q:'Look at the clouds. It ___ rain.', o:['is going to','will to','going'], a:0, ex:'看得出要發生的事用 be going to。' },
+      { q:'A: How much ___ the shirt cost?  B: 500 dollars.', o:['do','does','is'], a:1, ex:'the shirt 單數，How much does … cost?' },
+      { q:'I paid 300 dollars ___ this belt.', o:['on','for','to'], a:1, ex:'pay + 錢 + for 物。' },
+      { q:'She spent 1,000 dollars ___ the shoes.', o:['on','for','to'], a:0, ex:'spend + 錢 + on 物。' },
+      { q:'It ___ him an hour to clean his room yesterday.', o:['takes','took','spent'], a:1, ex:'yesterday 是過去，It took + 人 + 時間 + to V。' },
+      { q:"A: Will you wear a tie to the party?  B: No, I ___.", o:["won't","don't",'am not'], a:0, ex:"用 Will 問，否定回答 won't。" } ]
+}
+};
+
+window.JH_CONTENT.xr = {
+'1上': {
+"My New Classmate": [
+  { q:'How old is Leo?', o:['Ten','Twelve','Thirteen'], a:1 },
+  { q:"What is Leo's father?", o:['A writer','A singer','A police officer'], a:2 },
+  { q:'Who is "I" in the story?', o:['Mia','Leo','Amy'], a:0 } ],
+"Ben's House": [
+  { q:'What color is the sofa?', o:['Brown','Gray','Purple'], a:0 },
+  { q:'Where is the living room?', o:['Next to the kitchen','In the bedroom','Behind the door'], a:0 },
+  { q:"What are on Ben's table?", o:['Cookies','His notebooks and markers','A big box'], a:1 } ],
+"Welcome to the Dinosaur Museum!": [
+  { q:'Which is NOT OK in the museum?', o:['Taking pictures','Eating food','Looking at the dinosaurs'], a:1 },
+  { q:'When does the museum open?', o:['At 9 a.m.','At 5 p.m.','At 7 p.m.'], a:0 },
+  { q:"Why can't people touch the dinosaurs?", o:['They are very old.','They are dangerous.','They are dirty.'], a:0 } ],
+"Saturday Afternoon": [
+  { q:'Where is Mrs. Wang?', o:['In the dining room','In her bedroom','On the sofa'], a:0 },
+  { q:'What day is it?', o:['Friday','Saturday','Sunday'], a:1 },
+  { q:'Why is Lily happy?', o:['Her favorite band is singing tonight.','Kevin is studying.','She has a new phone.'], a:0 } ],
+"A Busy Month": [
+  { q:'What does Sara have on December 12?', o:['A party','A big test','A trip'], a:1 },
+  { q:"Where does Sara's family go on New Year's Eve?", o:['Taipei 101','The museum','The zoo'], a:0 },
+  { q:"Who makes a cake for Sara's birthday?", o:['Her friends','Her mom','Sara'], a:1 } ],
+"On the Grassland": [
+  { q:'Where is the lion?', o:['Near the river','Behind the rock','In the tree'], a:1 },
+  { q:'What are the elephants doing?', o:['Eating bugs','Drinking water','Sleeping'], a:1 },
+  { q:'What is an oxpecker?', o:['A small bird','A big zebra','A kind of bug'], a:0 } ]
+},
+'2上': {
+"A Postcard from Australia": [
+  { q:'Who is Kelly writing to?', o:['Her mom','Her grandma','Her friend'], a:1 },
+  { q:'What did Mom give Kelly?', o:['A jacket','A scarf','Some photos'], a:1 },
+  { q:'How was the weather today?', o:['Sunny','Rainy','Windy'], a:0 } ],
+"Choosing a Club": [
+  { q:'What could the robot do?', o:['Sing','Dance','Talk'], a:1 },
+  { q:'Where was the camera the whole time?', o:['In the magic club',"In the writer's bag",'In the science museum'], a:1 },
+  { q:'Who is Ms. Chen?', o:['Someone from the robot club','Someone from the science club','Someone from the magic club'], a:1 } ],
+"A Long Sunday": [
+  { q:'What was Jack doing at ten in the morning?', o:['Wiping the windows','Mopping the floor','Fixing a drawer'], a:0 },
+  { q:"What did Jack do when he couldn't fall asleep?", o:['He counted sheep.','He fed the cat.','He read a book.'], a:0 },
+  { q:'Why was the cat hungry?', o:['Nobody fed it.','It was sick.','It ate too fast.'], a:0 } ],
+"My Dream Job": [
+  { q:"Who is a dentist in Emma's family?", o:['Her father','Her uncle','Her aunt'], a:1 },
+  { q:'Why is being a dentist not easy?', o:['It takes many years to study.','Dentists work at night.','It is boring.'], a:0 },
+  { q:"What did Emma's uncle tell her?", o:['To stop studying','To keep trying','To become a lawyer'], a:1 } ],
+"Getting to the Hotel": [
+  { q:'How did Lucy and her mom arrive in London?', o:['By ship','By plane','By train'], a:1 },
+  { q:'Where should they turn left?', o:['At the bank','At the post office','At Big Ben'], a:0 },
+  { q:'How far is the hotel on foot?', o:['Five minutes','Ten minutes','Two hours'], a:1 } ],
+"The Sale": [
+  { q:'What color was the sweater?', o:['Blue','Red','Black'], a:0 },
+  { q:"Why didn't they buy the jeans?", o:['They were too expensive.','They were ugly.','They were too small.'], a:0 },
+  { q:'How long was Kevin in the mall?', o:['One hour','Two hours','Ten minutes'], a:1 } ]
+}
+};
