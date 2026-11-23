@@ -86,6 +86,8 @@ html,body{height:100%;background:var(--bg);color:var(--ink);font-family:'Noto Sa
 .hole b{font-family:Syne}
 
 /* 共用 */
+.mute{width:38px;height:38px;border-radius:50%;border:1.5px solid #2E3D66;background:rgba(10,10,20,.6);color:var(--ink);font-size:17px;cursor:pointer}
+.spk{border:1.5px solid #2E3D66;background:#121a33;color:var(--ink);border-radius:999px;padding:4px 11px;font-size:13px;cursor:pointer;margin-left:4px;vertical-align:middle}
 .page{background:radial-gradient(ellipse at 50% -10%,#1b2a55 0%,var(--bg) 60%);overflow-y:auto;touch-action:pan-y}
 .back{display:inline-flex;align-items:center;gap:6px;border:1.5px solid #2E3D66;background:#121a33;color:var(--ink);border-radius:999px;padding:7px 14px;font-weight:700;font-size:14px;cursor:pointer}
 .row{display:flex;justify-content:space-between;align-items:center;gap:10px}
@@ -170,6 +172,13 @@ html,body{height:100%;background:var(--bg);color:var(--ink);font-family:'Noto Sa
 .wrong div{background:#121a33;border-radius:12px;padding:10px 13px;border-left:4px solid #FF5F6D;font-size:14px;line-height:1.6}
 .wrong b{font-family:Syne,'Noto Sans TC';font-size:15px}
 </style>
+<script>
+// 靜音設定：接到島上後改用島的 st.set.sfxMute
+var st = { set: { sfxMute: localStorage.getItem('jhship-mute') === '1' } };
+function saveSet(){ localStorage.setItem('jhship-mute', st.set.sfxMute ? '1' : '0'); }
+</script>
+<script src="../english-island/games/sfx.js"></script>
+<script src="ship-audio.js"></script>
 <script src="jh-content.js"></script>
 <script type="importmap">
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js"}}
@@ -186,7 +195,7 @@ html,body{height:100%;background:var(--bg);color:var(--ink);font-family:'Noto Sa
 <!-- ② 艦橋 -->
 <section id="bridge" class="scr">
   <div class="wrap">
-    <div class="brand">JH STARSHIP<small>國中星艦・艦橋</small></div>
+    <div class="row"><div class="brand">JH STARSHIP<small>國中星艦・艦橋</small></div><button class="mute" data-mute></button></div>
 
     <div class="sec">航線（冊別）</div>
     <div class="chips" id="books"></div>
@@ -218,7 +227,7 @@ html,body{height:100%;background:var(--bg);color:var(--ink);font-family:'Noto Sa
   <div class="hud">
     <button class="x" id="quit">✕</button>
     <div class="mid" id="hudL">第 1／20 題<b id="score">0</b></div>
-    <div style="width:38px"></div>
+    <button class="mute" data-mute></button>
   </div>
   <div class="bar"><i id="barI"></i></div>
   <div class="combo" id="combo">COMBO ×3</div>
@@ -249,7 +258,7 @@ html,body{height:100%;background:var(--bg);color:var(--ink);font-family:'Noto Sa
 <!-- ⑤ 文法艙 -->
 <section id="gram" class="scr page">
   <div class="wrap">
-    <div class="row"><button class="back" id="gBack">‹ 艦橋</button><span class="sub" style="font-family:Syne;color:var(--m);font-weight:800">GRAMMAR LAB</span></div>
+    <div class="row"><button class="back" id="gBack">‹ 艦橋</button><span style="display:flex;align-items:center;gap:10px"><span class="sub" style="font-family:Syne;color:var(--m);font-weight:800">GRAMMAR LAB</span><button class="mute" data-mute></button></span></div>
     <div id="gBody"></div>
   </div>
 </section>
@@ -390,9 +399,9 @@ renderer.domElement.addEventListener('pointerdown', e => {
   const near = Math.hypot((sp.x - ptr.x) * innerWidth / 2, (sp.y - ptr.y) * innerHeight / 2) < 90;
   if (hit || near) board();
 });
-function board(){ phase = 'descend'; pT = 0; $('dockHint').style.display = 'none'; }
+function board(){ phase = 'descend'; pT = 0; $('dockHint').style.display = 'none'; ShipAudio.sfx('hover'); }
 function landBack(){ // 從艦橋回島：飛船降回原位、角色落地
-  phase = 'land'; pT = 0; show('dock'); $('fade').style.opacity = 0;
+  phase = 'land'; pT = 0; show('dock'); $('fade').style.opacity = 0; ShipAudio.sfx('land');
 }
 
 const ease = t => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
@@ -408,7 +417,7 @@ function tick(now){
   } else if (phase === 'descend') {            // 飛船移到角色正上方
     const k = ease(Math.min(1, pT / 1.1));
     ship.position.lerpVectors(SHIP0, new THREE.Vector3(HERO0.x, 8.5, HERO0.z), k);
-    if (pT > 1.1) { phase = 'beam'; pT = 0; }
+    if (pT > 1.1) { phase = 'beam'; pT = 0; ShipAudio.sfx('beam'); }
   } else if (phase === 'beam') {               // 光束＋角色被吸上去
     const k = Math.min(1, pT / 1.8);
     const top = ship.position.y - 1.1, bot = .9;
@@ -418,7 +427,7 @@ function tick(now){
     hero.position.y = HERO0.y + ease(k) * (top - HERO0.y - .4);
     hero.material.rotation = Math.sin(pT * 9) * .15 * k;
     hero.scale.setScalar(1).set(2.4 * (1 - k * .5), 3.6 * (1 - k * .5), 1);
-    if (pT > 1.8) { hero.visible = false; phase = 'lift'; pT = 0; }
+    if (pT > 1.8) { hero.visible = false; phase = 'lift'; pT = 0; ShipAudio.sfx('liftoff'); }
   } else if (phase === 'lift') {               // 收光束、升空，鏡頭跟上
     beam.material.opacity = Math.max(0, .45 - pT);
     ship.position.y += dt * (6 + pT * 30);
@@ -487,7 +496,8 @@ function startRound(list){
   if (!R.timed) R.q = R.q.slice(0, list ? list.length : 20);
   R.total = R.timed ? 0 : R.q.length;
   if (R.timed) R.end = performance.now() + 60000;
-  show('vocab'); initWarp(); speed = 1; targetSpeed = 1; next();
+  R.q.slice(0, 20).forEach(w => ShipAudio.prefetch(w.en));   // 先把這回合的發音抓下來
+  show('vocab'); initWarp(); speed = 1; targetSpeed = 1; ShipAudio.sfx('go'); next();
 }
 function distractors(w){
   // 優先：選定範圍內同詞性 → 同冊同詞性 → 同冊其他
@@ -502,6 +512,7 @@ function distractors(w){
 }
 const PAL = [['#FF7A59','#8a2a14','#FF7A59'],['#4ECDC4','#145b57','#4ECDC4'],['#A06CFF','#3b1a7a','#A06CFF'],['#FFC94D','#7a5208','#FFC94D'],['#5AA9FF','#123f7a','#5AA9FF'],['#FF5FA2','#7a1444','#FF5FA2']];
 function next(){
+  if (!R) return;   // 中途離開：還在等的計時器不要動
   if (!R.timed && R.i >= R.q.length) return finish();
   if (R.timed && R.i >= R.q.length) R.q.push(...shuffle(R.q.slice(0, R.i)));
   const w = R.q[R.i]; R.cur = w; R.lock = false;
@@ -519,8 +530,8 @@ function hud(){
   else { $('hudL').firstChild.textContent = `第 ${Math.min(R.i + 1, R.total)}／${R.total} 題`; $('barI').style.width = (done / R.total * 100) + '%'; }
   const c = $('combo'); c.textContent = `COMBO ×${R.combo}`; c.classList.toggle('on', R.combo >= 3);
 }
-function say(t){ try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t.replace(/\.\.\./g, ' ')); u.lang = 'en-US'; u.rate = .9; speechSynthesis.speak(u); } catch (e) {} }
-$('say').onclick = () => R && say(R.cur.en);
+const say = (t, quick = true) => ShipAudio.speak(t, { quick });
+$('say').onclick = () => R && say(R.cur.en, false);
 
 function pick(k){
   if (!R || R.lock) return; R.lock = true;
@@ -532,6 +543,8 @@ function pick(k){
     const gain = 100 + Math.min(R.combo - 1, 10) * 20; R.score += gain;
     els[k].classList.add('boom'); els.forEach((e, j) => j !== k && e.classList.add('fade'));
     burst(target, 46, ['#CCFF00', '#4ECDC4', '#ffffff']);
+    ShipAudio.sfx('laser'); ShipAudio.sfx('boom'); ShipAudio.sfx('right');
+    if (R.combo === 5) ShipAudio.sfx('warp'); else if (R.combo && R.combo % 5 === 0) ShipAudio.sfx('combo');
     targetSpeed = 1 + Math.min(R.combo, 12) * .9;
     if (R.combo && R.combo % 5 === 0) toast(`🔥 ${R.combo} 連擊！`);
     R.i++; hud(); setTimeout(next, 520);
@@ -542,22 +555,23 @@ function pick(k){
     const rk = R.opts.indexOf(R.cur); els[rk].classList.add('right');
     els.forEach((e, j) => j !== k && j !== rk && e.classList.add('fade'));
     toast(`${R.cur.en}＝${R.cur.zh}`);
+    ShipAudio.sfx('zapMiss'); ShipAudio.sfx('wrong'); { const w = R.cur.en; setTimeout(() => R && say(w), 350); }   // 答錯再唸一次正確的字
     R.i++; hud(); setTimeout(next, 1400);
   }
 }
 $('planets').addEventListener('click', e => { const p = e.target.closest('.pl'); if (p) pick(+p.dataset.k); });
 // 滑動：← 左、↑ 中、→ 右
-let sx = 0, sy = 0, st = 0;
-$('vocab').addEventListener('pointerdown', e => { sx = e.clientX; sy = e.clientY; st = 1; });
+let sx = 0, sy = 0, swOn = 0;
+$('vocab').addEventListener('pointerdown', e => { sx = e.clientX; sy = e.clientY; swOn = 1; });
 $('vocab').addEventListener('pointerup', e => {
-  if (!st) return; st = 0;
+  if (!swOn) return; swOn = 0;
   const dx = e.clientX - sx, dy = e.clientY - sy;
   if (Math.hypot(dx, dy) < 45 || e.target.closest('.pl,.x,.say')) return;
   if (dy < -45 && Math.abs(dy) > Math.abs(dx)) pick(1); else if (dx < 0) pick(0); else pick(2);
 });
 addEventListener('keydown', e => { if (!$('vocab').classList.contains('on')) return;
   if (e.key === 'ArrowLeft') pick(0); if (e.key === 'ArrowUp') pick(1); if (e.key === 'ArrowRight') pick(2); });
-$('quit').onclick = () => { R = null; show('bridge'); };
+$('quit').onclick = () => { R = null; ShipAudio.stop(); show('bridge'); };
 
 let toastT;
 function toast(s){ const t = $('toast'); t.textContent = s; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 1100); }
@@ -609,7 +623,7 @@ function finish(){
   $('rRate').textContent = tried ? Math.round(R.right / tried * 100) + '%' : '0%';
   $('hole').innerHTML = R.hole.length ? R.hole.map(w => `<div><b>${w.en}</b><span>${w.zh}</span></div>`).join('') : '<div><b>黑洞是空的 ✨</b><span>全部擊中！</span></div>';
   $('again').style.display = R.hole.length ? '' : 'none';
-  show('result');
+  show('result'); ShipAudio.sfx(tried && R.right / tried >= .8 ? 'great' : 'end');
 }
 $('again').onclick = () => startRound(R.hole.slice());
 $('toBridge').onclick = () => { show('bridge'); renderBridge(); };
@@ -640,14 +654,15 @@ function gramLesson(u){
       <h3>${esc(L.title)}</h3>
       <div class="exs">${L.ex.map(e => `<div class="exline">${e.b.map(([w, r]) =>
         `<span class="blk" style="--bc:${ROLE[r][1]};background:${ROLE[r][1]}"><i>${ROLE[r][0]}</i>${esc(w)}</span>`).join('')}
-        <div class="exzh">${esc(e.zh)}</div></div>`).join('')}</div>
+        <div class="exzh">${esc(e.zh)} <button class="spk" data-say="${esc(e.b.map(x => x[0]).join(' '))}">🔊</button></div></div>`).join('')}</div>
       <div class="legend">${[...used].map(r => `<span style="--bc:${ROLE[r][1]}">${ROLE[r][0]}</span>`).join('')}</div>
     </div>
     <p class="note">點積木看它在句子裡的角色 ✦</p>
     <div class="pts">${L.points.map(t => `<div>${esc(t)}</div>`).join('')}</div>
     <button class="btn" id="gStart">開始護盾充能 🛡️</button>
     <button class="btn ghost" id="gList">換一課</button>`;
-  $('gStart').onclick = () => gramStart(u);
+  ShipAudio.sfx('holo');
+  $('gStart').onclick = () => { ShipAudio.sfx('go'); gramStart(u); };
   $('gList').onclick = gramList;
   $('gram').scrollTop = 0;
 }
@@ -692,7 +707,7 @@ function gramQ(){
       $('oPool').querySelectorAll('.tile').forEach(t => t.classList.toggle('ghost', G.ord.picked.includes(+t.dataset.w)));
       const full = G.ord.picked.length === q.w.length; $('oChk').disabled = !full; $('oChk').style.opacity = full ? 1 : .4;
     };
-    $('oPool').onclick = e => { const t = e.target.closest('[data-w]'); if (!t || G.lock) return; G.ord.picked.push(+t.dataset.w); draw(); };
+    $('oPool').onclick = e => { const t = e.target.closest('[data-w]'); if (!t || G.lock) return; ShipAudio.sfx('tap'); G.ord.picked.push(+t.dataset.w); draw(); };
     $('oLine').onclick = e => { const t = e.target.closest('[data-back]'); if (!t || G.lock) return; G.ord.picked = G.ord.picked.filter(i => i !== +t.dataset.back); draw(); };
     $('oChk').onclick = () => { if (G.lock) return;
       const ok = G.ord.picked.map(i => q.w[i]).join(' ') === q.w.join(' ');
@@ -706,22 +721,29 @@ function gramQ(){
     gramJudge(ok, `${q.s[q.bad]} → ${q.fix}`);
   };
 }
+// 答完唸出完整正確句子（把 A: B: 拿掉）
+function fullSentence(q){
+  if (q.t === 'order') return q.w.join(' ');
+  if (q.t === 'spot') return q.s.map((w, i) => i === q.bad ? (q.fix.startsWith('（') ? '' : q.fix) : w).join(' ');
+  return q.q.replace(/_{2,}/, q.o[q.a]).replace(/\b[AB]:\s*/g, '');
+}
 function gramJudge(ok, ans){
   const q = G.q[0]; G.lock = true;
+  setTimeout(() => ShipAudio.speak(fullSentence(q)), ok ? 250 : 400);
   const fb = $('fb');
   if (ok) {
-    G.n++; G.q.shift();
+    G.n++; G.q.shift(); ShipAudio.sfx('right'); ShipAudio.sfx('charge', G.n);
     fb.className = 'fb on yes'; fb.innerHTML = `<b>✓ 護盾 +1</b>${q.t === 'spot' ? `　${esc(ans)}` : ''}<br>${esc(q.ex)}`;
     $('gBody').querySelector('.shield').innerHTML = shieldSVG(G.n);
-    setTimeout(() => G.n >= NEED ? gramDone() : gramQ(), q.t === 'spot' ? 1500 : 1000);
+    setTimeout(() => G.n >= NEED ? gramDone() : gramQ(), q.t === 'spot' ? 2000 : 1700);
   } else {
-    G.miss++; G.q.push(G.q.shift());   // 答錯的題目排到後面再來一次
+    G.miss++; G.q.push(G.q.shift()); ShipAudio.sfx('wrong');   // 答錯的題目排到後面再來一次
     fb.className = 'fb on no'; fb.innerHTML = `<b>✗ 正確：${esc(ans)}</b><br>${esc(q.ex)}<button class="btn sm" id="fbGo">繼續</button>`;
     $('fbGo').onclick = gramQ;
   }
 }
 function gramDone(){
-  shieldDone.add(S.book + G.u);
+  shieldDone.add(S.book + G.u); setTimeout(() => ShipAudio.sfx('shieldFull'), 200);
   const L = C.grammar[S.book][G.u], units = Object.keys(C.grammar[S.book]), nx = units[units.indexOf(G.u) + 1];
   $('gBody').innerHTML = `<div class="shield" style="margin-top:20px">${shieldSVG(NEED)}</div>
     <div class="brand" style="text-align:center;margin-top:6px">護盾充滿！<small>${S.book} ${G.u} · ${esc(L.title)}</small></div>
@@ -738,9 +760,10 @@ function gramDone(){
 $('gBody').addEventListener('click', e => {
   const gb = e.target.closest('[data-gb]'); if (gb) { S.book = gb.dataset.gb; S.units = new Set(['U1']); gramList(); return; }
   const gu = e.target.closest('[data-gu]'); if (gu) { gramLesson(gu.dataset.gu); return; }
-  const blk = e.target.closest('.blk'); if (blk) { blk.classList.add('show'); setTimeout(() => blk.classList.remove('show'), 1600); }
+  const sp = e.target.closest('[data-say]'); if (sp) { ShipAudio.speak(sp.dataset.say); return; }
+  const blk = e.target.closest('.blk'); if (blk) { ShipAudio.sfx('tap'); blk.classList.add('show'); setTimeout(() => blk.classList.remove('show'), 1600); }
 });
-$('gBack').onclick = () => { show('bridge'); renderBridge(); };
+$('gBack').onclick = () => { ShipAudio.stop(); show('bridge'); renderBridge(); };
 
 /* ================= ⑥ 段考艙 ================= */
 const SEC = { v: ['字彙', '#4ECDC4'], g: ['文法', '#CCFF00'], r: ['閱讀', '#FF8CC0'] };
@@ -749,7 +772,7 @@ function openExam(){ show('exam'); examPick(); }
 function examPick(){
   const ex = C.exams[S.book];
   $('eBody').innerHTML = `<div class="wrap">
-    <div class="row"><button class="back" id="eBack">‹ 艦橋</button><span style="font-family:Syne;color:var(--m);font-weight:800">MOCK MISSION</span></div>
+    <div class="row"><button class="back" id="eBack">‹ 艦橋</button><span style="display:flex;align-items:center;gap:10px"><span style="font-family:Syne;color:var(--m);font-weight:800">MOCK MISSION</span><button class="mute" data-mute></button></span></div>
     <div class="brand" style="margin-top:14px">段考艙<small>${S.book}・選擇任務範圍</small></div>
     <div class="chips" style="margin-top:12px">${['1上','2上'].map(b => `<div class="chip ${S.book === b ? 'on' : ''}" data-eb="${b}">${b}</div>`).join('')}</div>
     <div class="ulist">${ex.map(e => `<div class="uitem" data-ek="${e.key}"><b>🚀</b><div>${e.name}<small>${e.units.join(' – ')}</small></div></div>`).join('')}
@@ -759,16 +782,18 @@ function examPick(){
 }
 $('eBody').addEventListener('click', e => {
   const b = e.target.closest('[data-eb]'); if (b) { S.book = b.dataset.eb; S.units = new Set(['U1']); examPick(); return; }
-  const k = e.target.closest('[data-ek]'); if (k) examStart(k.dataset.ek);
+  const k = e.target.closest('[data-ek]'); if (k) { ShipAudio.sfx('go'); examStart(k.dataset.ek); }
 });
 function vocabQs(units, n){
   const pool = shuffle(WORDS.filter(w => w.book === S.book && units.includes(w.unit) && !/[.!?]$/.test(w.en)));
   return pool.slice(0, n).map((w, i) => {
     const ds = distractors(w);
-    if (i % 2 === 0) { const o = shuffle([w, ...ds]); return { sec: 'v', q: `「${w.en}」的意思是？`, o: o.map(x => x.zh), a: o.indexOf(w), ex: `${w.en}（${w.pos}）＝${w.zh}` }; }
+    if (i % 2 === 0) { const o = shuffle([w, ...ds]); return { sec: 'v', q: `「${w.en}」的意思是？`, say: w.en, o: o.map(x => x.zh), a: o.indexOf(w), ex: `${w.en}（${w.pos}）＝${w.zh}` }; }
     const enDs = [];   // 中翻英：干擾選項換成英文，避免拼字相同
-    for (const d of shuffle(WORDS.filter(x => x.book === w.book && x.en !== w.en && pos1(x.pos) === pos1(w.pos) && !/[.!?]$/.test(x.en))))
-      { if (!enDs.some(y => y.en === d.en)) enDs.push(d); if (enDs.length === 2) break; }
+    const okW = x => x.book === w.book && x.en !== w.en && x.zh !== w.zh && !/[.!?]$/.test(x.en);
+    const samePos = shuffle(WORDS.filter(x => okW(x) && pos1(x.pos) === pos1(w.pos)));
+    const other = shuffle(WORDS.filter(x => okW(x) && pos1(x.pos) !== pos1(w.pos)));   // 同詞性不夠（例：but 只有 or）就補別的
+    for (const d of [...samePos, ...other]) { if (!enDs.some(y => y.en === d.en)) enDs.push(d); if (enDs.length === 2) break; }
     const o = shuffle([w, ...enDs]);
     return { sec: 'v', q: `「${w.zh}」的英文是？`, o: o.map(x => x.en), a: o.indexOf(w), ex: `${w.zh}＝${w.en}（${w.pos}）` };
   });
@@ -790,43 +815,45 @@ function examStart(key){
 function examPage(){
   const it = E.items[E.page], base = E.items.slice(0, E.page).reduce((n, x) => n + x.qs.length, 0);
   const dots = E.flat.map((q, i) => `<i style="--c:${SEC[q.sec][1]}" class="${E.ans[i] >= 0 ? 'ans' : ''} ${i >= base && i < base + it.qs.length ? 'cur' : ''}" data-dot="${i}"></i>`).join('');
-  const qHTML = (q, i) => `<div class="${it.kind === 'p' ? 'rq' : 'qcard'}"><div class="qtype">第 ${i + 1} 題</div><div class="qtext">${esc(q.q)}</div>
+  const qHTML = (q, i) => `<div class="${it.kind === 'p' ? 'rq' : 'qcard'}"><div class="qtype">第 ${i + 1} 題</div><div class="qtext">${esc(q.q)}${q.say ? ` <button class="spk" data-say="${esc(q.say)}">🔊</button>` : ''}</div>
     <div class="opts">${q.o.map((o, k) => `<button class="opt ${E.ans[i] === k ? 'pick' : ''}" data-q="${i}" data-k="${k}">(${'ABC'[k]}) ${esc(o)}</button>`).join('')}</div></div>`;
   const sec = it.qs[0].sec;
   const last = E.page === E.items.length - 1;
-  $('eBody').innerHTML = `<div class="ehud"><div class="row"><span class="ttl">${S.book}・${E.name}</span><span class="tm">⏱ <span id="eTime">0:00</span></span></div><div class="starmap">${dots}</div></div>
+  $('eBody').innerHTML = `<div class="ehud"><div class="row"><span class="ttl">${S.book}・${E.name}</span><span style="display:flex;align-items:center;gap:10px"><span class="tm">⏱ <span id="eTime">0:00</span></span><button class="mute" data-mute style="width:32px;height:32px;font-size:15px"></button></span></div><div class="starmap">${dots}</div></div>
     <div class="wrap" style="padding-top:12px">
       <span class="sectag" style="--c:${SEC[sec][1]}">${SEC[sec][0]}</span>
-      ${it.kind === 'p' ? `<div class="passage"><h4>${esc(it.p.title)}</h4>${esc(it.p.text)}</div>${it.qs.map((q, j) => qHTML(q, base + j)).join('')}`
+      ${it.kind === 'p' ? `<div class="passage"><h4>${esc(it.p.title)} <button class="spk" data-say="${esc(it.p.title + '. ' + it.p.text.replace(/\n/g, ' '))}">🔊 朗讀</button></h4>${esc(it.p.text)}</div>${it.qs.map((q, j) => qHTML(q, base + j)).join('')}`
                        : qHTML(it.qs[0], base)}
       <div class="enav">${E.page ? '<button class="btn ghost" id="ePrev">‹ 上一題</button>' : ''}
         ${last ? '<button class="btn" id="eSubmit">交卷 🚀</button>' : '<button class="btn" id="eNext">下一題 ›</button>'}</div>
       <button class="btn ghost" id="eQuit" style="margin-top:12px">放棄任務</button>
     </div>`;
   $('exam').scrollTop = 0;
+  if (it.qs[0].say && E.ans[base] < 0) ShipAudio.speak(it.qs[0].say, { quick: true });
 }
 $('eBody').addEventListener('click', e => {
   if (!E || !$('exam').classList.contains('on')) return;
+  const sp = e.target.closest('[data-say]'); if (sp) { ShipAudio.speak(sp.dataset.say); return; }
   const o = e.target.closest('[data-q]');
-  if (o) { const i = +o.dataset.q; E.ans[i] = +o.dataset.k;
+  if (o) { ShipAudio.sfx('tap'); const i = +o.dataset.q; E.ans[i] = +o.dataset.k;
     o.parentElement.querySelectorAll('.opt').forEach(b => b.classList.toggle('pick', b === o));
     const d = $('eBody').querySelector(`[data-dot="${i}"]`); if (d) d.classList.add('ans');
     // 單題頁選完自動往下
-    if (E.items[E.page].kind === 'q' && E.page < E.items.length - 1) setTimeout(() => { E.page++; examPage(); }, 280);
+    if (E.items[E.page].kind === 'q' && E.page < E.items.length - 1) setTimeout(() => { E.page++; ShipAudio.sfx('page'); examPage(); }, 280);
     return; }
   const dot = e.target.closest('[data-dot]');
   if (dot) { let i = +dot.dataset.dot, n = 0; for (let p = 0; p < E.items.length; p++) { n += E.items[p].qs.length; if (i < n) { E.page = p; break; } } examPage(); return; }
-  if (e.target.id === 'ePrev') { E.page--; examPage(); }
-  if (e.target.id === 'eNext') { E.page++; examPage(); }
-  if (e.target.id === 'eQuit') { clearInterval(E.tick); E = null; examPick(); }
+  if (e.target.id === 'ePrev') { E.page--; ShipAudio.sfx('page'); examPage(); }
+  if (e.target.id === 'eNext') { E.page++; ShipAudio.sfx('page'); examPage(); }
+  if (e.target.id === 'eQuit') { clearInterval(E.tick); E = null; ShipAudio.stop(); examPick(); }
   if (e.target.id === 'eSubmit') {
     const left = E.ans.filter(a => a < 0).length;
-    if (left && !e.target.dataset.sure) { e.target.dataset.sure = 1; e.target.textContent = `還有 ${left} 題沒答，確定交卷？`; return; }
+    if (left && !e.target.dataset.sure) { e.target.dataset.sure = 1; ShipAudio.sfx('alert'); e.target.textContent = `還有 ${left} 題沒答，確定交卷？`; return; }
     examResult();
   }
 });
 function examResult(){
-  clearInterval(E.tick);
+  clearInterval(E.tick); ShipAudio.stop();
   const sec = { v: [0, 0], g: [0, 0], r: [0, 0] }, wrong = [];
   E.flat.forEach((q, i) => { sec[q.sec][1]++; if (E.ans[i] === q.a) sec[q.sec][0]++; else wrong.push({ q, i }); });
   const right = E.flat.length - wrong.length, s = (Date.now() - E.t0) / 1000 | 0;
@@ -840,11 +867,22 @@ function examResult(){
     <p class="note">正式版：段考艙的積分記在登船的島；錯題可以一鍵送去單字艙／文法艙複習。</p>
     <button class="btn" id="eRe">同範圍再考一次</button>
     <button class="btn ghost" id="ePick">換範圍</button></div>`;
+  ShipAudio.sfx('end'); if (right >= 16) setTimeout(() => ShipAudio.sfx('great'), 700);
   const key = E.key;
   $('eRe').onclick = () => examStart(key);
   $('ePick').onclick = examPick;
   $('exam').scrollTop = 0;
 }
+
+/* 靜音鈕（所有畫面共用；語音不受影響） */
+const muteIcon = () => st.set.sfxMute ? '🔇' : '🔊';
+const paintMute = () => document.querySelectorAll('[data-mute]').forEach(b => { if (b.textContent !== muteIcon()) b.textContent = muteIcon(); });   // 只在不同時才改，避免觀察器自己觸發自己
+document.addEventListener('click', e => { const b = e.target.closest('[data-mute]'); if (!b) return; GameSfx.toggle(null); paintMute(); });
+new MutationObserver(paintMute).observe(document.body, { childList: true, subtree: true });
+paintMute();
+// 艦橋點選音
+['books', 'units'].forEach(id => $(id).addEventListener('click', () => ShipAudio.sfx('tap')));
+document.querySelector('.modes').addEventListener('click', () => ShipAudio.sfx('tap'));
 
 /* 艦橋入口 */
 document.querySelector('[data-cab="gram"]').onclick = openGram;
