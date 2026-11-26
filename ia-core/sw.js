@@ -1,6 +1,6 @@
 // 英文島 IA Core 課文導讀 - Service Worker（scope：/JeffreysLab/ia-core/）
 // 頁面與程式改成網路優先；改了檔案仍建議把版本號 +1，舊快取會自動清除
-const CACHE_NAME = 'iacore-v3';
+const CACHE_NAME = 'iacore-v4';
 
 const PRECACHE_URLS = [
   '/JeffreysLab/ia-core/',

@@ -7,6 +7,7 @@
 //    'autumn'（秋楓城堡島：楓林、城堡、巫師塔、南瓜田、魔法水晶）、
 //    'future'（IA Core 未來科技島：霓虹樹、玻璃塔、玻璃圓頂、太陽能板、風力發電機；2026/11/23）
 //  host.chests() 有回傳就顯示每週神秘寶箱（放在風景小島的沙灘上）
+//  host.ship() 有回傳（{label}）就在島旁上空停一艘國中星艦；點了交給 host.shipTap（2026/11/26）
 // ═══════════════════════════════════════════════════════
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -886,6 +887,37 @@ export async function createIsland3D(el, host) {
       chestG.add(g);
     });
   }
+  // ── 國中星艦：host.ship() 有回傳才出現，飄在島的右前方上空；點了交給 host.shipTap ──
+  const shipG = new THREE.Group(); shipG.visible = false; scene.add(shipG);
+  const SHIP_AT = { a: -32 * Math.PI / 180, r: 25, y: 13 };   // 島的右後方上空（不擋住格子）
+  let shipPick = [], shipBody = null, shipLights = [], shipBeam = null, shipLabel = '';
+  function buildShip(info) {
+    shipG.visible = !!info; if (!info) return;
+    const label = '🛸 ' + (info.label || '國中星艦');
+    if (shipBody && label === shipLabel) return;
+    shipLabel = label; shipG.traverse((o) => { if (o.isSprite) { o.material.map.dispose(); o.material.dispose(); } }); shipG.clear(); shipPick = []; shipLights = [];
+    shipG.position.set(Math.cos(SHIP_AT.a) * SHIP_AT.r, SHIP_AT.y, Math.sin(SHIP_AT.a) * SHIP_AT.r);
+    const body = new THREE.Group(); body.scale.setScalar(1.0); shipG.add(body); shipBody = body;
+    const metal = new THREE.MeshStandardMaterial({ color: 0xdfe7f2, metalness: 0.7, roughness: 0.3 });
+    const prof = [[0, -0.9], [1.6, -0.85], [3.4, -0.45], [4.6, 0], [3.6, 0.35], [2.2, 0.6], [0, 0.7]].map(([x, y]) => new THREE.Vector2(x, y));
+    const add = (m) => { m.castShadow = false; body.add(m); shipPick.push(m); return m; };
+    add(new THREE.Mesh(new THREE.LatheGeometry(prof, 40), metal));
+    add(mesh(new THREE.CylinderGeometry(1.5, 1.1, 0.4, 24), M(0x2a3550), 0, -0.95, 0, false));
+    const dome = add(new THREE.Mesh(new THREE.SphereGeometry(1.9, 28, 14, 0, Math.PI * 2, 0, Math.PI / 2),
+      new THREE.MeshStandardMaterial({ color: 0x7ff0e6, transparent: true, opacity: 0.6, roughness: 0.05, emissive: 0x1d6f6a, emissiveIntensity: 0.5 })));
+    dome.position.y = 0.6;
+    const ring = add(new THREE.Mesh(new THREE.TorusGeometry(4.15, 0.14, 10, 56), new THREE.MeshBasicMaterial({ color: 0x4ECDC4 })));
+    ring.rotation.x = Math.PI / 2;
+    for (let i = 0; i < 12; i++) {
+      const a = i / 12 * Math.PI * 2, l = add(new THREE.Mesh(new THREE.SphereGeometry(0.18, 8, 6), new THREE.MeshBasicMaterial({ color: 0xCCFF00 })));
+      l.position.set(Math.cos(a) * 3.7, 0.28, Math.sin(a) * 3.7); shipLights.push(l);
+    }
+    // 底下一道光束：提示「可以上去」
+    shipBeam = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 2.6, SHIP_AT.y - 1, 24, 1, true),
+      new THREE.MeshBasicMaterial({ color: 0x9ffcf5, transparent: true, opacity: 0.16, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending }));
+    shipBeam.position.y = -(SHIP_AT.y - 1) / 2 - 1.1; shipG.add(shipBeam); shipPick.push(shipBeam);
+    const lb = worldLabel(label); lb.scale.set(17, 3.7, 1); lb.position.set(0, 2.6, 0); shipG.add(lb); shipPick.push(lb);
+  }
   const dotGeo = new THREE.SphereGeometry(0.2, 8, 6), dotMat = new THREE.MeshBasicMaterial({ color: 0xFFC93D });
   const pinMat = new THREE.MeshLambertMaterial({ color: 0xFFC93D, emissive: 0xFFA800, emissiveIntensity: 0.5 });
   let routeEnd = null;
@@ -1076,6 +1108,8 @@ export async function createIsland3D(el, host) {
     const mh = ray.intersectObjects(matesG.children, false)[0]; if (mh && host.mateTap) return host.mateTap(mh.object.userData.mate);
     const wh = worldPick.length && !ray.intersectObjects(pickables, false)[0] && ray.intersectObjects(worldPick, false)[0];
     if (wh) return startRide(wh.object.userData.world);
+    const sh = shipG.visible && host.shipTap && ray.intersectObjects(shipPick, false)[0];
+    if (sh) return host.shipTap();
     const ch = chestPick.length && ray.intersectObjects(chestPick, false)[0];
     if (ch && host.chestTap) return host.chestTap(ch.object.userData.chest);
     const hit = ray.intersectObjects(pickables, false)[0]; if (!hit) return;
@@ -1104,6 +1138,7 @@ export async function createIsland3D(el, host) {
     await refreshHero();
     refreshMates();
     if (host.chests) buildChests(host.chests());
+    if (host.ship) buildShip(host.ship());
     buildWorld();
   }
 
@@ -1144,6 +1179,11 @@ export async function createIsland3D(el, host) {
     }
     if (motion) tickMates(dt * 1000);
     if (routeEnd && motion) routeEnd.position.y = routeEnd.userData.y + Math.sin(t * 4) * 0.25;
+    if (shipG.visible && shipBody && motion) {   // 星艦：慢慢轉、上下飄、燈號閃
+      shipBody.rotation.y += dt * 0.4; shipG.position.y = SHIP_AT.y + Math.sin(t * 1.3) * 0.5;
+      const on = Math.floor(t * 5); shipLights.forEach((l, i) => l.material.color.setHex((i + on) % 3 ? 0xCCFF00 : 0x4ECDC4));
+      if (shipBeam) shipBeam.material.opacity = 0.12 + Math.sin(t * 3) * 0.05;
+    }
     const gy = groundAt(hero.position.x, hero.position.z) + (walking ? Math.abs(Math.sin(now / 70)) * 0.18 : motion ? Math.sin(t * 2.2) * 0.04 : 0);
     if (riding) tickRide(now, t); else hero.position.y += (gy - hero.position.y) * 0.35;
     hero.scale.x = HERO_H * 264 / 384 * flipScale(heroFlipT, now); if (heroFlipT && now - heroFlipT > FLIP_MS) heroFlipT = 0;
