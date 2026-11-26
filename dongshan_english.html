@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>東山英文入學挑戰 | Dongshan English Challenge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;800&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --primary:#1a3a1a; --accent:#CCFF00; --mint:#4ECDC4; --bg:#F4F1EB;
+  --card:#ffffff; --ink:#1f2a1f; --muted:#6b7468; --line:#e2ddd2;
+  --good:#2e9e5b; --warn:#e69b16; --bad:#d64545;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Noto Sans TC',sans-serif;line-height:1.6}
+.wrap{max-width:780px;margin:0 auto;padding:16px 14px 90px}
+h1,h2,.syne{font-family:'Syne','Noto Sans TC',sans-serif}
+header.hero{background:var(--primary);color:#fff;border-radius:20px;padding:26px 22px;margin-bottom:18px;position:relative;overflow:hidden}
+header.hero h1{margin:0;font-size:1.75rem;letter-spacing:.5px}
+header.hero .en{color:var(--accent);font-family:'Syne';font-weight:600;font-size:1rem}
+header.hero p{margin:10px 0 0;color:#d8e6d8;font-size:.95rem}
+header.hero::after{content:"";position:absolute;right:-40px;top:-40px;width:140px;height:140px;border-radius:50%;background:var(--accent);opacity:.18}
+.card{background:var(--card);border-radius:16px;padding:18px;margin-bottom:14px;box-shadow:0 2px 0 var(--line)}
+.btn{border:none;border-radius:12px;padding:12px 18px;font-size:1rem;font-weight:700;cursor:pointer;font-family:inherit;transition:transform .08s}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--primary);color:var(--accent)}
+.btn-accent{background:var(--accent);color:var(--primary)}
+.btn-ghost{background:transparent;border:2px solid var(--primary);color:var(--primary)}
+.btn:disabled{opacity:.4;cursor:default}
+.modes{display:grid;gap:12px}
+.mode{border:2px solid var(--line);border-radius:14px;padding:14px 16px;cursor:pointer;background:#fff;text-align:left;font-family:inherit;font-size:1rem;color:var(--ink)}
+.mode:hover{border-color:var(--mint)}
+.mode b{font-size:1.08rem;color:var(--primary)}
+.mode small{display:block;color:var(--muted)}
+.sec-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+table.info{width:100%;border-collapse:collapse;font-size:.92rem}
+table.info td,table.info th{border-bottom:1px solid var(--line);padding:7px 6px;text-align:left}
+/* quiz bar */
+.bar{position:sticky;top:0;z-index:5;background:var(--primary);color:#fff;border-radius:0 0 16px 16px;padding:10px 14px;margin:-16px -14px 14px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.bar .timer{font-family:'Syne';font-size:1.25rem;color:var(--accent)}
+.bar .small{font-size:.8rem;color:#cfe0cf}
+.pace{border-radius:999px;padding:4px 12px;font-size:.85rem;font-weight:700}
+.pace.good{background:var(--accent);color:var(--primary)}
+.pace.ok{background:var(--mint);color:var(--primary)}
+.pace.slow{background:var(--warn);color:#fff}
+.pace.over{background:var(--bad);color:#fff}
+.progress{height:6px;background:#2d522d;border-radius:4px;width:100%;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
+.notice{background:#fff4d9;border-left:5px solid var(--warn);border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:.92rem}
+.sec-tag{display:inline-block;background:var(--mint);color:var(--primary);border-radius:8px;padding:2px 10px;font-size:.82rem;font-weight:700}
+.passage{background:#fbfaf6;border:1px dashed #cfc8b8;border-radius:12px;padding:14px;margin:10px 0 14px;font-size:.98rem}
+.passage p{margin:.4em 0}
+.passage table{width:100%;border-collapse:collapse;font-size:.9rem;margin:6px 0}
+.passage th{background:var(--primary);color:#fff;padding:6px;font-weight:500}
+.passage td{border-bottom:1px solid var(--line);padding:6px;text-align:center}
+.passage .note{font-size:.85rem;color:var(--muted)}
+.blank{background:#eee;border-radius:6px;padding:0 6px;font-weight:700}
+.blank.now{background:var(--accent);color:var(--primary)}
+.qtext{font-size:1.12rem;font-weight:500;margin:12px 0}
+.opts{display:grid;gap:10px}
+.opt{display:flex;gap:10px;align-items:flex-start;text-align:left;border:2px solid var(--line);background:#fff;border-radius:12px;padding:12px 14px;font-size:1.02rem;cursor:pointer;font-family:inherit;color:var(--ink)}
+.opt .l{font-family:'Syne';font-weight:800;color:var(--primary);min-width:1.6em}
+.opt.sel{border-color:var(--primary);background:#eef6d0}
+.nav{display:flex;gap:10px;justify-content:space-between;margin-top:16px}
+.grid{display:grid;grid-template-columns:repeat(10,1fr);gap:6px}
+.grid button{aspect-ratio:1;border:none;border-radius:8px;background:#e8e4da;font-weight:700;cursor:pointer;font-size:.85rem;color:var(--ink)}
+.grid button.done{background:var(--mint);color:var(--primary)}
+.grid button.cur{outline:3px solid var(--primary)}
+/* results */
+.score{text-align:center}
+.score .big{font-family:'Syne';font-size:4rem;font-weight:800;color:var(--primary);line-height:1}
+.score .big small{font-size:1.4rem;color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.stat{background:var(--bg);border-radius:12px;padding:10px;text-align:center}
+.stat b{display:block;font-size:1.2rem;color:var(--primary)}
+.stat span{font-size:.8rem;color:var(--muted)}
+.meter{height:10px;background:#e8e4da;border-radius:6px;overflow:hidden}
+.meter i{display:block;height:100%;background:var(--mint)}
+.review{border-left:6px solid var(--good)}
+.review.wrong{border-left-color:var(--bad)}
+.review.skip{border-left-color:var(--warn)}
+.rv-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.badge{font-size:.8rem;border-radius:8px;padding:2px 8px;font-weight:700}
+.badge.ok{background:#dff3e6;color:var(--good)}
+.badge.no{background:#fbe2e2;color:var(--bad)}
+.badge.sk{background:#fff1d6;color:#a96b00}
+.badge.t{background:#eee;color:var(--muted)}
+.rv-opt{padding:6px 10px;border-radius:8px;margin:4px 0;font-size:.97rem}
+.rv-opt.correct{background:#dff3e6}
+.rv-opt.mine{background:#fbe2e2}
+.exp{background:#f3f8ea;border-radius:10px;padding:10px 12px;margin-top:10px;font-size:.95rem}
+.whywrong{background:#fdf0f0;border-radius:10px;padding:10px 12px;margin-top:8px;font-size:.95rem}
+.whywrong b,.exp b{color:var(--primary)}
+.filter{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.filter button{border:2px solid var(--primary);background:#fff;border-radius:999px;padding:6px 14px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--primary)}
+.filter button.on{background:var(--primary);color:var(--accent)}
+.modal-bg{position:fixed;inset:0;background:rgba(10,20,10,.55);display:flex;align-items:center;justify-content:center;z-index:20;padding:20px}
+.modal{background:#fff;border-radius:18px;padding:22px;max-width:380px;width:100%;text-align:center}
+.modal .row{display:flex;gap:10px;justify-content:center;margin-top:16px}
+details summary{cursor:pointer;font-weight:700;color:var(--primary)}
+.hidden{display:none!important}
+@media (max-width:520px){
+  header.hero h1{font-size:1.4rem}
+  .grid{grid-template-columns:repeat(8,1fr)}
+  .sec-grid{grid-template-columns:1fr}
+  .score .big{font-size:3.2rem}
+}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<script>
+/* =========================================================
+   東山英文入學挑戰 Dongshan English Challenge
+   題型依東山高中官網「英文科試題範例」：詞彙／文法／克漏字／閱讀
+   題目為原創，程度：小五、小六英語能力指標
+   ========================================================= */
+
+const SECS = {
+  vocab:   { zh:'詞彙與慣用語', en:'Vocabulary',  budget:45 },
+  grammar: { zh:'文法選擇',     en:'Grammar',     budget:50 },
+  cloze:   { zh:'克漏字',       en:'Cloze',       budget:70 },
+  reading: { zh:'閱讀測驗',     en:'Reading',     budget:90 }
+};
+const LETTERS = ['A','B','C','D'];
+
+/* ---------- 文章 / 圖表 ---------- */
+const PASSAGES = {
+  letter: {
+    title:'克漏字（一）A Letter to Grandma',
+    html:`<p>Dear Grandma,</p>
+<p>How are you? I miss you very much. Last weekend, my family <span class="blank" data-n="1">(1)</span> to Yilan. The weather was sunny, <span class="blank" data-n="2">(2)</span> we went swimming in the river. My little brother can't swim, <span class="blank" data-n="3">(3)</span> he had fun playing with the sand.</p>
+<p>Next month, I <span class="blank" data-n="4">(4)</span> visit you in Tainan with Mom. I want to eat your beef noodles! Can you make them <span class="blank" data-n="5">(5)</span> me?</p>
+<p>Love,<br>Amy</p>`
+  },
+  phone: {
+    title:'克漏字（二）A Phone Call',
+    html:`<p><b>Kevin:</b> Hello, this is Kevin. <span class="blank" data-n="6">(6)</span> I speak to Jason?</p>
+<p><b>Mrs. Lin:</b> Sorry, he isn't home. He <span class="blank" data-n="7">(7)</span> at the library now.</p>
+<p><b>Kevin:</b> Oh, OK. <span class="blank" data-n="8">(8)</span> will he come back?</p>
+<p><b>Mrs. Lin:</b> Around five o'clock. Do you want to leave a message?</p>
+<p><b>Kevin:</b> Yes, please. Tomorrow is Saturday. We're going to play baseball <span class="blank" data-n="9">(9)</span> the morning. Please ask him to bring his glove.</p>
+<p><b>Mrs. Lin:</b> Sure. I'll tell him.</p>
+<p><b>Kevin:</b> Thanks, Mrs. Lin. You're very <span class="blank" data-n="10">(10)</span>. Bye!</p>`
+  },
+  train: {
+    title:'閱讀（一）Taipei → Hualien Train Timetable',
+    html:`<table>
+<tr><th>Train No.</th><th>Leaves Taipei</th><th>Arrives Hualien</th><th>Ticket (Adult)</th></tr>
+<tr><td>408</td><td>07:00</td><td>09:30</td><td>$440</td></tr>
+<tr><td>412</td><td>08:15</td><td>10:15</td><td>$440</td></tr>
+<tr><td>418</td><td>10:30</td><td>13:30</td><td>$340</td></tr>
+<tr><td>426</td><td>13:00</td><td>15:10</td><td>$440</td></tr>
+<tr><td>432</td><td>16:20</td><td>19:20</td><td>$340</td></tr>
+</table>
+<p class="note">★ Children under 12 pay <b>half price</b>.<br>★ Every <b>Wednesday</b>: $100 off for all adult tickets.</p>`
+  },
+  story: {
+    title:'閱讀（二）A New Friend',
+    html:`<p>Sam is new at school. He comes from Canada, and he can't speak Chinese well. On his first day, he sat alone at lunch. No one talked to him.</p>
+<p>Nina saw him and felt sad. She remembered her first day at a new school two years ago. She was scared, too. So Nina took her lunch box and sat next to Sam. "Hi, I'm Nina. Do you like dumplings?" she asked in English. Sam smiled. "I love them!"</p>
+<p>After that day, Nina taught Sam some Chinese words, and Sam helped Nina with her English. Now they are good friends. They often play badminton together after school.</p>`
+  }
+};
+
+/* ---------- 題庫 ----------
+   a = 正確選項 index；w = 每個選項錯在哪（正解為 null） */
+const BANK = [
+/* ===== 詞彙與慣用語 ===== */
+{s:'vocab', q:"It's very cold in winter. Please wear your ______ when you go out.",
+ o:['shorts','coat','sandals','T-shirt'], a:1,
+ exp:'冬天很冷，出門請穿上你的「外套」。關鍵字是 <b>cold、winter</b>，冷天要穿保暖的 coat。',
+ w:['shorts 是短褲，夏天穿的，冬天穿會很冷。',null,'sandals 是涼鞋，天熱時穿。','T-shirt 是短袖上衣，不保暖。']},
+{s:'vocab', q:"My grandfather can't see well, so he wears ______ when he reads.",
+ o:['glasses','gloves','socks','hats'], a:0,
+ exp:'爺爺看不清楚，所以閱讀時戴「眼鏡」。關鍵字 <b>can\'t see well、reads</b> → 跟眼睛有關。',
+ w:[null,'gloves 是手套，戴在手上，跟看東西無關。','socks 是襪子，穿在腳上。','hats 是帽子，不能幫助看清楚。']},
+{s:'vocab', q:"We go to the ______ to borrow books.",
+ o:['bakery','library','zoo','post office'], a:1,
+ exp:'我們去「圖書館」借書。<b>borrow books（借書）</b>的地方就是 library。',
+ w:['bakery 是麵包店，去買麵包。',null,'zoo 是動物園，去看動物。','post office 是郵局，去寄信。']},
+{s:'vocab', q:"Thanksgiving is in ______, the eleventh month of the year.",
+ o:['September','October','November','December'], a:2,
+ exp:'感恩節在「十一月」，一年中的第十一個月。<b>eleventh（第十一）</b>→ November。',
+ w:['September 是九月（第九個月）。','October 是十月（第十個月）。',null,'December 是十二月（第十二個月）。']},
+{s:'vocab', q:"Ben is very ______. He always helps old people carry heavy bags.",
+ o:['lazy','kind','rude','shy'], a:1,
+ exp:'Ben 很「親切」，他總是幫老人提重的袋子。會幫助別人 → <b>kind</b>。',
+ w:['lazy 是懶惰的，懶惰的人不會主動幫忙。',null,'rude 是沒禮貌的，跟幫助別人意思相反。','shy 是害羞的，跟幫老人提袋子沒有直接關係。']},
+{s:'vocab', q:"My dad likes to ______ the newspaper after breakfast.",
+ o:['watch','see','read','look'], a:2,
+ exp:'爸爸喜歡早餐後「看報紙」。英文的固定說法是 <b>read the newspaper</b>（報紙是用「讀」的）。對照：watch TV 看電視。',
+ w:['watch 用在 watch TV、watch a movie，報紙不用 watch。','see 是「看見」，不用來說「看報紙」。',null,'look 後面要接 at（look at…），而且也不說 look the newspaper。']},
+{s:'vocab', q:"Let's ______ a picture together in front of the big tree.",
+ o:['take','make','do','give'], a:0,
+ exp:'我們在大樹前一起「拍照」吧！固定搭配是 <b>take a picture</b>（拍照）。',
+ w:[null,'make 不跟 picture 搭配成「拍照」。','do 不跟 picture 搭配。','give a picture 是「給一張照片」，意思不對。']},
+{s:'vocab', q:"It's raining hard. Don't forget to bring your ______.",
+ o:['umbrella','kite','ball','fan'], a:0,
+ exp:'雨下很大，別忘了帶「雨傘」。關鍵字 <b>raining</b>。',
+ w:[null,'kite 是風箏，下雨天不能放。','ball 是球，下雨跟球無關。','fan 是扇子，天熱時用。']},
+{s:'vocab', q:"A ______ is an animal with a very long neck. It eats leaves from tall trees.",
+ o:['monkey','giraffe','rabbit','penguin'], a:1,
+ exp:'「長頸鹿」是脖子很長的動物，吃高樹上的葉子。關鍵字 <b>long neck</b>。',
+ w:['monkey 是猴子，脖子不長。',null,'rabbit 是兔子，特色是長耳朵。','penguin 是企鵝，住在冷的地方，吃魚。']},
+{s:'vocab', q:"Mom is cooking in the ______. It smells great!",
+ o:['bathroom','bedroom','kitchen','garage'], a:2,
+ exp:'媽媽正在「廚房」煮飯，好香！<b>cooking（煮飯）</b>的地方是 kitchen。',
+ w:['bathroom 是浴室，洗澡的地方。','bedroom 是臥室，睡覺的地方。',null,'garage 是車庫，停車的地方。']},
+
+/* ===== 文法選擇 ===== */
+{s:'grammar', q:"My brother ______ basketball every Sunday.",
+ o:['play','plays','playing','is play'], a:1,
+ exp:'<b>every Sunday</b> 表示習慣 → 用現在簡單式。主詞 My brother 是第三人稱單數，動詞要加 s → <b>plays</b>。',
+ w:['play 沒有加 s，主詞 my brother 是「他」，要用 plays。',null,'playing 前面要有 be 動詞，而且 every Sunday 不用進行式。','is 和原形動詞 play 不能直接放一起。']},
+{s:'grammar', q:"Look! The children ______ in the park.",
+ o:['run','runs','are running','ran'], a:2,
+ exp:'<b>Look!（你看！）</b>表示事情正在發生 → 現在進行式「be 動詞 + V-ing」。children 是複數 → <b>are running</b>。',
+ w:['run 是一般現在式，不能表示「正在」跑。','runs 是單數用法，children 是複數，而且也不是進行式。',null,'ran 是過去式，但 Look! 表示現在正在發生。']},
+{s:'grammar', q:"A: ______ is your birthday?\nB: It's on May 5th.",
+ o:['What','Where','When','Who'], a:2,
+ exp:'回答是日期 <b>May 5th</b>，問「什麼時候」→ <b>When</b>。',
+ w:['What 問「什麼」，一般不用 What 問生日日期。','Where 問地點，答句應該是地方。',null,'Who 問人，答句應該是人名。']},
+{s:'grammar', q:"There ______ two cats under the table.",
+ o:['is','are','am','be'], a:1,
+ exp:'There is / There are 看後面的名詞：<b>two cats</b> 是複數 → <b>are</b>。',
+ w:['is 用在單數，例如 There is a cat.',null,'am 只能跟 I 一起用。','be 是原形，這裡要用變化後的 are。']},
+{s:'grammar', q:"A: ______ you like apples?\nB: Yes, I do.",
+ o:['Are','Do','Is','Does'], a:1,
+ exp:'答句是 <b>Yes, I do.</b>，而且句中有一般動詞 like → 用助動詞 <b>Do</b> 問。主詞 you 用 Do。',
+ w:['Are 是 be 動詞，回答會是 Yes, I am.，而且 like 是一般動詞，不搭 Are。',null,'Is 是 be 動詞，而且不能和 you 一起用。','Does 用在第三人稱單數（he / she / it），主詞 you 要用 Do。']},
+{s:'grammar', q:"We ______ to Kaohsiung last summer.",
+ o:['go','goes','went','going'], a:2,
+ exp:'<b>last summer（去年夏天）</b>是過去時間 → 用過去式。go 的過去式是不規則變化 <b>went</b>。',
+ w:['go 是現在式，不能用在 last summer。','goes 是現在式（第三人稱單數），而且主詞是 We。',null,'going 前面要有 be 動詞，單獨不能當動詞。']},
+{s:'grammar', q:"These are my good ______.",
+ o:['friend','friends','a friend','an friend'], a:1,
+ exp:'<b>These are</b>（這些是）是複數 → 名詞也要用複數 <b>friends</b>。',
+ w:['friend 是單數，跟 These are 不搭。',null,'a friend 是「一個朋友」，是單數。','an 用在母音開頭的字前面，friend 不是母音開頭，而且也是單數。']},
+{s:'grammar', q:"I go to school ______ bus every day.",
+ o:['on','by','in','at'], a:1,
+ exp:'表示「搭乘某種交通工具」用 <b>by + 交通工具</b>：by bus、by car、by MRT。',
+ w:['on 要說 on the bus（在公車上），不能直接 on bus。',null,'in 要說 in a car，不說 in bus。','at 是用在地點或時間，例如 at school、at 7:00。']},
+{s:'grammar', q:"Amy is ______ than her sister.",
+ o:['tall','taller','tallest','more tall'], a:1,
+ exp:'看到 <b>than（比）</b> → 用比較級。tall 是短的形容詞 → 加 er → <b>taller</b>。',
+ w:['tall 是原級，有 than 就要用比較級。',null,'tallest 是最高級（三個以上比較），通常前面有 the。','短的形容詞直接加 er，不用 more。']},
+{s:'grammar', q:"She ______ a doctor. She is a teacher.",
+ o:["isn't","doesn't","don't","aren't"], a:0,
+ exp:'「她不是醫生，她是老師。」後面接名詞 a doctor → 用 be 動詞否定。主詞 She → <b>isn\'t</b>。',
+ w:[null,"doesn't 後面要接動詞原形，例如 She doesn't like milk.，不能直接接 a doctor。","don't 用在 I / you / we / they，而且後面要接動詞。","aren't 用在 you / we / they，She 要用 isn't。"]},
+
+/* ===== 克漏字（一）信件 ===== */
+{s:'cloze', p:'letter', n:1, q:'第 (1) 格', o:['go','goes','went','will go'], a:2,
+ exp:'前面有 <b>Last weekend（上週末）</b>，是過去的事 → 過去式 <b>went</b>。',
+ w:['go 是現在式，不能描述上週末發生的事。','goes 是現在式，而且主詞 my family 這裡講的是過去。',null,'will go 是未來式，但上週末已經過去了。']},
+{s:'cloze', p:'letter', n:2, q:'第 (2) 格', o:['so','but','because','or'], a:0,
+ exp:'天氣晴朗，「所以」我們去河裡游泳。前面是原因、後面是結果 → <b>so</b>。',
+ w:[null,'but 表示「但是」，前後意思要相反；晴天和游泳並不相反。','because 後面要接「原因」，但「去游泳」是結果，不是原因。','or 表示「或者」，用在兩個選擇之間。']},
+{s:'cloze', p:'letter', n:3, q:'第 (3) 格', o:['so','but','because','if'], a:1,
+ exp:'弟弟不會游泳，「但是」他玩沙玩得很開心。前面是壞事、後面是好事，意思轉折 → <b>but</b>。',
+ w:['so 表示結果，但「不會游泳」不會造成「玩得開心」。',null,'because 表示原因，「玩得開心」不是「不會游泳」的原因。','if 表示「如果」，這裡是已經發生的事實，不是假設。']},
+{s:'cloze', p:'letter', n:4, q:'第 (4) 格', o:['am','was','will','did'], a:2,
+ exp:'<b>Next month（下個月）</b>是未來 → 未來式 <b>will + 原形動詞</b>：will visit。',
+ w:['am 後面不能直接接原形動詞 visit。','was 是過去式，而且後面也不能接原形動詞。',null,'did 是過去式助動詞，但下個月是未來。']},
+{s:'cloze', p:'letter', n:5, q:'第 (5) 格', o:['for','at','in','on'], a:0,
+ exp:'「你可以『為』我做牛肉麵嗎？」make something <b>for</b> someone 是「為某人做某物」。',
+ w:[null,'at 用在地點或時間，不能表示「為了某人」。','in 用在「在…裡面」，意思不對。','on 用在「在…上面」或星期幾，意思不對。']},
+
+/* ===== 克漏字（二）電話對話 ===== */
+{s:'cloze', p:'phone', n:6, q:'第 (6) 格', o:['Do','May','Am','Will'], a:1,
+ exp:'電話禮貌用語：<b>May I speak to + 人?</b>（請問我可以找某人聽電話嗎？）',
+ w:['Do I speak to…? 意思是「我（平常）有跟…說話嗎？」，不是電話用語。',null,'Am 後面不能接原形動詞 speak。','Will I speak to…? 是「我將會跟…說話嗎？」，不是禮貌的請求。']},
+{s:'cloze', p:'phone', n:7, q:'第 (7) 格', o:['is','are','do','does'], a:0,
+ exp:'「他現在『在』圖書館。」He + be 動詞 → <b>is</b>。at the library 是地點，用 be 動詞表示「在」。',
+ w:[null,'are 用在 you / we / they，主詞 He 要用 is。','do 是助動詞，不能表示「在某處」。','does 是助動詞，不能表示「在某處」。']},
+{s:'cloze', p:'phone', n:8, q:'第 (8) 格', o:['What','Who','When','Where'], a:2,
+ exp:'林太太回答 <b>Around five o\'clock（大約五點）</b>，是時間 → 問「什麼時候」用 <b>When</b>。',
+ w:['What will he come back? 文法不通，What 不能問回來的時間。','Who 問人，答句應該是人。',null,'Where 問地點，答句應該是地方。']},
+{s:'cloze', p:'phone', n:9, q:'第 (9) 格', o:['on','at','in','to'], a:2,
+ exp:'「在早上」固定說法是 <b>in the morning</b>（in the afternoon、in the evening 也一樣）。',
+ w:['on 用在星期或日期：on Saturday、on May 5th。','at 用在時間點：at 7:00、at night。',null,'to 表示方向「到…」，不能用在時間。']},
+{s:'cloze', p:'phone', n:10, q:'第 (10) 格', o:['helpful','angry','hungry','tired'], a:0,
+ exp:'林太太答應幫忙轉達，Kevin 謝謝她：「您真是幫了大忙」→ <b>helpful（樂於助人的）</b>。',
+ w:[null,'angry 是生氣的，道謝時不會說對方很生氣。','hungry 是肚子餓的，跟對話內容無關。','tired 是累的，跟道謝無關。']},
+
+/* ===== 閱讀（一）火車時刻表 ===== */
+{s:'reading', p:'train', q:'How long does Train 408 take from Taipei to Hualien?',
+ o:['2 hours','2 hours and 30 minutes','3 hours','1 hour and 30 minutes'], a:1,
+ exp:'408 次 07:00 出發、09:30 到達 → 09:30 − 07:00 = <b>2 小時 30 分</b>。',
+ w:['2 小時是 412 次（08:15 → 10:15）的車程。',null,'3 小時是 418 或 432 次的車程。','1 小時 30 分太短，表上沒有這麼快的車。']},
+{s:'reading', p:'train', q:'Which train is the fastest?',
+ o:['Train 408','Train 412','Train 426','Train 432'], a:1,
+ exp:'算每班車程：408＝2h30m、<b>412＝2h</b>、426＝2h10m、432＝3h。最快的是 412。',
+ w:['408 要 2 小時 30 分，比 412 慢。',null,'426 要 2 小時 10 分，比 412 慢 10 分鐘。','432 要 3 小時，是最慢的之一。']},
+{s:'reading', p:'train', q:"Mia can't get to Taipei Station before 8:00 a.m. She wants to arrive in Hualien before noon. Which train should she take?",
+ o:['Train 408','Train 412','Train 418','Train 426'], a:1,
+ exp:'條件一：8 點以後才能出發 → 408（07:00）不行。條件二：中午 12 點前到 → 418（13:30 到）、426（15:10 到）不行。只剩 <b>412</b>（08:15 出發、10:15 到）。',
+ w:['408 早上 7:00 就開了，Mia 8 點前到不了車站。',null,'418 下午 1:30 才到花蓮，超過中午。','426 下午 1:00 才出發，太晚了。']},
+{s:'reading', p:'train', q:'Mr. Wang and his 8-year-old son take Train 418 on a Monday. How much do they pay in all?',
+ o:['$340','$510','$680','$410'], a:1,
+ exp:'418 次大人票 $340。兒子 8 歲，未滿 12 歲 → 半價 $170。星期一沒有優惠。$340 + $170 = <b>$510</b>。',
+ w:['$340 只算了爸爸一個人的票。',null,'$680 是兩張全票，忘了兒子未滿 12 歲可以半價。','$410 可能是誤用了星期三折 $100 的優惠，但這天是星期一。']},
+{s:'reading', p:'train', q:'On which day can adults buy cheaper tickets?',
+ o:['Monday','Wednesday','Saturday','Sunday'], a:1,
+ exp:'表格下方寫：Every <b>Wednesday</b>: $100 off for all adult tickets（每週三大人票折 $100）。',
+ w:['表上沒有提到星期一有優惠。',null,'表上沒有提到星期六有優惠。','表上沒有提到星期日有優惠。']},
+
+/* ===== 閱讀（二）短文 ===== */
+{s:'reading', p:'story', q:'Why did Sam sit alone at lunch?',
+ o:["He didn't like the food.","He was new and didn't know anyone.","He was sick.","He wanted to read a book."], a:1,
+ exp:'第一段：Sam is <b>new at school</b>… No one talked to him. → 他是新同學、還不認識任何人。',
+ w:['文章沒有說他不喜歡食物，後來他還說 I love them!（愛吃水餃）。',null,'文章沒有提到 Sam 生病。','文章沒有提到 Sam 想看書。']},
+{s:'reading', p:'story', q:'Why did Nina feel sad when she saw Sam?',
+ o:['She also felt scared on her first day at a new school before.','She lost her lunch box.',"Sam was rude to her.","She didn't like dumplings."], a:0,
+ exp:'第二段：She remembered her first day at a new school two years ago. She was <b>scared</b>, too. → 她想起自己以前也有同樣的經驗。',
+ w:[null,'她沒有弄丟便當，她還帶著便當坐到 Sam 旁邊。','文章沒有說 Sam 沒禮貌，Sam 還對她微笑。','是 Nina 問 Sam 喜不喜歡水餃，沒有說她自己不喜歡。']},
+{s:'reading', p:'story', q:'What language did Nina use when she first talked to Sam?',
+ o:['Chinese','English','Japanese','French'], a:1,
+ exp:'文中寫 "Do you like dumplings?" she asked <b>in English</b>.',
+ w:['Sam 中文還不好，Nina 是後來才教他中文的。',null,'文章沒有提到日文。','文章沒有提到法文。']},
+{s:'reading', p:'story', q:'What do Nina and Sam often do after school?',
+ o:['They play basketball.','They play badminton.','They make dumplings.','They go to the library.'], a:1,
+ exp:'最後一句：They often play <b>badminton</b> together after school.',
+ w:['是 badminton（羽毛球），不是 basketball（籃球），兩個字很像要小心！',null,'水餃只出現在午餐的對話裡，沒說他們一起做水餃。','文章沒有提到他們放學後去圖書館。']},
+{s:'reading', p:'story', q:'What is the best title for this story?',
+ o:['How to Make Dumplings','My Trip to Canada','A New Friend at Lunch','Learning to Play Badminton'], a:2,
+ exp:'整篇在講 Nina 午餐時主動陪新同學 Sam，最後變成好朋友 → <b>A New Friend at Lunch</b>（午餐時的新朋友）。選標題要找「整篇都在講」的主題。',
+ w:['水餃只是對話中的一句，不是整篇主題。','Sam 從加拿大來，但文章沒有在講旅行。',null,'羽毛球只出現在最後一句，不是全文重點。']}
+];
+
+/* ---------- 狀態 ---------- */
+let S = null;          // 作答狀態
+let tick = null;
+
+function $(id){return document.getElementById(id)}
+function fmt(sec){sec=Math.max(0,Math.round(sec));const m=Math.floor(sec/60),s=sec%60;return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')}
+function now(){return Date.now()/1000}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+/* ---------- 首頁 ---------- */
+function home(){
+  clearInterval(tick);
+  const counts = Object.keys(SECS).map(k=>BANK.filter(q=>q.s===k).length);
+  $('app').innerHTML = `
+  <header class="hero">
+    <h1>東山英文入學挑戰</h1>
+    <div class="en">Dongshan English Challenge</div>
+    <p>依東山高中國中部入學考的四大題型設計：詞彙、文法、克漏字、閱讀。<br>正式考試英語 45 分鐘，全部是選擇題。</p>
+  </header>
+  <div class="card">
+    <h2 style="margin-top:0;font-size:1.15rem">選擇挑戰模式 <span style="color:var(--muted);font-size:.85rem">Choose a mode</span></h2>
+    <div class="modes">
+      <button class="mode" onclick="start('full')"><b>📝 全卷模擬 Full Test</b><small>${BANK.length} 題・建議 45 分鐘・模擬正式考試</small></button>
+    </div>
+    <p style="margin:14px 0 4px;font-weight:700">🎯 單元練習 Section Practice</p>
+    <div class="sec-grid">
+      ${Object.keys(SECS).map((k,i)=>`<button class="mode" onclick="start('${k}')"><b>${SECS[k].zh}</b><small>${SECS[k].en}・${counts[i]} 題</small></button>`).join('')}
+    </div>
+  </div>
+  <div class="card">
+    <details>
+      <summary>考前小提醒 Tips</summary>
+      <table class="info" style="margin-top:8px">
+        <tr><th>題型</th><th>建議每題</th><th>作答技巧</th></tr>
+        <tr><td>詞彙</td><td>45 秒</td><td>先找句子裡的關鍵字</td></tr>
+        <tr><td>文法</td><td>50 秒</td><td>看主詞、時間詞、than、Look! 等線索</td></tr>
+        <tr><td>克漏字</td><td>70 秒</td><td>空格前後一起讀，注意 so / but</td></tr>
+        <tr><td>閱讀</td><td>90 秒</td><td>先看題目再回文章找答案；圖表題要算清楚</td></tr>
+      </table>
+      <p style="font-size:.88rem;color:var(--muted)">時間到不會收卷，只會提醒你目前的作答速度。</p>
+    </details>
+  </div>`;
+}
+
+/* ---------- 開始 ---------- */
+function start(mode){
+  let qs;
+  if(mode==='full'){
+    // 詞彙、文法題序打亂；克漏字、閱讀保持文章順序
+    qs = [...shuffle(BANK.filter(q=>q.s==='vocab')), ...shuffle(BANK.filter(q=>q.s==='grammar')),
+          ...BANK.filter(q=>q.s==='cloze'), ...BANK.filter(q=>q.s==='reading')];
+  }else{
+    qs = BANK.filter(q=>q.s===mode);
+    if(mode==='vocab'||mode==='grammar') qs = shuffle(qs);
+  }
+  const budget = qs.reduce((t,q)=>t+SECS[q.s].budget,0);
+  S = { mode, qs, ans:Array(qs.length).fill(null), spent:Array(qs.length).fill(0),
+        cur:0, t0:now(), curStart:now(), budget: mode==='full'?45*60:Math.ceil(budget/60)*60, done:false };
+  renderQuiz();
+  clearInterval(tick);
+  tick = setInterval(updateBar,1000);
+}
+
+function commitTime(){ const t=now(); S.spent[S.cur]+= t-S.curStart; S.curStart=t; }
+
+function paceInfo(){
+  const elapsed = now()-S.t0;
+  const answered = S.ans.map((a,i)=>a!==null?i:-1).filter(i=>i>=0);
+  const expected = answered.reduce((t,i)=>t+SECS[S.qs[i].s].budget,0);
+  const diff = elapsed - expected;
+  if(elapsed > S.budget && S.ans.includes(null)) return {cls:'over',txt:'⏰ 已超過建議時間',diff};
+  if(answered.length===0) return {cls:'ok',txt:'🚀 開始作答吧',diff};
+  if(diff < -30) return {cls:'good',txt:'⚡ 速度超前',diff};
+  if(diff <= 60) return {cls:'ok',txt:'👍 速度剛好',diff};
+  return {cls:'slow',txt:'🐢 稍慢，不會的先跳過',diff};
+}
+
+function updateBar(){
+  if(!S||S.done) return;
+  const el = now()-S.t0;
+  const p = paceInfo();
+  if($('timer')) $('timer').textContent = fmt(el);
+  if($('pace')){ $('pace').className='pace '+p.cls; $('pace').textContent=p.txt; }
+  const n = $('overNotice');
+  if(n) n.classList.toggle('hidden', !(el > S.budget));
+}
+
+/* ---------- 作答畫面 ---------- */
+function renderQuiz(){
+  const q = S.qs[S.cur], sec = SECS[q.s];
+  const total = S.qs.length, doneN = S.ans.filter(a=>a!==null).length;
+  let passage = '';
+  if(q.p){
+    const P = PASSAGES[q.p];
+    passage = `<div class="passage"><div style="font-weight:700;color:var(--primary);margin-bottom:4px">${P.title}</div>${P.html}</div>`;
+  }
+  $('app').innerHTML = `
+  <div class="bar">
+    <div><div class="timer" id="timer">00:00</div><div class="small">建議 ${fmt(S.budget)}</div></div>
+    <span class="pace ok" id="pace">🚀 開始作答吧</span>
+    <div style="text-align:right"><div style="font-weight:700">${doneN} / ${total}</div><div class="small">已作答</div></div>
+    <div class="progress"><i style="width:${doneN/total*100}%"></i></div>
+  </div>
+  <div class="notice hidden" id="overNotice">⏰ 已超過建議的 ${Math.round(S.budget/60)} 分鐘。正式考試這時候會收卷，這裡可以繼續寫完，但要練習加快速度喔！</div>
+  <div class="card">
+    <span class="sec-tag">${sec.zh} ${sec.en}</span>
+    <span style="float:right;color:var(--muted);font-weight:700">第 ${S.cur+1} 題</span>
+    ${passage}
+    <div class="qtext">${q.q.replace(/\n/g,'<br>')}</div>
+    <div class="opts">
+      ${q.o.map((o,i)=>`<button class="opt ${S.ans[S.cur]===i?'sel':''}" onclick="pick(${i})"><span class="l">(${LETTERS[i]})</span><span>${o}</span></button>`).join('')}
+    </div>
+    <div class="nav">
+      <button class="btn btn-ghost" onclick="go(${S.cur-1})" ${S.cur===0?'disabled':''}>← 上一題</button>
+      ${S.cur<total-1
+        ? `<button class="btn btn-primary" onclick="go(${S.cur+1})">下一題 →</button>`
+        : `<button class="btn btn-accent" onclick="askSubmit()">交卷 ✓</button>`}
+    </div>
+  </div>
+  <div class="card">
+    <div style="font-weight:700;margin-bottom:8px">題號 <span style="color:var(--muted);font-weight:400;font-size:.85rem">（點題號可跳題）</span></div>
+    <div class="grid">${S.qs.map((_,i)=>`<button class="${S.ans[i]!==null?'done':''} ${i===S.cur?'cur':''}" onclick="go(${i})">${i+1}</button>`).join('')}</div>
+    <div style="text-align:center;margin-top:14px"><button class="btn btn-accent" onclick="askSubmit()">交卷 Submit</button></div>
+  </div>`;
+  if(q.n){ document.querySelectorAll('.blank').forEach(b=>{ if(+b.dataset.n===q.n) b.classList.add('now'); }); }
+  updateBar();
+}
+
+function pick(i){
+  S.ans[S.cur]=i;
+  // 選完自動跳下一題（最後一題除外）
+  if(S.cur < S.qs.length-1){ const from=S.cur; renderQuiz(); setTimeout(()=>{ if(S.cur===from && !S.done) go(from+1); },250); }
+  else renderQuiz();
+}
+function go(i){
+  if(i<0||i>=S.qs.length) return;
+  commitTime(); S.cur=i; renderQuiz(); window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function askSubmit(){
+  const left = S.ans.filter(a=>a===null).length;
+  const div = document.createElement('div');
+  div.className='modal-bg'; div.id='modal';
+  div.innerHTML = `<div class="modal">
+    <h2 style="margin-top:0;font-size:1.2rem">確定要交卷嗎？</h2>
+    <p>${left>0?`還有 <b style="color:var(--bad)">${left}</b> 題沒有作答。`:'全部都作答完了，很棒！'}</p>
+    <div class="row">
+      <button class="btn btn-ghost" onclick="document.getElementById('modal').remove()">再檢查</button>
+      <button class="btn btn-primary" onclick="submit()">交卷</button>
+    </div></div>`;
+  document.body.appendChild(div);
+}
+
+/* ---------- 結算 ---------- */
+function submit(){
+  const m=$('modal'); if(m) m.remove();
+  commitTime();
+  S.done=true; S.total=now()-S.t0; clearInterval(tick);
+  S.filter='all';
+  renderResult();
+  window.scrollTo({top:0});
+}
+
+function renderResult(){
+  const n=S.qs.length;
+  const correct = S.qs.filter((q,i)=>S.ans[i]===q.a).length;
+  const score = Math.round(correct/n*1000)/10;
+  const skipped = S.ans.filter(a=>a===null).length;
+  // 分題型統計
+  const bySec = {};
+  S.qs.forEach((q,i)=>{ bySec[q.s]=bySec[q.s]||{c:0,n:0,t:0,b:0}; const r=bySec[q.s]; r.n++; r.t+=S.spent[i]; r.b+=SECS[q.s].budget; if(S.ans[i]===q.a) r.c++; });
+  // 速度評語
+  const ratio = S.total / S.budget;
+  let paceMsg;
+  if(ratio<=0.75) paceMsg='⚡ 速度很快！記得留時間檢查，避免粗心。';
+  else if(ratio<=1) paceMsg='👍 時間控制得很好，在建議時間內完成。';
+  else if(ratio<=1.25) paceMsg='🐢 稍微超過建議時間，正式考試可能寫不完，試著先跳過難題。';
+  else paceMsg='⏰ 超過建議時間很多，先多練「先找關鍵字」的技巧來加快速度。';
+  let grade = score>=90?'🏆 太厲害了！':score>=75?'🌟 很不錯！':score>=60?'💪 再加油一點！':'📚 一起把錯題弄懂吧！';
+
+  const list = S.qs.map((q,i)=>({q,i})).filter(({q,i})=>{
+    if(S.filter==='wrong') return S.ans[i]!==q.a;
+    return true;
+  });
+
+  $('app').innerHTML = `
+  <header class="hero">
+    <h1>成績結算</h1><div class="en">Your Result</div>
+  </header>
+  <div class="card score">
+    <div style="font-size:1.2rem">${grade}</div>
+    <div class="big">${score}<small> / 100</small></div>
+    <div class="stats">
+      <div class="stat"><b>${correct} / ${n}</b><span>答對題數</span></div>
+      <div class="stat"><b>${fmt(S.total)}</b><span>作答時間（建議 ${fmt(S.budget)}）</span></div>
+      <div class="stat"><b>${skipped}</b><span>未作答</span></div>
+    </div>
+    <p style="margin:14px 0 0">${paceMsg}</p>
+  </div>
+  <div class="card">
+    <div style="font-weight:700;margin-bottom:8px">各題型表現 By Section</div>
+    <table class="info">
+      <tr><th>題型</th><th>答對</th><th style="width:30%">正確率</th><th>平均每題</th></tr>
+      ${Object.keys(bySec).map(k=>{const r=bySec[k];const avg=r.t/r.n;const slow=avg>SECS[k].budget*1.3;
+        return `<tr><td>${SECS[k].zh}</td><td>${r.c}/${r.n}</td><td><div class="meter"><i style="width:${r.c/r.n*100}%"></i></div></td>
+        <td style="color:${slow?'var(--bad)':'inherit'}">${Math.round(avg)} 秒${slow?' 🐢':''}<br><span style="font-size:.75rem;color:var(--muted)">建議 ${SECS[k].budget} 秒</span></td></tr>`}).join('')}
+    </table>
+  </div>
+  <div class="card" style="text-align:center">
+    <button class="btn btn-primary" onclick="retryWrong()" ${correct===n?'disabled':''}>🔁 重做錯題</button>
+    <button class="btn btn-ghost" onclick="home()" style="margin-left:6px">🏠 回首頁</button>
+  </div>
+  <h2 style="font-size:1.15rem;margin:20px 4px 4px">每題解析 Answer Review</h2>
+  <div class="filter">
+    <button class="${S.filter==='all'?'on':''}" onclick="S.filter='all';renderResult()">全部 ${n}</button>
+    <button class="${S.filter==='wrong'?'on':''}" onclick="S.filter='wrong';renderResult()">只看錯題 ${n-correct}</button>
+  </div>
+  ${list.length===0?'<div class="card">🎉 沒有錯題！</div>':''}
+  ${list.map(({q,i})=>reviewCard(q,i)).join('')}
+  `;
+}
+
+function reviewCard(q,i){
+  const mine=S.ans[i], ok=mine===q.a, skip=mine===null;
+  const cls = ok?'':(skip?'skip':'wrong');
+  const badge = ok?'<span class="badge ok">✓ 答對</span>':(skip?'<span class="badge sk">－ 未作答</span>':'<span class="badge no">✗ 答錯</span>');
+  const t = S.spent[i], b=SECS[q.s].budget;
+  const tBadge = `<span class="badge t">⏱ ${Math.round(t)} 秒${t>b*1.8?'（花比較久）':''}</span>`;
+  const passageLink = q.p ? `<details style="margin:6px 0"><summary>查看文章 / 圖表</summary><div class="passage">${PASSAGES[q.p].html}</div></details>` : '';
+  const opts = q.o.map((o,k)=>{
+    let c=''; if(k===q.a) c='correct'; else if(k===mine) c='mine';
+    const tag = k===q.a?' ✓ 正解':(k===mine?' ← 你的答案':'');
+    return `<div class="rv-opt ${c}">(${LETTERS[k]}) ${o}<b>${tag}</b></div>`;
+  }).join('');
+  const why = (!ok && !skip) ? `<div class="whywrong"><b>❌ 你選的 (${LETTERS[mine]}) 為什麼不對？</b><br>${q.w[mine]}</div>` : '';
+  const others = q.w.map((w,k)=> (w && k!==mine) ? `<li>(${LETTERS[k]}) ${w}</li>` : '').join('');
+  return `<div class="card review ${cls}">
+    <div class="rv-head"><div><b>第 ${i+1} 題</b> <span class="sec-tag">${SECS[q.s].zh}</span></div><div>${badge} ${tBadge}</div></div>
+    ${passageLink}
+    <div class="qtext" style="font-size:1.02rem">${q.q.replace(/\n/g,'<br>')}</div>
+    ${opts}
+    ${why}
+    <div class="exp"><b>💡 解析</b><br>${q.exp}</div>
+    ${others?`<details style="margin-top:8px"><summary>其他選項為什麼錯</summary><ul style="margin:6px 0;padding-left:20px;font-size:.93rem">${others}</ul></details>`:''}
+  </div>`;
+}
+
+function retryWrong(){
+  const wrong = S.qs.filter((q,i)=>S.ans[i]!==q.a);
+  if(!wrong.length) return;
+  const budget = wrong.reduce((t,q)=>t+SECS[q.s].budget,0);
+  S = { mode:'retry', qs:wrong, ans:Array(wrong.length).fill(null), spent:Array(wrong.length).fill(0),
+        cur:0, t0:now(), curStart:now(), budget:Math.ceil(budget/60)*60, done:false };
+  renderQuiz(); clearInterval(tick); tick=setInterval(updateBar,1000); window.scrollTo({top:0});
+}
+
+home();
+</script>
+</body>
+</html>
