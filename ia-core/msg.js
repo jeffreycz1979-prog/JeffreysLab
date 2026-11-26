@@ -326,7 +326,7 @@
     return t;
   };
   // 老師帳號：後台會回傳所有班的分身 → 只留這座島的班（看學號前兩碼）；學生本來就只拿到同班
-  const MATE_PREFIX = { thp5: ['05'], 'ia-core': [], 'vocab-thp11': ['11'], thc6: ['61', '62'] }[typeof APP_ID !== 'undefined' ? APP_ID : ''];
+  const MATE_PREFIX = { thp5: ['05'], 'ia-core': ['13', '14', '15', '16', '17', '18'], 'vocab-thp11': ['11'], thc6: ['61', '62'] }[typeof APP_ID !== 'undefined' ? APP_ID : ''];
   const hereMate = (m) => !MATE_PREFIX || MATE_PREFIX.some((p) => String(m.key).startsWith(p));
   function mates() {
     if (!on()) return [];
